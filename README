@@ -1,0 +1,172 @@
+Dockbar Experimental 0.20.8
+
+Description:
+This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
+
+This is not really a fork of DockBar! It's just an experimental version. Some of the features in this version will hopefully find it's way into the vanilla DockBar some day, when they are proven stable and useful.
+
+Experimental features (Features that isn't in vanilla DockBar 0.20):
+- New popup look
+- Launchers
+- Notifications for focused window on group button as well as on window button
+- Minimize animation is aiming for the group button of the program.
+- All mouse button actions are configurable
+- Behavior when multiple workspaces or viewports are used are configurable
+
+Dockbar is made by Aleksey Shaferov
+Experimental features by Matias Särs
+
+*Note!*
+Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of class name to hold the groups together. That means that you have to remove and re-add your launchers to get the launcher to recognize it's windows correctly (unless the application has the same resource class name and class name, like Firefox amongst others).
+
+
+Change log:
+Experimental 0.20.8
+- Resource class name is used instead of class name to keep groups together. Before this change DockBarX couldn't recognize that windows of some applications (like video window and control window for xine-ui) belonged together. Some applications (vlc amongst others) don't have a resource class name. These applications will still be using their class name.
+- DockBarX tries to find the correct name for the application to show in the popup instead of just showing the class name. The algorithm is far from perfect. Please report any really odd names!
+- If you need to know the resolution class name for adding a launcher, it's added as a tooltip to the title of the popup window.
+- Another stupid bug fixed. (Hopefully this bug fix will stop jaunty from giving false crash reports for DockBarX.)
+
+Experimental 0.20.7
+- A completely redesigned popup look (with transparency if compositing is used)
+- The light-up effect is removed from launcher rollover and the name of the application is shown instead. (Feedback needed: is this an improvement or not?)
+
+Experimental 0.20.6
+- Bug fix: Some programs (wine and possibly others) didn't show up in DockBar.
+- Bug fix: Popup list blocks the popup menu. (This was actually already fixed in a silent update of 0.20.5, I apologize for not announcing it.)
+
+Experimental 0.20.5
+- New more intuitive look on minimized and locked window buttons
+
+Experimental 0.20.4
+- Adjustable popup delay (default 250 ms)
+- As requested: Popup window alignment can be set in the preference dialog (Center alignment default)
+- Dockbar now uses other gconf values than just strings (doesn't matter to you End-Users, unless you want to change settings with gconf-editor instead of preference dialog) 
+
+Experimental 0.20.3
+- Bug fix: DockBar won't crash if it can't find launcher_icon.png or active_icon.png
+- Minor bug fixed: The popup list is closed when the viewport changes because of select group or select window actions. This way there are no risk that the popup is left open even if the mouse moved away from the group button during the switch animation.
+
+Experimental 0.20.2
+- The stupid bug fixed
+
+Experimental 0.20
+- The name is changed to DockBar Experimental or dockbarx for short to make it possible to have both vanilla DockBar
+  and Dockbar Experimental installed at the same time. 
+- Features ported back from vanilla DockBar 0.20 and 0.19:
+   - Preference and about dialog, gconf configuration
+   - Configurable "needs attention" effect
+   - Group button actions "Minimize all other groups" and "Compiz scale" (can be assigned to any mouse button)
+   - Bug fixes and other stuff I forgot to mention
+- All buttons are configurable in Preference dialog
+- New group button actions
+   - Launch application (on shift + left click as default)
+   - Select group (no minimize)
+   - Minimize all windows (no select)
+- Behavior when multiple workspaces or viewports are used are configurable from Preference dialog
+- The popup window is centered over the group button now
+- Code cleanup and some bug fixes
+- A new good-looking launcher button image that works against both light and dark backgrounds, made by Sami Rissanen (st6)  
+
+        
+0.13-l3
+- Notifications for for windows that requires urgent attention.
+- Dockbar won't crash if there are no launcher_icon.png or active_icon.png, it will just warn you that it might look uglier.
+- launcher_icon.png and active_icon.png can be stored in /usr/share/pixmaps/dockbar for system wide installations of DockBar.
+
+0.13-l2
+- Right click on group button closes mouseover-popup windows and no mouseover-popup windows will open until the right click menu is closed
+
+0.13-l
+-First real public release
+
+
+Stability:
+This is an experimental version. In one sense that means less stability. I will try to keep this program stable in the sense "as few bugs as possible", of course. It won't be stable in the sense that the programs default behavior will stay the same from a version to the next.
+
+
+=======
+INSTALL
+=======
+- install python-gnome2-desktop and python-numpy (Dockbar Experimental might be able to run without python-numpy, but it shouldn't hurt)
+- copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers
+- make a folder ~/.dockbar and copy launcher_icon.png and active_icon.png to it
+    - for a system wide installation make the folder /usr/share/pixmaps/dockbar and copy the files there instead
+- add DockBar applet (Experimental Version) to panel
+
+You can run it in window (meant for debugging purposes, mostly):
+dockbarx.py run-in-window
+
+
+=====
+USAGE
+=====
+
+*NOTE!* 
+Default buttons are NOT the same as in vanilla Dockbar. All buttons are configurable in preference dialog.
+
+Window button:
+left click:
+- activate / minimize / unminimize
+
+middle click:
+- close window
+
+right click:
+- minimize and lock
+
+Group button:
+left click:
+- activate / minimize / unminimize group (launch application if no window is open)
+
+shift + left click:
+- launch application
+
+middle double click:
+- close group of windows
+
+right click:
+-open 'menu'
+
+
+Add launchers:
+To add launchers simply drag the launcher you want from your gnome menu to the DockBar. (That means that you should drop it ON an existing button, not to the right or left of them. If you drop the launcher to the right of the buttons you will drop it on the panel and not on the DockBar applet). Write in the resource class name of the application whose launcher you added in the entry dialog and press OK (if the program is already running you can choose the resource class name from the drop down list). The launcher will appear after (on the right side) of the button you dropped the launcher of.
+
+Remove launcher:
+Right click on the launcher you wish to remove. Choose 'Remove launcher' from the menu. This will also close all open windows of that group button.
+
+Move launchers (and other group buttons):
+Drag and drop ;)
+
+
+Workspace/viewport behavior:
+You can change how DockBar reacts when you select a group (left click on the group icon if the default is used) from preference window.
+
+Ignore: Acts as if windows on other workspaces and viewport doesn't exist.
+
+Switch: Behaves as ignore if there are windows belonging to the group on the current workspace/viewport. If there are no windows belonging to the group on the current workspace/viewport it switches to the workspace/viewport with most windows that belong to the group. This is the default behavior.
+
+Move: Moves windows from other workspaces/viewports to current workspace/viewport. This is the behavior vanilla Dockbar 0.20 uses.
+
+If you select a window in the popup list you will always switch to the workspace/viewport of the window. This is not configurable (vanilla Dockbar behaves the same way).
+
+
+===
+FAQ
+===
+Q: Help!?! I want to add an launcher but I don't know the resource class name of the program.
+A1: The easiest way to add a launcher is to start the program first and then drag the launcher to to the DockBar. The resource class name can then be found in the drop down list.
+A2: You can also find the resolution class name by: 1) launching the program your usual way, 2) when the icon appears in DockBar, hower over it and 3) when the popup window is shown, hower over the popup window title. The resource class name will be shown as a tooltip.
+
+
+Q: I don't like the looks of launcher buttons/That yellow line under the picture is ugly. How can I change it?
+A: You can change the looks of the launcher button by editing ~/.dockbar/launcher_icon.png (if you have no ~/.dockbar/launcher_icon.png, copy it from /usr/share/pixmaps/dockbar/launcher_icon.png). The yellow line is ~/.dockbar/active_icon.png (or /usr/share/pixmaps/dockbar/active_icon.png). You can change them however you want as long as they are png-files. 
+
+If you have an artistic personality and make a beautiful launcher_icon.png and/or active_icon.png, don't hesitate to send it to me. I hope I will be able to publish a package of alternative launcher icons soon.
+
+The current launcher_icon.png is made by Sami Rissanen (st6). 
+
+
+
+
+
