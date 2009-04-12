@@ -1,4 +1,4 @@
-Dockbar Experimental 0.20.8
+Dockbar Experimental 0.21.0
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
@@ -21,6 +21,10 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
+Experimental 0.21.0
+- Version number changed to follow vanilla Dockbar (nothing ported over from vanilla Dockbar since 0.21 was a bugfix release for bugs - unless I'm mistaken - shouldn't exist in DockbarX)
+- Minimized group icons are less transparent and has a slight notion of color in them
+
 Experimental 0.20.8
 - Resource class name is used instead of class name to keep groups together. Before this change DockBarX couldn't recognize that windows of some applications (like video window and control window for xine-ui) belonged together. Some applications (vlc amongst others) don't have a resource class name. These applications will still be using their class name.
 - DockBarX tries to find the correct name for the application to show in the popup instead of just showing the class name. The algorithm is far from perfect. Please report any really odd names!
