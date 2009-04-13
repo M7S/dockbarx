@@ -24,6 +24,8 @@ Change log:
 Experimental 0.21.0
 - Version number changed to follow vanilla Dockbar (nothing ported over from vanilla Dockbar since 0.21 was a bugfix release for bugs - unless I'm mistaken - shouldn't exist in DockbarX)
 - Minimized group icons are less transparent and has a slight notion of color in them
+- The transition between the "minimized" and the "normal" half of the group button when some windows in a group are minimized is now smoother.
+- The group button holding the active button "glows" now instead of using active_icon.png. (Tell me if the glow is a good idea or not. If it is I will add options for changing it's color and thickness from the preference dialog, othervice I will remove it and go back to using active_icon.)
 
 Experimental 0.20.8
 - Resource class name is used instead of class name to keep groups together. Before this change DockBarX couldn't recognize that windows of some applications (like video window and control window for xine-ui) belonged together. Some applications (vlc amongst others) don't have a resource class name. These applications will still be using their class name.
@@ -163,10 +165,10 @@ A1: The easiest way to add a launcher is to start the program first and then dra
 A2: You can also find the resolution class name by: 1) launching the program your usual way, 2) when the icon appears in DockBar, hower over it and 3) when the popup window is shown, hower over the popup window title. The resource class name will be shown as a tooltip.
 
 
-Q: I don't like the looks of launcher buttons/That yellow line under the picture is ugly. How can I change it?
-A: You can change the looks of the launcher button by editing ~/.dockbar/launcher_icon.png (if you have no ~/.dockbar/launcher_icon.png, copy it from /usr/share/pixmaps/dockbar/launcher_icon.png). The yellow line is ~/.dockbar/active_icon.png (or /usr/share/pixmaps/dockbar/active_icon.png). You can change them however you want as long as they are png-files. 
+Q: I don't like the looks of launcher buttons. How can I change it?
+A: You can change the looks of the launcher button by editing ~/.dockbar/launcher_icon.png (if you have no ~/.dockbar/launcher_icon.png, copy it from /usr/share/pixmaps/dockbar/launcher_icon.png). You can change it however you want as long as it is a png-file. 
 
-If you have an artistic personality and make a beautiful launcher_icon.png and/or active_icon.png, don't hesitate to send it to me. I hope I will be able to publish a package of alternative launcher icons soon.
+If you have an artistic personality and make a beautiful launcher_icon.png, don't hesitate to send it to me. I hope I will be able to publish a package of alternative launcher icons soon.
 
 The current launcher_icon.png is made by Sami Rissanen (st6). 
 

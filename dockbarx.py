@@ -394,10 +394,9 @@ class IconFactory():
         glow.composite(bg, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
         # The glow should be above the icon on places where
         # the icon touches the borders. This must be dealt with
-        # before the icon placed on the glow
-        
+        # before the icon placed on the glow 
         colorpb.composite(pixbuf2, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
-        pixbuf.composite(pixbuf2, 1, 1, self.size-1, self.size-1, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        pixbuf.composite(pixbuf2, 1, 1, self.size-2, self.size-2, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         # Now add the pixbuf above the glow
         pixbuf2.composite(bg, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
