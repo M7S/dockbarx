@@ -29,7 +29,6 @@ import wnck
 import gnomeapplet
 import gnome
 import gconf
-##import gc
 import os
 import pickle
 from xdg.DesktopEntry import DesktopEntry
@@ -37,9 +36,9 @@ import gnome.ui
 import gnomevfs
 import dbus
 import pango
+from cStringIO import StringIO
 
 from math import pi
-from gtk import gdk
 import cairo
 
 try:
@@ -210,7 +209,7 @@ class IconFactory():
             pixbuf = self.get_icon_pixbuf().copy()
             
             if type == self.HALF_TRANSPARENT:
-                pixbuf = self.add_half_transparency(pixbuf)
+                pixbuf = self.make_partly_minimized_icon(pixbuf)
             elif type == self.TRANSPARENT:
                 pixbuf = self.add_full_transparency(pixbuf)
             elif type == self.LAUNCHER:
@@ -318,14 +317,38 @@ class IconFactory():
                         return icon
         return None
     
-    def add_half_transparency(self, pixbuf):
-        # Makes the left half of the icon transparent
-        icon_halftransp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
-        icon_halftransp.fill(0x00000000)
-        pixbuf.composite(icon_halftransp, 0, 0, self.size/2, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 190)
-        icon_halftransp.saturate_and_pixelate(icon_halftransp,0.14,False)
-        pixbuf.composite(icon_halftransp, self.size/2, 0, self.size/2, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        return icon_halftransp
+    def make_partly_minimized_icon(self, pixbuf):
+        if self.size == 1:
+            return pixbuf
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.size, self.size)
+        context = cairo.Context(surface)
+        ctx = gtk.gdk.CairoContext(context)
+
+        linear = cairo.LinearGradient(0, 0, self.size, 0)
+        linear.add_color_stop_rgba(0.4, 0, 0, 0, 0.5)
+        linear.add_color_stop_rgba(0.6, 0, 0, 0, 1)
+        pixbuf_transp = self.add_full_transparency(pixbuf)
+        ctx.set_source_pixbuf(self.add_full_transparency(pixbuf), 0, 0)
+        #ctx.mask(linear)
+        ctx.paint()
+
+        linear = cairo.LinearGradient(0, 0, self.size, 0)
+        linear.add_color_stop_rgba(0.4, 0, 0, 0, 1)
+        linear.add_color_stop_rgba(0.6, 0, 0, 0, 0)
+        ctx.set_source_pixbuf(pixbuf, 0, 0)
+        ctx.mask(linear)
+        
+
+        
+        sio = StringIO()
+        surface.write_to_png(sio)
+        sio.seek(0)
+        loader = gtk.gdk.PixbufLoader()
+        loader.write(sio.getvalue())
+        loader.close()
+        sio.close()
+        return loader.get_pixbuf()
+
     
     def add_full_transparency(self, pixbuf):
         icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
