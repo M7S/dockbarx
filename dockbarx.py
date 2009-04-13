@@ -216,7 +216,7 @@ class IconFactory():
                 pixbuf = self.make_launcher_icon(pixbuf)
 
             if active == self.ACTIVE:
-                pixbuf = self.add_active_icon(pixbuf)
+                pixbuf = self.add_glow(pixbuf)
 
             if effect == self.BRIGHT: 
                 pixbuf = self.colorshift(pixbuf, 50)
@@ -374,6 +374,33 @@ class IconFactory():
         overlay = self.active_icon.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
         overlay.composite(pixbuf, 0, 0, self.size, self.size, 0, 0, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return pixbuf
+    
+    def add_glow(self, pixbuf):
+        # RGB colors (0-255)
+        r, b, g = 255, 255, 117
+        # Transparency (0-255)
+        tr = 128
+        # Thickness (pixels)
+        tk = 1
+        
+        colorpb = self.colorize_pixbuf(pixbuf, r, b, g)
+        bg = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
+        bg.fill(0x00000000)
+        glow = bg.copy()
+        pixbuf2 = bg.copy()
+        # Prepare the glow that should be put bind the icon
+        for x, y in ((-tk,-tk), (-tk,tk), (tk,-tk), (tk,tk)):
+            colorpb.composite(glow, 0, 0, self.size, self.size, x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 190)
+        glow.composite(bg, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
+        # The glow should be above the icon on places where
+        # the icon touches the borders. This must be dealt with
+        # before the icon placed on the glow
+        
+        colorpb.composite(pixbuf2, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
+        pixbuf.composite(pixbuf2, 1, 1, self.size-1, self.size-1, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        # Now add the pixbuf above the glow
+        pixbuf2.composite(bg, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        return bg
         
     def add_red_background(self, pixbuf):
         background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
@@ -396,6 +423,15 @@ class IconFactory():
                 pix[0] = min(255, int(pix[0]) + shift)
                 pix[1] = min(255, int(pix[1]) + shift)
                 pix[2] = min(255, int(pix[2]) + shift)
+        return pixbuf
+    
+    def colorize_pixbuf(self, pixbuf, r, b, g):
+        pixbuf = pixbuf.copy()
+        for row in pixbuf.get_pixels_array():
+            for pix in row:
+                pix[0] = r
+                pix[1] = b
+                pix[2] = g
         return pixbuf
 
     
