@@ -189,7 +189,9 @@ class IconFactory():
                                ([None, None], [None, None], [None, None]) )
                             
     def set_size(self, size):
-        self.size = size
+        # The icons should be smaller than the given size 
+        # to make room for glow effect outside of the icon
+        self.size = max(size - 2, 1) 
         # Reload the icon in the right size
         self.pixbuf = self.find_icon_pixbuf(self.size)
         if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
@@ -201,19 +203,23 @@ class IconFactory():
                                ([None, None], [None, None], [None, None]),
                                ([None, None], [None, None], [None, None]) )
         
+        
     def pixbuf_update(self, type = NORMAL, effect = NO_EFFECT, active = NOT_ACTIVE):
         if self.pixbuf_matrix[type][effect][active]:
             return self.pixbuf_matrix[type][effect][active]
         else:
             # Get the icon (a copy just in case to avoid possible segfault).
             pixbuf = self.get_icon_pixbuf().copy()
+            if type == self.LAUNCHER:
+                pixbuf = self.make_launcher_icon(pixbuf)
+                
+            pixbuf =  self.pixbuf_add_border(pixbuf, 1)
             
             if type == self.HALF_TRANSPARENT:
                 pixbuf = self.make_partly_minimized_icon(pixbuf)
             elif type == self.TRANSPARENT:
                 pixbuf = self.add_full_transparency(pixbuf)
-            elif type == self.LAUNCHER:
-                pixbuf = self.make_launcher_icon(pixbuf)
+            
 
             if active == self.ACTIVE:
                 pixbuf = self.add_glow(pixbuf)
@@ -317,14 +323,20 @@ class IconFactory():
                         return icon
         return None
     
+    def pixbuf_add_border(self, pixbuf, b):
+        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width() + b*2, pixbuf.get_height() + b*2)
+        background.fill(0x00000000)
+        pixbuf.composite(background, b, b, pixbuf.get_width(), pixbuf.get_height(), b, b, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        return background
+    
     def make_partly_minimized_icon(self, pixbuf):
-        if self.size == 1:
+        if self.size <= 1:
             return pixbuf
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.size, self.size)
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
         context = cairo.Context(surface)
         ctx = gtk.gdk.CairoContext(context)
 
-        linear = cairo.LinearGradient(0, 0, self.size, 0)
+        linear = cairo.LinearGradient(0, 0, pixbuf.get_width(), 0)
         linear.add_color_stop_rgba(0.4, 0, 0, 0, 0.5)
         linear.add_color_stop_rgba(0.6, 0, 0, 0, 1)
         pixbuf_transp = self.add_full_transparency(pixbuf)
@@ -332,7 +344,7 @@ class IconFactory():
         #ctx.mask(linear)
         ctx.paint()
 
-        linear = cairo.LinearGradient(0, 0, self.size, 0)
+        linear = cairo.LinearGradient(0, 0, pixbuf.get_width(), 0)
         linear.add_color_stop_rgba(0.4, 0, 0, 0, 1)
         linear.add_color_stop_rgba(0.6, 0, 0, 0, 0)
         ctx.set_source_pixbuf(pixbuf, 0, 0)
@@ -351,28 +363,29 @@ class IconFactory():
 
     
     def add_full_transparency(self, pixbuf):
-        icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
+        icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         icon_transp.fill(0x00000000)
-        pixbuf.composite(icon_transp, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 190)
+        pixbuf.composite(icon_transp, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 190)
         icon_transp.saturate_and_pixelate(icon_transp, 0.14, False)
         return icon_transp
     
     def make_launcher_icon(self, pixbuf):
         # make icon smaller than pixbuf
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
+        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         background.fill(0x00000000)
-        small_size = int(0.80 * self.size)
+        size =pixbuf.get_width()
+        small_size = int(0.80 * size)
         pixbuf = pixbuf.scale_simple(small_size, small_size, gtk.gdk.INTERP_BILINEAR)
-        offset = int((self.size - small_size) / 2 + 0.5)
+        offset = int((size - small_size) / 2 + 0.5)
         pixbuf.composite(background, offset, offset, small_size, small_size, offset ,offset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         # add the overlay
-        overlay = self.launcher_icon.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
+        overlay = self.launcher_icon.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
         overlay.composite(background, 0, 0, overlay.props.width, overlay.props.height, 0, 0, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
     
     def add_active_icon(self, pixbuf):
-        overlay = self.active_icon.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
-        overlay.composite(pixbuf, 0, 0, self.size, self.size, 0, 0, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+        overlay = self.active_icon.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
+        overlay.composite(pixbuf, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return pixbuf
     
     def add_glow(self, pixbuf):
@@ -384,31 +397,25 @@ class IconFactory():
         tk = 2
         
         colorpb = self.colorize_pixbuf(pixbuf, r, b, g)
-        bg = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
+        bg = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         bg.fill(0x00000000)
         glow = bg.copy()
-        pixbuf2 = bg.copy()
         # Prepare the glow that should be put bind the icon
         tk1 = tk - int(tk/2)
         for x, y in ((-tk1,-tk1), (-tk1,tk1), (tk1,-tk1), (tk1,tk1)):
-            colorpb.composite(glow, 0, 0, self.size, self.size, x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 170)
+            colorpb.composite(glow, 0, 0, pixbuf.get_width(), pixbuf.get_height(), x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 170)
         for x, y in ((-tk,-tk), (-tk,tk), (tk,-tk), (tk,tk)):
-            colorpb.composite(glow, 0, 0, self.size, self.size, x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 70)
-        glow.composite(bg, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
-        # The glow should be above the icon on places where
-        # the icon touches the borders. This must be dealt with
-        # before the icon placed on the glow 
-        colorpb.composite(pixbuf2, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
-        pixbuf.composite(pixbuf2, 1, 1, self.size-2, self.size-2, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+            colorpb.composite(glow, 0, 0, pixbuf.get_width(), pixbuf.get_height(), x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 70)
+        glow.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
         # Now add the pixbuf above the glow
-        pixbuf2.composite(bg, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
         
     def add_red_background(self, pixbuf):
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
+        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         #Red background
         background.fill(0xFF000088)
-        pixbuf.composite(background, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return background
         
     def greyscale(self, pixbuf):
@@ -980,11 +987,11 @@ class GroupButton ():
         
         self.menu = self.create_menu()
         hbox = gtk.HBox()
-        if self.dockbar.orient == "v":
-            size = self.button.get_allocation().width
-        else:
-            size = self.button.get_allocation().height
-        self.icon_factory.set_size(size)
+##        if self.dockbar.orient == "v":
+##            size = self.button.get_allocation().width
+##        else:
+##            size = self.button.get_allocation().height
+##        self.icon_factory.set_size(size)
         hbox.add(self.image)
         self.button.add(hbox)
         self.button.show_all()
@@ -1079,11 +1086,11 @@ class GroupButton ():
     def sizealloc(self,applet,allocation):
         # This is called every time the size changes AND when the eventbox is first drawn on the screen.
         if self.dockbar.orient == "v":
-            if not self.image.get_pixbuf() or self.image.get_pixbuf().get_width() != self.button.get_allocation().width:
+            if not self.image.get_pixbuf() or self.image.get_pixbuf().get_width() != allocation.width:
                 self.icon_factory.set_size(self.button.get_allocation().width)
                 self.update_state()
         else:
-            if not self.image.get_pixbuf() or self.image.get_pixbuf().get_height() != self.button.get_allocation().height:
+            if not self.image.get_pixbuf() or self.image.get_pixbuf().get_height() != allocation.height:
                 self.icon_factory.set_size(self.button.get_allocation().height)
                 self.update_state()
         
@@ -1260,7 +1267,9 @@ class GroupButton ():
             self.minimized_windows_count += 1
         if (self.launcher and len(self.windows)==1):
             self.class_group = window.get_class_group()
-        self.update_state()
+        # Update state unless the button hasn't been shown yet.
+        if self.button.get_allocation().width >1:
+            self.update_state()
         
         #Update popup-list if it is being shown.
         if self.popup_showing:
@@ -1268,7 +1277,7 @@ class GroupButton ():
             gobject.idle_add(self.show_list)
         
         # Set minimize animation 
-        #(if the eventbox is created already, otherwice the icon animation is set in sizealloc())
+        # (if the eventbox is created already, otherwice the icon animation is set in sizealloc())
         if self.button.window:
             x, y = self.button.window.get_origin()
             a = self.button.get_allocation()
@@ -2141,8 +2150,7 @@ class DockBar():
                 self.container = gtk.VBox()
             applet.connect("change-orient",self.change_orient)
             applet.add(self.container)
-            applet.connect("size-allocate",self.applet_size_alloc)
-            applet.connect("realize", self.applet_realize)
+            ##applet.connect("size-allocate",self.applet_size_alloc)
             self.pp_menu_xml = """
             <popup name="button3">
                 <menuitem name="About Item" verb="About" stockid="gtk-about" />
@@ -2156,15 +2164,14 @@ class DockBar():
             self.container = gtk.HBox()
             self.orient = "h"
             gobject.idle_add(self.applet_realize, None)
-        self.container.set_spacing(2)
+        self.container.set_spacing(0)
         self.container.show()
         
         # Get list of launchers
         self.dockbar_folder = self.ensure_dockbar_folder()
         self.launchers_persistentlist = PersistentList(self.dockbar_folder + "/launchers.list")
         self.launchers = self.launchers_persistentlist.read_list()
-            
-    def applet_realize(self, applet):
+        
         self.screen.connect("window-opened",self.window_opened)
         self.screen.connect("window-closed",self.window_closed)
         self.screen.connect("active-window-changed", self.active_window_changed)  
