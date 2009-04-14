@@ -24,6 +24,7 @@ Change log:
 Experimental 0.21.1
 - The icons are now 2 pixels shorter on height and width. This will ensure a pixel on every side of the icon reserved for the active glow.
 - The active glow is now changed to utilize it's extra space (meaning the glow is no longer overlapping the icon near the borders).
+- The glow is now thicker and is fading towards it's ends.
 - Some code clean up.
 
 Experimental 0.21.0
