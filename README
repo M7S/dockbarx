@@ -1,4 +1,4 @@
-Dockbar Experimental 0.21.1
+Dockbar Experimental 0.21.1.1
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
@@ -21,6 +21,10 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
+Experimental 0.21.1.1
+- Bugfix: stupid bug stoping dockbarx from running in window.
+- Slighty less transparency on active glow
+
 Experimental 0.21.1
 - The icons are now 2 pixels shorter on height and width. This will ensure a pixel on every side of the icon reserved for the active glow.
 - The active glow is now changed to utilize it's extra space (meaning the glow is no longer overlapping the icon near the borders).
