@@ -381,7 +381,7 @@ class IconFactory():
         # Transparency (0-255)
         tr = 128
         # Thickness (pixels)
-        tk = 1
+        tk = 2
         
         colorpb = self.colorize_pixbuf(pixbuf, r, b, g)
         bg = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
@@ -389,8 +389,11 @@ class IconFactory():
         glow = bg.copy()
         pixbuf2 = bg.copy()
         # Prepare the glow that should be put bind the icon
+        tk1 = tk - int(tk/2)
+        for x, y in ((-tk1,-tk1), (-tk1,tk1), (tk1,-tk1), (tk1,tk1)):
+            colorpb.composite(glow, 0, 0, self.size, self.size, x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 170)
         for x, y in ((-tk,-tk), (-tk,tk), (tk,-tk), (tk,tk)):
-            colorpb.composite(glow, 0, 0, self.size, self.size, x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 190)
+            colorpb.composite(glow, 0, 0, self.size, self.size, x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 70)
         glow.composite(bg, 0, 0, self.size, self.size, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
         # The glow should be above the icon on places where
         # the icon touches the borders. This must be dealt with
