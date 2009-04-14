@@ -1,11 +1,11 @@
-Dockbar Experimental 0.21.0
+Dockbar Experimental 0.21.1
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
 
 This is not really a fork of DockBar! It's just an experimental version. Some of the features in this version will hopefully find it's way into the vanilla DockBar some day, when they are proven stable and useful.
 
-Experimental features (Features that isn't in vanilla DockBar 0.20):
+Experimental features (Features that isn't in vanilla DockBar 0.21):
 - New popup look
 - Launchers
 - Notifications for focused window on group button as well as on window button
@@ -21,6 +21,11 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
+Experimental 0.21.1
+- The icons are now 2 pixels shorter on height and width. This will ensure a pixel on every side of the icon reserved for the active glow.
+- The active glow is now changed to utilize it's extra space (meaning the glow is no longer overlapping the icon near the borders).
+- Some code clean up.
+
 Experimental 0.21.0
 - Version number changed to follow vanilla Dockbar (nothing ported over from vanilla Dockbar since 0.21 was a bugfix release for bugs - unless I'm mistaken - shouldn't exist in DockbarX)
 - Minimized group icons are less transparent and has a slight notion of color in them
