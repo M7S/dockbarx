@@ -2163,7 +2163,6 @@ class DockBar():
         else:
             self.container = gtk.HBox()
             self.orient = "h"
-            gobject.idle_add(self.applet_realize, None)
         self.container.set_spacing(0)
         self.container.show()
         
