@@ -392,7 +392,7 @@ class IconFactory():
         # RGB colors (0-255)
         r, b, g = 255, 255, 117
         # Transparency (0-255)
-        tr = 128
+        tr = 160
         # Thickness (pixels)
         tk = 2
         
