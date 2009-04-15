@@ -188,11 +188,19 @@ class IconFactory():
                                ([None, None], [None, None], [None, None]),
                                ([None, None], [None, None], [None, None]) )
                             
+    def __del__(self):
+        self.apps_by_id = None
+        self.launcher = None
+        self.class_group = None
+        self.pixbuf = None
+        del self.pixbuf_matrix
+        self.pixbuf_matrix = None
+                            
     def set_size(self, size):
         # The icons should be smaller than the given size 
         # to make room for glow effect outside of the icon
         self.size = max(size - 2, 1) 
-        # Reload the icon in the right size
+        # Reload the icon in the right size.
         self.pixbuf = self.find_icon_pixbuf(self.size)
         if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
             self.pixbuf = self.pixbuf.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
@@ -208,8 +216,11 @@ class IconFactory():
         if self.pixbuf_matrix[type][effect][active]:
             return self.pixbuf_matrix[type][effect][active]
         else:
+            if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
+                self.pixbuf = self.pixbuf.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
             # Get the icon (a copy just in case to avoid possible segfault).
             pixbuf = self.get_icon_pixbuf().copy()
+                
             if type == self.LAUNCHER:
                 pixbuf = self.make_launcher_icon(pixbuf)
                 
@@ -1084,7 +1095,8 @@ class GroupButton ():
         
         
     def sizealloc(self,applet,allocation):
-        # This is called every time the size changes AND when the eventbox is first drawn on the screen.
+        if allocation.height<=1:
+            return
         if self.dockbar.orient == "v":
             if not self.image.get_pixbuf() or self.image.get_pixbuf().get_width() != allocation.width:
                 self.icon_factory.set_size(self.button.get_allocation().width)
@@ -1252,6 +1264,8 @@ class GroupButton ():
 
 
     def __del__(self):
+        if self.button:
+            self.button.destroy()
         self.button = None
         self.popup = None
         self.windows = None
@@ -1268,7 +1282,7 @@ class GroupButton ():
         if (self.launcher and len(self.windows)==1):
             self.class_group = window.get_class_group()
         # Update state unless the button hasn't been shown yet.
-        if self.button.get_allocation().width >1:
+        if self.button.get_allocation().width>1:
             self.update_state()
         
         #Update popup-list if it is being shown.
@@ -2149,6 +2163,7 @@ class DockBar():
                 self.orient = "v"
                 self.container = gtk.VBox()
             applet.connect("change-orient",self.change_orient)
+            applet.connect("delete-event",self.cleanup)
             applet.add(self.container)
             ##applet.connect("size-allocate",self.applet_size_alloc)
             self.pp_menu_xml = """
@@ -2376,7 +2391,8 @@ class DockBar():
         #print list
         self.launchers_persistentlist.write_list(list)
         
-            
+    def cleanup(self,event):
+        del self.applet
             
         
     def debug_list(self):
