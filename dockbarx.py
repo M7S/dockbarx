@@ -216,8 +216,6 @@ class IconFactory():
         if self.pixbuf_matrix[type][effect][active]:
             return self.pixbuf_matrix[type][effect][active]
         else:
-            if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
-                self.pixbuf = self.pixbuf.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
             # Get the icon (a copy just in case to avoid possible segfault).
             pixbuf = self.get_icon_pixbuf().copy()
                 
@@ -226,15 +224,17 @@ class IconFactory():
                 
             pixbuf =  self.pixbuf_add_border(pixbuf, 1)
             
+            if active == self.ACTIVE:
+                pixbuf = self.add_glow(pixbuf)
+            
             if type == self.HALF_TRANSPARENT:
-                pixbuf = self.make_partly_minimized_icon(pixbuf)
+                pixbuf2 = self.get_icon_pixbuf().copy()
+                pixbuf2 = self.pixbuf_add_border(pixbuf2, 1)
+                pixbuf2 = self.add_full_transparency(pixbuf2)
+                pixbuf = self.combine_icons(pixbuf,pixbuf2)
             elif type == self.TRANSPARENT:
                 pixbuf = self.add_full_transparency(pixbuf)
             
-
-            if active == self.ACTIVE:
-                pixbuf = self.add_glow(pixbuf)
-
             if effect == self.BRIGHT: 
                 pixbuf = self.colorshift(pixbuf, 50)
             elif effect == self.RED_BACKGROUND:
@@ -247,8 +247,8 @@ class IconFactory():
     def get_icon_pixbuf(self):
         if not self.pixbuf:
             self.pixbuf = self.find_icon_pixbuf(self.size)
-            if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
-                self.pixbuf = self.pixbuf.scale_simple(iconSize, iconSize, gtk.gdk.INTERP_BILINEAR)
+        if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
+            self.pixbuf = self.pixbuf.scale_simple(iconSize, iconSize, gtk.gdk.INTERP_BILINEAR)
         return self.pixbuf
         
         
@@ -340,7 +340,7 @@ class IconFactory():
         pixbuf.composite(background, b, b, pixbuf.get_width(), pixbuf.get_height(), b, b, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return background
     
-    def make_partly_minimized_icon(self, pixbuf):
+    def combine_icons(self, pixbuf, pixbuf2):
         if self.size <= 1:
             return pixbuf
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
@@ -350,8 +350,7 @@ class IconFactory():
         linear = cairo.LinearGradient(0, 0, pixbuf.get_width(), 0)
         linear.add_color_stop_rgba(0.4, 0, 0, 0, 0.5)
         linear.add_color_stop_rgba(0.6, 0, 0, 0, 1)
-        pixbuf_transp = self.add_full_transparency(pixbuf)
-        ctx.set_source_pixbuf(self.add_full_transparency(pixbuf), 0, 0)
+        ctx.set_source_pixbuf(pixbuf2, 0, 0)
         #ctx.mask(linear)
         ctx.paint()
 
