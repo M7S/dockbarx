@@ -1303,7 +1303,9 @@ class GroupButton ():
         if window.is_minimized():
             self.minimized_windows_count -= 1
         self.windows[window].del_button()
-        self.update_state()
+        # Update state unless the button hasn't been shown yet.
+        if self.button.get_allocation().width>1:
+            self.update_state()
         if not self.windows and not self.launcher:
             self.popup.hide()
             self.popup_showing = False
@@ -1322,8 +1324,10 @@ class GroupButton ():
             self.has_active_window = mode 
             if mode == False:
                 for window_button in self.windows.values():
-                    window_button.set_button_active(False)   
-            self.update_state()
+                    window_button.set_button_active(False) 
+            # Update state unless the button hasn't been shown yet.
+            if self.button.get_allocation().width>1:
+                self.update_state()
             
     def needs_attention_changed(self):
         # Checks if there are any urgent windows and changes 
@@ -1331,18 +1335,24 @@ class GroupButton ():
         for window in self.windows.keys():
             if window.needs_attention():
                 self.needs_attention = True
-                self.update_state()
+                # Update state unless the button hasn't been shown yet.
+                if self.button.get_allocation().width>1:
+                    self.update_state()
                 return True
         else:
             if self.windows.keys() == []:
                 # The window needs attention already when it's added,
                 # before it's been added to the list.
                 self.needs_attention = True
-                self.update_state()
+                # Update state unless the button hasn't been shown yet.
+                if self.button.get_allocation().width>1:
+                    self.update_state()
                 return True
             else:
                 self.needs_attention = False
-                self.update_state()
+                # Update state unless the button hasn't been shown yet.
+                if self.button.get_allocation().width>1:
+                    self.update_state()
                 return False
         
     def group_button_scroll_event (self,widget,event):
