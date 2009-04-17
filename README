@@ -1,4 +1,4 @@
-Dockbar Experimental 0.21.1.1
+Dockbar Experimental 0.21.2
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
@@ -21,7 +21,12 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
-Experimental 0.21.1.1
+Experimental 0.21.2
+- New group button action: Compiz switch. Needs to be selected in preference dialog to be used (I recommend setting it on scroll up or down). Compiz switch plug in needs to be activated as well.
+- When a group holds the active window and (a) minimized window(s) only the "normal" half will glow. (Once again: I'm really not sure if this looks any better. Opinions needed.)
+- Some bug fixes. Tell me if any bug you reported has disappeared.
+
+Experimental 0.21.1-1
 - Bugfix: stupid bug stopping dockbarx from running in window.
 - Slightly less transparency on active glow
 
