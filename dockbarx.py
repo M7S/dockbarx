@@ -1752,11 +1752,21 @@ class GroupButton ():
                     gr.windows[win].window.minimize()
                     
     def compiz_scale_windows(self, widget, event):
-        self.popup.hide()
-        self.popup_showing = False
+        if not self.class_group:
+            return
+        ##self.popup.hide()
+        ##self.popup_showing = False
         
         compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
-    
+
+    def compiz_shift_windows(self, widget, event):
+        if not self.class_group:
+            return
+        ##self.popup.hide()
+        ##self.popup_showing = False
+        
+        compiz_call('shift/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+        
     def no_action(self, widget = None, event = None):
         pass
 
@@ -1769,6 +1779,7 @@ class GroupButton ():
                              "remove launcher": remove_launcher,
                              "minimize all other groups": minimize_all_other_groups,
                              "compiz scale windows": compiz_scale_windows,
+                             "compiz shift windows": compiz_shift_windows,
                              "no action": no_action }
 
 
