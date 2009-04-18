@@ -468,7 +468,6 @@ class CairoPopup():
         else:
             self.supports_alpha = True
         
-        self.w,self.h = self.window.get_size()                
         self.window.connect("expose_event", self.expose)
         
         
@@ -543,6 +542,8 @@ class CairoPopup():
         self.window = None
         self.ctx = None
         self.pixmap = None
+        self.vbox = None
+        self.supports_alpha = None
 
 class PersistentList():
     @staticmethod
