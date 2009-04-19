@@ -1252,19 +1252,18 @@ class GroupButton ():
             self.popup.hide()
             self.popup_showing = False
         return False
+    
+    def hide_list_no_check(self):
+        self.popup.hide()
+        self.popup_showing = False
+        return False
 
     def button_mouse_enter (self,widget,event):
         if not self.dockbar.right_menu_showing and not self.dockbar.dragging: 
             gobject.timeout_add(settings['popup_delay'], self.show_list)
-##        if not self.windows:
-##            self.image.set_from_pixbuf(self.icon_factory.pixbuf_update(IconFactory.LAUNCHER, IconFactory.BRIGHT))
-##            self.image.show()
 
     def button_mouse_leave (self,widget,event):
         gobject.timeout_add(100,self.hide_list)
-##        if not self.windows: 
-##            self.image.set_from_pixbuf(self.icon_factory.pixbuf_update(IconFactory.LAUNCHER))
-##            self.image.show() 
 
     def popup_mouse_leave (self,widget,event):
         self.hide_list()
@@ -1274,8 +1273,7 @@ class GroupButton ():
         
     def drag_begin(self, widget, drag_context):
         self.dockbar.dragging = True
-        self.popup.hide()
-        self.popup_showing = False
+        self.hide_list_no_check()
         
     def drag_end(self, widget, drag_context):
         #self.dockbar.dragging = False
@@ -1336,8 +1334,7 @@ class GroupButton ():
         self.windows[window].del_button()
         self.request_update_state()
         if not self.windows and not self.launcher:
-            self.popup.hide()
-            self.popup_showing = False
+            self.hide_list_no_check()
             self.popup.destroy()
             self.button.destroy()
             self.winlist.destroy()
@@ -1568,8 +1565,7 @@ class GroupButton ():
             # Hide popup since mouse movment won't
             # be tracked during compiz move effect
             if not (x == 0 and y == 0):
-                self.popup.hide()
-                self.popup_showing = False
+                self.hide_list_no_check()
             for win in grp_win_stacked:
                 if win.is_minimized():
                     win.unminimize(event.time)
@@ -1715,8 +1711,7 @@ class GroupButton ():
             # Hide popup since mouse movment won't
             # be tracked during compiz move effect
             if not (x == 0 and y == 0):
-                self.popup.hide()
-                self.popup_showing = False
+                self.hide_list_no_check()
             for win in grp_win_stacked:
                 if win.is_minimized():
                     win.unminimize(event.time)
@@ -1752,8 +1747,7 @@ class GroupButton ():
             self.launcher.launch()
             
     def show_menu(self, widget, event):
-        self.popup.hide()
-        self.popup_showing = False
+        self.hide_list_no_check()
         self.menu.popup(None, None, None, event.button, event.time)
         self.dockbar.right_menu_showing = True
 
@@ -1768,8 +1762,7 @@ class GroupButton ():
         self.dockbar.save_launchers_persistentlist()
         
     def minimize_all_other_groups(self, widget, event):
-        self.popup.hide()
-        self.popup_showing = False
+        self.hide_list_no_check()
         for gr in self.dockbar.groups.get_groups():
             if self != gr:
                 for win in gr.windows:
@@ -1778,18 +1771,20 @@ class GroupButton ():
     def compiz_scale_windows(self, widget, event):
         if not self.class_group:
             return
-        ##self.popup.hide()
-        ##self.popup_showing = False
         
         compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+        # A new button enter signal is sent when compiz is called,
+        # a delay is therefor needed.
+        gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list_no_check)
 
     def compiz_shift_windows(self, widget, event):
         if not self.class_group:
             return
-        ##self.popup.hide()
-        ##self.popup_showing = False
         
         compiz_call('shift/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+        # A new button enter signal is sent when compiz is called,
+        # a delay is therefor needed.
+        gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list_no_check)
         
     def no_action(self, widget = None, event = None):
         pass
