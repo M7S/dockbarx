@@ -60,10 +60,19 @@ BUS = dbus.SessionBus()
 
 PREFDIALOG = None # Non-constant! Remove or rename!?
 
-DEAFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
+DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
                       "workspace_behavior": "switch",
                       "popup_delay": 250,
                       "popup_align": "center",
+                    
+                      "active_glow_color": "#FFFF75",
+                      "active_glow_alpha": 160,
+                      "popup_color": "#333333",
+                      "popup_alpha": 205,
+                    
+                      "active_text_color": "#FFFF75",
+                      "minimized_text_color": "#9C9C9C",
+                      "normal_text_color": "#FFFFFF",
                     
                       "groupbutton_left_click_action":"select or minimize group",
                       "groupbutton_shift_and_left_click_action":"launch application",
@@ -87,7 +96,7 @@ DEAFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
                       "windowbutton_shift_and_right_click_action": "no action",
                       "windowbutton_scroll_up": "shade window",
                       "windowbutton_scroll_down": "unshade window" }
-settings = DEAFAULT_SETTINGS.copy()
+settings = DEFAULT_SETTINGS.copy()
 
 def compiz_call(obj_path, func_name, *args):
 	path = '/org/freedesktop/compiz'
@@ -210,6 +219,11 @@ class IconFactory():
                                ([None, None], [None, None], [None, None]),
                                ([None, None], [None, None], [None, None]),
                                ([None, None], [None, None], [None, None]) )
+                            
+    def reset_active_pixbufs(self):
+        for tpix in self.pixbuf_matrix:
+            for epix in tpix:
+                epix[1] = None
         
         
     def pixbuf_update(self, type = NORMAL, effect = NO_EFFECT, active = NOT_ACTIVE):
@@ -399,14 +413,18 @@ class IconFactory():
         return pixbuf
     
     def add_glow(self, pixbuf):
-        # RGB colors (0-255)
-        r, b, g = 255, 255, 117
-        # Transparency (0-255)
-        tr = 160
+        # Convert color hex-string (format '#FFFFFF')to int r, g, b
+        color = settings['active_glow_color']
+        r = int(color[1:3], 16)
+        g = int(color[3:5], 16)
+        b = int(color[5:7], 16)
+        
+        # Transparency
+        alpha = settings['active_glow_alpha']
         # Thickness (pixels)
         tk = 2
         
-        colorpb = self.colorize_pixbuf(pixbuf, r, b, g)
+        colorpb = self.colorize_pixbuf(pixbuf, r, g, b)
         bg = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         bg.fill(0x00000000)
         glow = bg.copy()
@@ -416,7 +434,7 @@ class IconFactory():
             colorpb.composite(glow, 0, 0, pixbuf.get_width(), pixbuf.get_height(), x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 170)
         for x, y in ((-tk,-tk), (-tk,tk), (tk,-tk), (tk,tk)):
             colorpb.composite(glow, 0, 0, pixbuf.get_width(), pixbuf.get_height(), x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 70)
-        glow.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, tr)
+        glow.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, alpha)
         # Now add the pixbuf above the glow
         pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
@@ -444,13 +462,13 @@ class IconFactory():
                 pix[2] = min(255, int(pix[2]) + shift)
         return pixbuf
     
-    def colorize_pixbuf(self, pixbuf, r, b, g):
+    def colorize_pixbuf(self, pixbuf, r, g, b):
         pixbuf = pixbuf.copy()
         for row in pixbuf.get_pixels_array():
             for pix in row:
                 pix[0] = r
-                pix[1] = b
-                pix[2] = g
+                pix[1] = g
+                pix[2] = b
         return pixbuf
 
     
@@ -515,7 +533,12 @@ class CairoPopup():
         
         r = 6
         bg = 0.2
-        tr = 0.8
+        color = settings['popup_color']
+        red = float(int(color[1:3], 16))/255
+        green = float(int(color[3:5], 16))/255
+        blue = float(int(color[5:7], 16))/255
+        
+        alpha= float(settings['popup_alpha']) / 255
         
         ctx.move_to(0,r)
         ctx.arc(r, r, r, -pi, -pi/2)
@@ -525,14 +548,14 @@ class CairoPopup():
         ctx.close_path()
         
         if self.supports_alpha == False:
-                ctx.set_source_rgb(bg, bg, bg)
+                ctx.set_source_rgb(red, green, blue)
         else:
-                ctx.set_source_rgba(bg, bg, bg, tr)
+                ctx.set_source_rgba(red, green, blue, alpha)
         ctx.fill_preserve()
         if self.supports_alpha == False:
                 ctx.set_source_rgb(0.0, 0.0, 0.0)
         else:
-                ctx.set_source_rgba(0.0, 0.0, 0.0, tr)
+                ctx.set_source_rgba(0.0, 0.0, 0.0, alpha)
         ctx.set_line_width(1)
         ctx.stroke()
         ctx.restore()
@@ -790,11 +813,16 @@ class WindowButton():
             ##attr_list.insert(pango.AttrWeight(pango.WEIGHT_BOLD, 0, 50))
             ##attr_list.insert(pango.AttrForeground(40000, 5000, 5000, 0, 50))
         if self.is_active_window:
-            attr_list.insert(pango.AttrForeground(65535, 65535, 30000, 0, 50))
+            color = settings['active_text_color']
         elif self.window.is_minimized():
-            attr_list.insert(pango.AttrForeground(40000, 40000, 40000, 0, 50))
+            color = settings['minimized_text_color']
         else:
-            attr_list.insert(pango.AttrForeground(65535, 65535, 65535, 0, 50))
+            color = settings['normal_text_color']
+        # color is a hex-string (like '#FFFFFF').
+        r = int(color[1:3], 16)*256
+        g = int(color[3:5], 16)*256
+        b = int(color[5:7], 16)*256
+        attr_list.insert(pango.AttrForeground(r, g, b, 0, 50))
         self.label.set_attributes(attr_list)
             
             
@@ -1143,6 +1171,10 @@ class GroupButton ():
         self.image.set_from_pixbuf(self.icon_factory.pixbuf_update(self.icon_mode, self.icon_effect, self.icon_active))
         self.image.show()
         
+    def request_update_state(self):
+        if self.button.get_allocation().width>1:
+            self.update_state()
+            
     def attention_effect (self):
         self.attention_effect_running = True
         if self.needs_attention:
@@ -1282,8 +1314,7 @@ class GroupButton ():
         if (self.launcher and len(self.windows)==1):
             self.class_group = window.get_class_group()
         # Update state unless the button hasn't been shown yet.
-        if self.button.get_allocation().width>1:
-            self.update_state()
+        self.request_update_state()
         
         #Update popup-list if it is being shown.
         if self.popup_showing:
@@ -1303,9 +1334,7 @@ class GroupButton ():
         if window.is_minimized():
             self.minimized_windows_count -= 1
         self.windows[window].del_button()
-        # Update state unless the button hasn't been shown yet.
-        if self.button.get_allocation().width>1:
-            self.update_state()
+        self.request_update_state()
         if not self.windows and not self.launcher:
             self.popup.hide()
             self.popup_showing = False
@@ -1325,9 +1354,7 @@ class GroupButton ():
             if mode == False:
                 for window_button in self.windows.values():
                     window_button.set_button_active(False) 
-            # Update state unless the button hasn't been shown yet.
-            if self.button.get_allocation().width>1:
-                self.update_state()
+            self.request_update_state()
             
     def needs_attention_changed(self):
         # Checks if there are any urgent windows and changes 
@@ -1335,9 +1362,7 @@ class GroupButton ():
         for window in self.windows.keys():
             if window.needs_attention():
                 self.needs_attention = True
-                # Update state unless the button hasn't been shown yet.
-                if self.button.get_allocation().width>1:
-                    self.update_state()
+                self.request_update_state()
                 return True
         else:
             if self.windows.keys() == []:
@@ -1345,14 +1370,12 @@ class GroupButton ():
                 # before it's been added to the list.
                 self.needs_attention = True
                 # Update state unless the button hasn't been shown yet.
-                if self.button.get_allocation().width>1:
-                    self.update_state()
+                self.request_update_state()
                 return True
             else:
                 self.needs_attention = False
                 # Update state unless the button hasn't been shown yet.
-                if self.button.get_allocation().width>1:
-                    self.update_state()
+                self.request_update_state()
                 return False
         
     def group_button_scroll_event (self,widget,event):
@@ -1821,30 +1844,18 @@ class PrefDialog():
         self.dialog.connect("response",self.dialog_close)
         
         ca = self.dialog.get_content_area()
+        notebook = gtk.Notebook()
+        notebook.set_tab_pos(gtk.POS_TOP)
+        appearance_box = gtk.VBox()
+        behavior_box = gtk.VBox()
+        
+        # Behavior page
         hbox = gtk.HBox()
-        vbox = gtk.VBox()
-        label1 = gtk.Label("<big>Needs attention effect</big>")
-        label1.set_alignment(0,0.5)
-        label1.set_use_markup(True)
-        vbox.pack_start(label1,False)
-        
-        self.rb1_1 = gtk.RadioButton(None, "Blinking")
-        self.rb1_1.connect("toggled", self.rb_toggled, "rb1_blink")
-        self.rb1_2 = gtk.RadioButton(self.rb1_1, "Compiz water")
-        self.rb1_2.connect("toggled", self.rb_toggled, "rb1_compwater")
-        self.rb1_3 = gtk.RadioButton(self.rb1_1, "Red background")
-        self.rb1_3.connect("toggled", self.rb_toggled, "rb1_red")
-        vbox.pack_start(self.rb1_1, False)
-        vbox.pack_start(self.rb1_2, False)
-        vbox.pack_start(self.rb1_3, False)
-        hbox.pack_start(vbox, True, padding=5)
-        
         vbox = gtk.VBox()
         label1 = gtk.Label("<big>Workspace behavior on Select group</big>")
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
-        
         self.rb2_1 = gtk.RadioButton(None, "Ignore windows on other workspaces")
         self.rb2_1.connect("toggled", self.rb_toggled, "rb2_ignore")
         self.rb2_2 = gtk.RadioButton(self.rb2_1, "Switch workspace when needed")
@@ -1857,21 +1868,10 @@ class PrefDialog():
         hbox.pack_start(vbox, True)
         
         vbox = gtk.VBox()
-        label1 = gtk.Label("<big>Popup Setting</big>")
+        label1 = gtk.Label("<big>Popup delay</big>")
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
-        
-        self.rb3_1 = gtk.RadioButton(None, "Align left")
-        self.rb3_1.connect("toggled", self.rb_toggled, "rb3_left")
-        self.rb3_2 = gtk.RadioButton(self.rb3_1, "Align center")
-        self.rb3_2.connect("toggled", self.rb_toggled, "rb3_center")
-        self.rb3_3 = gtk.RadioButton(self.rb3_1, "Align right")
-        self.rb3_3.connect("toggled", self.rb_toggled, "rb3_right")
-        vbox.pack_start(self.rb3_1, False)
-        vbox.pack_start(self.rb3_2, False)
-        vbox.pack_start(self.rb3_3, False)
-        
         spinbox = gtk.HBox()
         spinlabel = gtk.Label("Delay:")
         spinlabel.set_alignment(0,0.5)
@@ -1882,13 +1882,12 @@ class PrefDialog():
         spinbox.pack_start(self.delay_spin, False)
         vbox.pack_start(spinbox, False)
         hbox.pack_start(vbox, True)
-        
-        ca.pack_start(hbox, False, padding=5)
+        behavior_box.pack_start(hbox, False, padding=5)
         
         label2 = gtk.Label("<big>Button configuration</big>")
         label2.set_alignment(0,0.5)
         label2.set_use_markup(True)
-        ca.pack_start(label2,False, padding=5)
+        behavior_box.pack_start(label2,False, padding=5)
         
         table = gtk.Table(10,6)
         label = gtk.Label("Groupbutton actions")
@@ -1924,9 +1923,9 @@ class PrefDialog():
                 self.gb_combos[text].append_text(action)
             self.gb_combos[text].connect('changed', self.cb_changed)
             # Every second label + combobox on a new row
-            row = int(i/2) + 1
+            row = i // 2 + 1
             # Pack odd numbered comboboxes from 3rd column
-            column = (i % 2)*3
+            column = (i % 2) * 3
             table.attach(label, column, column + 1, row, row + 1, xpadding = 5 )
             table.attach(self.gb_combos[text],column + 1, column + 2, row, row + 1 )
             
@@ -1943,9 +1942,9 @@ class PrefDialog():
 
             self.gb_doubleclick_checkbutton[name].connect('toggled', self.checkbutton_toggled, name)
             # Every second label + combobox on a new row
-            row = int(i/2) + 1
+            row = i // 2 + 1
             # Pack odd numbered comboboxes from 3rd column
-            column = int((float(i)/2-int(i/2))*6)
+            column = (i % 2) * 3
             table.attach(self.gb_doubleclick_checkbutton[name], column + 2, column + 3, row, row + 1, xpadding = 5 )
 
         
@@ -1982,17 +1981,96 @@ class PrefDialog():
                 self.wb_combos[text].append_text(action)
             self.wb_combos[text].connect('changed', self.cb_changed)
             # Every second label + combobox on a new row
-            row = int(i/2) + 6
+            row = i // 2 + 6
             # Pack odd numbered comboboxes from 3rd column
-            column = int((float(i)/2-int(i/2))*6)
+            column = (i % 2) * 3
             table.attach(label, column, column + 1, row, row + 1 )
             table.attach(self.wb_combos[text], column + 1, column + 2, row, row + 1 )
             
-        ca.pack_start(table, False, padding=5)
+        behavior_box.pack_start(table, False, padding=5)
         
+        # Appearance page
+        hbox = gtk.HBox()
+        vbox = gtk.VBox()
+        label1 = gtk.Label("<big>Needs attention effect</big>")
+        label1.set_alignment(0,0.5)
+        label1.set_use_markup(True)
+        vbox.pack_start(label1,False)
+        self.rb1_1 = gtk.RadioButton(None, "Blinking")
+        self.rb1_1.connect("toggled", self.rb_toggled, "rb1_blink")
+        self.rb1_2 = gtk.RadioButton(self.rb1_1, "Compiz water")
+        self.rb1_2.connect("toggled", self.rb_toggled, "rb1_compwater")
+        self.rb1_3 = gtk.RadioButton(self.rb1_1, "Red background")
+        self.rb1_3.connect("toggled", self.rb_toggled, "rb1_red")
+        vbox.pack_start(self.rb1_1, False)
+        vbox.pack_start(self.rb1_2, False)
+        vbox.pack_start(self.rb1_3, False)
+        hbox.pack_start(vbox, True, padding=5)
+        
+        vbox = gtk.VBox()
+        label1 = gtk.Label("<big>Popup Settings</big>")
+        label1.set_alignment(0,0.5)
+        label1.set_use_markup(True)
+        vbox.pack_start(label1,False)
+        self.rb3_1 = gtk.RadioButton(None, "Align left")
+        self.rb3_1.connect("toggled", self.rb_toggled, "rb3_left")
+        self.rb3_2 = gtk.RadioButton(self.rb3_1, "Align center")
+        self.rb3_2.connect("toggled", self.rb_toggled, "rb3_center")
+        self.rb3_3 = gtk.RadioButton(self.rb3_1, "Align right")
+        self.rb3_3.connect("toggled", self.rb_toggled, "rb3_right")
+        vbox.pack_start(self.rb3_1, False)
+        vbox.pack_start(self.rb3_2, False)
+        vbox.pack_start(self.rb3_3, False)
+        hbox.pack_start(vbox, True, padding=5)
+        appearance_box.pack_start(hbox, False, padding=5)
+        
+        frame = gtk.Frame('Colors')
+        frame.set_border_width(5)
+        table = gtk.Table(True)
+        # A directory of combobox names and the name of corresponding setting
+        self.color_labels_and_settings = {'Active glow': "active_glow",
+                                          'Popup backgruond': "popup",
+                                          'Active window text': "active_text",
+                                          'Minimized window text': "minimized_text",
+                                          'Normal text': "normal_text"}
+        # A list to ensure that the order is kept correct
+        color_labels = ['Active glow',
+                        'Popup backgruond',
+                        'Active window text',
+                        'Minimized window text',
+                        'Normal text']
+        self.color_buttons = {}
+        self.clear_buttons = {}
+        for i in range(len(color_labels)):
+            text = color_labels[i]
+            label = gtk.Label(text)
+            label.set_alignment(1,0.5)
+            self.color_buttons[text] = gtk.ColorButton()
+            self.color_buttons[text].set_title(text)
+            self.color_buttons[text].connect("color-set",  self.color_set, text)
+            self.clear_buttons[text] = gtk.Button()
+            image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,gtk.ICON_SIZE_SMALL_TOOLBAR)
+            self.clear_buttons[text].add(image)
+            self.clear_buttons[text].connect("clicked", self.color_reset, text)
+            # Every second label + combobox on a new row
+            row = i // 2
+            # Pack odd numbered comboboxes from 3rd column
+            column = (i % 2)*3
+            table.attach(label, column, column + 1, row, row + 1, xoptions = gtk.FILL, xpadding = 5)
+            table.attach(self.color_buttons[text], column+1, column+2, row, row + 1)
+            table.attach(self.clear_buttons[text], column+2, column+3, row, row + 1, xoptions = gtk.FILL)
+            
+        frame.add(table)
+        appearance_box.pack_start(frame, False, padding=5)
+        
+        label = gtk.Label("Behavior")
+        notebook.append_page(behavior_box, label)
+        label = gtk.Label("Appearance")
+        notebook.append_page(appearance_box, label)
+        ca.pack_start(notebook)
         self.update()
         
-        self.dialog.add_button(gtk.STOCK_CLOSE,gtk.RESPONSE_CLOSE)
+        self.dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.dialog.show_all()
         
         
@@ -2047,6 +2125,14 @@ class PrefDialog():
                 
         for name in self.gb_doubleclick_checkbutton_names:
             self.gb_doubleclick_checkbutton[name].set_active(settings[name])
+            
+        for name, setting_base in self.color_labels_and_settings.items():
+            color = gtk.gdk.Color(settings[setting_base+'_color'])
+            self.color_buttons[name].set_color(color)
+            if settings.has_key(setting_base+"_alpha"):
+                alpha = settings[setting_base+"_alpha"] * 256
+                self.color_buttons[name].set_use_alpha(True)
+                self.color_buttons[name].set_alpha(alpha)
                 
             
     
@@ -2131,6 +2217,32 @@ class PrefDialog():
             value = spin.get_value_as_int()
             if value != settings['popup_delay']:
                 GCONF_CLIENT.set_int(GCONF_DIR+'/popup_delay', value)
+                
+    def color_set(self, button, text):
+            setting_base = self.color_labels_and_settings[text]
+            color_string = settings[setting_base+"_color"]
+            color = button.get_color()
+            cs = color.to_string()
+            # cs has 16-bit per color, we want 8.
+            new_color = cs[0:3] + cs[5:7] + cs[9:11]
+            if new_color != color_string:
+                GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_base+"_color", new_color)
+            if settings.has_key(setting_base+"_alpha"):
+                alpha = settings[setting_base+"_alpha"]
+                new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
+                if new_alpha != alpha:
+                    GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting_base+"_alpha", new_alpha)
+                    
+    def color_reset(self, button, text):
+            setting_base = self.color_labels_and_settings[text]
+            color_string = DEFAULT_SETTINGS[setting_base+"_color"]
+            GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_base+"_color", color_string)
+            if DEFAULT_SETTINGS.has_key(setting_base+"_alpha"):
+                alpha = DEFAULT_SETTINGS[setting_base+"_alpha"]
+                GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting_base+"_alpha", alpha)
+            
+            
+
 
 
 class DockBar():
@@ -2221,6 +2333,7 @@ class DockBar():
     def gconf_changed(self, client, par2, entry, par4):
         global settings
         pref_update = False
+        changed_settings = []
         entry_get = { str: entry.get_value().get_string,
                       bool: entry.get_value().get_bool,
                       int: entry.get_value().get_int }
@@ -2228,10 +2341,36 @@ class DockBar():
         if key in settings:
             value = settings[key]
             if entry_get[type(value)]() != value:
+                changed_settings.append(key)
                 settings[key] = entry_get[type(value)]()
                 pref_update = True
         if pref_update and PREFDIALOG:
             PREFDIALOG.update()
+            
+        if 'active_glow_color' in changed_settings \
+           or 'active_glow_alpha'  in changed_settings:
+            self.reset_all_active_pixbufs()
+        
+        for key in changed_settings:
+            if 'text_color' in key:
+                self.all_windowbuttons_update_state()
+                break
+            
+    def reset_all_active_pixbufs(self):
+        for group in self.groups.get_groups():
+            group.icon_factory.reset_active_pixbufs()
+            
+        active_window = self.screen.get_active_window()
+        if active_window in self.windows:
+            active_group_name = self.windows[active_window]
+            active_group = self.groups.get_group(active_group_name)
+            if active_group:
+                active_group.request_update_state()
+    
+    def all_windowbuttons_update_state(self):
+        for group in self.groups.get_groups():
+            for winb in group.windows.values():
+                winb.update_state()
             
     def on_ppm_pref(self,event,data=None):
         PrefDialog()
