@@ -1769,7 +1769,8 @@ class GroupButton ():
                     gr.windows[win].window.minimize()
                     
     def compiz_scale_windows(self, widget, event):
-        if not self.class_group:
+        if not self.class_group or \
+           len(self.windows) - self.minimized_windows_count == 0:
             return
         
         compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
@@ -1778,7 +1779,8 @@ class GroupButton ():
         gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list_no_check)
 
     def compiz_shift_windows(self, widget, event):
-        if not self.class_group:
+        if not self.class_group or \
+           len(self.windows) - self.minimized_windows_count == 0:
             return
         
         compiz_call('shift/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
