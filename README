@@ -1,4 +1,4 @@
-Dockbar Experimental 0.21.3
+Dockbar Experimental 0.21.4
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
@@ -21,6 +21,12 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
+Experimental 0.21.4
+- Bug fix: Popup windows didn't always resize correctly under Compiz if dockbarx were killed and restarted.
+- The title of popup windows uses the normal text color instead of always being white.
+- Small fixes to Compiz scale and compiz switch actions.
+- Typo fixed.
+
 Experimental 0.21.3
 - Options in preference dialog for changing colors and transparency.
 - Preference dialog is now split in two tabs (behavior and appearance).
