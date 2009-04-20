@@ -1057,10 +1057,10 @@ class GroupButton ():
         
         self.winlist = cairo_popup.vbox
         self.winlist.set_border_width(5)
-        grouplabel = gtk.Label("<span foreground='white'><big><b>"+self.name+"</b></big></span>")
-        grouplabel.set_use_markup(True)
-        grouplabel.set_tooltip_text("Resource class name: "+self.res_class)
-        self.winlist.pack_start(grouplabel,False)
+        self.popup_label = gtk.Label("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
+        self.popup_label.set_use_markup(True)
+        self.popup_label.set_tooltip_text("Resource class name: "+self.res_class)
+        self.winlist.pack_start(self.popup_label,False)
         
         
         self.popup =  cairo_popup.window
@@ -1142,6 +1142,10 @@ class GroupButton ():
         y += a.y
         for window in self.windows.keys():
             window.set_icon_geometry(x, y, a.width, a.height)
+            
+    def update_popup_label(self):
+        self.popup_label.set_text("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
+        self.popup_label.set_use_markup(True)
             
     def update_state(self):
         if self.has_active_window:
@@ -2027,13 +2031,13 @@ class PrefDialog():
         table = gtk.Table(True)
         # A directory of combobox names and the name of corresponding setting
         self.color_labels_and_settings = {'Active glow': "active_glow",
-                                          'Popup backgruond': "popup",
+                                          'Popup background': "popup",
                                           'Active window text': "active_text",
                                           'Minimized window text': "minimized_text",
                                           'Normal text': "normal_text"}
         # A list to ensure that the order is kept correct
         color_labels = ['Active glow',
-                        'Popup backgruond',
+                        'Popup background',
                         'Active window text',
                         'Minimized window text',
                         'Normal text']
@@ -2348,6 +2352,9 @@ class DockBar():
         if 'active_glow_color' in changed_settings \
            or 'active_glow_alpha'  in changed_settings:
             self.reset_all_active_pixbufs()
+            
+        if 'normal_text_color' in changed_settings:
+            self.update_all_popup_labels()
         
         for key in changed_settings:
             if 'text_color' in key:
@@ -2369,6 +2376,10 @@ class DockBar():
         for group in self.groups.get_groups():
             for winb in group.windows.values():
                 winb.update_state()
+                
+    def update_all_popup_labels(self):
+        for group in self.groups.get_groups():
+            group.update_popup_label()
             
     def on_ppm_pref(self,event,data=None):
         PrefDialog()
