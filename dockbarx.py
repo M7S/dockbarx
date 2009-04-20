@@ -522,8 +522,9 @@ class CairoPopup():
         self.draw_frame(ctx, w, h)
         
         if self.window.is_composited():
+            self.window.window.shape_combine_mask(None, 0, 0)
             ctx.rectangle(0,0,w,h)
-            ctx.fill()                      
+            ctx.fill()
             self.window.input_shape_combine_mask(self.pixmap,0,0)
         else:
             self.window.shape_combine_mask(self.pixmap, 0, 0)
