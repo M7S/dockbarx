@@ -1930,7 +1930,7 @@ class PrefDialog():
         spinlabel.set_alignment(0,0.5)
         adj = gtk.Adjustment(0, 0, 2000, 1, 50)
         self.delay_spin = gtk.SpinButton(adj, 0.5, 0)
-        adj.connect("value_changed", self.spin_changed, self.delay_spin)
+        adj.connect("value_changed", self.adjustment_changed, 'popup_delay')
         spinbox.pack_start(spinlabel, False)
         spinbox.pack_start(self.delay_spin, False)
         vbox.pack_start(spinbox, False)
@@ -2075,6 +2075,27 @@ class PrefDialog():
         vbox.pack_start(self.rb3_2, False)
         vbox.pack_start(self.rb3_3, False)
         hbox.pack_start(vbox, True, padding=5)
+        
+        vbox = gtk.VBox()
+        label1 = gtk.Label("<big>Opacify</big>")
+        label1.set_alignment(0,0.5)
+        label1.set_use_markup(True)
+        vbox.pack_start(label1,False)
+        self.opacify_cb = gtk.CheckButton('Opacify')
+        self.opacify_cb.connect('toggled', self.checkbutton_toggled, 'opacify')
+        vbox.pack_start(self.opacify_cb, False)
+        scalebox = gtk.HBox()
+        scalelabel = gtk.Label("Transparency:")
+        scalelabel.set_alignment(0,1)
+        adj = gtk.Adjustment(0, 0, 100, 1, 10, 0)
+        self.opacify_scale = gtk.HScale(adj)
+        self.opacify_scale.set_digits(0)
+        adj.connect("value_changed", self.adjustment_changed, 'opacify_alpha')
+        scalebox.pack_start(scalelabel, False)
+        scalebox.pack_start(self.opacify_scale, True)
+        vbox.pack_start(scalebox, False)
+        hbox.pack_start(vbox, True, padding=5)
+        
         appearance_box.pack_start(hbox, False, padding=5)
         
         frame = gtk.Frame('Colors')
@@ -2179,6 +2200,9 @@ class PrefDialog():
         for name in self.gb_doubleclick_checkbutton_names:
             self.gb_doubleclick_checkbutton[name].set_active(settings[name])
             
+        self.opacify_cb.set_active(settings['opacify'])
+        self.opacify_scale.set_value(settings['opacify_alpha'])
+            
         for name, setting_base in self.color_labels_and_settings.items():
             color = gtk.gdk.Color(settings[setting_base+'_color'])
             self.color_buttons[name].set_color(color)
@@ -2265,11 +2289,10 @@ class PrefDialog():
                 if value != settings[setting_name]:
                     GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, value)
                     
-    def spin_changed(self, widget, spin):
-        if spin == self.delay_spin:
-            value = spin.get_value_as_int()
-            if value != settings['popup_delay']:
-                GCONF_CLIENT.set_int(GCONF_DIR+'/popup_delay', value)
+    def adjustment_changed(self, widget, setting):
+            value = int(widget.get_value())
+            if value != settings[setting]:
+                GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting, value)
                 
     def color_set(self, button, text):
             setting_base = self.color_labels_and_settings[text]
