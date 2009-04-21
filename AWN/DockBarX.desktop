@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=DockBarX
+Type=Application
+X-AWN-AppletType=Python
+Comment=DockBar for AWN
+Exec=DockBarX/DockBarX.py
+Icon=
+X-AWN-AppletCategory=Utility
