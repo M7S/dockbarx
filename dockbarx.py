@@ -74,6 +74,9 @@ DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
                       "minimized_text_color": "#9C9C9C",
                       "normal_text_color": "#FFFFFF",
                     
+                      "opacify": True,
+                      "opacify_alpha": 10,
+                    
                       "groupbutton_left_click_action":"select or minimize group",
                       "groupbutton_shift_and_left_click_action":"launch application",
                       "groupbutton_middle_click_action":"close all windows",
@@ -757,12 +760,14 @@ class GroupList():
 class WindowButton():
     def __init__(self,window,groupbutton):
         self.groupbutton = groupbutton
+        self.dockbar = groupbutton.dockbar
         self.screen = self.groupbutton.screen
         self.name = window.get_name()
         self.window = window
         self.locked = False
         self.is_active_window = False
         self.needs_attention = False
+        self.opacified = False
         
         self.window.connect("state-changed",self.window_state_changed)
         self.window.connect("icon-changed",self.window_icon_changed)
@@ -893,11 +898,57 @@ class WindowButton():
         self.name = name
         self.label.set_label(name)
         
+    def opacify(self):
+        if self.dockbar.opacified:
+            return
+        if self.dockbar.opacity_values == None:
+            self.dockbar.opacity_values = compiz_call('obs/screen0/opacity_values','get')
+        if self.dockbar.opacity_matches == None:
+            self.dockbar.opacity_matches = compiz_call('obs/screen0/opacity_matches','get')
+        self.dockbar.opacified = True
+        self.opacified = True
+        ov = [settings['opacify_alpha']]
+        om = ["!(title="+self.window.get_name()+") & !(class=Dockbarx.py)  & (type=Normal | type=Dialog)"]
+        compiz_call('obs/screen0/opacity_values','set', ov)
+        compiz_call('obs/screen0/opacity_matches','set', om)
+    
+    def deopacify(self):
+        # always called from deopacify_request
+        if self.dockbar.opacified and not self.opacified:
+            return False
+        if self.dockbar.opacity_values == None:
+            return False
+        compiz_call('obs/screen0/opacity_values','set', self.dockbar.opacity_values)
+        compiz_call('obs/screen0/opacity_matches','set', self.dockbar.opacity_matches)
+        self.dockbar.opacity_values = None
+        self.dockbar.opacity_matches = None
+        return False
+        
+    def deopacify_request(self):
+        if not self.opacified:
+            return False
+        b_m_x,b_m_y = self.window_button.get_pointer()
+        b_r = self.window_button.get_allocation()
+        if (b_m_x>=0 and b_m_x<b_r.width) and (b_m_y >= 0 and b_m_y < b_r.height):
+            return True
+        self.dockbar.opacified = False
+        self.opacified = False
+        # Wait before deopacifying in case a new windowbutton
+        # should call opacify, to avoid flickering
+        gobject.timeout_add(50, self.deopacify)
+        return False
+        
     def button_mouse_enter(self, widget, event):
         self.update_state(True)
+        if settings["opacify"]:
+            self.opacify()
+            # Just for safty in case no leave-signal is sent
+            gobject.timeout_add(500, self.deopacify_request)
         
     def button_mouse_leave(self, widget, event):
         self.update_state(False)
+        if settings["opacify"]:
+            self.deopacify_request()
         
     def window_button_scroll_event(self, widget,event):
         if event.direction == gtk.gdk.SCROLL_UP:
@@ -2259,6 +2310,9 @@ class DockBar():
         # a drag-and-drop is going
         self.dragging = False
         self.right_menu_showing = False
+        self.opacified = False
+        self.opacity_values = None
+        self.opacity_matches = None
         try:
             for app in gio.app_info_get_all():
                 self.apps_by_id[app.get_id()] = app
