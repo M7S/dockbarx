@@ -74,8 +74,8 @@ DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
                       "minimized_text_color": "#9C9C9C",
                       "normal_text_color": "#FFFFFF",
                     
-                      "opacify": True,
-                      "opacify_alpha": 10,
+                      "opacify": Flase,
+                      "opacify_alpha": 15,
                     
                       "groupbutton_left_click_action":"select or minimize group",
                       "groupbutton_shift_and_left_click_action":"launch application",
@@ -2086,10 +2086,11 @@ class PrefDialog():
         vbox.pack_start(self.opacify_cb, False)
         scalebox = gtk.HBox()
         scalelabel = gtk.Label("Transparency:")
-        scalelabel.set_alignment(0,1)
+        scalelabel.set_alignment(0,0.5)
         adj = gtk.Adjustment(0, 0, 100, 1, 10, 0)
         self.opacify_scale = gtk.HScale(adj)
         self.opacify_scale.set_digits(0)
+        self.opacify_scale.set_value_pos(gtk.POS_RIGHT)
         adj.connect("value_changed", self.adjustment_changed, 'opacify_alpha')
         scalebox.pack_start(scalelabel, False)
         scalebox.pack_start(self.opacify_scale, True)
@@ -2201,6 +2202,7 @@ class PrefDialog():
             self.gb_doubleclick_checkbutton[name].set_active(settings[name])
             
         self.opacify_cb.set_active(settings['opacify'])
+        self.opacify_scale.set_sensitive(settings['opacify'])
         self.opacify_scale.set_value(settings['opacify_alpha'])
             
         for name, setting_base in self.color_labels_and_settings.items():
