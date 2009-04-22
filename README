@@ -1,4 +1,4 @@
-Dockbar Experimental 0.21.5
+Dockbar Experimental 0.21.5-1
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
@@ -22,6 +22,9 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
+Experimental 0.21.5-1
+- Really stupid bug fixed. Big "Sorry!" for not checking the code before releasing it.
+
 Experimental 0.21.5
 - Opacify: When the mouse cursor is over a window name in popup window all other windows get transparent. Activate it from preference dialog. (You need to active "Opacity, Brightness and Saturation" plugin in compiz to use it.)
 - AWN wrapper ported from vanilla DockBar (by Scott Barnes).
