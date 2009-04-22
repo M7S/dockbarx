@@ -74,7 +74,7 @@ DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
                       "minimized_text_color": "#9C9C9C",
                       "normal_text_color": "#FFFFFF",
                     
-                      "opacify": Flase,
+                      "opacify": False,
                       "opacify_alpha": 15,
                     
                       "groupbutton_left_click_action":"select or minimize group",
