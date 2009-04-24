@@ -1951,6 +1951,9 @@ class GroupButton ():
         # a delay is therefor needed.
         gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list_no_check)
         
+    def compiz_scale_all(self, widget, event):
+        compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid)
+        
     def no_action(self, widget = None, event = None):
         pass
 
@@ -1964,6 +1967,7 @@ class GroupButton ():
                              "minimize all other groups": minimize_all_other_groups,
                              "compiz scale windows": compiz_scale_windows,
                              "compiz shift windows": compiz_shift_windows,
+                             "compiz scale all": compiz_scale_all,
                              "no action": no_action }
 
 
