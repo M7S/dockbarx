@@ -805,6 +805,11 @@ class WindowButton():
         
         groupbutton.winlist.pack_start(self.window_button,False)
         
+        self.window_button.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT, [], 0)
+        self.window_button.connect("drag_motion", self.button_drag_motion)
+        self.window_button.connect("drag_leave", self.button_drag_leave)
+        self.button_drag_entered = False
+        
     
     def set_button_active(self, mode):
         self.is_active_window = mode
@@ -949,6 +954,24 @@ class WindowButton():
         self.update_state(False)
         if settings["opacify"]:
             self.deopacify_request()
+            
+    def button_drag_motion(self, widget, drag_context, x, y, time):
+        self.groupbutton.popup_drag_entered = True
+        if not self.button_drag_entered:
+            self.window_button.drag_highlight()
+            self.button_drag_entered = True
+            gobject.timeout_add(600, self.select_request)
+        drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, time)
+        return True
+        
+    def button_drag_leave(self, widget, drag_context, time):
+        self.button_drag_entered = False
+        self.groupbutton.popup_drag_entered = False
+        self.window_button.drag_unhighlight()
+        
+    def select_request(self):
+        if self.button_drag_entered:
+            self.select_window()
         
     def window_button_scroll_event(self, widget,event):
         if event.direction == gtk.gdk.SCROLL_UP:
@@ -1004,6 +1027,28 @@ class WindowButton():
         else:
             self.window.activate(event.time)
             
+    def select_window(self, widget = None, event = None):
+        if event:
+            t = event.time
+        else:
+            t = 0
+        if self.screen.get_active_workspace() != self.window.get_workspace():
+            self.window.get_workspace().activate(event.time)
+        if not self.window.is_in_viewport(self.screen.get_active_workspace()):
+            win_x,win_y,win_w,win_h = self.window.get_geometry()
+            self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),win_y-(win_y%self.screen.get_height()))
+            # Hide popup since mouse movment won't
+            # be tracked during compiz move effect
+            self.groupbutton.popup.hide()
+            self.groupbutton.popup_showing = False
+        if self.window.is_minimized():              
+            if self.locked:
+                self.locked = False
+                self.window_button.set_property("image-position",gtk.POS_LEFT)
+                self.groupbutton.locked_windows_count -= 1
+            self.window.unminimize(t)
+        self.window.activate(t)
+            
     def close_window(self, widget, event):
         self.window.close(event.time)
         
@@ -1034,6 +1079,7 @@ class WindowButton():
         pass
         
     action_function_dict = { 'select or minimize window': select_or_minimize_window,
+                             'select window': select_window,
                              'close window': close_window,
                              'lock or unlock window': lock_or_unlock_window,
                              'shade window': shade_window,
@@ -1121,11 +1167,19 @@ class GroupButton ():
         
         self.button.connect("size-allocate", self.sizealloc)
         
-        #Setup buttons as a drop zone for desktop configuration files
+        self.button.drag_dest_set(0, [], 0) 
+        self.button.connect("drag_motion", self.button_drag_motion)
+        self.button.connect("drag_leave", self.button_drag_leave)
+        self.button.connect("drag_drop", self.drag_drop)
         self.button.connect("drag_data_received", self.drag_data_received)
-        self.button.drag_dest_set(gtk.DEST_DEFAULT_ALL, 
-                                  [('text/uri-list', 0, 0), ('text/groupbutton_name', 0, TARGET_TYPE_GROUPBUTTON)],
-                                  gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_MOVE)
+        self.button_drag_entered = False
+        
+        # The popup needs to have a drag_dest just to check
+        # if the mouse is howering it during a drag-drop.
+        self.popup.drag_dest_set(0, [], 0) 
+        self.popup.connect("drag_motion", self.popup_drag_motion)
+        self.popup.connect("drag_leave", self.popup_drag_leave)
+        self.popup_drag_entered = False
         
         #Make buttons drag-able
         self.button.connect("drag_data_get", self.drag_data_get)
@@ -1259,43 +1313,51 @@ class GroupButton ():
 
 
     def show_list(self):
-        offset = 3
         b_m_x,b_m_y = self.button.get_pointer()
         b_r = self.button.get_allocation()
         if self.popup_showing or ((b_m_x>=0 and b_m_x<b_r.width) and (b_m_y >= 0 and b_m_y < b_r.height) \
            and not self.dockbar.right_menu_showing and not self.dockbar.dragging):
-            self.winlist.show_all()
-            self.popup.resize(10,10)
-            x,y = self.button.window.get_origin()
-            b_alloc = self.button.get_allocation()
-            w,h = self.popup.get_size()
-            if self.dockbar.orient == "h":
-                if settings['popup_align'] == 'left':
-                    x = b_alloc.x + x
-                if settings['popup_align'] == 'center':
-                    x = b_alloc.x + x + (b_alloc.width/2)-(w/2)
-                if settings['popup_align'] == 'right':
-                    x = b_alloc.x + x + b_alloc.width - w
-                y = b_alloc.y + y-offset
-                if x+(w)>self.screen.get_width():
-                    x=self.screen.get_width()-w
-                if x<0:
-                    x = 0
-                if y-h >= 0:
-                    self.popup.move(x,y-h)
-                else:
-                    self.popup.move(x,y+b_alloc.height+(offset*2))
-            else:
+            self.show_list_no_check()
+        return False
+    
+    def show_list_on_drag(self):
+        if self.button_drag_entered:
+            self.show_list_no_check()
+    
+    def show_list_no_check(self):
+        offset = 3
+        self.winlist.show_all()
+        self.popup.resize(10,10)
+        x,y = self.button.window.get_origin()
+        b_alloc = self.button.get_allocation()
+        w,h = self.popup.get_size()
+        if self.dockbar.orient == "h":
+            if settings['popup_align'] == 'left':
                 x = b_alloc.x + x
-                y = b_alloc.y + y
-                if y+h>self.screen.get_height():
-                    y=self.screen.get_height()-h
-                if x+w >= self.screen.get_width():
-                    self.popup.move(x-w,y)
-                else:
-                    self.popup.move(x+b_alloc.width,y)
-            self.popup.show_all()
-            self.popup_showing = True
+            if settings['popup_align'] == 'center':
+                x = b_alloc.x + x + (b_alloc.width/2)-(w/2)
+            if settings['popup_align'] == 'right':
+                x = b_alloc.x + x + b_alloc.width - w
+            y = b_alloc.y + y-offset
+            if x+(w)>self.screen.get_width():
+                x=self.screen.get_width()-w
+            if x<0:
+                x = 0
+            if y-h >= 0:
+                self.popup.move(x,y-h)
+            else:
+                self.popup.move(x,y+b_alloc.height+(offset*2))
+        else:
+            x = b_alloc.x + x
+            y = b_alloc.y + y
+            if y+h>self.screen.get_height():
+                y=self.screen.get_height()-h
+            if x+w >= self.screen.get_width():
+                self.popup.move(x-w,y)
+            else:
+                self.popup.move(x+b_alloc.width,y)
+        self.popup.show_all()
+        self.popup_showing = True
         return False
 
     def hide_list(self):
@@ -1312,6 +1374,11 @@ class GroupButton ():
     def hide_list_no_check(self):
         self.popup.hide()
         self.popup_showing = False
+        return False
+    
+    def hide_list_on_drag(self):
+        if not self.popup_drag_entered:
+            self.hide_list_no_check()
         return False
 
     def button_mouse_enter (self,widget,event):
@@ -1338,16 +1405,56 @@ class GroupButton ():
     def drag_data_get(self, widget, context, selection, targetType, eventTime):
         selection.set(selection.target, 8, self.res_class)
         
+    def drag_drop(self, wid, drag_context, x, y, time):
+        print 'dropped'
+        for target in ('text/groupbutton_name', 'text/uri-list'):
+            if target in drag_context.targets:
+                self.button.drag_get_data(drag_context, target, time)
+                drag_context.finish(True, False, time)
+                break
+        else:
+            drag_context.finish(False, False, time)
+        return True
+        
+        
     def drag_data_received(self, wid, context, x, y, selection, targetType, time):
-        if targetType == TARGET_TYPE_GROUPBUTTON:
+        if selection.target == 'text/groupbutton_name':
             if selection.data != self.res_class:
                 self.dockbar.move_groupbutton(selection.data, calledFrom=self.res_class)
-        else:
+        elif selection.target == 'text/uri-list':
             #remove 'file://' and '/n' from the URI
             path = selection.data[7:-2] 
             print path
             self.dockbar.make_new_launcher(path, self.res_class)
-
+            
+    def button_drag_motion(self, widget, drag_context, x, y, time):
+        if not self.button_drag_entered:
+            self.button_drag_entered = True
+            gobject.timeout_add(settings['popup_delay'], self.show_list_on_drag)
+            for target in ('text/uri-list', 'text/groupbutton_name'):
+                if target in drag_context.targets:
+                    self.button.drag_highlight()
+        for target in ('text/uri-list', 'text/groupbutton_name'):
+            if target in drag_context.targets:
+                drag_context.drag_status(gtk.gdk.ACTION_COPY, time)
+                break
+        else:
+            drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, time)
+        return True
+        
+    def button_drag_leave(self, widget, drag_context, time):
+        self.button.drag_unhighlight()
+        self.button_drag_entered = False
+        gobject.timeout_add(100, self.hide_list_on_drag)
+        
+    def popup_drag_motion(self, widget, drag_context, x, y, time):
+        self.popup_drag_entered = True
+        drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, time)
+        return True
+        
+    def popup_drag_leave(self, widget, drag_context, time):
+        self.popup_drag_entered = False
+        gobject.timeout_add(100, self.hide_list_on_drag)
 
     def __del__(self):
         if self.button:
