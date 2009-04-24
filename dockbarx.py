@@ -75,7 +75,7 @@ DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
                       "normal_text_color": "#FFFFFF",
                     
                       "opacify": False,
-                      "opacify_alpha": 15,
+                      "opacify_alpha": 11,
                     
                       "groupbutton_left_click_action":"select or minimize group",
                       "groupbutton_shift_and_left_click_action":"launch application",
@@ -768,6 +768,7 @@ class WindowButton():
         self.is_active_window = False
         self.needs_attention = False
         self.opacified = False
+        self.button_pressed = False
         
         self.window.connect("state-changed",self.window_state_changed)
         self.window.connect("icon-changed",self.window_icon_changed)
@@ -779,7 +780,7 @@ class WindowButton():
         self.window_button.set_visible_window(False)
         self.window_button.connect("enter-notify-event",self.button_mouse_enter)
         self.window_button.connect("leave-notify-event",self.button_mouse_leave)
-        ##self.button.connect("button-press-event",self.window_button_press_event)
+        self.window_button.connect("button-press-event",self.window_button_press_event)
         self.window_button.connect("button-release-event",self.window_button_release_event)
         self.window_button.connect("scroll-event",self.window_button_scroll_event)
         
@@ -904,8 +905,6 @@ class WindowButton():
         self.label.set_label(name)
         
     def opacify(self):
-        if self.dockbar.opacified:
-            return
         if self.dockbar.opacity_values == None:
             self.dockbar.opacity_values = compiz_call('obs/screen0/opacity_values','get')
         if self.dockbar.opacity_matches == None:
@@ -916,6 +915,19 @@ class WindowButton():
         om = ["!(title="+self.window.get_name()+") & !(class=Dockbarx.py)  & (type=Normal | type=Dialog)"]
         compiz_call('obs/screen0/opacity_values','set', ov)
         compiz_call('obs/screen0/opacity_matches','set', om)
+        
+    def opacify_request(self):
+        if self.window.is_minimized():
+            return False
+        if self.button_pressed:
+            self.button_pressed = False
+            return False
+        b_m_x,b_m_y = self.window_button.get_pointer()
+        b_r = self.window_button.get_allocation()
+        if (b_m_x>=0 and b_m_x<b_r.width) and (b_m_y >= 0 and b_m_y < b_r.height):
+            self.opacify()
+        return False
+        
     
     def deopacify(self):
         # always called from deopacify_request
@@ -940,17 +952,24 @@ class WindowButton():
         self.opacified = False
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
-        gobject.timeout_add(50, self.deopacify)
+        gobject.timeout_add(110, self.deopacify)
         return False
         
     def button_mouse_enter(self, widget, event):
+        # In compiz there is a enter and a leave event before a button_press event.
+        # Keep that in mind when coding this def!
+        if self.button_pressed :
+            return
         self.update_state(True)
         if settings["opacify"]:
-            self.opacify()
+            gobject.timeout_add(100,self.opacify_request)
             # Just for safty in case no leave-signal is sent
             gobject.timeout_add(500, self.deopacify_request)
         
     def button_mouse_leave(self, widget, event):
+        # In compiz there is a enter and a leave event before a button_press event.
+        # Keep that in mind when coding this def!
+        self.button_pressed = False
         self.update_state(False)
         if settings["opacify"]:
             self.deopacify_request()
@@ -972,6 +991,17 @@ class WindowButton():
     def select_request(self):
         if self.button_drag_entered:
             self.select_window()
+            
+    def window_button_press_event(self, widget,event):
+        # In compiz there is a enter and a leave event before a button_press event.
+        # self.button_pressed is used to stop functions started with 
+        # gobject.timeout_add from self.button_mouse_enter or self.button_mouse_leave.
+        self.button_pressed = True
+        gobject.timeout_add(600, self.set_button_pressed_false)
+        
+    def set_button_pressed_false(self):
+        self.button_pressed = False
+        return False
         
     def window_button_scroll_event(self, widget,event):
         if event.direction == gtk.gdk.SCROLL_UP:
@@ -1006,6 +1036,10 @@ class WindowButton():
     #### Actions
     
     def select_or_minimize_window(self, widget, event):
+        if settings["opacify"]and self.opacified:
+            self.dockbar.opacified = False
+            self.opacified = False
+            self.deopacify()
         if self.screen.get_active_workspace() != self.window.get_workspace():
             self.window.get_workspace().activate(event.time)
         if not self.window.is_in_viewport(self.screen.get_active_workspace()):
@@ -1028,6 +1062,10 @@ class WindowButton():
             self.window.activate(event.time)
             
     def select_window(self, widget = None, event = None):
+        if settings["opacify"]and self.opacified:
+            self.dockbar.opacified = False
+            self.opacified = False
+            self.deopacify()
         if event:
             t = event.time
         else:
@@ -1050,9 +1088,17 @@ class WindowButton():
         self.window.activate(t)
             
     def close_window(self, widget, event):
+        if settings["opacify"]and self.opacified:
+            self.dockbar.opacified = False
+            self.opacified = False
+            self.deopacify()
         self.window.close(event.time)
         
     def lock_or_unlock_window(self, widget, event):
+        if settings["opacify"]and self.opacified:
+            self.dockbar.opacified = False
+            self.opacified = False
+            self.deopacify()
         if self.locked == False:
             self.locked = True
             
@@ -1070,9 +1116,17 @@ class WindowButton():
             self.window.unminimize(event.time)
             
     def shade_window(self, widget, event):
+        if settings["opacify"]and self.opacified:
+            self.dockbar.opacified = False
+            self.opacified = False
+            self.deopacify()
         self.window.shade()
         
     def unshade_window(self, widget, event):
+        if settings["opacify"]and self.opacified:
+            self.dockbar.opacified = False
+            self.opacified = False
+            self.deopacify()
         self.window.unshade()
     
     def no_action(self, widget = None, event = None):
@@ -2196,7 +2250,7 @@ class PrefDialog():
         self.opacify_cb.connect('toggled', self.checkbutton_toggled, 'opacify')
         vbox.pack_start(self.opacify_cb, False)
         scalebox = gtk.HBox()
-        scalelabel = gtk.Label("Transparency:")
+        scalelabel = gtk.Label("Opacity:")
         scalelabel.set_alignment(0,0.5)
         adj = gtk.Adjustment(0, 0, 100, 1, 10, 0)
         self.opacify_scale = gtk.HScale(adj)
