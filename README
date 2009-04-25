@@ -12,6 +12,7 @@ Experimental features (Features that isn't in vanilla DockBar 0.21):
 - Minimize animation is aiming for the group button of the program.
 - All mouse button actions are configurable
 - Behavior when multiple workspaces or viewports are used are configurable
+- Windows are raised on drag-and-drops
 - "Opacify"
 
 Dockbar is made by Aleksey Shaferov
@@ -23,7 +24,7 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 Change log:
 Experimental 0.21.6
-- It's now posible to raise windows via popup window during drag and drops. (Similar to what you can do with gnome's normal window list.)
+- It's now possible to raise windows via popup window during drag and drops. (Similar to what you can do with gnome's normal window list.)
 - Delay added to opacify
 - When using opacify, clicking a window button now brings transparency back to normal.
 - Opacify is not initiated for minimized windows anymore.
