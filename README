@@ -1,4 +1,4 @@
-Dockbar Experimental 0.21.5-1
+Dockbar Experimental 0.21.6
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
@@ -22,6 +22,14 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
+Experimental 0.21.6
+- It's now posible to raise windows via popup window during drag and drops. (Similar to what you can do with gnome's normal window list.)
+- Delay added to opacify
+- When using opacify, clicking a window button now brings transparency back to normal.
+- Opacify is not initiated for minimized windows anymore.
+- New window button action: Select window (no minimize).
+- New group button action: Compiz scale all.
+
 Experimental 0.21.5-1
 - Really stupid bug fixed. Big "Sorry!" for not checking the code before releasing it.
 

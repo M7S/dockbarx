@@ -13,7 +13,7 @@
 #	GNU General Public License for more details.
 #
 #	You should have received a copy of the GNU General Public License
-#	along with media-applet.  If not, see <http://www.gnu.org/licenses/>.
+#	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 # Exmperimental features by Matias Sars
 
@@ -49,7 +49,7 @@ except:
 
 ##import pdb
 
-VERSION = 'Experimental 0.21.5-1'
+VERSION = 'Experimental 0.21.6'
 
 TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number
 
@@ -2070,7 +2070,7 @@ class PrefDialog():
         # Behavior page
         hbox = gtk.HBox()
         vbox = gtk.VBox()
-        label1 = gtk.Label("<big>Workspace behavior on Select group</big>")
+        label1 = gtk.Label("<b><big>Workspace behavior on Select group</big></b>")
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
@@ -2086,7 +2086,7 @@ class PrefDialog():
         hbox.pack_start(vbox, True)
         
         vbox = gtk.VBox()
-        label1 = gtk.Label("<big>Popup delay</big>")
+        label1 = gtk.Label("<b><big>Popup delay</big></b>")
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
@@ -2102,13 +2102,13 @@ class PrefDialog():
         hbox.pack_start(vbox, True)
         behavior_box.pack_start(hbox, False, padding=5)
         
-        label2 = gtk.Label("<big>Button configuration</big>")
+        label2 = gtk.Label("<b><big>Button configuration</big></b>")
         label2.set_alignment(0,0.5)
         label2.set_use_markup(True)
         behavior_box.pack_start(label2,False, padding=5)
         
         table = gtk.Table(10,6)
-        label = gtk.Label("Groupbutton actions")
+        label = gtk.Label("<b>Groupbutton actions</b>")
         label.set_alignment(0,0.5)
         label.set_use_markup(True)
         table.attach(label, 0, 6, 0, 1)
@@ -2166,7 +2166,7 @@ class PrefDialog():
             table.attach(self.gb_doubleclick_checkbutton[name], column + 2, column + 3, row, row + 1, xpadding = 5 )
 
         
-        label = gtk.Label("Windowbutton actions")
+        label = gtk.Label("<b>Windowbutton actions</b>")
         label.set_alignment(0,0.5)
         label.set_use_markup(True)
         table.attach(label, 0, 6, 5, 6)
@@ -2210,7 +2210,7 @@ class PrefDialog():
         # Appearance page
         hbox = gtk.HBox()
         vbox = gtk.VBox()
-        label1 = gtk.Label("<big>Needs attention effect</big>")
+        label1 = gtk.Label("<b><big>Needs attention effect</big></b>")
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
@@ -2226,7 +2226,7 @@ class PrefDialog():
         hbox.pack_start(vbox, True, padding=5)
         
         vbox = gtk.VBox()
-        label1 = gtk.Label("<big>Popup Settings</big>")
+        label1 = gtk.Label("<b><big>Popup Settings</big></b>")
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
@@ -2242,7 +2242,7 @@ class PrefDialog():
         hbox.pack_start(vbox, True, padding=5)
         
         vbox = gtk.VBox()
-        label1 = gtk.Label("<big>Opacify</big>")
+        label1 = gtk.Label("<b><big>Opacify</big></b>")
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
