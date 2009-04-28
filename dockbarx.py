@@ -2010,6 +2010,9 @@ class GroupButton ():
 
     def compiz_scale_all(self, widget, event):
         compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid)
+        # A new button enter signal is sent when compiz is called,
+        # a delay is therefor needed.
+        gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list)
 
     def no_action(self, widget = None, event = None):
         pass
