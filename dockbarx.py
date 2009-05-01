@@ -1319,7 +1319,8 @@ class GroupButton ():
 
     def update_state_request(self):
         #Update state if the button is shown.
-        if self.button.get_allocation().width>1:
+        a = self.button.get_allocation()
+        if a.width>1 and a.height>1:
             self.update_state()
 
     def attention_effect (self):
