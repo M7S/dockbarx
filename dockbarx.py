@@ -1187,6 +1187,10 @@ class GroupButton ():
         self.popup.add(self.winlist)
 
         self.button.connect("size-allocate", self.sizealloc)
+        # Make sure that the first size-allocate call has
+        # the right width or height, depending on applet orient.
+        # (May not always work.)
+        gobject.idle_add(self.dockbar.container.resize_children)
 
         # Drag and drop should handel buttons that are moved,
         # launchers that is dropped, and open popup window
@@ -1256,13 +1260,15 @@ class GroupButton ():
     def sizealloc(self,applet,allocation):
         # Sends the new size to icon_factory so that a new icon in the right
         # size can be found. The icon is then updated.
-        if allocation.height<=1:
-            return
         if self.dockbar.orient == "v":
+            if allocation.width<=1:
+                return
             if not self.image.get_pixbuf() or self.image.get_pixbuf().get_width() != allocation.width:
                 self.icon_factory.set_size(self.button.get_allocation().width)
                 self.update_state()
         else:
+            if allocation.height<=1:
+                return
             if not self.image.get_pixbuf() or self.image.get_pixbuf().get_height() != allocation.height:
                 self.icon_factory.set_size(self.button.get_allocation().height)
                 self.update_state()
