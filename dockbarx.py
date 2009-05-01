@@ -1016,17 +1016,18 @@ class WindowButton():
 
 
     #### Actions
-
-    # TODO: make an select or minized window function to call
-    #       from select_or_minimize_window or select_window.
-    def select_or_minimize_window(self, widget, event):
+    def select_or_minimize_window(self, widget=None, event=None, minimize=True):
         # The window is activated, unless it is already
         # activated, then it's minimized. Minimized
         # windows are unminimized. The workspace
         # is switched if the window is on another
         # workspace.
+        if event:
+            t = event.time
+        else:
+            t = 0
         if self.screen.get_active_workspace() != self.window.get_workspace():
-            self.window.get_workspace().activate(event.time)
+            self.window.get_workspace().activate(t)
         if not self.window.is_in_viewport(self.screen.get_active_workspace()):
             win_x,win_y,win_w,win_h = self.window.get_geometry()
             self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),win_y-(win_y%self.screen.get_height()))
@@ -1039,38 +1040,19 @@ class WindowButton():
             if self.locked:
                 self.locked = False
                 self.groupbutton.locked_windows_count -= 1
-            self.window.unminimize(event.time)
-        elif self.window.is_active():
+            self.window.unminimize(t)
+        elif self.window.is_active() and minimize:
             self.window.minimize()
         else:
-            self.window.activate(event.time)
+            self.window.activate(t)
 
     def select_window(self, widget = None, event = None):
-        if event:
-            t = event.time
-        else:
-            t = 0
-        if self.screen.get_active_workspace() != self.window.get_workspace():
-            self.window.get_workspace().activate(event.time)
-        if not self.window.is_in_viewport(self.screen.get_active_workspace()):
-            win_x,win_y,win_w,win_h = self.window.get_geometry()
-            self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),win_y-(win_y%self.screen.get_height()))
-            # Hide popup since mouse movment won't
-            # be tracked during compiz move effect
-            self.groupbutton.popup.hide()
-            self.groupbutton.popup_showing = False
-        if self.window.is_minimized():
-            if self.locked:
-                self.locked = False
-                self.groupbutton.locked_windows_count -= 1
-            self.window.unminimize(t)
-        self.window.activate(t)
+        self.select_or_minimize_window(widget, event, False)
 
     def close_window(self, widget, event):
         self.window.close(event.time)
 
     def lock_or_unlock_window(self, widget, event):
-        # TODO:Unlock shouldn't unminimize
         if settings["opacify"]and self.opacified:
             self.dockbar.opacified = False
             self.opacified = False
@@ -1088,7 +1070,9 @@ class WindowButton():
         else:
             self.locked = False
             self.groupbutton.locked_windows_count -= 1
-            self.window.unminimize(event.time)
+            self.groupbutton.update_state()
+            self.update_label_state()
+            self.window_button_icon.set_from_pixbuf(self.icon_transp)
 
     def shade_window(self, widget, event):
         self.window.shade()
@@ -1436,10 +1420,6 @@ class GroupButton ():
 
     def popup_mouse_leave (self,widget,event):
         self.hide_list_request()
-        # TODO: Find out why on earth I added this code is _here_.
-        if not self.windows:
-            self.image.set_from_pixbuf(self.icon_factory.pixbuf_update(IconFactory.LAUNCHER))
-            self.image.show()
 
     def drag_begin(self, widget, drag_context):
         self.dockbar.dragging = True
@@ -1475,11 +1455,10 @@ class GroupButton ():
             for target in ('text/uri-list', 'text/groupbutton_name'):
                 if target in drag_context.targets:
                     self.button.drag_highlight()
-        # TODO: Moving group buttons should use ACTION_MOVE.
-        for target in ('text/uri-list', 'text/groupbutton_name'):
-            if target in drag_context.targets:
-                drag_context.drag_status(gtk.gdk.ACTION_COPY, time)
-                break
+        if 'text/groupbutton_name' in drag_context.targets:
+            drag_context.drag_status(gtk.gdk.ACTION_MOVE, time)
+        elif 'text/uri-list' in drag_context.targets:
+            drag_context.drag_status(gtk.gdk.ACTION_COPY, time)
         else:
             drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, time)
         return True
@@ -1646,8 +1625,7 @@ class GroupButton ():
         return True
 
     #### Actions
-    # TODO: Make a def for both select or minimize and just select.
-    def select_or_minimize_group(self, widget, event):
+    def select_or_minimize_group(self, widget, event, minimize=True):
         # Brings up all windows or minizes them is they are already on top.
         # (Launches the application if no windows are open)
         if (self.launcher and not self.windows):
@@ -1795,7 +1773,7 @@ class GroupButton ():
                     ordered_list.append(win)
             grp_win_stacked = ordered_list
 
-        if grtop and not moved:
+        if grtop and not moved and minimize:
             for win in grp_win_stacked:
                 self.windows[win].window.minimize()
         if not grtop:
@@ -1803,146 +1781,7 @@ class GroupButton ():
                 self.windows[win].window.activate(event.time)
 
     def select_only(self, widget, event):
-        # Brings up all windows, does nothing if they are already brought up.
-        # (Launches the application if no windows are open)
-        if (self.launcher and not self.windows):
-            self.launcher.launch()
-            return
-
-        screen = self.screen
-        windows_stacked = screen.get_windows_stacked()
-        grp_win_stacked = []
-        ignorelist = []
-        minimized_win_cnt = self.minimized_windows_count
-        moved = False
-        grtop = False
-        wingr = False
-        active_workspace = screen.get_active_workspace()
-
-        unminimized = False
-        if minimized_win_cnt > 0:
-            for win in self.windows:
-                if win.is_minimized():
-                    ignored = False
-                    if not win.is_pinned() and screen.get_active_workspace() != win.get_workspace():
-                        if settings['workspace_behavior'] == 'move':
-                            win.move_to_workspace(screen.get_active_workspace())
-                        else: # settings['workspace_behavior'] == 'ignore' or 'switch'
-                            ignored = True
-                    if not win.is_in_viewport(screen.get_active_workspace()):
-                        if settings['workspace_behavior'] == 'move':
-                            win_x,win_y,win_w,win_h = win.get_geometry()
-                            win.set_geometry(0,3,win_x%screen.get_width(),
-                                             win_y%screen.get_height(),
-                                             win_w,win_h)
-                        else: # settings['workspace_behavior'] == 'ignore' or 'switch'
-                            ignored = True
-                    if not ignored:
-                        win.unminimize(event.time)
-                        unminimized = True
-        if unminimized:
-            return
-
-        for win in windows_stacked:
-            if (not win.is_skip_tasklist()) and (not win.is_minimized()) \
-               and (win.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
-                if win in self.windows:
-                    ignored = False
-                    if not win.is_pinned() and active_workspace != win.get_workspace():
-                        if settings['workspace_behavior'] == 'move':
-                            win.move_to_workspace(screen.get_active_workspace())
-                            moved = True
-                        else: # settings['workspace_behavior'] == 'ignore' or 'switch'
-                            ignored = True
-                            ignorelist.append(win)
-                    if not win.is_in_viewport(screen.get_active_workspace()):
-                        if settings['workspace_behavior'] == 'move':
-                            win_x,win_y,win_w,win_h = win.get_geometry()
-                            win.set_geometry(0,3,win_x%screen.get_width(),
-                                             win_y%screen.get_height(),
-                                             win_w,win_h)
-                            moved = True
-                        else: # settings['workspace_behavior'] == 'ignore' or 'switch'
-                            ignored = True
-                            ignorelist.append(win)
-
-                    if not ignored:
-                        grp_win_stacked.append(win)
-                        if wingr == False:
-                            wingr = True
-                            grtop = True
-                else:
-                    if wingr:
-                        grtop = False
-
-        if not grp_win_stacked and settings['workspace_behavior'] == 'switch':
-            # Put the windows in dictionaries according to workspace and viewport
-            # so we can compare which workspace and viewport that has most windows.
-            workspaces ={}
-            for win in self.windows:
-                workspace = win.get_workspace()
-                win_x,win_y,win_w,win_h = win.get_geometry()
-                vpx = win_x/screen.get_width()
-                vpy = win_y/screen.get_height()
-                if not workspace in workspaces:
-                    workspaces[workspace] = {}
-                if not vpx in workspaces[workspace]:
-                    workspaces[workspace][vpx] = {}
-                if not vpy in workspaces[workspace][vpx]:
-                    workspaces[workspace][vpx][vpy] = []
-                workspaces[workspace][vpx][vpy].append(win)
-            max = 0
-            x = 0
-            y = 0
-            new_workspace = None
-            # Compare which workspace and viewport that has most windows.
-            ignorelist.reverse()
-            for workspace in workspaces:
-                for xvp in workspaces[workspace]:
-                    for yvp in workspaces[workspace][xvp]:
-                        nr = len (workspaces[workspace][xvp][yvp])
-                        if nr > max:
-                            max = nr
-                            x = screen.get_width() * xvp
-                            y = screen.get_height() * yvp
-                            new_workspace = workspace
-                            grp_win_stacked = workspaces[workspace][xvp][yvp]
-                        elif nr == max:
-                            # Check wether this workspace or previous workspace
-                            # with the same amount of windows has been activated
-                            # later.
-                            for win in ignorelist:
-                                if win in grp_win_stacked:
-                                    break
-                                if win in workspaces[workspace][xvp][yvp]:
-                                    x = screen.get_width() * xvp
-                                    y = screen.get_height() * yvp
-                                    new_workspace = workspace
-                                    grp_win_stacked = workspaces[workspace][xvp][yvp]
-                                    break
-            if new_workspace != screen.get_active_workspace():
-                new_workspace.activate(event.time)
-            screen.move_viewport(x, y)
-            # Hide popup since mouse movment won't
-            # be tracked during compiz move effect
-            if not (x == 0 and y == 0):
-                self.hide_list()
-            for win in grp_win_stacked:
-                if win.is_minimized():
-                    win.unminimize(event.time)
-                    unminimized = True
-            if unminimized:
-                return
-            ordered_list = []
-            # Ignorelist was reversed earlier.
-            ignorelist.reverse()
-            for win in ignorelist:
-                if win in grp_win_stacked:
-                    ordered_list.append(win)
-            grp_win_stacked = ordered_list
-
-        for win in grp_win_stacked:
-                self.windows[win].window.activate(event.time)
+        self.select_or_minimize_group(widget, event, False)
 
     def minimize_all_windows(self,widget, event):
         for win in self.windows:
