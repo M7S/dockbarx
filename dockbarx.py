@@ -1900,7 +1900,10 @@ class PrefDialog():
         self.dialog = gtk.Dialog("DockBar preferences")
         self.dialog.connect("response",self.dialog_close)
 
-        ca = self.dialog.get_content_area()
+        try:
+            ca = self.dialog.get_content_area()
+        except:
+            ca = self.dialog.vbox
         notebook = gtk.Notebook()
         notebook.set_tab_pos(gtk.POS_TOP)
         appearance_box = gtk.VBox()
