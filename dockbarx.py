@@ -120,19 +120,15 @@ def compiz_call(obj_path, func_name, *args):
 class IconFactory():
     """IconFactory takes care of finding the right icon pixbuf for a program and prepares the pixbuf."""
     icon_theme = gtk.icon_theme_get_default()
-    # TODO: Keep pixbuf in dictionary with a mask as key instead of a tuple-matrix.
     # Icon types
-    NORMAL = 0
-    HALF_TRANSPARENT = 1
-    TRANSPARENT = 2
-    LAUNCHER = 3
+    HALF_TRANSPARENT = 1<<1
+    TRANSPARENT = 1<<2
+    LAUNCHER = 1<<3
     # Icon effect
-    NO_EFFECT = 0
-    BRIGHT = 1
-    RED_BACKGROUND = 2
+    BRIGHT = 1<<4
+    RED_BACKGROUND = 1<<5
     # ACTIVE_WINDOW
-    NOT_ACTIVE = 0
-    ACTIVE = 1
+    ACTIVE = 1<<6
 
     def __load_pixbuf():
         # Loads pixbuf to self.launcher_icon from /usr/share/pixmaps/dockbar/launcher_icon.png
@@ -166,18 +162,14 @@ class IconFactory():
 
         self.pixbuf = None
         # Pixbuf matrix (NORMAL, HALFTRANSPARENT, TRANSPARENT, LAUNCHER)x(NO_EFFECT, BRIGHT, RED_BACKGROUND)x(NOT_ACTIVE, ACTIVE)
-        self.pixbuf_matrix = ( ([None, None], [None, None], [None, None]),
-                               ([None, None], [None, None], [None, None]),
-                               ([None, None], [None, None], [None, None]),
-                               ([None, None], [None, None], [None, None]) )
+        self.pixbufs = None
 
     def __del__(self):
         self.apps_by_id = None
         self.launcher = None
         self.class_group = None
         self.pixbuf = None
-        del self.pixbuf_matrix
-        self.pixbuf_matrix = None
+        self.pixbufs = None
 
     def set_size(self, size):
         # Sets the icon size to size - 2 (to make room for a glow
@@ -188,50 +180,42 @@ class IconFactory():
         self.pixbuf = self.find_icon_pixbuf(self.size)
         if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
             self.pixbuf = self.pixbuf.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
-        self.pixbuf_matrix = ( ([None, None], [None, None], [None, None]),
-                               ([None, None], [None, None], [None, None]),
-                               ([None, None], [None, None], [None, None]),
-                               ([None, None], [None, None], [None, None]) )
+        self.pixbufs = {}
 
     def reset_active_pixbufs(self):
-        for tpix in self.pixbuf_matrix:
-            for epix in tpix:
-                epix[1] = None
+        pixbufs = self.pixbufs.keys()
+        for pixbuf in pixbufs:
+            if pixbuf & self.ACTIVE:
+                self.pixbufs.pop(pixbuf)
 
 
-    def pixbuf_update(self, type = NORMAL, effect = NO_EFFECT, active = NOT_ACTIVE):
+    def pixbuf_update(self, type = 0):
         # Checks if the requested pixbuf is already drawn and returns it if it is.
         # Othervice the pixbuf is drawn, saved and returned.
         # TODO: move add border to set size.
-        if self.pixbuf_matrix[type][effect][active]:
-            return self.pixbuf_matrix[type][effect][active]
-        else:
-            # .copy() is used to avoid possible segfault.
-            pixbuf = self.get_icon_pixbuf().copy()
+        if self.pixbufs.has_key(type):
+            return self.pixbufs[type]
+        # .copy() is used to avoid possible segfault.
+        pixbuf = self.get_icon_pixbuf().copy()
+        if type & self.LAUNCHER:
+            pixbuf = self.make_launcher_icon(pixbuf)
+        pixbuf =  self.pixbuf_add_border(pixbuf, 1)
+        if type & self.ACTIVE:
+            pixbuf = self.add_glow(pixbuf)
+        if type & self.HALF_TRANSPARENT:
+            pixbuf2 = self.get_icon_pixbuf().copy()
+            pixbuf2 = self.pixbuf_add_border(pixbuf2, 1)
+            pixbuf2 = self.add_full_transparency(pixbuf2)
+            pixbuf = self.combine_icons(pixbuf,pixbuf2)
+        if type & self.TRANSPARENT:
+            pixbuf = self.add_full_transparency(pixbuf)
+        if type & self.BRIGHT:
+            pixbuf = self.colorshift(pixbuf, 50)
+        if type & self.RED_BACKGROUND:
+            pixbuf = self.add_red_background(pixbuf)
 
-            if type == self.LAUNCHER:
-                pixbuf = self.make_launcher_icon(pixbuf)
-
-            pixbuf =  self.pixbuf_add_border(pixbuf, 1)
-
-            if active == self.ACTIVE:
-                pixbuf = self.add_glow(pixbuf)
-
-            if type == self.HALF_TRANSPARENT:
-                pixbuf2 = self.get_icon_pixbuf().copy()
-                pixbuf2 = self.pixbuf_add_border(pixbuf2, 1)
-                pixbuf2 = self.add_full_transparency(pixbuf2)
-                pixbuf = self.combine_icons(pixbuf,pixbuf2)
-            elif type == self.TRANSPARENT:
-                pixbuf = self.add_full_transparency(pixbuf)
-
-            if effect == self.BRIGHT:
-                pixbuf = self.colorshift(pixbuf, 50)
-            elif effect == self.RED_BACKGROUND:
-                pixbuf = self.add_red_background(pixbuf)
-
-            self.pixbuf_matrix[type][effect][active] = pixbuf
-            return pixbuf
+        self.pixbufs[type] = pixbuf
+        return pixbuf
 
 
     def get_icon_pixbuf(self):
@@ -1300,7 +1284,7 @@ class GroupButton ():
         if self.has_active_window:
             self.icon_active = IconFactory.ACTIVE
         else:
-            self.icon_active = IconFactory.NOT_ACTIVE
+            self.icon_active = 0
 
         if self.launcher and not self.windows:
             self.icon_mode = IconFactory.LAUNCHER
@@ -1309,7 +1293,7 @@ class GroupButton ():
         elif (self.minimized_windows_count - self.locked_windows_count) > 0:
             self.icon_mode = IconFactory.HALF_TRANSPARENT
         else:
-            self.icon_mode = IconFactory.NORMAL
+            self.icon_mode = 0
 
         if self.needs_attention:
             if settings["groupbutton_attention_notification_type"] == 'red':
@@ -1318,12 +1302,14 @@ class GroupButton ():
                 self.needs_attention_anim_trigger = False
                 if not self.attention_effect_running:
                     gobject.timeout_add(700, self.attention_effect)
-                self.icon_effect = IconFactory.NO_EFFECT
+                self.icon_effect = 0
         else:
-            self.icon_effect = IconFactory.NO_EFFECT
+            self.icon_effect = 0
 
-        self.image.set_from_pixbuf(self.icon_factory.pixbuf_update(self.icon_mode, self.icon_effect, self.icon_active))
+        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active)
+        self.image.set_from_pixbuf(pixbuf)
         self.image.show()
+        pixbuf = None
 
     def update_state_request(self):
         #Update state if the button is shown.
@@ -1342,12 +1328,13 @@ class GroupButton ():
             elif settings["groupbutton_attention_notification_type"] == 'blink':
                 if not self.needs_attention_anim_trigger:
                     self.needs_attention_anim_trigger = True
-                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode, IconFactory.BRIGHT, self.icon_active)
+                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | IconFactory.BRIGHT | self.icon_active)
                     self.image.set_from_pixbuf(pixbuf)
                 else:
                     self.needs_attention_anim_trigger = False
-                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode, IconFactory.NO_EFFECT, self.icon_active)
+                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_active)
                     self.image.set_from_pixbuf(pixbuf)
+                pixbuf = None
             return True
         else:
             self.needs_attention_anim_trigger = False
