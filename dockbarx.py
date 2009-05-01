@@ -2582,6 +2582,8 @@ class DockBar():
         for window in self.screen.get_windows():
             self.window_opened(self.screen, window)
 
+        self.active_window_changed(self.screen, None)
+
     def gconf_changed(self, client, par2, entry, par4):
         global settings
         pref_update = False
