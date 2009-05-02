@@ -1,4 +1,4 @@
-Dockbar Experimental 0.21.6
+Dockbar Experimental 0.21.7
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
@@ -23,6 +23,14 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
+Experimental 0.21.7
+- When unlocking a window using lock/unlock action, the window is no longer unminimized.
+- Move cursor is shown instead of copy cursor when moving a group button.
+- Active window is set at startup.
+- Bugfix: DockBarx didn't start if added to a vertical panel.
+- Bug #370104 fixed: Preference dialog now works in hardy and other systems that uses pygtk <2.14.
+- Bug #368721 fixed: Compiz scale all action doesn't leave popup window open anymore.
+- Code clean up and documentation
 Experimental 0.21.6
 - It's now possible to raise windows via popup window during drag and drops. (Similar to what you can do with gnome's normal window list.)
 - Delay added to opacify
