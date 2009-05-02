@@ -2214,7 +2214,7 @@ class PrefDialog():
         self.opacify_scale.set_value(settings['opacify_alpha'])
 
         for name, setting_base in self.color_labels_and_settings.items():
-            color = gtk.gdk.Color(settings[setting_base+'_color'])
+            color = gtk.gdk.color_parse(settings[setting_base+'_color'])
             self.color_buttons[name].set_color(color)
             if settings.has_key(setting_base+"_alpha"):
                 alpha = settings[setting_base+"_alpha"] * 256
@@ -2442,6 +2442,8 @@ class DockBar():
                 pref_update = True
         if pref_update and PREFDIALOG:
             PREFDIALOG.update()
+
+        #TODO: Add check for sane values for critical settings.
 
         if 'active_glow_color' in changed_settings \
            or 'active_glow_alpha'  in changed_settings:
