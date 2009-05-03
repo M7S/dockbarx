@@ -1026,7 +1026,8 @@ class WindowButton():
             t = event.time
         else:
             t = 0
-        if self.screen.get_active_workspace() != self.window.get_workspace():
+        if self.window.get_workspace() != None \
+           and self.screen.get_active_workspace() != self.window.get_workspace():
             self.window.get_workspace().activate(t)
         if not self.window.is_in_viewport(self.screen.get_active_workspace()):
             win_x,win_y,win_w,win_h = self.window.get_geometry()
@@ -1651,7 +1652,8 @@ class GroupButton ():
             for win in self.windows:
                 if win.is_minimized():
                     ignored = False
-                    if not win.is_pinned() and screen.get_active_workspace() != win.get_workspace():
+                    if not win.is_pinned() and win.get_workspace() != None \
+                       and screen.get_active_workspace() != win.get_workspace():
                         if settings['workspace_behavior'] == 'move':
                             win.move_to_workspace(screen.get_active_workspace())
                         else: # settings['workspace_behavior'] == 'ignore' or 'switch'
@@ -1681,7 +1683,8 @@ class GroupButton ():
                and (win.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
                 if win in self.windows:
                     ignored = False
-                    if not win.is_pinned() and active_workspace != win.get_workspace():
+                    if not win.is_pinned() and win.get_workspace() != None \
+                       and active_workspace != win.get_workspace():
                         if settings['workspace_behavior'] == 'move':
                             win.move_to_workspace(screen.get_active_workspace())
                             moved = True
@@ -1713,6 +1716,8 @@ class GroupButton ():
             # so we can compare which workspace and viewport that has most windows.
             workspaces ={}
             for win in self.windows:
+                if win.get_workspace() == None:
+                    continue
                 workspace = win.get_workspace()
                 win_x,win_y,win_w,win_h = win.get_geometry()
                 vpx = win_x/screen.get_width()

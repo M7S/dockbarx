@@ -31,6 +31,7 @@ Experimental 0.21.7
 - Bug #370104 fixed: Preference dialog now works in hardy and other systems that uses pygtk <2.14.
 - Bug #368721 fixed: Compiz scale all action doesn't leave popup window open anymore.
 - Code clean up and documentation
+
 Experimental 0.21.6
 - It's now possible to raise windows via popup window during drag and drops. (Similar to what you can do with gnome's normal window list.)
 - Delay added to opacify
