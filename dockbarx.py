@@ -124,11 +124,14 @@ class IconFactory():
     HALF_TRANSPARENT = 1<<1
     TRANSPARENT = 1<<2
     LAUNCHER = 1<<3
-    # Icon effect
+    # Icon effects
     BRIGHT = 1<<4
     RED_BACKGROUND = 1<<5
     # ACTIVE_WINDOW
     ACTIVE = 1<<6
+    # Double width/height icons for drag and drop situations.
+    HORIZONTAL_DD = 1<<7
+    VERTICAL_DD = 1<<8
 
     def __load_pixbuf():
         # Loads pixbuf to self.launcher_icon from /usr/share/pixmaps/dockbar/launcher_icon.png
@@ -213,6 +216,10 @@ class IconFactory():
             pixbuf = self.colorshift(pixbuf, 50)
         if type & self.RED_BACKGROUND:
             pixbuf = self.add_red_background(pixbuf)
+        if type & self.HORIZONTAL_DD:
+            pixbuf = self.double_pixbuf(pixbuf, 'h')
+        if type & self.VERTICAL_DD:
+            pixbuf = self.double_pixbuf(pixbuf, 'v')
 
         self.pixbufs[type] = pixbuf
         return pixbuf
@@ -409,6 +416,44 @@ class IconFactory():
         # Now add the pixbuf above the glow
         pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
+
+    def double_pixbuf(self, pixbuf, direction = 'h'):
+        w = pixbuf.get_width()
+        h = pixbuf.get_height()
+        # Make a background almost twice as wide or high
+        # as the pixbuf depending on panel orientation.
+        if direction == 'v':
+            h = h * 2 - 2
+        else:
+            w = w * 2 - 2
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        context = cairo.Context(surface)
+        ctx = gtk.gdk.CairoContext(context)
+        # Put arrow pointing to the empty part on it.
+        if direction == 'v':
+            ctx.move_to(2, h / 2 + 2)
+            ctx.line_to(w - 2, h / 2 + 2)
+            ctx.line_to(w / 2, 0.65 * h + 2)
+            ctx.close_path()
+        else:
+            ctx.move_to(w / 2 + 2, 2)
+            ctx.line_to(w / 2 + 2, h - 2)
+            ctx.line_to(0.65 * w, h / 2)
+            ctx.close_path()
+        ctx.set_source_rgb(0, 0, 0)
+        ctx.fill()
+        sio = StringIO()
+        surface.write_to_png(sio)
+        sio.seek(0)
+        loader = gtk.gdk.PixbufLoader()
+        loader.write(sio.getvalue())
+        loader.close()
+        sio.close()
+        background = loader.get_pixbuf()
+        # And put the pixbuf on the left/upper half of it.
+        pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        return background
+
 
     def add_red_background(self, pixbuf):
         background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
@@ -1187,6 +1232,7 @@ class GroupButton ():
         self.button.connect("drag_drop", self.drag_drop)
         self.button.connect("drag_data_received", self.drag_data_received)
         self.button_drag_entered = False
+        self.dd_highlight = False
 
         # The popup needs to have a drag_dest just to check
         # if the mouse is howering it during a drag-drop.
@@ -1202,6 +1248,8 @@ class GroupButton ():
         self.button.drag_source_set_icon_pixbuf(self.icon_factory.find_icon_pixbuf(32))
         self.button.connect("drag_begin", self.drag_begin)
         self.button.connect("drag_data_get", self.drag_data_get)
+        self.button.connect("drag_end", self.drag_end)
+        self.is_current_drag_source = False
 
     def create_menu(self):
         #Creates a popup menu
@@ -1297,10 +1345,18 @@ class GroupButton ():
         else:
             self.icon_effect = 0
 
-        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active)
+        if self.dd_highlight and self.dockbar.orient == 'h':
+            self.dd_effect = IconFactory.HORIZONTAL_DD
+        elif self.dd_highlight and self.dockbar.orient == 'v':
+            self.dd_effect = IconFactory.VERTICAL_DD
+        else:
+            self.dd_effect = 0
+
+        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active | self.dd_effect)
         self.image.set_from_pixbuf(pixbuf)
         self.image.show()
         pixbuf = None
+        return False
 
     def update_state_request(self):
         #Update state if the button is shown.
@@ -1320,11 +1376,11 @@ class GroupButton ():
             elif settings["groupbutton_attention_notification_type"] == 'blink':
                 if not self.needs_attention_anim_trigger:
                     self.needs_attention_anim_trigger = True
-                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | IconFactory.BRIGHT | self.icon_active)
+                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | IconFactory.BRIGHT | self.icon_active | self.dd_effect)
                     self.image.set_from_pixbuf(pixbuf)
                 else:
                     self.needs_attention_anim_trigger = False
-                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_active)
+                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_active | self.dd_effect)
                     self.image.set_from_pixbuf(pixbuf)
                 pixbuf = None
             return True
@@ -1423,11 +1479,19 @@ class GroupButton ():
         self.hide_list_request()
 
     def drag_begin(self, widget, drag_context):
+        self.is_current_drag_source = True
         self.dockbar.dragging = True
         self.hide_list()
 
     def drag_data_get(self, widget, context, selection, targetType, eventTime):
         selection.set(selection.target, 8, self.res_class)
+
+    def drag_end(self, widget, drag_context, result = None):
+        self.is_current_drag_source = False
+        # A delay is needed to make sure the button is
+        # shown after button_drag_end has hidden it and
+        # not the other way around.
+        gobject.timeout_add(30, self.button.show)
 
     def drag_drop(self, wid, drag_context, x, y, time):
         for target in ('text/groupbutton_name', 'text/uri-list'):
@@ -1454,8 +1518,10 @@ class GroupButton ():
             self.button_drag_entered = True
             gobject.timeout_add(settings['popup_delay'], self.show_list_on_drag)
             for target in ('text/uri-list', 'text/groupbutton_name'):
-                if target in drag_context.targets:
-                    self.button.drag_highlight()
+                if target in drag_context.targets and \
+                   not self.is_current_drag_source:
+                    self.dd_highlight = True
+                    self.update_state()
         if 'text/groupbutton_name' in drag_context.targets:
             drag_context.drag_status(gtk.gdk.ACTION_MOVE, time)
         elif 'text/uri-list' in drag_context.targets:
@@ -1465,9 +1531,17 @@ class GroupButton ():
         return True
 
     def button_drag_leave(self, widget, drag_context, time):
-        self.button.drag_unhighlight()
+        self.dd_highlight = False
         self.button_drag_entered = False
+        self.update_state()
         gobject.timeout_add(100, self.hide_list_on_drag)
+        if self.is_current_drag_source:
+            # If drag leave signal because of a drop,
+            # a small delay is needed since
+            # drag-end isn't called if
+            # the destination is hidden just before
+            # the drop is completed.
+            gobject.timeout_add(20, self.button.hide)
 
     def popup_drag_motion(self, widget, drag_context, x, y, time):
         self.popup_drag_entered = True
