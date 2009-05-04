@@ -1551,6 +1551,9 @@ class GroupButton ():
     def popup_drag_leave(self, widget, drag_context, time):
         self.popup_drag_entered = False
         gobject.timeout_add(100, self.hide_list_on_drag)
+        # Just as fail-safe
+        self.dd_highlight = False
+        self.update_state()
 
     def __del__(self):
         if self.button:
