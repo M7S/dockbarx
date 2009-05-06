@@ -101,20 +101,17 @@ DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
 settings = DEFAULT_SETTINGS.copy()
 
 def compiz_call(obj_path, func_name, *args):
+    # Returns a compiz function call.
+    # No errors are dealt with here,
+    # error handling are left to the calling function.
     path = '/org/freedesktop/compiz'
     if obj_path:
         path += '/' + obj_path
-    try:
-        obj = BUS.get_object('org.freedesktop.compiz', path)
-        iface = dbus.Interface(obj, 'org.freedesktop.compiz')
-    except:
-        return None
+    obj = BUS.get_object('org.freedesktop.compiz', path)
+    iface = dbus.Interface(obj, 'org.freedesktop.compiz')
     func = getattr(iface, func_name)
     if func:
-        try:
-            return func(*args)
-        except Exception, ex:
-            print "Compiz Error: " + str(ex)
+        return func(*args)
     return None
 
 class IconFactory():
@@ -918,15 +915,34 @@ class WindowButton():
     def opacify(self):
         # Makes all windows but the one connected to this windowbutton transparent
         if self.dockbar.opacity_values == None:
-            self.dockbar.opacity_values = compiz_call('obs/screen0/opacity_values','get')
+            try:
+                self.dockbar.opacity_values = compiz_call('obs/screen0/opacity_values','get')
+            except:
+                try:
+                    self.dockbar.opacity_values = compiz_call('general/screen0/opacity_values','get')
+                except:
+                    return
         if self.dockbar.opacity_matches == None:
-            self.dockbar.opacity_matches = compiz_call('obs/screen0/opacity_matches','get')
+            try:
+                self.dockbar.opacity_matches = compiz_call('obs/screen0/opacity_matches','get')
+            except:
+                try:
+                    self.dockbar.opacity_values = compiz_call('general/screen0/opacity_matches','get')
+                except:
+                    return
         self.dockbar.opacified = True
         self.opacified = True
         ov = [settings['opacify_alpha']]
         om = ["!(title="+self.window.get_name()+") & !(class=Dockbarx.py)  & (type=Normal | type=Dialog)"]
-        compiz_call('obs/screen0/opacity_values','set', ov)
-        compiz_call('obs/screen0/opacity_matches','set', om)
+        try:
+            compiz_call('obs/screen0/opacity_values','set', ov)
+            compiz_call('obs/screen0/opacity_matches','set', om)
+        except:
+            try:
+                compiz_call('general/screen0/opacity_values','set', ov)
+                compiz_call('general/screen0/opacity_matches','set', om)
+            except:
+                return
 
     def opacify_request(self):
         if self.window.is_minimized():
@@ -952,8 +968,15 @@ class WindowButton():
             return False
         if self.dockbar.opacity_values == None:
             return False
-        compiz_call('obs/screen0/opacity_values','set', self.dockbar.opacity_values)
-        compiz_call('obs/screen0/opacity_matches','set', self.dockbar.opacity_matches)
+        try:
+            compiz_call('obs/screen0/opacity_values','set', self.dockbar.opacity_values)
+            compiz_call('obs/screen0/opacity_matches','set', self.dockbar.opacity_matches)
+        except:
+            try:
+                compiz_call('general/screen0/opacity_values','set', self.dockbar.opacity_values)
+                compiz_call('general/screen0/opacity_matches','set', self.dockbar.opacity_matches)
+            except:
+                pass
         self.dockbar.opacity_values = None
         self.dockbar.opacity_matches = None
         return False
@@ -1372,7 +1395,10 @@ class GroupButton ():
                 alloc = self.button.get_allocation()
                 x = x + alloc.x + alloc.width/2
                 y = y + alloc.y + alloc.height/2
-                compiz_call('water/allscreens/point','activate','root',self.root_xid,'x',x,'y',y)
+                try:
+                    compiz_call('water/allscreens/point','activate','root',self.root_xid,'x',x,'y',y)
+                except:
+                    pass
             elif settings["groupbutton_attention_notification_type"] == 'blink':
                 if not self.needs_attention_anim_trigger:
                     self.needs_attention_anim_trigger = True
@@ -1907,8 +1933,10 @@ class GroupButton ():
         if not self.class_group or \
            len(self.windows) - self.minimized_windows_count == 0:
             return
-
-        compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+        try:
+            compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+        except:
+            return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
         gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list)
@@ -1917,14 +1945,19 @@ class GroupButton ():
         if not self.class_group or \
            len(self.windows) - self.minimized_windows_count == 0:
             return
-
-        compiz_call('shift/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+        try:
+            compiz_call('shift/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+        except:
+            return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
         gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list)
 
     def compiz_scale_all(self, widget, event):
-        compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid)
+        try:
+            compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid)
+        except:
+            return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
         gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list)
