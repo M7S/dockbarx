@@ -50,7 +50,7 @@ Experimental 0.21.5-1
 - Really stupid bug fixed. Big "Sorry!" for not checking the code before releasing it.
 
 Experimental 0.21.5
-- Opacify: When the mouse cursor is over a window name in popup window all other windows get transparent. Activate it from preference dialog. (You need to active "Opacity, Brightness and Saturation" plugin in compiz to use it.)
+- Opacify: When the mouse cursor is over a window name in popup window all other windows get transparent. Activate it from preference dialog. (You need to activate "Opacity, Brightness and Saturation" plugin in compiz to use it.)
 - AWN wrapper ported from vanilla DockBar (by Scott Barnes).
 
 Experimental 0.21.4
@@ -154,7 +154,7 @@ INSTALL
 =======
 - install python-gnome2-desktop and python-numpy (Dockbar Experimental might be able to run without python-numpy, but it shouldn't hurt)
 - copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers
-- make a folder ~/.dockbar and copy launcher_icon.png and active_icon.png to it
+- make a folder ~/.dockbar and copy launcher_icon.png to it
     - for a system wide installation make the folder /usr/share/pixmaps/dockbar and copy the files there instead
 - add DockBar applet (Experimental Version) to panel
 
