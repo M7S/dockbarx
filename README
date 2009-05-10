@@ -1,4 +1,4 @@
-Dockbar Experimental 0.21.7
+Dockbar Experimental 0.21.8
 
 Description:
 This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
@@ -23,6 +23,12 @@ Dockbar Experimental 0.20.8 and later(?) uses resource class name instead of cla
 
 
 Change log:
+Experimental 0.21.8
+- Drag and drop of new launchers and moving of group buttons shows an indicator of where the group button will be placed.
+- Onnmouseover brightness effect added. (This is just a temporary test and I will remove it unless I get positive feedback on it. Tell me your opinion!)
+- Bug #371119 fixed: Pidgin contact list couldn't be activated, minimized or unminimized using select [or minimize] window button action.
+- Bug #372235 possibly fixed: Opacify might work now with Compiz Fusion 0.7.4 (used in Ubuntu Hardy). (Compiz Fusion 0.7.4 users please tell me if this is true!)
+
 Experimental 0.21.7
 - When unlocking a window using lock/unlock action, the window is no longer unminimized.
 - Move cursor is shown instead of copy cursor when moving a group button.

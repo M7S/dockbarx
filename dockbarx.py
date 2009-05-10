@@ -48,7 +48,7 @@ except:
 
 
 ##import pdb
-VERSION = 'Experimental 0.21.7'
+VERSION = 'Experimental 0.21.8'
 
 TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number
 
