@@ -210,7 +210,7 @@ class IconFactory():
         if type & self.TRANSPARENT:
             pixbuf = self.add_full_transparency(pixbuf)
         if type & self.BRIGHT:
-            pixbuf = self.colorshift(pixbuf, 50)
+            pixbuf = self.colorshift(pixbuf, 33)
         if type & self.RED_BACKGROUND:
             pixbuf = self.add_red_background(pixbuf)
         if type & self.HORIZONTAL_DD:
@@ -1491,15 +1491,19 @@ class GroupButton ():
             self.hide_list()
         return False
 
-    def button_mouse_enter (self,widget,event):
+    def button_mouse_enter (self, widget, event):
+        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | IconFactory.BRIGHT | self.icon_active | self.dd_effect)
+        self.image.set_from_pixbuf(pixbuf)
         if not self.dockbar.right_menu_showing and not self.dockbar.dragging:
             gobject.timeout_add(settings['popup_delay'], self.show_list_request)
 
-    def button_mouse_leave (self,widget,event):
+    def button_mouse_leave (self, widget, event):
         # A delay is necessary to make sure that the popup isn't
         # closed while moving over the gap between button and
         # popup window.
         gobject.timeout_add(100,self.hide_list_request)
+        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active | self.dd_effect)
+        self.image.set_from_pixbuf(pixbuf)
 
     def popup_mouse_leave (self,widget,event):
         self.hide_list_request()
