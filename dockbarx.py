@@ -256,6 +256,8 @@ class IconFactory():
                     pixbuf = self.icon_from_file_name(icon.get_file().get_path(), size)
                     if pixbuf != None:
                         return pixbuf
+                    else:
+                        icon_name = name
             elif icon.__class__ == gio.ThemedIcon:
                 icon_name = icon.get_names()[0]
             else:
