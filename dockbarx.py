@@ -197,9 +197,11 @@ class IconFactory():
             return self.pixbufs[type]
         # .copy() is used to avoid possible segfault.
         pixbuf = self.get_icon_pixbuf().copy()
-        if type & self.LAUNCHER:
-            pixbuf = self.make_launcher_icon(pixbuf)
         pixbuf =  self.pixbuf_add_border(pixbuf, 1)
+        if type & self.TRANSPARENT:
+            pixbuf = self.add_full_transparency(pixbuf)
+        if type & self.BRIGHT:
+            pixbuf = self.colorshift(pixbuf, 33)
         if type & self.ACTIVE:
             pixbuf = self.add_glow(pixbuf)
         if type & self.HALF_TRANSPARENT:
@@ -207,12 +209,10 @@ class IconFactory():
             pixbuf2 = self.pixbuf_add_border(pixbuf2, 1)
             pixbuf2 = self.add_full_transparency(pixbuf2)
             pixbuf = self.combine_icons(pixbuf,pixbuf2)
-        if type & self.TRANSPARENT:
-            pixbuf = self.add_full_transparency(pixbuf)
-        if type & self.BRIGHT:
-            pixbuf = self.colorshift(pixbuf, 33)
         if type & self.RED_BACKGROUND:
             pixbuf = self.add_red_background(pixbuf)
+        if type & self.LAUNCHER:
+            pixbuf = self.make_launcher_icon(pixbuf)
         if type & self.HORIZONTAL_DD:
             pixbuf = self.double_pixbuf(pixbuf, 'h')
         if type & self.VERTICAL_DD:
@@ -380,10 +380,10 @@ class IconFactory():
         size = pixbuf.get_width()
         small_size = int(0.80 * size)
         pixbuf = pixbuf.scale_simple(small_size, small_size, gtk.gdk.INTERP_BILINEAR)
-        offset = int((size - small_size) / 2 + 0.5)
+        offset = int(float(size - small_size) / 2 + 0.5)
         pixbuf.composite(background, offset, offset, small_size, small_size, offset ,offset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-        overlay = self.launcher_icon.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
-        overlay.composite(background, 0, 0, overlay.props.width, overlay.props.height, 0, 0, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+        overlay = self.launcher_icon.scale_simple(size-2, size-2, gtk.gdk.INTERP_BILINEAR)
+        overlay.composite(background, 1, 1, overlay.get_width(), overlay.get_height(), 1, 1, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
     def add_glow(self, pixbuf):
