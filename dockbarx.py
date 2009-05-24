@@ -94,7 +94,7 @@ DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
                       "windowbutton_shift_and_left_click_action":"no action",
                       "windowbutton_middle_click_action":"close window",
                       "windowbutton_shift_and_middle_click_action": "no action",
-                      "windowbutton_right_click_action": "lock or unlock window",
+                      "windowbutton_right_click_action": "show menu",
                       "windowbutton_shift_and_right_click_action": "no action",
                       "windowbutton_scroll_up": "shade window",
                       "windowbutton_scroll_down": "unshade window" }
@@ -1084,6 +1084,16 @@ class WindowButton():
             action = settings['windowbutton_right_click_action']
             self.action_function_dict[action](self, widget, event)
 
+    #### Menu functions
+    def menu_closed(self, menushell):
+        self.dockbar.right_menu_showing = False
+        self.groupbutton.popup.hide()
+
+    def minimize_window(self, widget=None, event=None):
+        if self.window.is_minimized():
+            self.window.unminimize(gtk.get_current_event_time())
+        else:
+            self.window.minimize()
 
     #### Actions
     def select_or_minimize_window(self, widget=None, event=None, minimize=True):
@@ -1095,9 +1105,9 @@ class WindowButton():
         if event:
             t = event.time
         else:
-            t = 0
+            t = gtk.get_current_event_time()
         if self.window.get_workspace() != None \
-           and self.screen.get_active_workspace() != self.window.get_workspace():
+        and self.screen.get_active_workspace() != self.window.get_workspace():
             self.window.get_workspace().activate(t)
         if not self.window.is_in_viewport(self.screen.get_active_workspace()):
             win_x,win_y,win_w,win_h = self.window.get_geometry()
@@ -1108,9 +1118,6 @@ class WindowButton():
             self.groupbutton.popup.hide()
             self.groupbutton.popup_showing = False
         if self.window.is_minimized():
-            if self.locked:
-                self.locked = False
-                self.groupbutton.locked_windows_count -= 1
             self.window.unminimize(t)
         elif self.window.is_active() and minimize:
             self.window.minimize()
@@ -1120,18 +1127,22 @@ class WindowButton():
     def select_window(self, widget = None, event = None):
         self.select_or_minimize_window(widget, event, False)
 
-    def close_window(self, widget, event):
-        self.window.close(event.time)
+    def close_window(self, widget=None, event=None):
+        self.window.close(gtk.get_current_event_time())
 
-    def lock_or_unlock_window(self, widget, event):
+    def maximize_window(self, widget=None, event=None):
+        if self.window.is_maximized():
+            self.window.unmaximize()
+        else:
+            self.window.maximize()
+
+    def lock_or_unlock_window(self, widget=None, event=None):
         if settings["opacify"]and self.opacified:
             self.dockbar.opacified = False
             self.opacified = False
             self.deopacify()
         if self.locked == False:
             self.locked = True
-
-            ##self.window_button.set_property("image-position",gtk.POS_RIGHT)
             self.groupbutton.locked_windows_count += 1
             if not self.window.is_minimized():
                 self.window.minimize()
@@ -1151,13 +1162,62 @@ class WindowButton():
     def unshade_window(self, widget, event):
         self.window.unshade()
 
+    def show_menu(self, widget, event):
+        #Creates a popup menu
+        menu = gtk.Menu()
+        menu.connect('selection-done', self.menu_closed)
+        #(Un)Lock
+        lock_item = None
+        if self.window.get_actions() & wnck.WINDOW_ACTION_MINIMIZE \
+        and not self.locked:
+            lock_item = gtk.MenuItem('Lock')
+        elif self.locked:
+            lock_item = gtk.MenuItem('Unlock')
+        if lock_item:
+            menu.append(lock_item)
+            lock_item.connect("activate", self.lock_or_unlock_window)
+            lock_item.show()
+        #(Un)Minimize
+        minimize_item = None
+        if self.window.get_actions() & wnck.WINDOW_ACTION_MINIMIZE \
+        and not self.window.is_minimized():
+            minimize_item = gtk.MenuItem('Minimize')
+        elif self.window.get_actions() & wnck.WINDOW_ACTION_UNMINIMIZE \
+        and self.window.is_minimized():
+            minimize_item = gtk.MenuItem('Unminimize')
+        if minimize_item:
+            menu.append(minimize_item)
+            minimize_item.connect("activate", self.minimize_window)
+            minimize_item.show()
+        # (Un)Maximize
+        maximize_item = None
+        if not self.window.is_maximized() \
+        and self.window.get_actions() & wnck.WINDOW_ACTION_MAXIMIZE:
+            maximize_item = gtk.MenuItem('Maximize')
+        elif self.window.is_maximized() \
+        and self.window.get_actions() & wnck.WINDOW_ACTION_UNMAXIMIZE:
+            maximize_item = gtk.MenuItem('Unmaximize')
+        if maximize_item:
+            menu.append(maximize_item)
+            maximize_item.connect("activate", self.maximize_window)
+            maximize_item.show()
+        # Close
+        close_item = gtk.MenuItem('Close')
+        menu.append(close_item)
+        close_item.connect("activate", self.close_window)
+        close_item.show()
+        menu.popup(None, None, None, event.button, event.time)
+        self.dockbar.right_menu_showing = True
+
     def no_action(self, widget = None, event = None):
         pass
 
     # TODO: make an ordered list instead.
     action_function_dict = { 'select or minimize window': select_or_minimize_window,
                              'select window': select_window,
+                             'maximize window': maximize_window,
                              'close window': close_window,
+                             'show menu': show_menu,
                              'lock or unlock window': lock_or_unlock_window,
                              'shade window': shade_window,
                              'unshade window': unshade_window,
@@ -1203,7 +1263,6 @@ class GroupButton ():
         self.button.connect("button-press-event",self.group_button_press_event)
         self.button.connect("scroll-event",self.group_button_scroll_event)
 
-        self.menu = self.create_menu()
         hbox = gtk.HBox()
         hbox.add(self.image)
         self.button.add(hbox)
@@ -1276,31 +1335,7 @@ class GroupButton ():
         self.button.connect("drag_end", self.drag_end)
         self.is_current_drag_source = False
 
-    def create_menu(self):
-        #Creates a popup menu
-        menu = gtk.Menu()
-        menu.connect('selection-done', self.menu_closed)
-        if self.launcher:
-            #Launch program item
-            launch_program_item = gtk.MenuItem('Launch program')
-            menu.append(launch_program_item)
-            launch_program_item.connect("activate", self.launch_application)
-            launch_program_item.show()
-            #Remove launcher item
-            remove_launcher_item = gtk.MenuItem('Remove launcher')
-            menu.append(remove_launcher_item)
-            remove_launcher_item.connect("activate", self.remove_launcher)
-            remove_launcher_item.show()
-        #Close all windows item
-        close_all_windows_item = gtk.MenuItem('Close all windows')
-        menu.append(close_all_windows_item)
-        close_all_windows_item.connect("activate", self.close_all_windows)
-        close_all_windows_item.show()
 
-        return menu
-
-    def menu_closed(self, menushell):
-        self.dockbar.right_menu_showing = False
 
     def get_group_name(self):
         # Tries to find the correct name and returns it.
@@ -1595,7 +1630,6 @@ class GroupButton ():
         self.windows = None
         self.winlist = None
         self.dockbar = None
-        self.menu = None
         self.drag_pixbuf = None
 
     def add_window(self,window):
@@ -1734,6 +1768,16 @@ class GroupButton ():
         elif event.button == 1: return False
         return True
 
+    #### Menu functions
+    def menu_closed(self, menushell):
+        self.dockbar.right_menu_showing = False
+
+    def unminimize_all_windows(self, widget=None, event=None):
+        t = gtk.get_current_event_time()
+        for window in self.windows:
+            if window.is_minimized():
+                window.unminimize(t)
+
     #### Actions
     def select_or_minimize_group(self, widget, event, minimize=True):
         # Brings up all windows or minizes them is they are already on top.
@@ -1759,7 +1803,8 @@ class GroupButton ():
         unminimized = False
         if minimized_win_cnt > 0:
             for win in self.windows:
-                if win.is_minimized():
+                if win.is_minimized() \
+                and not self.windows[win].locked:
                     ignored = False
                     if not win.is_pinned() and win.get_workspace() != None \
                        and screen.get_active_workspace() != win.get_workspace():
@@ -1789,7 +1834,7 @@ class GroupButton ():
         # topmost windows.
         for win in windows_stacked:
             if (not win.is_skip_tasklist()) and (not win.is_minimized()) \
-               and (win.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
+            and (win.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
                 if win in self.windows:
                     ignored = False
                     if not win.is_pinned() and win.get_workspace() != None \
@@ -1826,6 +1871,8 @@ class GroupButton ():
             workspaces ={}
             for win in self.windows:
                 if win.get_workspace() == None:
+                    continue
+                if self.windows[win].locked:
                     continue
                 workspace = win.get_workspace()
                 win_x,win_y,win_w,win_h = win.get_geometry()
@@ -1897,15 +1944,26 @@ class GroupButton ():
     def select_only(self, widget, event):
         self.select_or_minimize_group(widget, event, False)
 
-    def minimize_all_windows(self,widget, event):
-        for win in self.windows:
-            self.windows[win].window.minimize()
+    def minimize_all_windows(self,widget=None, event=None):
+        for window in self.windows:
+            window.minimize()
+
+    def maximize_all_windows(self,widget=None, event=None):
+        maximized = False
+        for window in self.windows:
+            if not window.is_maximized() \
+            and window.get_actions() & wnck.WINDOW_ACTION_MAXIMIZE:
+                window.maximize()
+                maximized = True
+        if not maximized:
+            for window in self.windows:
+                window.unmaximize()
 
     def close_all_windows(self, widget=None, event=None):
         if event:
             t = event.time
         else:
-            t = 0
+            t = gtk.get_current_event_time()
         for window in self.windows:
             window.close(t)
 
@@ -1915,7 +1973,56 @@ class GroupButton ():
 
     def show_menu(self, widget, event):
         self.hide_list()
-        self.menu.popup(None, None, None, event.button, event.time)
+        #Creates a popup menu
+        menu = gtk.Menu()
+        menu.connect('selection-done', self.menu_closed)
+        if self.launcher:
+            #Launch program item
+            launch_program_item = gtk.MenuItem('Launch program')
+            menu.append(launch_program_item)
+            launch_program_item.connect("activate", self.launch_application)
+            launch_program_item.show()
+            #Remove launcher item
+            remove_launcher_item = gtk.MenuItem('Remove launcher')
+            menu.append(remove_launcher_item)
+            remove_launcher_item.connect("activate", self.remove_launcher)
+            remove_launcher_item.show()
+        if self.launcher and self.windows:
+            #Separator
+            sep = gtk.SeparatorMenuItem()
+            menu.append(sep)
+            sep.show()
+        #Close all windows item
+        if self.windows:
+            if len(self.windows) - self.minimized_windows_count == 0:
+                # Unminimize all
+                unminimize_all_windows_item = gtk.MenuItem('Unminimize all windows')
+                menu.append(unminimize_all_windows_item)
+                unminimize_all_windows_item.connect("activate", self.unminimize_all_windows)
+                unminimize_all_windows_item.show()
+            else:
+                # Minimize all
+                minimize_all_windows_item = gtk.MenuItem('Minimize all windows')
+                menu.append(minimize_all_windows_item)
+                minimize_all_windows_item.connect("activate", self.minimize_all_windows)
+                minimize_all_windows_item.show()
+            # (Un)Maximize all
+            for window in self.windows:
+                if not window.is_maximized() \
+                and window.get_actions() & wnck.WINDOW_ACTION_MAXIMIZE:
+                    maximize_all_windows_item = gtk.MenuItem('Maximize all windows')
+                    break
+            else:
+                maximize_all_windows_item = gtk.MenuItem('Unmaximize all windows')
+            menu.append(maximize_all_windows_item)
+            maximize_all_windows_item.connect("activate", self.maximize_all_windows)
+            maximize_all_windows_item.show()
+            # Close all
+            close_all_windows_item = gtk.MenuItem('Close all windows')
+            menu.append(close_all_windows_item)
+            close_all_windows_item.connect("activate", self.close_all_windows)
+            close_all_windows_item.show()
+        menu.popup(None, None, None, event.button, event.time)
         self.dockbar.right_menu_showing = True
 
     def remove_launcher(self, widget=None, event = None):
@@ -1975,6 +2082,7 @@ class GroupButton ():
                              "select group": select_only,
                              "close all windows": close_all_windows,
                              "minimize all windows": minimize_all_windows,
+                             "maximize all windows": maximize_all_windows,
                              "launch application": launch_application,
                              "show menu": show_menu,
                              "remove launcher": remove_launcher,
