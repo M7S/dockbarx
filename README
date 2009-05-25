@@ -34,6 +34,15 @@ INSTALL
 You can run it in window (meant for debugging purposes, mostly):
 dockbarx.py run-in-window
 
+INSTALL IN AWN
+
+1. Do a normal install (no need to add dockbarx to panel if you don't want to, of course).
+2. Copy everything from the AWN folder to ~/.config/awn/applets
+3. Remove original taskbar/launcher applet from awn (optional, but recommended)
+4. Set 'Icon offset' parameter to 0!
+5. Restart AWN
+6. Add DockBar applet
+
 
 =====
 USAGE
