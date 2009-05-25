@@ -1538,7 +1538,8 @@ class GroupButton ():
         # A delay is necessary to make sure that the popup isn't
         # closed while moving over the gap between button and
         # popup window.
-        gobject.timeout_add(100,self.hide_list_request)
+        timeout = min(100, settings['popup_delay'])
+        gobject.timeout_add(timeout,self.hide_list_request)
         pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active | self.dd_effect)
         self.image.set_from_pixbuf(pixbuf)
 
