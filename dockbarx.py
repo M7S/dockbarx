@@ -2761,7 +2761,7 @@ class DockBar():
         self.applet.add(self.container)
         for group in self.groups.get_names():
             self.container.pack_start(self.groups.get_group(group).button,False)
-        self.container.set_spacing(2)
+        self.container.set_spacing(0)
         self.container.show_all()
 
     def add_launcher(self, name, path):
