@@ -1030,6 +1030,8 @@ class WindowButton():
         self.button_drag_entered = False
         self.groupbutton.popup_drag_entered = False
         self.window_button.drag_unhighlight()
+        gobject.timeout_add(100, self.dockbar.hide_list_on_drag)
+
 
     def select_request(self):
         # Raises the window if the cursor is over the window
@@ -1616,7 +1618,7 @@ class GroupButton ():
         self.update_state()
         gobject.timeout_add(100, self.hide_list_on_drag)
         if self.is_current_drag_source:
-            # If drag leave signal because of a drop,
+            # If drag leave signal is given because of a drop,
             # a small delay is needed since
             # drag-end isn't called if
             # the destination is hidden just before
