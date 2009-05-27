@@ -1496,9 +1496,9 @@ class GroupButton ():
             if y+h>self.screen.get_height():
                 y=self.screen.get_height()-h
             if x+w >= self.screen.get_width():
-                self.popup.move(x-w,y)
+                self.popup.move(x - w - offset,y)
             else:
-                self.popup.move(x+b_alloc.width,y)
+                self.popup.move(x + b_alloc.width + offset,y)
         self.popup.show_all()
         self.popup_showing = True
         return False
@@ -1511,8 +1511,24 @@ class GroupButton ():
         p_w,p_h = self.popup.get_size()
         b_m_x,b_m_y = self.button.get_pointer()
         b_r = self.button.get_allocation()
-        if ((p_m_x<0 or p_m_x>(p_w-1))or(p_m_y<0 or p_m_y>(p_h-1))) and \
-        ((b_m_x<0 or b_m_x>(b_r.width-1)) or (b_m_y<0 or b_m_y>(b_r.height-1))):
+        # Make sure that the popup list isn't closed when
+        # howering the gap between button and list.
+        w,h = self.popup.get_size()
+        p_x,p_y = self.popup.window.get_origin()
+        offset = 3
+        b_x,b_y = self.button.window.get_origin()
+        if self.dockbar.orient == 'h' and b_m_x>=0 and b_m_x<=(b_r.width-1):
+            if (p_y < b_y and b_m_y>=-offset and b_m_y<=0) \
+            or (p_y > b_y and b_m_y>=(b_r.height-1) and b_m_y<=(b_r.height-1+offset)):
+                gobject.timeout_add(50, self.hide_list_request)
+                return
+        elif self.dockbar.orient == 'v' and b_m_y>=0 and b_m_y<=(b_r.height-1):
+            if (p_x < b_x and b_m_x>=-offset and b_m_x<=0) \
+            or (p_x > b_x and b_m_x>=(b_r.width-1) and b_m_x<=(b_r.width-1+offset)):
+                gobject.timeout_add(50, self.hide_list_request)
+                return
+        if ((p_m_x<0 or p_m_x>(p_w-1))or(p_m_y<0 or p_m_y>(p_h-1))) \
+        and ((b_m_x<0 or b_m_x>(b_r.width-1)) or (b_m_y<0 or b_m_y>(b_r.height-1))):
             self.hide_list()
         return False
 
@@ -1535,13 +1551,9 @@ class GroupButton ():
             gobject.timeout_add(settings['popup_delay'], self.show_list_request)
 
     def button_mouse_leave (self, widget, event):
-        # A delay is necessary to make sure that the popup isn't
-        # closed while moving over the gap between button and
-        # popup window.
-        timeout = min(100, settings['popup_delay'])
-        gobject.timeout_add(timeout,self.hide_list_request)
         pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active | self.dd_effect)
         self.image.set_from_pixbuf(pixbuf)
+        self.hide_list_request()
 
     def popup_mouse_leave (self,widget,event):
         self.hide_list_request()
