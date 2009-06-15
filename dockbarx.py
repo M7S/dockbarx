@@ -114,6 +114,91 @@ def compiz_call(obj_path, func_name, *args):
         return func(*args)
     return None
 
+class ODict():
+    """An ordered dictionary.
+
+    Has only the most needed functions of a dict, not all."""
+    def __init__(self, d=[]):
+        if not type(d) in (list, tuple):
+            raise TypeError('The argument has to be a list or a tuple or nothing.')
+        self.list = []
+        for t in d:
+            if not type(d) in (list, tuple):
+                raise ValueError('Every item of the list has to be a list or a tuple.')
+            if not len(t) == 2:
+                raise ValueError('Every tuple in the list needs to be two items long.')
+            self.list.append(t)
+
+    def __getitem__(self, key):
+        for t in self.list:
+            if t[0] == key:
+                return t[1]
+
+    def __setitem__(self, key, value):
+        t = (key, value)
+        self.list.append(t)
+
+    def __contains__(self, key):
+        for t in self.list:
+            if t[0] == key:
+                return True
+        else:
+            return False
+
+    def __iter__(self):
+        return self.keys().__iter__()
+
+    def __eq__(self, x):
+        if type(x) == dict:
+            d = {}
+            for t in self.list:
+                d[t[0]] = t[1]
+            return (d == x)
+        elif x.__class__ == self.__class__:
+            return (self.list == x.list)
+        else:
+            return (self.list == x)
+
+    def __len__(self):
+        return len(self.list)
+
+    def get_path(self, name):
+        for t in self.list:
+            if t[0] == name:
+                return t[2]
+
+    def values(self):
+        values = []
+        for t in self.list:
+            values.append(t[1])
+        return values
+
+    def keys(self):
+        keys = []
+        for t in self.list:
+            keys.append(t[0])
+        return keys
+
+    def add_at_index(self, index, key, value):
+        t = (key, value)
+        self.list.insert(index, t)
+
+    def get_index(self, key):
+        for t in self.list:
+            if t[0] == key:
+                return self.list.index(t)
+
+    def move(self, key, index):
+        for t in self.list:
+            if key == t[0]:
+                self.list.remove(t)
+                self.list.insert(index, t)
+
+    def remove(self, key):
+        for t in self.list:
+            if key == t[0]:
+                self.list.remove(t)
+
 class IconFactory():
     """IconFactory takes care of finding the right icon pixbuf for a program and prepares the pixbuf."""
     icon_theme = gtk.icon_theme_get_default()
@@ -640,7 +725,7 @@ class Launcher():
     def __init__(self, name, path):
         self.name = name
         if not os.path.exists(path):
-            raise Exception, "DesktopFile "+fileName+" doesn't exist."
+            raise Exception("DesktopFile "+fileName+" doesn't exist.")
 
         self.desktop_entry = DesktopEntry(path)
 
@@ -694,8 +779,8 @@ class GroupList():
         self.add_group(name, group_button)
 
     def __contains__(self, name):
-        for tuple in self.list:
-            if tuple[0] == name:
+        for t in self.list:
+            if t[0] == name:
                 return True
         else:
             return False
@@ -704,66 +789,66 @@ class GroupList():
         return self.get_names().__iter__()
 
     def add_group(self, name, group_button, path_to_launcher=None, index=None):
-        tuple = (name, group_button, path_to_launcher)
+        t = (name, group_button, path_to_launcher)
         if index:
-            self.list.insert(index, tuple)
+            self.list.insert(index, t)
         else:
-            self.list.append(tuple)
+            self.list.append(t)
 
     def get_group(self, name):
-        for tuple in self.list:
-            if tuple[0] == name:
-                return tuple[1]
+        for t in self.list:
+            if t[0] == name:
+                return t[1]
 
     def get_path(self, name):
-        for tuple in self.list:
-            if tuple[0] == name:
-                return tuple[2]
+        for t in self.list:
+            if t[0] == name:
+                return t[2]
 
     def get_groups(self):
         grouplist = []
-        for tuple in self.list:
-            grouplist.append(tuple[1])
+        for t in self.list:
+            grouplist.append(t[1])
         return grouplist
 
     def get_names(self):
         namelist = []
-        for tuple in self.list:
-            namelist.append(tuple[0])
+        for t in self.list:
+            namelist.append(t[0])
         return namelist
 
     def get_non_launcher_names(self):
         #Get a list of names of all buttons without launchers
         namelist = []
-        for tuple in self.list:
-            if not tuple[2]:
-                namelist.append(tuple[0])
+        for t in self.list:
+            if not t[2]:
+                namelist.append(t[0])
         return namelist
 
     def get_index(self, name):
-        for tuple in self.list:
-            if tuple[0]==name:
-                return self.list.index(tuple)
+        for t in self.list:
+            if t[0]==name:
+                return self.list.index(t)
 
     def move(self, name, index):
-        for tuple in self.list:
-            if name == tuple[0]:
-                self.list.remove(tuple)
-                self.list.insert(index, tuple)
+        for t in self.list:
+            if name == t[0]:
+                self.list.remove(t)
+                self.list.insert(index, t)
 
     def remove(self,name):
-        for tuple in self.list:
-            if name == tuple[0]:
-                self.list.remove(tuple)
+        for t in self.list:
+            if name == t[0]:
+                self.list.remove(t)
                 return True
 
     def get_launchers_list(self):
         #Returns a list of name and launcher paths tuples
         launcherslist = []
-        for tuple in self.list:
+        for t in self.list:
             #if launcher exist
-            if tuple[2]:
-                launchertuple = (tuple[0],tuple[2])
+            if t[2]:
+                launchertuple = (t[0],t[2])
                 launcherslist.append(launchertuple)
         return launcherslist
 
@@ -1215,15 +1300,17 @@ class WindowButton():
         pass
 
     # TODO: make an ordered list instead.
-    action_function_dict = { 'select or minimize window': select_or_minimize_window,
-                             'select window': select_window,
-                             'maximize window': maximize_window,
-                             'close window': close_window,
-                             'show menu': show_menu,
-                             'lock or unlock window': lock_or_unlock_window,
-                             'shade window': shade_window,
-                             'unshade window': unshade_window,
-                             'no action': no_action }
+    action_function_dict = ODict((
+                                  ('select or minimize window', select_or_minimize_window),
+                                  ('select window', select_window),
+                                  ('maximize window', maximize_window),
+                                  ('close window', close_window),
+                                  ('show menu', show_menu),
+                                  ('lock or unlock window', lock_or_unlock_window),
+                                  ('shade window', shade_window),
+                                  ('unshade window', unshade_window),
+                                  ('no action', no_action)
+                                ))
 
 
 class GroupButton ():
@@ -2093,19 +2180,21 @@ class GroupButton ():
     def no_action(self, widget = None, event = None):
         pass
 
-    action_function_dict = { "select or minimize group": select_or_minimize_group,
-                             "select group": select_only,
-                             "close all windows": close_all_windows,
-                             "minimize all windows": minimize_all_windows,
-                             "maximize all windows": maximize_all_windows,
-                             "launch application": launch_application,
-                             "show menu": show_menu,
-                             "remove launcher": remove_launcher,
-                             "minimize all other groups": minimize_all_other_groups,
-                             "compiz scale windows": compiz_scale_windows,
-                             "compiz shift windows": compiz_shift_windows,
-                             "compiz scale all": compiz_scale_all,
-                             "no action": no_action }
+    action_function_dict = ODict((
+                                  ("select or minimize group", select_or_minimize_group),
+                                  ("select group", select_only),
+                                  ("close all windows", close_all_windows),
+                                  ("minimize all windows", minimize_all_windows),
+                                  ("maximize all windows", maximize_all_windows),
+                                  ("launch application", launch_application),
+                                  ("show menu", show_menu),
+                                  ("remove launcher", remove_launcher),
+                                  ("minimize all other groups", minimize_all_other_groups),
+                                  ("compiz scale windows", compiz_scale_windows),
+                                  ("compiz shift windows", compiz_shift_windows),
+                                  ("compiz scale all", compiz_scale_all),
+                                  ("no action", no_action)
+                                ))
 
 
 class AboutDialog():
