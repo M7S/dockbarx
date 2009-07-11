@@ -37,7 +37,9 @@ import gnomevfs
 import dbus
 import pango
 from cStringIO import StringIO
-
+import tarfile
+from xml.sax import make_parser
+from xml.sax.handler import ContentHandler
 from math import pi
 import cairo
 
@@ -50,7 +52,7 @@ except:
 ##import pdb
 VERSION = 'Experimental 0.21.9'
 
-TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number
+TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number, is it used anymore?
 
 GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = '/apps/dockbarx'
@@ -59,7 +61,8 @@ BUS = dbus.SessionBus()
 
 PREFDIALOG = None # Non-constant! Remove or rename!?
 
-DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
+DEFAULT_SETTINGS = {  "theme": "default",
+                      "groupbutton_attention_notification_type": "red",
                       "workspace_behavior": "switch",
                       "popup_delay": 250,
                       "popup_align": "center",
@@ -100,6 +103,7 @@ DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
                       "windowbutton_scroll_down": "unshade window" }
 settings = DEFAULT_SETTINGS.copy()
 
+
 def compiz_call(obj_path, func_name, *args):
     # Returns a compiz function call.
     # No errors are dealt with here,
@@ -113,6 +117,7 @@ def compiz_call(obj_path, func_name, *args):
     if func:
         return func(*args)
     return None
+
 
 class ODict():
     """An ordered dictionary.
@@ -179,6 +184,9 @@ class ODict():
             keys.append(t[0])
         return keys
 
+    def items(self):
+        return self.list
+
     def add_at_index(self, index, key, value):
         t = (key, value)
         self.list.insert(index, t)
@@ -199,54 +207,159 @@ class ODict():
             if key == t[0]:
                 self.list.remove(t)
 
+
+class ThemeHandler(ContentHandler):
+    """Reads the xml-file into a ODict"""
+    def __init__(self):
+        self.dict = ODict()
+        self.name = None
+        self.nested_contents = []
+        self.nested_contents.append(self.dict)
+        self.nested_attributes = []
+
+    def startElement(self, name, attrs):
+        name = name.lower().encode()
+        if name == 'theme':
+            for attr in attrs.keys():
+                if attr.lower() == 'name':
+                    self.name = attrs[attr]
+            return
+        # Add all attributes to a dictionary
+        d = {}
+        for attr in attrs.keys():
+            # make sure that all text is in lower
+            d[attr.encode().lower()] = attrs[attr].encode().lower()
+        # Add a ODict to the dictionary in which all
+        # content will be put.
+        d['content'] = ODict()
+        self.nested_contents[-1][name] = d
+        # Append content ODict to the list so that it
+        # next element will be put there.
+        self.nested_contents.append(d['content'])
+
+        self.nested_attributes.append(d)
+
+    def endElement(self, name):
+        if name == 'theme':
+            return
+        # Pop the last element of nested_contents
+        # so that the new elements won't show up
+        # as a content to the ended element.
+        if len(self.nested_contents)>1:
+            self.nested_contents.pop()
+        # Remove Content Odict if the element
+        # had no content.
+        d = self.nested_attributes.pop()
+        if d['content'].keys() == []:
+                d.pop('content')
+
+    def get_dict(self):
+        return self.dict
+
+    def get_name(self):
+        return self.name
+
+class Theme():
+    @staticmethod
+    def check(path_to_tar):
+        #TODO: Optimize this
+        tar = tarfile.open(path_to_tar)
+        config = tar.extractfile('config')
+        parser = make_parser()
+        theme_handler = ThemeHandler()
+        try:
+            parser.setContentHandler(theme_handler)
+            parser.parse(config)
+        except:
+            return None
+        return theme_handler.get_name()
+
+    def __init__(self, path_to_tar):
+        tar = tarfile.open(path_to_tar)
+        config = tar.extractfile('config')
+
+        parser = make_parser()
+        theme_handler = ThemeHandler()
+        parser.setContentHandler(theme_handler)
+        parser.parse(config)
+        self.theme = theme_handler.get_dict()
+        self.name = theme_handler.get_name()
+##        self.print_dict(self.theme)
+
+        self.pixbufs = {}
+        pixmaps = self.theme['pixmaps']['content']
+        for (type, d) in pixmaps.items():
+            if type == 'pixmap_from_file':
+                self.pixbufs[d['name']] = self.load_pixbuf(tar, d['file'])
+
+        tar.close()
+
+    def print_dict(self, d, indent=""):
+        for key in d.keys():
+            if key == 'content' or type(d[key]) == dict:
+                print "%s%s={"%(indent,key)
+                self.print_dict(d[key], indent+"   ")
+                print "%s}"%indent
+            else:
+                print '%s%s = %s'%(indent,key,d[key])
+
+    def load_pixbuf(self, tar, name):
+        f = tar.extractfile('pixmaps/'+name)
+        buffer=f.read()
+        pixbuf_loader=gtk.gdk.PixbufLoader()
+        pixbuf_loader.write(buffer)
+        pixbuf_loader.close()
+        f.close()
+        pixbuf=pixbuf_loader.get_pixbuf()
+        return pixbuf
+
+    def has_pixbuf(self, name):
+        if name in self.pixbufs:
+            return True
+        else:
+            return False
+
+    def get_pixbuf(self, name):
+        return self.pixbufs[name]
+
+    def get_icon_dict(self):
+        return self.theme['icon_pixmap']['content']
+
+    def get_name(self):
+        return self.name
+
+    def get_gap(self):
+        return int(self.theme['icon_pixmap'].get('gap', 0))
+
 class IconFactory():
     """IconFactory takes care of finding the right icon pixbuf for a program and prepares the pixbuf."""
     icon_theme = gtk.icon_theme_get_default()
     # Icon types
-    HALF_TRANSPARENT = 1<<1
-    TRANSPARENT = 1<<2
+    SOME_MINIMIZED = 1<<1
+    ALL_MINIMIZED = 1<<2
     LAUNCHER = 1<<3
     # Icon effects
-    BRIGHT = 1<<4
-    RED_BACKGROUND = 1<<5
+    MOUSE_OVER = 1<<4
+    NEEDS_ATTENTION = 1<<5
     # ACTIVE_WINDOW
     ACTIVE = 1<<6
     # Double width/height icons for drag and drop situations.
-    HORIZONTAL_DD = 1<<7
-    VERTICAL_DD = 1<<8
+    DRAG_DROPP = 1<<7
+    TYPE_DICT = {'some_minimized':SOME_MINIMIZED,
+                 'all_minimized':ALL_MINIMIZED,
+                 'launcher':LAUNCHER,
+                 'mouse_over':MOUSE_OVER,
+                 'needs_attention':NEEDS_ATTENTION,
+                 'active':ACTIVE}
 
-    def __load_pixbuf():
-        # Loads pixbuf to self.launcher_icon from /usr/share/pixmaps/dockbar/launcher_icon.png
-        # or ~/.dockbar/launcher_icon.png
-        try:
-            homeFolder = os.path.expanduser("~")
-            dockbar_folder = homeFolder + "/.dockbar"
-            if not os.path.exists(dockbar_folder):
-                os.mkdir(dockbar_folder)
-            if not os.path.isdir(dockbar_folder):
-                raise Exception(dockbar_folder + "is not a directory!")
-        except:
-            pass
-
-        try:
-            launcher_icon = gtk.gdk.pixbuf_new_from_file(dockbar_folder + '/launcher_icon.png')
-        except:
-            try:
-                launcher_icon = gtk.gdk.pixbuf_new_from_file('/usr/share/pixmaps/dockbar/launcher_icon.png')
-            except:
-                launcher_icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 24,24)
-                launcher_icon.fill(0x00000000)
-        return launcher_icon
-
-    launcher_icon = __load_pixbuf()
-
-    def __init__(self, apps_by_id, class_group, launcher = None):
-        self.apps_by_id = apps_by_id
+    def __init__(self, dockbar, class_group, launcher = None):
+        self.dockbar = dockbar
+        self.apps_by_id = dockbar.apps_by_id
+        self.theme = dockbar.theme
         self.launcher = launcher
         self.class_group = class_group
 
         self.pixbuf = None
-        # Pixbuf matrix (NORMAL, HALFTRANSPARENT, TRANSPARENT, LAUNCHER)x(NO_EFFECT, BRIGHT, RED_BACKGROUND)x(NOT_ACTIVE, ACTIVE)
         self.pixbufs = None
 
     def __del__(self):
@@ -261,10 +374,7 @@ class IconFactory():
         # around the icon), loads the icon in that size
         # and empties the pixbufs so that new pixbufs will be made in
         # the right size when requested.
-        self.size = max(size - 2, 1)
-        self.pixbuf = self.find_icon_pixbuf(self.size)
-        if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
-            self.pixbuf = self.pixbuf.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
+        self.size = size
         self.pixbufs = {}
 
     def reset_active_pixbufs(self):
@@ -277,43 +387,114 @@ class IconFactory():
     def pixbuf_update(self, type = 0):
         # Checks if the requested pixbuf is already drawn and returns it if it is.
         # Othervice the pixbuf is drawn, saved and returned.
-        # TODO: move add border to set size.
         if self.pixbufs.has_key(type):
             return self.pixbufs[type]
-        # .copy() is used to avoid possible segfault.
-        pixbuf = self.get_icon_pixbuf().copy()
-        pixbuf =  self.pixbuf_add_border(pixbuf, 1)
-        if type & self.TRANSPARENT:
-            pixbuf = self.add_full_transparency(pixbuf)
-        if type & self.BRIGHT:
-            pixbuf = self.colorshift(pixbuf, 33)
-        if type & self.ACTIVE:
-            pixbuf = self.add_glow(pixbuf)
-        if type & self.HALF_TRANSPARENT:
-            pixbuf2 = self.get_icon_pixbuf().copy()
-            pixbuf2 = self.pixbuf_add_border(pixbuf2, 1)
-            pixbuf2 = self.add_full_transparency(pixbuf2)
-            pixbuf = self.combine_icons(pixbuf,pixbuf2)
-        if type & self.RED_BACKGROUND:
-            pixbuf = self.add_red_background(pixbuf)
-        if type & self.LAUNCHER:
-            pixbuf = self.make_launcher_icon(pixbuf)
-        if type & self.HORIZONTAL_DD:
-            pixbuf = self.double_pixbuf(pixbuf, 'h')
-        if type & self.VERTICAL_DD:
-            pixbuf = self.double_pixbuf(pixbuf, 'v')
+        self.temp = {}
+        pixbuf = None
+        commands = self.theme.get_icon_dict()
+        self.type = type
+        for command, args in commands.items():
+            try:
+                f = getattr(self,"%s_command"%command)
+            except:
+                raise
+            else:
+                pixbuf = f(pixbuf, **args)
 
+        if type & self.DRAG_DROPP:
+            pixbuf = self.double_pixbuf(pixbuf, self.dockbar.orient)
+        self.temp = None
         self.pixbufs[type] = pixbuf
         return pixbuf
 
+    def if_command(self, pixbuf, type, content=None):
+        # TODO: complete this
+##        l = []
+##        splits = ['!', '(', ')', '&', '|']
+##        for c in type:
+##            if c in splits:
+##                l.append(c)
+##            elif l[-1] in splits:
+##                l.append(c)
+##            elif not l:
+##                l.append(c)
+##            else:
+##                l[-1] += c
 
-    def get_icon_pixbuf(self):
-        if not self.pixbuf:
-            self.pixbuf = self.find_icon_pixbuf(self.size)
+        negation = False
+        if type and type[0] == "!" :
+            type = type[1:]
+            negation = True
+        is_type = (type in self.TYPE_DICT \
+        and self.type & self.TYPE_DICT[type])
+        if (is_type and not negation) or (not is_type and negation):
+            for command,args in content.items():
+                try:
+                    f = getattr(self,"%s_command"%command)
+                except:
+                    raise
+                else:
+                    pixbuf = f(pixbuf, **args)
+        return pixbuf
+
+    def pixmap_from_self_command(self, pixbuf, name, content=None):
+        if not name:
+            print "Theme Error: no name given for pixbuf_from_self"
+            raise Exeption
+        self.temp[name]=pixbuf.copy()
+        for command,args in content.items():
+            try:
+                f = getattr(self,"%s_command"%command)
+            except:
+                raise
+            else:
+                self.temp[name] = f(self.temp[name], **args)
+        return pixbuf
+
+    def pixmap_command(self, pixbuf, name, content=None, size=None):
+        if size:
+            # TODO: Fix for different height and width
+            w = h = self.size + int(size)
+        else:
+            w = pixbuf.get_width()
+            h = pixbuf.get_height()
+        empty = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
+        self.temp[name]=empty
+        for command,args in content.items():
+            try:
+                f = getattr(self,"%s_command"%command)
+            except:
+                raise
+            else:
+                self.temp[name] = f(self.temp[name], **args)
+        return pixbuf
+
+    def fill_command(self, pixbuf, color, opacity):
+        if color == "active_color":
+            color = settings['active_glow_color']
+        if color[0]=="#":
+            color = color[1:]
+        try:
+            f = int(color,16)<<8
+        except ValueError:
+            print "Theme error: the color attribute for fill should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
+            raise
+        f += int(int(opacity)*2.56)
+        pixbuf.fill(f)
+        return pixbuf
+
+    def get_icon_command(self,pixbuf=None, size=0):
+        size = int(size)
+        if size < 0:
+            size = self.size  + size
+        else:
+            size = self.size
+        if not self.pixbuf or not (self.pixbuf.get_width() == size or self.pixbuf.get_height() == size):
+            self.pixbuf = self.find_icon_pixbuf(size)
         # Extra check if some sizing gone wrong somewhere.
-        if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
-            self.pixbuf = self.pixbuf.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
-        return self.pixbuf
+        if (self.pixbuf.get_width() != size or self.pixbuf.get_height() != size):
+            self.pixbuf = self.pixbuf.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
+        return self.pixbuf.copy()
 
 
     def find_icon_pixbuf(self, size):
@@ -408,36 +589,43 @@ class IconFactory():
                         return icon
         return None
 
-    def pixbuf_add_border(self, pixbuf, b):
-        # Adds an transparent border, b pixels thick, around the pixbuf.
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width() + b*2, pixbuf.get_height() + b*2)
-        background.fill(0x00000000)
-        pixbuf.composite(background, b, b, pixbuf.get_width(), pixbuf.get_height(), b, b, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
-
-    def combine_icons(self, pixbuf, pixbuf2):
+    def combine_command(self, pixbuf, pix1, pix2, degrees=90):
         # Combines left half of pixbuf with right half of pixbuf2.
         # The transition between the two halves are soft.
-        if self.size <= 1:
-            return pixbuf
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, pixbuf.get_width(), pixbuf.get_height())
+        if pix1=="self":
+            p1 = pixbuf
+        elif pix1 in self.temp:
+            p1 = self.temp[pix1]
+        elif self.theme.has_pixbuf(pix1):
+            bg = self.theme.get_pixbuf(pix1)
+        else:
+            print "theme error: pixmap %s not found"%pix1
+        if pix2=="self":
+            p2 = pixbuf
+        elif pix2 in self.temp:
+            p2 = self.temp[pix2]
+        elif self.theme.has_pixbuf(pix2):
+            bg = self.theme.get_pixbuf(pix2)
+        else:
+            print "theme error: pixmap %s not found"%pix2
+
+        #TODO: Add degrees
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, p1.get_width(), p1.get_height())
         context = cairo.Context(surface)
         ctx = gtk.gdk.CairoContext(context)
 
-        linear = cairo.LinearGradient(0, 0, pixbuf.get_width(), 0)
+        linear = cairo.LinearGradient(0, 0, p1.get_width(), 0)
         linear.add_color_stop_rgba(0.4, 0, 0, 0, 0.5)
         linear.add_color_stop_rgba(0.6, 0, 0, 0, 1)
-        ctx.set_source_pixbuf(pixbuf2, 0, 0)
+        ctx.set_source_pixbuf(p2, 0, 0)
         #ctx.mask(linear)
         ctx.paint()
 
-        linear = cairo.LinearGradient(0, 0, pixbuf.get_width(), 0)
+        linear = cairo.LinearGradient(0, 0, p1.get_width(), 0)
         linear.add_color_stop_rgba(0.4, 0, 0, 0, 1)
         linear.add_color_stop_rgba(0.6, 0, 0, 0, 0)
-        ctx.set_source_pixbuf(pixbuf, 0, 0)
+        ctx.set_source_pixbuf(p1, 0, 0)
         ctx.mask(linear)
-
-
 
         sio = StringIO()
         surface.write_to_png(sio)
@@ -448,41 +636,83 @@ class IconFactory():
         sio.close()
         return loader.get_pixbuf()
 
-
-    def add_full_transparency(self, pixbuf):
-        # Makes the icon nearly completely desaturized and slightly transparent.
+    def transp_sat_command(self, pixbuf, opacity, saturation):
+        # Makes the icon desaturized and/or transparent.
+        opacity = min(255, int(int(opacity)*2.55 + 0.5))
+        saturation = min(1.0, float(saturation)/100)
         icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         icon_transp.fill(0x00000000)
-        pixbuf.composite(icon_transp, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 190)
-        icon_transp.saturate_and_pixelate(icon_transp, 0.14, False)
+        pixbuf.composite(icon_transp, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, opacity)
+        icon_transp.saturate_and_pixelate(icon_transp, saturation, False)
         return icon_transp
 
-    def make_launcher_icon(self, pixbuf):
-        # Make the pixbuf slightly smaller and adds the launcher pixbuf
-        # on top of it to make it look like an button.
+    def composite_command(self, pixbuf, bg, fg, opacity="100"):
+        if fg=="self":
+            fg = pixbuf
+        elif fg in self.temp:
+            fg = self.temp[fg]
+        elif self.theme.has_pixbuf(fg):
+            fg = self.theme.get_pixbuf(fg)
+            fg = fg.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
+        else:
+            print "theme error: pixmap %s not found"%fg
+        if bg=="self":
+            bg = pixbuf
+        elif bg in self.temp:
+            bg = self.temp[bg]
+        elif self.theme.has_pixbuf(bg):
+            bg = self.theme.get_pixbuf(bg)
+            bg = bg.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
+        else:
+            print "theme error: pixmap %s not found"%bg
+        opacity = min(255, int(int(opacity)*2.55 + 0.5))
+        w = fg.get_width()
+        h = fg.get_height()
+        fg.composite(bg, 0, 0, w, h, 0, 0, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, opacity)
+        return bg
+
+    def shrink_command(self, pixbuf, percent=0, pixels=0):
         background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         background.fill(0x00000000)
         size = pixbuf.get_width()
-        small_size = int(0.80 * size)
+        small_size = int(((100-int(percent)) * size)/100)-int(pixels)
         pixbuf = pixbuf.scale_simple(small_size, small_size, gtk.gdk.INTERP_BILINEAR)
         offset = int(float(size - small_size) / 2 + 0.5)
         pixbuf.composite(background, offset, offset, small_size, small_size, offset ,offset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-        overlay = self.launcher_icon.scale_simple(size-2, size-2, gtk.gdk.INTERP_BILINEAR)
-        overlay.composite(background, 1, 1, overlay.get_width(), overlay.get_height(), 1, 1, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
-    def add_glow(self, pixbuf):
+    def correct_size_command(self, pixbuf):
+        if pixbuf.get_width() == self.size and pixbuf.get_height() == self.size:
+            return pixbuf
+        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
+        background.fill(0x00000000)
+        w = pixbuf.get_width()
+        h = pixbuf.get_height()
+        woffset = int(float(self.size - w) / 2 + 0.5)
+        hoffset = int(float(self.size - h) / 2 + 0.5)
+        pixbuf.composite(background, woffset, hoffset, w, h, woffset ,hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+        return background
+
+    def glow_command(self, pixbuf, color, opacity):
         # Adds a glow around the parts of the pixbuf that isn't completely
         # transparent.
 
         # Convert color hex-string (format '#FFFFFF')to int r, g, b
-        color = settings['active_glow_color']
-        r = int(color[1:3], 16)
-        g = int(color[3:5], 16)
-        b = int(color[5:7], 16)
+        if color == "active_color":
+            color = settings['active_glow_color']
+        try:
+            r = int(color[1:3], 16)
+            g = int(color[3:5], 16)
+            b = int(color[5:7], 16)
+        except ValueError:
+            print "Theme error: the color attribute for glow command should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
+            raise
 
         # Transparency
-        alpha = settings['active_glow_alpha']
+        if opacity == "active_opacity":
+            alpha = settings['active_glow_alpha']
+        else:
+            alpha = int(int(opacity) * 2.55 + 0.2)
         # Thickness (pixels)
         tk = 2
 
@@ -500,6 +730,17 @@ class IconFactory():
         # Now add the pixbuf above the glow
         pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
+
+        def bright_command(self, pixbuf, strenght):
+        # Makes the pixbuf shift lighter.
+        strenght = int(int(strenght) * 2.55 + 0.4)
+        pixbuf = pixbuf.copy()
+        for row in pixbuf.get_pixels_array():
+            for pix in row:
+                pix[0] = min(255, int(pix[0]) + strenght)
+                pix[1] = min(255, int(pix[1]) + strenght)
+                pix[2] = min(255, int(pix[2]) + strenght)
+        return pixbuf
 
     def double_pixbuf(self, pixbuf, direction = 'h'):
         w = pixbuf.get_width()
@@ -537,31 +778,6 @@ class IconFactory():
         # And put the pixbuf on the left/upper half of it.
         pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return background
-
-
-    def add_red_background(self, pixbuf):
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
-        #Red background
-        background.fill(0xFF000088)
-        pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
-
-    def greyscale(self, pixbuf):
-        pixbuf = pixbuf.copy()
-        for row in pixbuf.get_pixels_array():
-            for pix in row:
-                pix[0] = pix[1] = pix[2] = (int(pix[0]) + int(pix[1]) + int(pix[2])) / 3
-        return pixBuf
-
-    def colorshift(self, pixbuf, shift):
-        # Makes the pixbuf shift lighter.
-        pixbuf = pixbuf.copy()
-        for row in pixbuf.get_pixels_array():
-            for pix in row:
-                pix[0] = min(255, int(pix[0]) + shift)
-                pix[1] = min(255, int(pix[1]) + shift)
-                pix[2] = min(255, int(pix[2]) + shift)
-        return pixbuf
 
     def colorize_pixbuf(self, pixbuf, r, g, b):
         # Changes the color of all pixels to r g b.
@@ -771,6 +987,9 @@ class GroupList():
     Works as an extended ordered dictionary"""
     def __init__(self):
         self.list = []
+
+    def __del__(self):
+        self.list = None
 
     def __getitem__(self, name):
         return self.get_group(name)
@@ -1299,7 +1518,6 @@ class WindowButton():
     def no_action(self, widget = None, event = None):
         pass
 
-    # TODO: make an ordered list instead.
     action_function_dict = ODict((
                                   ('select or minimize window', select_or_minimize_window),
                                   ('select window', select_window),
@@ -1343,7 +1561,7 @@ class GroupButton ():
         self.root_xid = self.dockbar.root_xid
 
         self.image = gtk.Image()
-        self.icon_factory = IconFactory(self.dockbar.apps_by_id, class_group, launcher)
+        self.icon_factory = IconFactory(self.dockbar, class_group, launcher)
         self.button = gtk.EventBox()
         self.button.set_visible_window(False)
         self.button.connect("enter-notify-event",self.button_mouse_enter)
@@ -1477,15 +1695,15 @@ class GroupButton ():
         if self.launcher and not self.windows:
             self.icon_mode = IconFactory.LAUNCHER
         elif len(self.windows) - self.minimized_windows_count == 0:
-            self.icon_mode = IconFactory.TRANSPARENT
+            self.icon_mode = IconFactory.ALL_MINIMIZED
         elif (self.minimized_windows_count - self.locked_windows_count) > 0:
-            self.icon_mode = IconFactory.HALF_TRANSPARENT
+            self.icon_mode = IconFactory.SOME_MINIMIZED
         else:
             self.icon_mode = 0
 
         if self.needs_attention:
             if settings["groupbutton_attention_notification_type"] == 'red':
-                self.icon_effect = IconFactory.RED_BACKGROUND
+                self.icon_effect = IconFactory.NEEDS_ATTENTION
             else:
                 self.needs_attention_anim_trigger = False
                 if not self.attention_effect_running:
@@ -1494,10 +1712,8 @@ class GroupButton ():
         else:
             self.icon_effect = 0
 
-        if self.dd_highlight and self.dockbar.orient == 'h':
-            self.dd_effect = IconFactory.HORIZONTAL_DD
-        elif self.dd_highlight and self.dockbar.orient == 'v':
-            self.dd_effect = IconFactory.VERTICAL_DD
+        if self.dd_highlight:
+            self.dd_effect = IconFactory.DRAG_DROPP
         else:
             self.dd_effect = 0
 
@@ -1528,7 +1744,7 @@ class GroupButton ():
             elif settings["groupbutton_attention_notification_type"] == 'blink':
                 if not self.needs_attention_anim_trigger:
                     self.needs_attention_anim_trigger = True
-                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | IconFactory.BRIGHT | self.icon_active | self.dd_effect)
+                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | IconFactory.MOUSE_OVER | self.icon_active | self.dd_effect)
                     self.image.set_from_pixbuf(pixbuf)
                 else:
                     self.needs_attention_anim_trigger = False
@@ -1593,6 +1809,8 @@ class GroupButton ():
         return False
 
     def hide_list_request(self):
+        if self.popup.window == None:
+            return
         # Checks if mouse cursor really isn't hovering the button
         # or the popup window anymore and hide the popup window
         # if so.
@@ -1634,7 +1852,7 @@ class GroupButton ():
         return False
 
     def button_mouse_enter (self, widget, event):
-        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | IconFactory.BRIGHT | self.icon_active | self.dd_effect)
+        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | IconFactory.MOUSE_OVER | self.icon_active | self.dd_effect)
         self.image.set_from_pixbuf(pixbuf)
         if not self.dockbar.right_menu_showing and not self.dockbar.dragging:
             gobject.timeout_add(settings['popup_delay'], self.show_list_request)
@@ -2439,6 +2657,19 @@ class PrefDialog():
 
         appearance_box.pack_start(hbox, False, padding=5)
 
+        hbox = gtk.HBox()
+        label = gtk.Label('Theme:')
+        label.set_alignment(1,0.5)
+        themes = self.find_themes()
+        self.theme_combo = gtk.combo_box_new_text()
+        for theme in themes.keys():
+                self.theme_combo.append_text(theme)
+        self.theme_combo.connect('changed', self.cb_changed)
+        hbox.pack_start(label, False)
+        hbox.pack_start(self.theme_combo, False)
+
+        appearance_box.pack_start(hbox, False, padding=5)
+
         frame = gtk.Frame('Colors')
         frame.set_border_width(5)
         table = gtk.Table(True)
@@ -2554,6 +2785,12 @@ class PrefDialog():
                 self.color_buttons[name].set_use_alpha(True)
                 self.color_buttons[name].set_alpha(alpha)
 
+        model = self.theme_combo.get_model()
+        for i in range(len(self.theme_combo.get_model())):
+            if model[i][0].lower() == settings['theme'].lower():
+                self.theme_combo.set_active(i)
+                break
+
 
 
     def dialog_close (self,par1,par2):
@@ -2635,6 +2872,13 @@ class PrefDialog():
                 if value != settings[setting_name]:
                     GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, value)
 
+        if combobox == self.theme_combo:
+            value = combobox.get_active_text()
+            if value == None:
+                return
+            if value != settings['theme']:
+                GCONF_CLIENT.set_string(GCONF_DIR+'/theme', value)
+
     def adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf
         value = int(widget.get_value())
@@ -2668,33 +2912,52 @@ class PrefDialog():
             alpha = DEFAULT_SETTINGS[setting_base+"_alpha"]
             GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting_base+"_alpha", alpha)
 
+    def find_themes(self):
+        # Reads the themes from /usr/share/dockbar/themes and ~/.dockbar/themes
+        # and returns a dict of the theme names and paths so that
+        # a theme can be loaded
+        themes = {}
+        theme_paths = []
+        homeFolder = os.path.expanduser("~")
+        theme_folder = homeFolder + "/.dockbar/themes"
+        dirs = ["/usr/share/dockbar/themes", theme_folder]
+        for dir in dirs:
+            if os.path.exists(dir):
+                for f in os.listdir(dir):
+                    if f[-7:] == '.tar.gz':
+                        theme_paths.append(dir+"/"+f)
+        for theme_path in theme_paths:
+            name = Theme.check(theme_path)
+            if name != None:
+                name = str(name)
+                themes[name] = theme_path
+        if not themes:
+            raise Exception('No working themes found in "/usr/share/dockbar/themes" or "~/.dockbar/themes"')
+        return themes
+
 
 class DockBar():
     def __init__(self,applet):
         global settings
         print "dockbar init"
-        self.groups = GroupList()
-        self.windows = {}
-        self.apps_by_id = {}
-        self.launchers = {}
+        self.dockbar_folder = self.ensure_dockbar_folder()
         # self.dragging is used to tell functions wheter
-        # a drag-and-drop is going
+        # a drag-and-drop is going on
         self.dragging = False
         self.right_menu_showing = False
         self.opacified = False
         self.opacity_values = None
         self.opacity_matches = None
-        try:
-            for app in gio.app_info_get_all():
-                self.apps_by_id[app.get_id()] = app
-        except:
-            pass
-        wnck.set_client_type(wnck.CLIENT_TYPE_PAGER);
+        wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
+        self.applet = applet
+        self.container = None
+
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.screen.force_update()
-
-        self.applet = applet
+        self.screen.connect("window-opened",self.window_opened)
+        self.screen.connect("window-closed",self.window_closed)
+        self.screen.connect("active-window-changed", self.active_window_changed)
 
         # Gconf settings
         gconf_set = { str: GCONF_CLIENT.set_string,
@@ -2714,41 +2977,86 @@ class DockBar():
         GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
         GCONF_CLIENT.notify_add(GCONF_DIR, self.gconf_changed, None)
 
-        if applet != None:
-            applet.set_applet_flags(gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
-            if applet.get_orient() == gnomeapplet.ORIENT_DOWN or applet.get_orient() == gnomeapplet.ORIENT_UP:
+        if self.applet != None:
+            self.applet.set_applet_flags(gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
+            if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN or applet.get_orient() == gnomeapplet.ORIENT_UP:
                 self.orient = "h"
                 self.container = gtk.HBox()
             else:
                 self.orient = "v"
                 self.container = gtk.VBox()
-            applet.connect("change-orient",self.change_orient)
-            applet.connect("delete-event",self.cleanup)
-            applet.add(self.container)
-            ##applet.connect("size-allocate",self.applet_size_alloc)
+            self.applet.connect("change-orient",self.change_orient)
+            self.applet.connect("delete-event",self.cleanup)
+            self.applet.add(self.container)
+            ##self.applet.connect("size-allocate",self.applet_size_alloc)
             self.pp_menu_xml = """
             <popup name="button3">
                 <menuitem name="About Item" verb="About" stockid="gtk-about" />
                 <menuitem name="Preferences" verb="Pref" stockid="gtk-properties" />
+                <menuitem name="Reload" verb="Reload" stockid="gtk-refresh" />
             </popup>
             """
 
-            self.pp_menu_verbs = [("About", self.on_ppm_about),("Pref", self.on_ppm_pref)]
+            self.pp_menu_verbs = [("About", self.on_ppm_about),
+                                  ("Pref", self.on_ppm_pref),
+                                  ("Reload", self.reload)]
             self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
         else:
             self.container = gtk.HBox()
             self.orient = "h"
-        self.container.set_spacing(0)
+
+        self.reload()
+
+
+    def reload(self, event=None, data=None):
+        try:
+            del self.groups
+        except:
+            pass
+        try:
+            del self.windows
+        except:
+            pass
+        self.groups = GroupList()
+        self.windows = {}
+        self.apps_by_id = {}
+        self.launchers = {}
+        try:
+            for app in gio.app_info_get_all():
+                self.apps_by_id[app.get_id()] = app
+        except:
+            pass
+
+        # Load theme
+        self.themes = self.find_themes()
+        default_theme_path = None
+        for theme, path in self.themes.items():
+            if theme.lower() == settings['theme'].lower():
+                self.theme = Theme(path)
+                break
+            if theme.lower == DEFAULT_SETTINGS['theme'].lower():
+                default_theme_path = path
+        else:
+            if default_theme_path:
+                # If the current theme according to gconf couldn't be found,
+                # the default theme is used.
+                self.theme = Theme(default_theme_path)
+            else:
+                # Just use one of the themes that where found if default
+                # theme couldn't be found either.
+                path = self.themes.values()[0]
+                self.theme = Theme(path)
+
+
+        for child in self.container.get_children():
+            self.container.remove(child)
+
+        self.container.set_spacing(self.theme.get_gap())
         self.container.show()
 
         # Get list of launchers
-        self.dockbar_folder = self.ensure_dockbar_folder()
         self.launchers_persistentlist = PersistentList(self.dockbar_folder + "/launchers.list")
         self.launchers = self.launchers_persistentlist.read_list()
-
-        self.screen.connect("window-opened",self.window_opened)
-        self.screen.connect("window-closed",self.window_closed)
-        self.screen.connect("active-window-changed", self.active_window_changed)
 
         # Initiate launcher group buttons
         for (launcher,name) in self.launchers:
@@ -2803,6 +3111,27 @@ class DockBar():
             if active_group:
                 active_group.update_state_request()
 
+    def find_themes(self):
+        # Reads the themes from /usr/share/dockbar/themes and ~/.dockbar/themes
+        # and returns a dict of the theme names and paths so that
+        # a theme can be loaded
+        themes = {}
+        theme_paths = []
+        dirs = ["/usr/share/dockbar/themes", self.dockbar_folder+"/themes"]
+        for dir in dirs:
+            if os.path.exists(dir):
+                for f in os.listdir(dir):
+                    if f[-7:] == '.tar.gz':
+                        theme_paths.append(dir+"/"+f)
+        for theme_path in theme_paths:
+            name = Theme.check(theme_path)
+            if name != None:
+                name = str(name)
+                themes[name] = theme_path
+        if not themes:
+            raise Exception('No working themes found in "/usr/share/dockbar/themes" or "~/.dockbar/themes"')
+        return themes
+
     def all_windowbuttons_update_label_state(self):
         # Updates all window button labels. To be used when
         # settings has been changed for the labels.
@@ -2850,7 +3179,7 @@ class DockBar():
         self.applet.add(self.container)
         for group in self.groups.get_names():
             self.container.pack_start(self.groups.get_group(group).button,False)
-        self.container.set_spacing(0)
+        self.container.set_spacing(self.theme.get_gap())
         self.container.show_all()
 
     def add_launcher(self, name, path):
@@ -3025,8 +3354,11 @@ class DockBarWindow():
         button.connect('clicked', self.dockbar.on_ppm_pref)
         hbox.pack_start(button, False)
         hbox.pack_start(self.dockbar.container, False)
-        self.window.add(hbox)
-        hbox.show_all()
+        eb = gtk.EventBox()
+##        eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#2E2E2E"))
+        eb.add(hbox)
+        self.window.add(eb)
+        eb.show_all()
         ##self.window.add(self.dockbar.container)
 
     def delete_event (self,widget,event,data=None):
