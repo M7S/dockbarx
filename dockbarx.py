@@ -61,7 +61,8 @@ BUS = dbus.SessionBus()
 
 PREFDIALOG = None # Non-constant! Remove or rename!?
 
-DEFAULT_SETTINGS = { "groupbutton_attention_notification_type": "red",
+DEFAULT_SETTINGS = {  "theme": "default",
+                      "groupbutton_attention_notification_type": "red",
                       "workspace_behavior": "switch",
                       "popup_delay": 250,
                       "popup_align": "center",
@@ -255,7 +256,21 @@ class ThemeHandler(ContentHandler):
     def get_name(self):
         return self.name
 
-class ThemeLoader():
+class Theme():
+    @staticmethod
+    def check(path_to_tar):
+        #TODO: Optimize this
+        tar = tarfile.open(path_to_tar)
+        config = tar.extractfile('config')
+        parser = make_parser()
+        theme_handler = ThemeHandler()
+        try:
+            parser.setContentHandler(theme_handler)
+            parser.parse(config)
+        except:
+            return None
+        return theme_handler.get_name()
+
     def __init__(self, path_to_tar):
         tar = tarfile.open(path_to_tar)
         config = tar.extractfile('config')
@@ -266,7 +281,7 @@ class ThemeLoader():
         parser.parse(config)
         self.theme = theme_handler.get_dict()
         self.name = theme_handler.get_name()
-        self.print_dict(self.theme)
+##        self.print_dict(self.theme)
 
         self.pixbufs = {}
         pixmaps = self.theme['pixmaps']['content']
@@ -334,30 +349,30 @@ class IconFactory():
                  'needs_attention':NEEDS_ATTENTION,
                  'active':ACTIVE}
 
-    def __load_pixbuf():
-        # Loads pixbuf to self.launcher_icon from /usr/share/pixmaps/dockbar/launcher_icon.png
-        # or ~/.dockbar/launcher_icon.png
-        try:
-            homeFolder = os.path.expanduser("~")
-            dockbar_folder = homeFolder + "/.dockbar"
-            if not os.path.exists(dockbar_folder):
-                os.mkdir(dockbar_folder)
-            if not os.path.isdir(dockbar_folder):
-                raise Exception(dockbar_folder + "is not a directory!")
-        except:
-            pass
-
-        try:
-            launcher_icon = gtk.gdk.pixbuf_new_from_file(dockbar_folder + '/launcher_icon.png')
-        except:
-            try:
-                launcher_icon = gtk.gdk.pixbuf_new_from_file('/usr/share/pixmaps/dockbar/launcher_icon.png')
-            except:
-                launcher_icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 24,24)
-                launcher_icon.fill(0x00000000)
-        return launcher_icon
-
-    launcher_icon = __load_pixbuf()
+##    def __load_pixbuf():
+##        # Loads pixbuf to self.launcher_icon from /usr/share/pixmaps/dockbar/launcher_icon.png
+##        # or ~/.dockbar/launcher_icon.png
+##        try:
+##            homeFolder = os.path.expanduser("~")
+##            dockbar_folder = homeFolder + "/.dockbar"
+##            if not os.path.exists(dockbar_folder):
+##                os.mkdir(dockbar_folder)
+##            if not os.path.isdir(dockbar_folder):
+##                raise Exception(dockbar_folder + "is not a directory!")
+##        except:
+##            pass
+##
+##        try:
+##            launcher_icon = gtk.gdk.pixbuf_new_from_file(dockbar_folder + '/launcher_icon.png')
+##        except:
+##            try:
+##                launcher_icon = gtk.gdk.pixbuf_new_from_file('/usr/share/pixmaps/dockbar/launcher_icon.png')
+##            except:
+##                launcher_icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 24,24)
+##                launcher_icon.fill(0x00000000)
+##        return launcher_icon
+##
+##    launcher_icon = __load_pixbuf()
 
     def __init__(self, dockbar, class_group, launcher = None):
         self.dockbar = dockbar
@@ -1052,6 +1067,9 @@ class GroupList():
     Works as an extended ordered dictionary"""
     def __init__(self):
         self.list = []
+
+    def __del__(self):
+        self.list = None
 
     def __getitem__(self, name):
         return self.get_group(name)
@@ -2719,6 +2737,19 @@ class PrefDialog():
 
         appearance_box.pack_start(hbox, False, padding=5)
 
+        hbox = gtk.HBox()
+        label = gtk.Label('Theme:')
+        label.set_alignment(1,0.5)
+        themes = self.find_themes()
+        self.theme_combo = gtk.combo_box_new_text()
+        for theme in themes.keys():
+                self.theme_combo.append_text(theme)
+        self.theme_combo.connect('changed', self.cb_changed)
+        hbox.pack_start(label, False)
+        hbox.pack_start(self.theme_combo, False)
+
+        appearance_box.pack_start(hbox, False, padding=5)
+
         frame = gtk.Frame('Colors')
         frame.set_border_width(5)
         table = gtk.Table(True)
@@ -2834,6 +2865,12 @@ class PrefDialog():
                 self.color_buttons[name].set_use_alpha(True)
                 self.color_buttons[name].set_alpha(alpha)
 
+        model = self.theme_combo.get_model()
+        for i in range(len(self.theme_combo.get_model())):
+            if model[i][0].lower() == settings['theme'].lower():
+                self.theme_combo.set_active(i)
+                break
+
 
 
     def dialog_close (self,par1,par2):
@@ -2915,6 +2952,13 @@ class PrefDialog():
                 if value != settings[setting_name]:
                     GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, value)
 
+        if combobox == self.theme_combo:
+            value = combobox.get_active_text()
+            if value == None:
+                return
+            if value != settings['theme']:
+                GCONF_CLIENT.set_string(GCONF_DIR+'/theme', value)
+
     def adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf
         value = int(widget.get_value())
@@ -2948,34 +2992,52 @@ class PrefDialog():
             alpha = DEFAULT_SETTINGS[setting_base+"_alpha"]
             GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting_base+"_alpha", alpha)
 
+    def find_themes(self):
+        # Reads the themes from /usr/share/dockbar/themes and ~/.dockbar/themes
+        # and returns a dict of the theme names and paths so that
+        # a theme can be loaded
+        themes = {}
+        theme_paths = []
+        homeFolder = os.path.expanduser("~")
+        theme_folder = homeFolder + "/.dockbar/themes"
+        dirs = ["/usr/share/dockbar/themes", theme_folder]
+        for dir in dirs:
+            if os.path.exists(dir):
+                for f in os.listdir(dir):
+                    if f[-7:] == '.tar.gz':
+                        theme_paths.append(dir+"/"+f)
+        for theme_path in theme_paths:
+            name = Theme.check(theme_path)
+            if name != None:
+                name = str(name)
+                themes[name] = theme_path
+        if not themes:
+            raise Exception('No working themes found in "/usr/share/dockbar/themes" or "~/.dockbar/themes"')
+        return themes
+
 
 class DockBar():
     def __init__(self,applet):
         global settings
         print "dockbar init"
-        self.theme = ThemeLoader('new_theme.tar.gz')
-        self.groups = GroupList()
-        self.windows = {}
-        self.apps_by_id = {}
-        self.launchers = {}
+        self.dockbar_folder = self.ensure_dockbar_folder()
         # self.dragging is used to tell functions wheter
-        # a drag-and-drop is going
+        # a drag-and-drop is going on
         self.dragging = False
         self.right_menu_showing = False
         self.opacified = False
         self.opacity_values = None
         self.opacity_matches = None
-        try:
-            for app in gio.app_info_get_all():
-                self.apps_by_id[app.get_id()] = app
-        except:
-            pass
-        wnck.set_client_type(wnck.CLIENT_TYPE_PAGER);
+        wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
+        self.applet = applet
+        self.container = None
+
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.screen.force_update()
-
-        self.applet = applet
+        self.screen.connect("window-opened",self.window_opened)
+        self.screen.connect("window-closed",self.window_closed)
+        self.screen.connect("active-window-changed", self.active_window_changed)
 
         # Gconf settings
         gconf_set = { str: GCONF_CLIENT.set_string,
@@ -2995,41 +3057,86 @@ class DockBar():
         GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
         GCONF_CLIENT.notify_add(GCONF_DIR, self.gconf_changed, None)
 
-        if applet != None:
-            applet.set_applet_flags(gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
-            if applet.get_orient() == gnomeapplet.ORIENT_DOWN or applet.get_orient() == gnomeapplet.ORIENT_UP:
+        if self.applet != None:
+            self.applet.set_applet_flags(gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
+            if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN or applet.get_orient() == gnomeapplet.ORIENT_UP:
                 self.orient = "h"
                 self.container = gtk.HBox()
             else:
                 self.orient = "v"
                 self.container = gtk.VBox()
-            applet.connect("change-orient",self.change_orient)
-            applet.connect("delete-event",self.cleanup)
-            applet.add(self.container)
-            ##applet.connect("size-allocate",self.applet_size_alloc)
+            self.applet.connect("change-orient",self.change_orient)
+            self.applet.connect("delete-event",self.cleanup)
+            self.applet.add(self.container)
+            ##self.applet.connect("size-allocate",self.applet_size_alloc)
             self.pp_menu_xml = """
             <popup name="button3">
                 <menuitem name="About Item" verb="About" stockid="gtk-about" />
                 <menuitem name="Preferences" verb="Pref" stockid="gtk-properties" />
+                <menuitem name="Reload" verb="Reload" stockid="gtk-refresh" />
             </popup>
             """
 
-            self.pp_menu_verbs = [("About", self.on_ppm_about),("Pref", self.on_ppm_pref)]
+            self.pp_menu_verbs = [("About", self.on_ppm_about),
+                                  ("Pref", self.on_ppm_pref),
+                                  ("Reload", self.reload)]
             self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
         else:
             self.container = gtk.HBox()
             self.orient = "h"
+
+        self.reload()
+
+
+    def reload(self, event=None, data=None):
+        try:
+            del self.groups
+        except:
+            pass
+        try:
+            del self.windows
+        except:
+            pass
+        self.groups = GroupList()
+        self.windows = {}
+        self.apps_by_id = {}
+        self.launchers = {}
+        try:
+            for app in gio.app_info_get_all():
+                self.apps_by_id[app.get_id()] = app
+        except:
+            pass
+
+        # Load theme
+        self.themes = self.find_themes()
+        default_theme_path = None
+        for theme, path in self.themes.items():
+            if theme.lower() == settings['theme'].lower():
+                self.theme = Theme(path)
+                break
+            if theme.lower == DEFAULT_SETTINGS['theme'].lower():
+                default_theme_path = path
+        else:
+            if default_theme_path:
+                # If the current theme according to gconf couldn't be found,
+                # the default theme is used.
+                self.theme = Theme(default_theme_path)
+            else:
+                # Just use one of the themes that where found if default
+                # theme couldn't be found either.
+                path = self.themes.values()[0]
+                self.theme = Theme(path)
+
+
+        for child in self.container.get_children():
+            self.container.remove(child)
+
         self.container.set_spacing(self.theme.get_gap())
         self.container.show()
 
         # Get list of launchers
-        self.dockbar_folder = self.ensure_dockbar_folder()
         self.launchers_persistentlist = PersistentList(self.dockbar_folder + "/launchers.list")
         self.launchers = self.launchers_persistentlist.read_list()
-
-        self.screen.connect("window-opened",self.window_opened)
-        self.screen.connect("window-closed",self.window_closed)
-        self.screen.connect("active-window-changed", self.active_window_changed)
 
         # Initiate launcher group buttons
         for (launcher,name) in self.launchers:
@@ -3083,6 +3190,27 @@ class DockBar():
             active_group = self.groups.get_group(active_group_name)
             if active_group:
                 active_group.update_state_request()
+
+    def find_themes(self):
+        # Reads the themes from /usr/share/dockbar/themes and ~/.dockbar/themes
+        # and returns a dict of the theme names and paths so that
+        # a theme can be loaded
+        themes = {}
+        theme_paths = []
+        dirs = ["/usr/share/dockbar/themes", self.dockbar_folder+"/themes"]
+        for dir in dirs:
+            if os.path.exists(dir):
+                for f in os.listdir(dir):
+                    if f[-7:] == '.tar.gz':
+                        theme_paths.append(dir+"/"+f)
+        for theme_path in theme_paths:
+            name = Theme.check(theme_path)
+            if name != None:
+                name = str(name)
+                themes[name] = theme_path
+        if not themes:
+            raise Exception('No working themes found in "/usr/share/dockbar/themes" or "~/.dockbar/themes"')
+        return themes
 
     def all_windowbuttons_update_label_state(self):
         # Updates all window button labels. To be used when
@@ -3306,8 +3434,11 @@ class DockBarWindow():
         button.connect('clicked', self.dockbar.on_ppm_pref)
         hbox.pack_start(button, False)
         hbox.pack_start(self.dockbar.container, False)
-        self.window.add(hbox)
-        hbox.show_all()
+        eb = gtk.EventBox()
+##        eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#2E2E2E"))
+        eb.add(hbox)
+        self.window.add(eb)
+        eb.show_all()
         ##self.window.add(self.dockbar.container)
 
     def delete_event (self,widget,event,data=None):
