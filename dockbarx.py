@@ -731,7 +731,7 @@ class IconFactory():
         pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
 
-        def bright_command(self, pixbuf, strenght):
+    def bright_command(self, pixbuf, strenght):
         # Makes the pixbuf shift lighter.
         strenght = int(int(strenght) * 2.55 + 0.4)
         pixbuf = pixbuf.copy()
@@ -2439,8 +2439,9 @@ class AboutDialog():
 class PrefDialog():
     __instance = None
 
-    def __init__ (self):
+    def __init__ (self, dockbar=None):
         global PREFDIALOG
+        self.dockbar = dockbar
         if PrefDialog.__instance == None:
             PrefDialog.__instance = self
         else:
@@ -2665,8 +2666,13 @@ class PrefDialog():
         for theme in themes.keys():
                 self.theme_combo.append_text(theme)
         self.theme_combo.connect('changed', self.cb_changed)
+        button = gtk.Button()
+        image = gtk.image_new_from_stock(gtk.STOCK_REFRESH,gtk.ICON_SIZE_SMALL_TOOLBAR)
+        button.add(image)
+        button.connect("clicked", self.reload_dockbar)
         hbox.pack_start(label, False)
         hbox.pack_start(self.theme_combo, False)
+        hbox.pack_start(button, False)
 
         appearance_box.pack_start(hbox, False, padding=5)
 
@@ -2935,6 +2941,10 @@ class PrefDialog():
             raise Exception('No working themes found in "/usr/share/dockbar/themes" or "~/.dockbar/themes"')
         return themes
 
+    def reload_dockbar(self, button=None):
+        if self.dockbar:
+            self.dockbar.reload()
+
 
 class DockBar():
     def __init__(self,applet):
@@ -3146,7 +3156,7 @@ class DockBar():
             group.update_popup_label()
 
     def on_ppm_pref(self,event,data=None):
-        PrefDialog()
+        PrefDialog(self)
 
     def on_ppm_about(self,event,data=None):
         AboutDialog()
