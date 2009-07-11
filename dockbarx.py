@@ -207,6 +207,13 @@ class ODict():
             if key == t[0]:
                 self.list.remove(t)
 
+    def has_key(self, key):
+        for t in self.list:
+            if key == t[0]:
+                return True
+        else:
+            return False
+
 
 class ThemeHandler(ContentHandler):
     """Reads the xml-file into a ODict"""
@@ -287,7 +294,9 @@ class Theme():
 ##        self.print_dict(self.theme)
 
         self.pixbufs = {}
-        pixmaps = self.theme['pixmaps']['content']
+        pixmaps = {}
+        if self.theme.has_key('pixmaps'):
+            pixmaps = self.theme['pixmaps']['content']
         for (type, d) in pixmaps.items():
             if type == 'pixmap_from_file':
                 self.pixbufs[d['name']] = self.load_pixbuf(tar, d['file'])
