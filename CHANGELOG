@@ -1,3 +1,7 @@
+Experimental 0.21.10
+- Dockbarx now uses themes. They are .tar.gz files that should be put in /usr/share/dockbar/themes or ~/.dockbar/themes. Documentation on how to make themes will come later but you could always take a look on the existing theme files and try to change them, if you are curious. Be aware the much will still change when it comes to the format of the config file in the theme, though. New themes are added simply by moving them to either folder. 
+- There are no more delays before closing the popup window when the mouse cursor is moved away from the group button (this should make those of you who uses no popup delay happy). On the other hand, when the mouse cursor is resting in the gap between group button and windowpane the window won't close (this should make slow moving people happy). This will hopefully lead to fewer situations where the popup window is left open as well.
+
 Experimental 0.21.9
 - A popup menu is added as a window button action (At right click in default settings).
 - (Un)maximize all windows and (un)minimize all windows options are added to the group button popup menu.

@@ -27,8 +27,7 @@ INSTALL
 =======
 - install python-gnome2-desktop and python-numpy (Dockbar Experimental might be able to run without python-numpy, but it shouldn't hurt)
 - copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers
-- make a folder ~/.dockbar and copy launcher_icon.png to it
-    - for a system wide installation make the folder /usr/share/pixmaps/dockbar and copy the files there instead
+- copy the themes folder to /usr/share/dockbar (for system wide installation, recommended) or ~/.dockbar (Create the folders if necessary)
 - add DockBar applet (Experimental Version) to panel
 
 You can run it in window (meant for debugging purposes, mostly):
