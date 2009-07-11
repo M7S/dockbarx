@@ -52,7 +52,7 @@ except:
 ##import pdb
 VERSION = 'Experimental 0.21.9'
 
-TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number
+TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number, is it used anymore?
 
 GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = '/apps/dockbarx'
@@ -103,6 +103,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "windowbutton_scroll_down": "unshade window" }
 settings = DEFAULT_SETTINGS.copy()
 
+
 def compiz_call(obj_path, func_name, *args):
     # Returns a compiz function call.
     # No errors are dealt with here,
@@ -116,6 +117,7 @@ def compiz_call(obj_path, func_name, *args):
     if func:
         return func(*args)
     return None
+
 
 class ODict():
     """An ordered dictionary.
@@ -204,6 +206,7 @@ class ODict():
         for t in self.list:
             if key == t[0]:
                 self.list.remove(t)
+
 
 class ThemeHandler(ContentHandler):
     """Reads the xml-file into a ODict"""
@@ -349,31 +352,6 @@ class IconFactory():
                  'needs_attention':NEEDS_ATTENTION,
                  'active':ACTIVE}
 
-##    def __load_pixbuf():
-##        # Loads pixbuf to self.launcher_icon from /usr/share/pixmaps/dockbar/launcher_icon.png
-##        # or ~/.dockbar/launcher_icon.png
-##        try:
-##            homeFolder = os.path.expanduser("~")
-##            dockbar_folder = homeFolder + "/.dockbar"
-##            if not os.path.exists(dockbar_folder):
-##                os.mkdir(dockbar_folder)
-##            if not os.path.isdir(dockbar_folder):
-##                raise Exception(dockbar_folder + "is not a directory!")
-##        except:
-##            pass
-##
-##        try:
-##            launcher_icon = gtk.gdk.pixbuf_new_from_file(dockbar_folder + '/launcher_icon.png')
-##        except:
-##            try:
-##                launcher_icon = gtk.gdk.pixbuf_new_from_file('/usr/share/pixmaps/dockbar/launcher_icon.png')
-##            except:
-##                launcher_icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 24,24)
-##                launcher_icon.fill(0x00000000)
-##        return launcher_icon
-##
-##    launcher_icon = __load_pixbuf()
-
     def __init__(self, dockbar, class_group, launcher = None):
         self.dockbar = dockbar
         self.apps_by_id = dockbar.apps_by_id
@@ -397,9 +375,6 @@ class IconFactory():
         # and empties the pixbufs so that new pixbufs will be made in
         # the right size when requested.
         self.size = size
-##        self.pixbuf = self.find_icon_pixbuf(self.size)
-##        if (self.pixbuf.get_width() != self.size or self.pixbuf.get_height() != self.size):
-##            self.pixbuf = self.pixbuf.scale_simple(self.size, self.size, gtk.gdk.INTERP_BILINEAR)
         self.pixbufs = {}
 
     def reset_active_pixbufs(self):
@@ -426,24 +401,6 @@ class IconFactory():
             else:
                 pixbuf = f(pixbuf, **args)
 
-##        # .copy() is used to avoid possible segfault.
-##        pixbuf = self.get_icon_pixbuf().copy()
-##        pixbuf =  self.pixbuf_add_border(pixbuf, 1)
-##        if type & self.ALL_MINIMIZED:
-##            pixbuf = self.add_full_transparency(pixbuf)
-##        if type & self.MOUSE_OVER:
-##            pixbuf = self.colorshift(pixbuf, 33)
-##        if type & self.ACTIVE:
-##            pixbuf = self.add_glow(pixbuf)
-##        if type & self.SOME_MINIMIZED:
-##            pixbuf2 = self.get_icon_pixbuf().copy()
-##            pixbuf2 = self.pixbuf_add_border(pixbuf2, 1)
-##            pixbuf2 = self.add_full_transparency(pixbuf2)
-##            pixbuf = self.combine_icons(pixbuf,pixbuf2)
-##        if type & self.NEEDS_ATTENTION:
-##            pixbuf = self.add_red_background(pixbuf)
-##        if type & self.LAUNCHER:
-##            pixbuf = self.make_launcher_icon(pixbuf)
         if type & self.DRAG_DROPP:
             pixbuf = self.double_pixbuf(pixbuf, self.dockbar.orient)
         self.temp = None
@@ -632,13 +589,6 @@ class IconFactory():
                         return icon
         return None
 
-    def pixbuf_add_border(self, pixbuf, b):
-        # Adds an transparent border, b pixels thick, around the pixbuf.
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width() + b*2, pixbuf.get_height() + b*2)
-        background.fill(0x00000000)
-        pixbuf.composite(background, b, b, pixbuf.get_width(), pixbuf.get_height(), b, b, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
-
     def combine_command(self, pixbuf, pix1, pix2, degrees=90):
         # Combines left half of pixbuf with right half of pixbuf2.
         # The transition between the two halves are soft.
@@ -743,20 +693,6 @@ class IconFactory():
         pixbuf.composite(background, woffset, hoffset, w, h, woffset ,hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
-    def make_launcher_icon(self, pixbuf):
-        # Make the pixbuf slightly smaller and adds the launcher pixbuf
-        # on top of it to make it look like an button.
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
-        background.fill(0x00000000)
-        size = pixbuf.get_width()
-        small_size = int(0.80 * size)
-        pixbuf = pixbuf.scale_simple(small_size, small_size, gtk.gdk.INTERP_BILINEAR)
-        offset = int(float(size - small_size) / 2 + 0.5)
-        pixbuf.composite(background, offset, offset, small_size, small_size, offset ,offset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-        overlay = self.launcher_icon.scale_simple(size-2, size-2, gtk.gdk.INTERP_BILINEAR)
-        overlay.composite(background, 1, 1, overlay.get_width(), overlay.get_height(), 1, 1, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
-
     def glow_command(self, pixbuf, color, opacity):
         # Adds a glow around the parts of the pixbuf that isn't completely
         # transparent.
@@ -771,7 +707,6 @@ class IconFactory():
         except ValueError:
             print "Theme error: the color attribute for glow command should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
             raise
-
 
         # Transparency
         if opacity == "active_opacity":
@@ -795,6 +730,17 @@ class IconFactory():
         # Now add the pixbuf above the glow
         pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
+
+        def bright_command(self, pixbuf, strenght):
+        # Makes the pixbuf shift lighter.
+        strenght = int(int(strenght) * 2.55 + 0.4)
+        pixbuf = pixbuf.copy()
+        for row in pixbuf.get_pixels_array():
+            for pix in row:
+                pix[0] = min(255, int(pix[0]) + strenght)
+                pix[1] = min(255, int(pix[1]) + strenght)
+                pix[2] = min(255, int(pix[2]) + strenght)
+        return pixbuf
 
     def double_pixbuf(self, pixbuf, direction = 'h'):
         w = pixbuf.get_width()
@@ -832,32 +778,6 @@ class IconFactory():
         # And put the pixbuf on the left/upper half of it.
         pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return background
-
-
-    def add_red_background(self, pixbuf):
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
-        #Red background
-        background.fill(0xFF000088)
-        pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
-
-    def greyscale(self, pixbuf):
-        pixbuf = pixbuf.copy()
-        for row in pixbuf.get_pixels_array():
-            for pix in row:
-                pix[0] = pix[1] = pix[2] = (int(pix[0]) + int(pix[1]) + int(pix[2])) / 3
-        return pixBuf
-
-    def bright_command(self, pixbuf, strenght):
-        # Makes the pixbuf shift lighter.
-        strenght = int(int(strenght) * 2.55 + 0.4)
-        pixbuf = pixbuf.copy()
-        for row in pixbuf.get_pixels_array():
-            for pix in row:
-                pix[0] = min(255, int(pix[0]) + strenght)
-                pix[1] = min(255, int(pix[1]) + strenght)
-                pix[2] = min(255, int(pix[2]) + strenght)
-        return pixbuf
 
     def colorize_pixbuf(self, pixbuf, r, g, b):
         # Changes the color of all pixels to r g b.
