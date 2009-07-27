@@ -1546,7 +1546,6 @@ class GroupButton ():
     It also takes care of the popup window and all the window buttons that
     populates it."""
     def __init__(self,dockbar,class_group=None, launcher=None, index=None):
-
         self.launcher = launcher
         self.class_group = class_group
         self.dockbar = dockbar
@@ -1611,7 +1610,7 @@ class GroupButton ():
         self.winlist.pack_start(self.popup_label,False)
 
 
-        self.popup =  cairo_popup.window
+        self.popup = cairo_popup.window
         self.popup_showing = False
         self.popup.connect("leave-notify-event",self.popup_mouse_leave)
         self.popup.add(self.winlist)
@@ -2967,6 +2966,8 @@ class DockBar():
         self.opacified = False
         self.opacity_values = None
         self.opacity_matches = None
+        self.groups = None
+        self.windows = None
         wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
         self.applet = applet
         self.container = None
@@ -3028,14 +3029,11 @@ class DockBar():
 
 
     def reload(self, event=None, data=None):
-        try:
-            del self.groups
-        except:
-            pass
-        try:
-            del self.windows
-        except:
-            pass
+        if self.groups != None:
+            for group in self.groups.get_groups():
+                group.hide_list()
+        del self.groups
+        del self.windows
         self.groups = GroupList()
         self.windows = {}
         self.apps_by_id = {}
@@ -3066,7 +3064,7 @@ class DockBar():
                 path = self.themes.values()[0]
                 self.theme = Theme(path)
 
-
+        # Remove all old groupbuttons.
         for child in self.container.get_children():
             self.container.remove(child)
 
