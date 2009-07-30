@@ -278,7 +278,7 @@ class Theme():
             parser.setContentHandler(theme_handler)
             parser.parse(config)
         except:
-            return None
+            raise
         return theme_handler.get_name()
 
     def __init__(self, path_to_tar):
@@ -339,6 +339,15 @@ class Theme():
 
     def get_gap(self):
         return int(self.theme['icon_pixmap'].get('gap', 0))
+
+    def get_aspect_ratio(self):
+        ar = self.theme['icon_pixmap'].get('aspect_ratio', "1")
+        l = ar.split('/',1)
+        if len(l) == 2:
+            ar = float(l[0])/float(l[1])
+        else:
+            ar = float(ar)
+        return ar
 
 class IconFactory():
     """IconFactory takes care of finding the right icon pixbuf for a program and prepares the pixbuf."""
@@ -401,6 +410,7 @@ class IconFactory():
         self.temp = {}
         pixbuf = None
         commands = self.theme.get_icon_dict()
+        self.ar = self.theme.get_aspect_ratio()
         self.type = type
         for command, args in commands.items():
             try:
@@ -409,7 +419,7 @@ class IconFactory():
                 raise
             else:
                 pixbuf = f(pixbuf, **args)
-
+        # Todo: add size correction.
         if type & self.DRAG_DROPP:
             pixbuf = self.double_pixbuf(pixbuf, self.dockbar.orient)
         self.temp = None
@@ -468,6 +478,7 @@ class IconFactory():
             w = pixbuf.get_width()
             h = pixbuf.get_height()
         empty = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
+        empty.fill(0x00000000)
         self.temp[name]=empty
         for command,args in content.items():
             try:
@@ -478,7 +489,7 @@ class IconFactory():
                 self.temp[name] = f(self.temp[name], **args)
         return pixbuf
 
-    def fill_command(self, pixbuf, color, opacity):
+    def fill_command(self, pixbuf, color, opacity=100):
         if color == "active_color":
             color = settings['active_glow_color']
         if color[0]=="#":
@@ -488,21 +499,55 @@ class IconFactory():
         except ValueError:
             print "Theme error: the color attribute for fill should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
             raise
-        f += int(int(opacity)*2.56)
+        if opacity == "active_opacity":
+            opacity = settings['active_glow_alpha']
+        else:
+            opacity = int(int(opacity)*2.55 + 0.4)
+        f += opacity
         pixbuf.fill(f)
+        return pixbuf
+
+    def get_pixmap_command(self, pixbuf, name, size=0):
+        if pixbuf == None:
+            if self.dockbar.orient == 'v':
+                width = int(self.size * ar)
+                height = self.size
+            else:
+                width = self.size
+                height = int(self.size * ar)
+        else:
+            width = self.pixbuf.get_width()
+            height = self.pixbuf.get_height()
+        if self.theme.has_pixbuf(name):
+            pixbuf = self.theme.get_pixbuf(name)
+            pixbuf = temp.scale_simple(width, height, gtk.gdk.INTERP_BILINEAR)
+        else:
+            print "theme error: pixmap %s not found"%name
         return pixbuf
 
     def get_icon_command(self,pixbuf=None, size=0):
         size = int(size)
         if size < 0:
-            size = self.size  + size
+            size = self.size + size
         else:
             size = self.size
         if not self.pixbuf or not (self.pixbuf.get_width() == size or self.pixbuf.get_height() == size):
             self.pixbuf = self.find_icon_pixbuf(size)
         # Extra check if some sizing gone wrong somewhere.
-        if (self.pixbuf.get_width() != size or self.pixbuf.get_height() != size):
-            self.pixbuf = self.pixbuf.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
+        if self.pixbuf.get_width() != self.pixbuf.get_height():
+            if self.pixbuf.get_width() < self.pixbuf.get_height():
+                h = size
+                w = self.pixbuf.get_width() * size/self.pixbuf.get_height()
+            elif self.pixbuf.get_width() > self.pixbuf.get_height():
+                w = size
+                h = self.pixbuf.get_height() * size/self.pixbuf.get_width()
+            background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size, size)
+            background.fill(0x00000000)
+            self.pixbuf = self.pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+            woffset = int(float(size - w) / 2 + 0.5)
+            hoffset = int(float(size - h) / 2 + 0.5)
+            self.pixbuf.composite(background, woffset, hoffset, w, h, woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+            self.pixbuf = background
         return self.pixbuf.copy()
 
 
@@ -691,15 +736,20 @@ class IconFactory():
         return background
 
     def correct_size_command(self, pixbuf):
-        if pixbuf.get_width() == self.size and pixbuf.get_height() == self.size:
+        if self.dockbar.orient == 'v':
+            width = self.size
+            height = int(self.size * self.ar)
+        else:
+            width = int(self.size * self.ar)
+            height = self.size
+        if pixbuf.get_width() == width and pixbuf.get_height() == height:
             return pixbuf
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.size, self.size)
+        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width, height)
         background.fill(0x00000000)
-        w = pixbuf.get_width()
-        h = pixbuf.get_height()
-        woffset = int(float(self.size - w) / 2 + 0.5)
-        hoffset = int(float(self.size - h) / 2 + 0.5)
-        pixbuf.composite(background, woffset, hoffset, w, h, woffset ,hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+        woffset = int(float(width - pixbuf.get_width()) / 2 + 0.5)
+        hoffset = int(float(height - pixbuf.get_height()) / 2 + 0.5)
+        pixbuf.composite(background, woffset, hoffset, pixbuf.get_width(), pixbuf.get_height(), \
+                         woffset ,hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
     def glow_command(self, pixbuf, color, opacity):
@@ -799,6 +849,19 @@ class IconFactory():
                 pix[2] = b
         return pixbuf
 
+    def alpha_mask_command(self, pixbuf, mask):
+        if mask in self.temp:
+            mask = self.temp[mask]
+        elif self.theme.has_pixbuf(mask):
+            mask = self.theme.get_pixbuf(mask)
+        mask = mask.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
+        pixbuf = pixbuf.copy()
+        rows = pixbuf.get_pixels_array()
+        mask_rows = mask.get_pixels_array()
+        for m in range(len(rows)):
+            for n in range(len(rows[m])):
+                rows[m, n][3] = int(rows[m, n][3]) * int(mask_rows[m, n][0]) / 255
+        return pixbuf
 
 class CairoPopup():
     """CairoPopup is a transparent popup window with rounded corners"""
