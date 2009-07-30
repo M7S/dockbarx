@@ -332,16 +332,16 @@ class Theme():
         return self.pixbufs[name]
 
     def get_icon_dict(self):
-        return self.theme['icon_pixmap']['content']
+        return self.theme['button_pixmap']['content']
 
     def get_name(self):
         return self.name
 
     def get_gap(self):
-        return int(self.theme['icon_pixmap'].get('gap', 0))
+        return int(self.theme['button_pixmap'].get('gap', 0))
 
     def get_aspect_ratio(self):
-        ar = self.theme['icon_pixmap'].get('aspect_ratio', "1")
+        ar = self.theme['button_pixmap'].get('aspect_ratio', "1")
         l = ar.split('/',1)
         if len(l) == 2:
             ar = float(l[0])/float(l[1])
