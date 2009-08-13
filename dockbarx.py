@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 #	Copyright 2008, Aleksey Shaferov
 #
 #	DockBar is free software: you can redistribute it and/or modify
@@ -533,7 +534,6 @@ class IconFactory():
             size = self.size
         if not self.pixbuf or not (self.pixbuf.get_width() == size or self.pixbuf.get_height() == size):
             self.pixbuf = self.find_icon_pixbuf(size)
-        # Extra check if some sizing gone wrong somewhere.
         if self.pixbuf.get_width() != self.pixbuf.get_height():
             if self.pixbuf.get_width() < self.pixbuf.get_height():
                 h = size
@@ -548,6 +548,8 @@ class IconFactory():
             hoffset = int(float(size - h) / 2 + 0.5)
             self.pixbuf.composite(background, woffset, hoffset, w, h, woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
             self.pixbuf = background
+        elif self.pixbuf.get_width() != size:
+            self.pixbuf = self.pixbuf.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
         return self.pixbuf.copy()
 
 
