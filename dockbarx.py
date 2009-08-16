@@ -2343,6 +2343,18 @@ class GroupButton ():
     def select_only(self, widget, event):
         self.select_or_minimize_group(widget, event, False)
 
+    def select_or_compiz_scale(self, widget, event):
+        win_nr = len(self.windows)
+        if  win_nr > 1 and (win_nr - self.minimized_windows_count) > 1:
+            self.compiz_scale_windows(widget, event)
+        elif win_nr > 1 and (win_nr - self.minimized_windows_count) == 1:
+            for win in self.windows:
+                if not win.is_minimized():
+                    self.windows[win].select_window(widget, event)
+                    break
+        else:
+            self.select_or_minimize_group(widget, event)
+
     def minimize_all_windows(self,widget=None, event=None):
         for window in self.windows:
             window.minimize()
@@ -2480,6 +2492,7 @@ class GroupButton ():
     action_function_dict = ODict((
                                   ("select or minimize group", select_or_minimize_group),
                                   ("select group", select_only),
+                                  ("select or compiz scale group", select_or_compiz_scale),
                                   ("close all windows", close_all_windows),
                                   ("minimize all windows", minimize_all_windows),
                                   ("maximize all windows", maximize_all_windows),
