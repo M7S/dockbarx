@@ -43,6 +43,7 @@ from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from math import pi
 import cairo
+import time
 
 try:
     import gio
@@ -1014,6 +1015,7 @@ class PersistentList():
 class Launcher():
     def __init__(self, name, path):
         self.name = name
+        self.lastlaunch = None
         if not os.path.exists(path):
             raise Exception("DesktopFile "+fileName+" doesn't exist.")
 
@@ -1032,8 +1034,12 @@ class Launcher():
         return self.desktop_entry.getName()
 
     def launch(self):
+        if self.lastlaunch != None:
+            if time.time() - self.lastlaunch < 2:
+                return
         print 'Executing ' + self.desktop_entry.getExec()
         self.execute(self.desktop_entry.getExec())
+        self.lastlaunch = time.time()
 
     def remove_args(self, stringToExecute):
         specials = ["%f","%F","%u","%U","%d","%D","%n","%N","%i","%c","%k","%v","%m","%M", "-caption","--view", "\"%c\""]
