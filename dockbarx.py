@@ -361,15 +361,17 @@ class IconFactory():
     # Icon effects
     MOUSE_OVER = 1<<4
     NEEDS_ATTENTION = 1<<5
+    BLINK  = 1<<6
     # ACTIVE_WINDOW
-    ACTIVE = 1<<6
+    ACTIVE = 1<<7
     # Double width/height icons for drag and drop situations.
-    DRAG_DROPP = 1<<7
+    DRAG_DROPP = 1<<8
     TYPE_DICT = {'some_minimized':SOME_MINIMIZED,
                  'all_minimized':ALL_MINIMIZED,
                  'launcher':LAUNCHER,
                  'mouse_over':MOUSE_OVER,
                  'needs_attention':NEEDS_ATTENTION,
+                 'blink':BLINK,
                  'active':ACTIVE}
 
     def __init__(self, dockbar, class_group, launcher = None):
@@ -1823,7 +1825,7 @@ class GroupButton ():
             elif settings["groupbutton_attention_notification_type"] == 'blink':
                 if not self.needs_attention_anim_trigger:
                     self.needs_attention_anim_trigger = True
-                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | IconFactory.MOUSE_OVER | self.icon_active | self.dd_effect)
+                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | IconFactory.BLINK | self.icon_active | self.dd_effect)
                     self.image.set_from_pixbuf(pixbuf)
                 else:
                     self.needs_attention_anim_trigger = False
