@@ -2061,6 +2061,8 @@ class GroupButton ():
             self.minimized_windows_count -= 1
         self.windows[window].del_button()
         self.update_state_request()
+        if self.needs_attention:
+            self.needs_attention_changed()
         if not self.windows and not self.launcher:
             self.hide_list()
             self.popup.destroy()
