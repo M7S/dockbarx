@@ -2378,7 +2378,9 @@ class GroupButton ():
             for window in self.windows:
                 window.unmaximize()
 
-    def select_next(self, widget=None, event=None):
+    def select_next(self, widget=None, event=None, previous=False):
+        if not self.windows:
+            return
         if self.nextlist_time == None or time.time() - self.nextlist_time > 2 \
         or self.nextlist == None:
             self.nextlist = []
@@ -2391,32 +2393,27 @@ class GroupButton ():
             self.nextlist.reverse()
         self.nextlist_time = time.time()
 
-        win = self.nextlist.pop(0)
+        if previous:
+            win = self.nextlist.pop(-1)
+            if win.is_active():
+                self.nextlist.insert(0, win)
+                win = self.nextlist.pop(-1)
+        else:
+            win = self.nextlist.pop(0)
+            if win.is_active():
+                self.nextlist.append(win)
+                win = self.nextlist.pop(0)
         # Just a safety check
         if not win in self.windows:
             return
         self.windows[win].select_window(widget, event)
-        self.nextlist.append(win)
+        if previous:
+            self.nextlist.insert(0, win)
+        else:
+            self.nextlist.append(win)
 
     def select_previous(self, widget=None, event=None):
-        if self.nextlist_time == None or time.time() - self.nextlist_time > 2 \
-        or self.nextlist == None:
-            self.nextlist = []
-            screen = self.screen
-            windows_stacked = screen.get_windows_stacked()
-            for win in windows_stacked:
-                    if win in self.windows:
-                        self.nextlist.append(win)
-            # Reverse -> topmost window first
-            self.nextlist.reverse()
-        self.nextlist_time = time.time()
-
-        win = self.nextlist.pop(-1)
-        # Just a safety check
-        if not win in self.windows:
-            return
-        self.windows[win].select_window(widget, event)
-        self.nextlist.insert(0, win)
+        self.select_next(widget, event, previous=True)
 
     def close_all_windows(self, widget=None, event=None):
         if event:
