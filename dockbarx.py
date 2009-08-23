@@ -87,8 +87,8 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "groupbutton_shift_and_middle_click_action": "no action",
                       "groupbutton_right_click_action": "show menu",
                       "groupbutton_shift_and_right_click_action": "no action",
-                      "groupbutton_scroll_up": "no action",
-                      "groupbutton_scroll_down": "no action",
+                      "groupbutton_scroll_up": "select next window",
+                      "groupbutton_scroll_down": "select previous window",
                       "groupbutton_left_click_double": False,
                       "groupbutton_shift_and_left_click_double": False,
                       "groupbutton_middle_click_double": True,
@@ -1629,6 +1629,8 @@ class GroupButton ():
         self.has_active_window = False
         self.needs_attention = False
         self.attention_effect_running = False
+        self.nextlist = None
+        self.nextlist_time = None
         if class_group:
             self.res_class = class_group.get_res_class()
             if self.res_class == "":
@@ -2059,6 +2061,8 @@ class GroupButton ():
     def del_window(self,window):
         if window.is_minimized():
             self.minimized_windows_count -= 1
+        if window in self.nextlist:
+            self.nextlist.remove(window)
         self.windows[window].del_button()
         self.update_state_request()
         if self.needs_attention:
@@ -2374,6 +2378,46 @@ class GroupButton ():
             for window in self.windows:
                 window.unmaximize()
 
+    def select_next(self, widget=None, event=None):
+        if self.nextlist_time == None or time.time() - self.nextlist_time > 2 \
+        or self.nextlist == None:
+            self.nextlist = []
+            screen = self.screen
+            windows_stacked = screen.get_windows_stacked()
+            for win in windows_stacked:
+                    if win in self.windows:
+                        self.nextlist.append(win)
+            # Reverse -> topmost window first
+            self.nextlist.reverse()
+        self.nextlist_time = time.time()
+
+        win = self.nextlist.pop(0)
+        # Just a safety check
+        if not win in self.windows:
+            return
+        self.windows[win].select_window(widget, event)
+        self.nextlist.append(win)
+
+    def select_previous(self, widget=None, event=None):
+        if self.nextlist_time == None or time.time() - self.nextlist_time > 2 \
+        or self.nextlist == None:
+            self.nextlist = []
+            screen = self.screen
+            windows_stacked = screen.get_windows_stacked()
+            for win in windows_stacked:
+                    if win in self.windows:
+                        self.nextlist.append(win)
+            # Reverse -> topmost window first
+            self.nextlist.reverse()
+        self.nextlist_time = time.time()
+
+        win = self.nextlist.pop(-1)
+        # Just a safety check
+        if not win in self.windows:
+            return
+        self.windows[win].select_window(widget, event)
+        self.nextlist.insert(0, win)
+
     def close_all_windows(self, widget=None, event=None):
         if event:
             t = event.time
@@ -2503,6 +2547,8 @@ class GroupButton ():
                                   ("launch application", launch_application),
                                   ("show menu", show_menu),
                                   ("remove launcher", remove_launcher),
+                                  ("select next window", select_next),
+                                  ("select previous window", select_previous),
                                   ("minimize all other groups", minimize_all_other_groups),
                                   ("compiz scale windows", compiz_scale_windows),
                                   ("compiz shift windows", compiz_shift_windows),
