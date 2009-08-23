@@ -2061,7 +2061,7 @@ class GroupButton ():
     def del_window(self,window):
         if window.is_minimized():
             self.minimized_windows_count -= 1
-        if window in self.nextlist:
+        if self.nextlist and window in self.nextlist:
             self.nextlist.remove(window)
         self.windows[window].del_button()
         self.update_state_request()
