@@ -1244,7 +1244,11 @@ class WindowButton():
         self.window = None
 
     def window_state_changed(self, window,changed_mask, new_state):
-        if wnck.WINDOW_STATE_MINIMIZED & changed_mask & new_state:
+        try:
+            state_minimized = wnck.WINDOW_STATE_MINIMIZED
+        except:
+            state_minimized = 1 << 0
+        if state_minimized & changed_mask & new_state:
             if self.locked:
                 self.window_button_icon.set_from_pixbuf(self.icon_locked)
             else:
@@ -1252,7 +1256,7 @@ class WindowButton():
             self.groupbutton.minimized_windows_count+=1
             self.groupbutton.update_state()
             self.update_label_state()
-        elif wnck.WINDOW_STATE_MINIMIZED & changed_mask:
+        elif state_minimized & changed_mask:
             self.window_button_icon.set_from_pixbuf(self.icon)
             self.groupbutton.minimized_windows_count-=1
             if self.locked:
@@ -1551,12 +1555,20 @@ class WindowButton():
         self.window.unshade()
 
     def show_menu(self, widget, event):
+        try:
+            action_minimize = wnck.WINDOW_ACTION_MINIMIZE
+            action_unminimize = wnck.WINDOW_ACTION_UNMINIMIZE
+            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
+        except:
+            action_minimize = 1 << 12
+            action_unminimize = 1 << 13
+            action_maximize = 1 << 14
         #Creates a popup menu
         menu = gtk.Menu()
         menu.connect('selection-done', self.menu_closed)
         #(Un)Lock
         lock_item = None
-        if self.window.get_actions() & wnck.WINDOW_ACTION_MINIMIZE \
+        if self.window.get_actions() & action_minimize \
         and not self.locked:
             lock_item = gtk.MenuItem('Lock')
         elif self.locked:
@@ -1567,10 +1579,10 @@ class WindowButton():
             lock_item.show()
         #(Un)Minimize
         minimize_item = None
-        if self.window.get_actions() & wnck.WINDOW_ACTION_MINIMIZE \
+        if self.window.get_actions() & action_minimize \
         and not self.window.is_minimized():
             minimize_item = gtk.MenuItem('Minimize')
-        elif self.window.get_actions() & wnck.WINDOW_ACTION_UNMINIMIZE \
+        elif self.window.get_actions() & action_unminimize \
         and self.window.is_minimized():
             minimize_item = gtk.MenuItem('Unminimize')
         if minimize_item:
@@ -1580,10 +1592,10 @@ class WindowButton():
         # (Un)Maximize
         maximize_item = None
         if not self.window.is_maximized() \
-        and self.window.get_actions() & wnck.WINDOW_ACTION_MAXIMIZE:
+        and self.window.get_actions() & action_maximize:
             maximize_item = gtk.MenuItem('Maximize')
         elif self.window.is_maximized() \
-        and self.window.get_actions() & wnck.WINDOW_ACTION_UNMAXIMIZE:
+        and self.window.get_actions() & action_unminimize:
             maximize_item = gtk.MenuItem('Unmaximize')
         if maximize_item:
             menu.append(maximize_item)
@@ -2368,10 +2380,14 @@ class GroupButton ():
             window.minimize()
 
     def maximize_all_windows(self,widget=None, event=None):
+        try:
+            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
+        except:
+            action_maximize = 1 << 14
         maximized = False
         for window in self.windows:
             if not window.is_maximized() \
-            and window.get_actions() & wnck.WINDOW_ACTION_MAXIMIZE:
+            and window.get_actions() & action_maximize:
                 window.maximize()
                 maximized = True
         if not maximized:
@@ -2428,6 +2444,10 @@ class GroupButton ():
             self.launcher.launch()
 
     def show_menu(self, widget, event):
+        try:
+            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
+        except:
+            action_maximize = 1 << 14
         self.hide_list()
         #Creates a popup menu
         menu = gtk.Menu()
@@ -2465,7 +2485,7 @@ class GroupButton ():
             # (Un)Maximize all
             for window in self.windows:
                 if not window.is_maximized() \
-                and window.get_actions() & wnck.WINDOW_ACTION_MAXIMIZE:
+                and window.get_actions() & action_maximize:
                     maximize_all_windows_item = gtk.MenuItem('Maximize all windows')
                     break
             else:
