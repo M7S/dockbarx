@@ -1,37 +1,35 @@
-Dockbar Experimental 0.21.9
+===========
+DESCRIPTION
+===========
+This is a branch of DockBar (a TaskBar with grouping and group manipulation) with extra, "experimental" features added. 
 
-Description:
-This is DockBar (a TaskBar with grouping and group manipulation) with some "experimental" features. 
+This is not really a fork of DockBar! It's just another branch of the program. Some of the features in this version will hopefully find it's way into the vanilla DockBar some day, when they are proven stable and useful.
 
-This is not really a fork of DockBar! It's just an experimental version. Some of the features in this version will hopefully find it's way into the vanilla DockBar some day, when they are proven stable and useful.
 
-Experimental features (Features that isn't in vanilla DockBar 0.21):
-- New popup look
-- Launchers
-- Notifications for focused window on group button as well as on window button
-- Minimize animation is aiming for the group button of the program.
-- All mouse button actions are configurable
-- Behavior when multiple workspaces or viewports are used are configurable
-- Windows are raised on drag-and-drops
-- "Opacify"
+Dockbar is made by Aleksey Shaferov. 
+DockbarX branch is developed by Matias Särs.
+The button image used in "Default" and "New" themes are is made by Sami Rissanen (st6). 
+Dockbar and DockbarX is licensed under GPL3.
 
-Dockbar is made by Aleksey Shaferov
-Experimental features by Matias Särs
-
-Stability:
-This is an experimental version. In one sense that means less stability. I will try to keep this program stable in the sense "as few bugs as possible", of course. It won't be stable in the sense that the programs default behavior will stay the same from a version to the next.
+About the experimental-ness and stability of dockbarx:
+DockbarX is in some way an experimental version of dockbar. If you with stable mean "as bug free as possible", DockbarX will try to achieve that kind of stability. If you with stable mean that the program's default behavior will stay the same from a version to the next and that you won't have to relearn how to use parts of the program from an update to the next, then DockbarX isn't stable.
 
 
 =======
 INSTALL
 =======
-- install python-gnome2-desktop and python-numpy (Dockbar Experimental might be able to run without python-numpy, but it shouldn't hurt)
-- copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers
-- copy the themes folder to /usr/share/dockbar (for system wide installation, recommended) or ~/.dockbar (Create the folders if necessary)
-- add DockBar applet (Experimental Version) to panel
+1. install python-gnome2-desktop and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt)
+$ sudo apt-get install python-gnome2-desktop python-numpy
+2. copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers
+$ sudo cp dockbarx.py /usr/bin
+$ sudo cp GNOME_DockBarXApplet.server /usr/lib/bonobo/servers
+3. copy the content of themes folder to /usr/share/dockbar/themes (for system wide installation, recommended) or ~/.dockbar/themes (Create the folders if necessary)
+$ sudo mkdir -p /usr/share/dockbar/themes
+$ sudo cp  themes/* /usr/share/dockbar/themes
+4. add DockBarX applet to panel
 
 You can run it in window (meant for debugging purposes, mostly):
-dockbarx.py run-in-window
+$dockbarx.py run-in-window
 
 INSTALL IN AWN
 
@@ -46,11 +44,9 @@ INSTALL IN AWN
 =====
 USAGE
 =====
+The default actions are listed here. There are more actions in dockbarx. You can assign them to different buttons via preference dialog.
 
-*NOTE!* 
-Default buttons are NOT the same as in vanilla Dockbar. All buttons are configurable in preference dialog.
-
-Window button:
+DEFAULT WINDOW BUTTON ACTIONS:
 left click:
 - activate / minimize / unminimize
 
@@ -60,7 +56,8 @@ middle click:
 right click:
 - minimize and lock
 
-Group button:
+
+DEFAULT GROUP BUTTON ACTIONS:
 left click:
 - activate / minimize / unminimize group (launch application if no window is open)
 
@@ -73,7 +70,11 @@ middle double click:
 right click:
 -open 'menu'
 
+scroll up/down: 
+- Select next/previous window of the group
 
+
+LAUNCHERS:
 Add launchers:
 To add launchers simply drag the launcher you want from your gnome menu to the DockBar. (That means that you should drop it ON an existing button, not to the right or left of them. If you drop the launcher to the right of the buttons you will drop it on the panel and not on the DockBar applet). Write in the resource class name of the application whose launcher you added in the entry dialog and press OK (if the program is already running you can choose the resource class name from the drop down list). The launcher will appear after (on the right side) of the button you dropped the launcher of.
 
@@ -84,14 +85,14 @@ Move launchers (and other group buttons):
 Drag and drop ;)
 
 
-Workspace/viewport behavior:
+WORKSPACE/VIEWPORT BEHAVIOR OPTIONS:
 You can change how DockBar reacts when you select a group (left click on the group icon if the default is used) from preference window.
 
 Ignore: Acts as if windows on other workspaces and viewport doesn't exist.
 
 Switch: Behaves as ignore if there are windows belonging to the group on the current workspace/viewport. If there are no windows belonging to the group on the current workspace/viewport it switches to the workspace/viewport with most windows that belong to the group. This is the default behavior.
 
-Move: Moves windows from other workspaces/viewports to current workspace/viewport. This is the behavior vanilla Dockbar 0.20 uses.
+Move: Moves windows from other workspaces/viewports to current workspace/viewport. This is the behavior vanilla Dockbar 0.21 uses.
 
 If you select a window in the popup list you will always switch to the workspace/viewport of the window. This is not configurable (vanilla Dockbar behaves the same way).
 
@@ -103,13 +104,20 @@ Q: Help!?! I want to add an launcher but I don't know the resource class name of
 A1: The easiest way to add a launcher is to start the program first and then drag the launcher to to the DockBar. The resource class name can then be found in the drop down list.
 A2: You can also find the resolution class name by: 1) launching the program your usual way, 2) when the icon appears in DockBar, hower over it and 3) when the popup window is shown, hower over the popup window title. The resource class name will be shown as a tooltip.
 
+Q: How do I get to preference dialog?
+A: Right click the handle (the dots or lines to the left of dockbarx) to get a menu where you can choose the preference option. Viola! Sometimes though, you have to double right click the handle to get the menu. Don't ask me why - just do it.
 
-Q: I don't like the looks of launcher buttons. How can I change it?
-A: You can change the looks of the launcher button by editing ~/.dockbar/launcher_icon.png (if you have no ~/.dockbar/launcher_icon.png, copy it from /usr/share/pixmaps/dockbar/launcher_icon.png). You can change it however you want as long as it is a png-file. 
+Q: What is Opacify and how do I get it to work?
+A: Opacify is a way to find localize a window with dockbar. When opacify is on and you roll over a name in the window list with the mouse, all other windows will become transparent so that you easy can spot the window. To activate opacify you need to go to the appearance tab of the preference dialog and check in opacify checkbox. Opacify requires compiz fusion  and you need to activate the plugin Opacity, Brightness and Saturation in CompizConfig!
 
-If you have an artistic personality and make a beautiful launcher_icon.png, don't hesitate to send it to me. I hope I will be able to publish a package of alternative launcher icons soon.
+Q: How do I install a theme?
+A: If you find a theme on the web that you like, copy the file (should be SOMETHING.tar.gz) to ~/.dockbar/themes or /usr/share/dockbar/themes. You change themes in the appearance tab of preference dialog. You might need to press the reload button before your newly installed theme shows up.
 
-The current launcher_icon.png is made by Sami Rissanen (st6). 
+Q: How can I make an theme of my own?
+A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad.
+
+
+
 
 
 

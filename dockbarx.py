@@ -52,7 +52,7 @@ except:
 
 
 ##import pdb
-VERSION = 'Experimental 0.21.10'
+VERSION = 'x.0.21.11'
 
 TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number, is it used anymore?
 
@@ -2584,7 +2584,7 @@ class AboutDialog():
             AboutDialog.__instance.about.present()
             return
         self.about = gtk.AboutDialog()
-        self.about.set_name("DockBar Applet")
+        self.about.set_name("DockBarX Applet")
         self.about.set_version(VERSION)
         self.about.set_copyright("Copyright (c) 2008-2009 Aleksey Shaferov (Experimental features by Matias S\xc3\xa4rs)")
         self.about.connect("response",self.about_close)
@@ -2608,7 +2608,7 @@ class PrefDialog():
             return
 
         PREFDIALOG = self
-        self.dialog = gtk.Dialog("DockBar preferences")
+        self.dialog = gtk.Dialog("DockBarX preferences")
         self.dialog.connect("response",self.dialog_close)
 
         try:
