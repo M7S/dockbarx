@@ -2523,7 +2523,7 @@ class GroupButton ():
            len(self.windows) - self.minimized_windows_count == 0:
             return
         try:
-            compiz_call('scale/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+            compiz_call('scale/allscreens/initiate_all_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
@@ -2535,7 +2535,7 @@ class GroupButton ():
            len(self.windows) - self.minimized_windows_count == 0:
             return
         try:
-            compiz_call('shift/allscreens/initiate_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
+            compiz_call('shift/allscreens/initiate_all_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
