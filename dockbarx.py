@@ -2020,7 +2020,7 @@ class GroupButton (gobject.GObject):
             if (p_h - p_m_y) < r:
                 y = p_m_y - (p_h - r)
             if x == None or y == None \
-            or (x**2 + y**2) < r**2:
+            or (x**2 + y**2) < (r-1)**2:
                 # It's inside the rounded corners!
                 return
         if not ((b_m_x<0 or b_m_x>(b_r.width-1)) or (b_m_y<0 or b_m_y>(b_r.height-1))):
