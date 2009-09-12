@@ -2956,6 +2956,7 @@ class PrefDialog():
         notebook.append_page(behavior_box, label)
         label = gtk.Label("Appearance")
         notebook.append_page(appearance_box, label)
+        ca.pack_start(notebook)
 
         self.update()
 
