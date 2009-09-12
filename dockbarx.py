@@ -1984,6 +1984,8 @@ class GroupButton (gobject.GObject):
         p_w,p_h = self.popup.get_size()
         b_m_x,b_m_y = self.button.get_pointer()
         b_r = self.button.get_allocation()
+        r = 5 #radius for the rounded corner of popup window
+
         # Make sure that the popup list isn't closed when
         # howering the gap between button and list.
         w,h = self.popup.get_size()
@@ -2000,10 +2002,29 @@ class GroupButton (gobject.GObject):
             or (p_x > b_x and b_m_x>=(b_r.width-1) and b_m_x<=(b_r.width-1+offset)):
                 gobject.timeout_add(50, self.hide_list_request)
                 return
-        if ((p_m_x<0 or p_m_x>(p_w-1))or(p_m_y<0 or p_m_y>(p_h-1))) \
-        and ((b_m_x<0 or b_m_x>(b_r.width-1)) or (b_m_y<0 or b_m_y>(b_r.height-1))):
-            self.hide_list()
-        return False
+
+        if not ((p_m_x<0 or p_m_x>(p_w-1))or(p_m_y<0 or p_m_y>(p_h-1))):
+            # Mouse pointer is inside the "rectangle"
+            # but check if it's still outside the rounded corners
+            x = None
+            y = None
+            if p_m_x < r:
+                x = r - p_m_x
+            if (p_w - p_m_x) < r:
+                x = p_m_x - (p_w - r)
+            if p_m_y < r:
+                y = r - p_m_y
+            if (p_h - p_m_y) < r:
+                y = p_m_y - (p_h - r)
+            if x == None or y == None \
+            or (x**2 + y**2) < r**2:
+                # It's inside the rounded corners!
+                return
+        if not ((b_m_x<0 or b_m_x>(b_r.width-1)) or (b_m_y<0 or b_m_y>(b_r.height-1))):
+            # Mouse pointer is over the group button.
+            return
+        self.hide_list()
+        return
 
     def hide_list(self):
         self.popup.hide()
