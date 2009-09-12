@@ -1869,6 +1869,9 @@ class GroupButton (gobject.GObject):
         if self.needs_attention:
             if settings["groupbutton_attention_notification_type"] == 'red':
                 self.icon_effect = IconFactory.NEEDS_ATTENTION
+            elif settings["groupbutton_attention_notification_type"] == 'nothing':
+                # Do nothing
+                self.icon_effect = 0
             else:
                 self.needs_attention_anim_trigger = False
                 if not self.attention_effect_running:
@@ -2872,9 +2875,12 @@ class PrefDialog():
         self.rb1_2.connect("toggled", self.rb_toggled, "rb1_compwater")
         self.rb1_3 = gtk.RadioButton(self.rb1_1, "Red background")
         self.rb1_3.connect("toggled", self.rb_toggled, "rb1_red")
+        self.rb1_4 = gtk.RadioButton(self.rb1_1, "Nothing")
+        self.rb1_4.connect("toggled", self.rb_toggled, "rb1_nothing")
         vbox.pack_start(self.rb1_1, False)
         vbox.pack_start(self.rb1_2, False)
         vbox.pack_start(self.rb1_3, False)
+        vbox.pack_start(self.rb1_4, False)
         hbox.pack_start(vbox, True, padding=5)
 
         vbox = gtk.VBox()
@@ -2995,6 +3001,8 @@ class PrefDialog():
             self.rb1_2.set_active(True)
         elif settings_attention == 'red':
             self.rb1_3.set_active(True)
+        elif settings_attention == 'nothing':
+            self.rb1_4.set_active(True)
 
         settings_workspace = settings["workspace_behavior"]
 
@@ -3078,6 +3086,9 @@ class PrefDialog():
             rb1_toggled = True
         if par1 == 'rb1_red' and button.get_active():
             value = 'red'
+            rb1_toggled = True
+        if par1 == 'rb1_nothing' and button.get_active():
+            value = 'nothing'
             rb1_toggled = True
 
         if rb1_toggled and value != settings["groupbutton_attention_notification_type"]:
