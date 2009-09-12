@@ -873,6 +873,7 @@ class CairoPopup():
     def __init__(self, colormap):
         gtk.widget_push_colormap(colormap)
         self.window = gtk.Window(gtk.WINDOW_POPUP)
+        self.window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         gtk.widget_pop_colormap()
         self.vbox = gtk.VBox()
 
@@ -1209,6 +1210,13 @@ class WindowButton():
         self.window_button.connect("drag_leave", self.button_drag_leave)
         self.button_drag_entered = False
 
+        # Minimization target:
+        self.sid1 = self.groupbutton.connect('set-icongeo-win',self.on_set_icongeo_win)
+        self.sid2 = self.groupbutton.connect('set-icongeo-grp',self.on_set_icongeo_grp)
+        self.sid3 = self.groupbutton.dockbar.connect('db-move',self.on_db_move)
+        self.sid4 = self.groupbutton.connect('set-icongeo-delay',self.on_set_icongeo_delay)
+        self.on_set_icongeo_grp()
+
 
     def set_button_active(self, mode):
         """Use set_button_active to tell WindowButton that it's window is the active one."""
@@ -1240,9 +1248,65 @@ class WindowButton():
 
     def del_button(self):
         self.window_button.destroy()
+        self.groupbutton.disconnect(self.sid1)
+        self.groupbutton.disconnect(self.sid2)
+        self.groupbutton.disconnect(self.sid4)
+        self.groupbutton.dockbar.disconnect(self.sid3)
         del self.groupbutton.windows[self.window]
         self.window = None
 
+
+    #### Grp signals:
+    def on_set_icongeo_win(self,arg=None):
+        alloc = self.window_button.get_allocation()
+        x,y = self.window_button.window.get_origin()
+        x += alloc.x
+        y += alloc.y
+        self.window.set_icon_geometry(x,y,alloc.width,alloc.height)
+
+    def on_set_icongeo_grp(self,arg=None):
+        alloc = self.groupbutton.button.get_allocation()
+        if self.groupbutton.button.window:
+            x,y = self.groupbutton.button.window.get_origin()
+            x += alloc.x
+            y += alloc.y
+            self.window.set_icon_geometry(x,y,alloc.width,alloc.height)
+
+    def on_set_icongeo_delay(self,arg=None):
+        # This one is used during popup delay to aviod
+        # thumbnails on group buttons.
+        alloc = self.groupbutton.button.get_allocation()
+        if self.groupbutton.button.window:
+            x,y = self.groupbutton.button.window.get_origin()
+            x += alloc.x
+            y += alloc.y
+            if self.dockbar.orient == "h":
+                w = alloc.width
+                h = 2
+                if y<5:
+                        # dockbar applet is at top of screen
+                        # the area should be below the button
+                        y += alloc.height + 1
+                else:
+                    # the area should be above the button
+                    y -= 2
+            else:
+                w = 2
+                h = alloc.height
+                if x<5:
+                        # dockbar applet is at the left egde of screen
+                        # the area should be to the right ofthe button
+                        x += alloc.width + 1
+                else:
+                    # the area should be to the right of the button
+                    x -= 2
+            self.window.set_icon_geometry(x,y,w,h)
+
+    def on_db_move(self,arg=None):
+        self.on_set_icongeo_grp()
+
+
+    #### Events
     def window_state_changed(self, window,changed_mask, new_state):
         try:
             state_minimized = wnck.WINDOW_STATE_MINIMIZED
@@ -1625,12 +1689,20 @@ class WindowButton():
                                 ))
 
 
-class GroupButton ():
+class GroupButton (gobject.GObject):
     """Group button takes care of a program's "button" in dockbar.
 
     It also takes care of the popup window and all the window buttons that
     populates it."""
+
+    __gsignals__ = {
+        "set-icongeo-win": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "set-icongeo-grp": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "set-icongeo-delay": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+    }
+
     def __init__(self,dockbar,class_group=None, launcher=None, index=None):
+        gobject.GObject.__init__(self)
         self.launcher = launcher
         self.class_group = class_group
         self.dockbar = dockbar
@@ -1703,6 +1775,8 @@ class GroupButton ():
         self.popup.add(self.winlist)
 
         self.button.connect("size-allocate", self.sizealloc)
+        self.button_old_alloc = self.button.get_allocation()
+
         # Make sure that the first size-allocate call has
         # the right width or height, depending on applet orient.
         # (May not always work.)
@@ -1755,26 +1829,22 @@ class GroupButton ():
     def sizealloc(self,applet,allocation):
         # Sends the new size to icon_factory so that a new icon in the right
         # size can be found. The icon is then updated.
-        if self.dockbar.orient == "v":
-            if allocation.width<=1:
-                return
-            if not self.image.get_pixbuf() or self.image.get_pixbuf().get_width() != allocation.width:
-                self.icon_factory.set_size(self.button.get_allocation().width)
-                self.update_state()
-        else:
-            if allocation.height<=1:
-                return
-            if not self.image.get_pixbuf() or self.image.get_pixbuf().get_height() != allocation.height:
-                self.icon_factory.set_size(self.button.get_allocation().height)
-                self.update_state()
-
-        # Change to where the minimize animation is drawn.
-        x, y = self.button.window.get_origin()
-        a = self.button.get_allocation()
-        x += a.x
-        y += a.y
-        for window in self.windows.keys():
-            window.set_icon_geometry(x, y, a.width, a.height)
+        if self.button_old_alloc != self.button.get_allocation():
+            if self.dockbar.orient == "v":
+                if allocation.width<=1:
+                    return
+                if not self.image.get_pixbuf() or self.image.get_pixbuf().get_width() != allocation.width:
+                    self.icon_factory.set_size(self.button.get_allocation().width)
+                    self.update_state()
+            else:
+                if allocation.height<=1:
+                    return
+                if not self.image.get_pixbuf() or self.image.get_pixbuf().get_height() != allocation.height:
+                    self.icon_factory.set_size(self.button.get_allocation().height)
+                    self.update_state()
+            self.button_old_alloc = self.button.get_allocation()
+            # Update icon geometry
+            self.emit('set-icongeo-grp')
 
     def update_popup_label(self):
         self.popup_label.set_text("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
@@ -1901,6 +1971,7 @@ class GroupButton ():
                 self.popup.move(x + b_alloc.width + offset,y)
         self.popup.show_all()
         self.popup_showing = True
+        self.emit('set-icongeo-win')
         return False
 
     def hide_list_request(self):
@@ -1937,6 +2008,7 @@ class GroupButton ():
     def hide_list(self):
         self.popup.hide()
         self.popup_showing = False
+        self.emit('set-icongeo-grp')
         return False
 
     def hide_list_on_drag(self):
@@ -1949,6 +2021,8 @@ class GroupButton ():
     def button_mouse_enter (self, widget, event):
         pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | IconFactory.MOUSE_OVER | self.icon_active | self.dd_effect)
         self.image.set_from_pixbuf(pixbuf)
+        if settings["popup_delay"]>0:
+            self.emit('set-icongeo-delay')
         if not self.dockbar.right_menu_showing and not self.dockbar.dragging:
             gobject.timeout_add(settings['popup_delay'], self.show_list_request)
 
@@ -1956,6 +2030,10 @@ class GroupButton ():
         pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active | self.dd_effect)
         self.image.set_from_pixbuf(pixbuf)
         self.hide_list_request()
+        if self.popup.window == None:
+            # self.hide_list takes care of emitting 'set-icongeo-grp' normally
+            # but if no popup window exist its taken care of here.
+            self.emit('set-icongeo-grp')
 
     def popup_mouse_leave (self,widget,event):
         self.hide_list_request()
@@ -2878,7 +2956,7 @@ class PrefDialog():
         notebook.append_page(behavior_box, label)
         label = gtk.Label("Appearance")
         notebook.append_page(appearance_box, label)
-        ca.pack_start(notebook)
+
         self.update()
 
         self.dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -3105,8 +3183,12 @@ class PrefDialog():
             self.dockbar.reload()
 
 
-class DockBar():
+class DockBar(gobject.GObject):
+    __gsignals__ = {
+        "db-move": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+    }
     def __init__(self,applet):
+        gobject.GObject.__init__(self)
         global settings
         print "dockbar init"
         self.dockbar_folder = self.ensure_dockbar_folder()
@@ -3172,6 +3254,9 @@ class DockBar():
                                   ("Pref", self.on_ppm_pref),
                                   ("Reload", self.reload)]
             self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
+            self.applet.show_all()
+            self.applet_origin_x = -1000 # off screen. there is no 'window' prop
+            self.applet_origin_y = -1000 # at this step
         else:
             self.container = gtk.HBox()
             self.orient = "h"
@@ -3329,8 +3414,14 @@ class DockBar():
             raise Exception(dockbar_folder + "is not a directory!")
         return dockbar_folder
 
-    def applet_size_alloc(self,applet,allocation):
-        pass
+    def applet_size_alloc(self, widget, allocation):
+        if widget.window:
+            x,y = widget.window.get_origin()
+            if x!=self.applet_origin_x or y!=self.applet_origin_y:
+                # Applet and/or panel moved
+                self.applet_origin_x = x
+                self.applet_origin_y = y
+                self.emit('db-move')
 
     def change_orient(self,arg1,data):
         for group in self.groups.get_names():
