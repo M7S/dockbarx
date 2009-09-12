@@ -1375,7 +1375,7 @@ class WindowButton():
                 self.dockbar.opacity_values = compiz_call('obs/screen0/opacity_values','get')
             except:
                 try:
-                    self.dockbar.opacity_values = compiz_call('general/screen0/opacity_values','get')
+                    self.dockbar.opacity_values = compiz_call('core/screen0/opacity_values','get')
                 except:
                     return
         if self.dockbar.opacity_matches == None:
@@ -1383,7 +1383,7 @@ class WindowButton():
                 self.dockbar.opacity_matches = compiz_call('obs/screen0/opacity_matches','get')
             except:
                 try:
-                    self.dockbar.opacity_values = compiz_call('general/screen0/opacity_matches','get')
+                    self.dockbar.opacity_values = compiz_call('core/screen0/opacity_matches','get')
                 except:
                     return
         self.dockbar.opacified = True
