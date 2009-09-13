@@ -1396,8 +1396,8 @@ class WindowButton():
             compiz_call('obs/screen0/opacity_matches','set', om)
         except:
             try:
-                compiz_call('general/screen0/opacity_values','set', ov)
-                compiz_call('general/screen0/opacity_matches','set', om)
+                compiz_call('core/screen0/opacity_values','set', ov)
+                compiz_call('core/screen0/opacity_matches','set', om)
             except:
                 return
 
@@ -1430,8 +1430,8 @@ class WindowButton():
             compiz_call('obs/screen0/opacity_matches','set', self.dockbar.opacity_matches)
         except:
             try:
-                compiz_call('general/screen0/opacity_values','set', self.dockbar.opacity_values)
-                compiz_call('general/screen0/opacity_matches','set', self.dockbar.opacity_matches)
+                compiz_call('core/screen0/opacity_values','set', self.dockbar.opacity_values)
+                compiz_call('core/screen0/opacity_matches','set', self.dockbar.opacity_matches)
             except:
                 pass
         self.dockbar.opacity_values = None
@@ -2079,8 +2079,8 @@ class GroupButton (gobject.GObject):
             compiz_call('obs/screen0/opacity_matches','set', om)
         except:
             try:
-                compiz_call('general/screen0/opacity_values','set', ov)
-                compiz_call('general/screen0/opacity_matches','set', om)
+                compiz_call('core/screen0/opacity_values','set', ov)
+                compiz_call('core/screen0/opacity_matches','set', om)
             except:
                 return
 
