@@ -79,6 +79,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "normal_text_color": "#FFFFFF",
 
                       "opacify": False,
+                      "opacify_group": False,
                       "opacify_alpha": 11,
 
                       "groupbutton_left_click_action":"select or minimize group",
@@ -1737,6 +1738,13 @@ class GroupButton (gobject.GObject):
         self.button.connect("button-press-event",self.group_button_press_event)
         self.button.connect("scroll-event",self.group_button_scroll_event)
 
+        # Compiz sends out false mouse enter messages after button is pressed.
+        # This works around that bug.
+        self.button_pressed = False
+
+        self.opacified = False
+
+
         hbox = gtk.HBox()
         hbox.add(self.image)
         self.button.add(hbox)
@@ -2042,15 +2050,113 @@ class GroupButton (gobject.GObject):
             self.hide_list()
         return False
 
+    #### Opacify
+
+    def opacify(self):
+        # Makes all windows but the one connected to this windowbutton transparent
+        if self.dockbar.opacity_values == None:
+            try:
+                self.dockbar.opacity_values = compiz_call('obs/screen0/opacity_values','get')
+            except:
+                try:
+                    self.dockbar.opacity_values = compiz_call('core/screen0/opacity_values','get')
+                except:
+                    return
+        if self.dockbar.opacity_matches == None:
+            try:
+                self.dockbar.opacity_matches = compiz_call('obs/screen0/opacity_matches','get')
+            except:
+                try:
+                    self.dockbar.opacity_values = compiz_call('core/screen0/opacity_matches','get')
+                except:
+                    return
+        self.dockbar.opacified = True
+        self.opacified = True
+        ov = [settings['opacify_alpha']]
+        om = ["!(class="+self.class_group.get_res_class()+" | class=Dockbarx.py)  & (type=Normal | type=Dialog)"]
+        try:
+            compiz_call('obs/screen0/opacity_values','set', ov)
+            compiz_call('obs/screen0/opacity_matches','set', om)
+        except:
+            try:
+                compiz_call('general/screen0/opacity_values','set', ov)
+                compiz_call('general/screen0/opacity_matches','set', om)
+            except:
+                return
+
+    def opacify_request(self):
+        if len(self.windows) - self.minimized_windows_count == 0:
+            return False
+        # if self.button_pressed is true, opacity_request is called by an
+        # wrongly sent out enter_notification_event sent after a
+        # button_press (because of a bug in compiz).
+        if self.button_pressed:
+            self.button_pressed = False
+            return False
+        # Check if mouse cursor still is over the window button.
+        b_m_x,b_m_y = self.button.get_pointer()
+        b_r = self.button.get_allocation()
+        if (b_m_x>=0 and b_m_x<b_r.width) and (b_m_y >= 0 and b_m_y < b_r.height):
+            self.opacify()
+        return False
+
+
+    def deopacify(self):
+        # always called from deopacify_request (with timeout)
+        # If another window button has called opacify, don't deopacify.
+        if self.dockbar.opacified and not self.opacified:
+            return False
+        if self.dockbar.opacity_values == None:
+            return False
+        try:
+            compiz_call('obs/screen0/opacity_values','set', self.dockbar.opacity_values)
+            compiz_call('obs/screen0/opacity_matches','set', self.dockbar.opacity_matches)
+        except:
+            try:
+                compiz_call('core/screen0/opacity_values','set', self.dockbar.opacity_values)
+                compiz_call('core/screen0/opacity_matches','set', self.dockbar.opacity_matches)
+            except:
+                pass
+        self.dockbar.opacity_values = None
+        self.dockbar.opacity_matches = None
+        return False
+
+    def deopacify_request(self):
+        if not self.opacified:
+            return False
+        # Make sure that mouse cursor really has left the window button.
+        b_m_x,b_m_y = self.button.get_pointer()
+        b_r = self.button.get_allocation()
+        if (b_m_x>=0 and b_m_x<b_r.width) and (b_m_y >= 0 and b_m_y < b_r.height):
+            return True
+        self.dockbar.opacified = False
+        self.opacified = False
+        # Wait before deopacifying in case a new windowbutton
+        # should call opacify, to avoid flickering
+        gobject.timeout_add(110, self.deopacify)
+        return False
+
+
+    #### Events
+
     def button_mouse_enter (self, widget, event):
+        # In compiz there is a enter and a leave event before a button_press event.
+        if self.button_pressed :
+            return
         pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | IconFactory.MOUSE_OVER | self.icon_active | self.dd_effect)
         self.image.set_from_pixbuf(pixbuf)
         if settings["popup_delay"]>0:
             self.emit('set-icongeo-delay')
         if not self.dockbar.right_menu_showing and not self.dockbar.dragging:
             gobject.timeout_add(settings['popup_delay'], self.show_list_request)
+        if settings["opacify"] and settings["opacify_group"]:
+            gobject.timeout_add(settings['popup_delay'],self.opacify_request)
+            # Just for safty in case no leave-signal is sent
+            gobject.timeout_add(settings['popup_delay']+500, self.deopacify_request)
 
     def button_mouse_leave (self, widget, event):
+        # In compiz there is a enter and a leave event before a button_press event.
+        self.button_pressed = False
         pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active | self.dd_effect)
         self.image.set_from_pixbuf(pixbuf)
         self.hide_list_request()
@@ -2058,6 +2164,8 @@ class GroupButton (gobject.GObject):
             # self.hide_list takes care of emitting 'set-icongeo-grp' normally
             # but if no popup window exist its taken care of here.
             self.emit('set-icongeo-grp')
+        if settings["opacify"] and settings["opacify_group"]:
+            self.deopacify_request()
 
     def popup_mouse_leave (self,widget,event):
         self.hide_list_request()
@@ -2265,6 +2373,12 @@ class GroupButton (gobject.GObject):
 
 
     def group_button_press_event(self,widget,event):
+        # In compiz there is a enter and a leave event before a button_press event.
+        # self.button_pressed is used to stop functions started with
+        # gobject.timeout_add from self.button_mouse_enter or self.button_mouse_leave.
+        self.button_pressed = True
+        gobject.timeout_add(600, self.set_button_pressed_false)
+
         if event.type == gtk.gdk._2BUTTON_PRESS and event.state & gtk.gdk.SHIFT_MASK:
             if event.button == 1 and settings['groupbutton_shift_and_left_click_double'] == True:
                 action = settings['groupbutton_shift_and_left_click_action']
@@ -2286,8 +2400,14 @@ class GroupButton (gobject.GObject):
                 action = settings['groupbutton_right_click_action']
                 self.action_function_dict[action](self, widget, event)
         # Return False so that a drag-and-drop can be initiated if needed
-        elif event.button == 1: return False
+        elif event.button == 1:
+            return False
         return True
+
+    def set_button_pressed_false(self):
+        # Helper function to group_button_press_event
+        self.button_pressed = False
+        return False
 
     #### Menu functions
     def menu_closed(self, menushell):
@@ -2722,7 +2842,7 @@ class PrefDialog():
         appearance_box = gtk.VBox()
         behavior_box = gtk.VBox()
 
-        # Behavior page
+        #--- Behavior page
         hbox = gtk.HBox()
         vbox = gtk.VBox()
         label1 = gtk.Label("<b><big>Workspace behavior on Select group</big></b>")
@@ -2862,7 +2982,7 @@ class PrefDialog():
 
         behavior_box.pack_start(table, False, padding=5)
 
-        # Appearance page
+        #--- Appearance page
         hbox = gtk.HBox()
         vbox = gtk.VBox()
         label1 = gtk.Label("<b><big>Needs attention effect</big></b>")
@@ -2907,6 +3027,9 @@ class PrefDialog():
         self.opacify_cb = gtk.CheckButton('Opacify')
         self.opacify_cb.connect('toggled', self.checkbutton_toggled, 'opacify')
         vbox.pack_start(self.opacify_cb, False)
+        self.opacify_group_cb = gtk.CheckButton('Opacify group')
+        self.opacify_group_cb.connect('toggled', self.checkbutton_toggled, 'opacify_group')
+        vbox.pack_start(self.opacify_group_cb, False)
         scalebox = gtk.HBox()
         scalelabel = gtk.Label("Opacity:")
         scalelabel.set_alignment(0,0.5)
@@ -2993,8 +3116,9 @@ class PrefDialog():
 
     def update(self):
         """Set widgets according to settings."""
-        settings_attention = settings["groupbutton_attention_notification_type"]
 
+        # Attention notification
+        settings_attention = settings["groupbutton_attention_notification_type"]
         if settings_attention == 'blink':
             self.rb1_1.set_active(True)
         elif settings_attention == 'compwater':
@@ -3004,8 +3128,8 @@ class PrefDialog():
         elif settings_attention == 'nothing':
             self.rb1_4.set_active(True)
 
+        # Workspace behavior
         settings_workspace = settings["workspace_behavior"]
-
         if settings_workspace == 'ignore':
             self.rb2_1.set_active(True)
         elif settings_workspace == 'switch':
@@ -3013,8 +3137,8 @@ class PrefDialog():
         elif settings_workspace == 'move':
             self.rb2_3.set_active(True)
 
+        # Popup alignment
         settings_align = settings["popup_align"]
-
         if settings_align == 'left':
             self.rb3_1.set_active(True)
         elif settings_align == 'center':
@@ -3022,9 +3146,10 @@ class PrefDialog():
         elif settings_align == 'right':
             self.rb3_3.set_active(True)
 
+        # Popup delay
         self.delay_spin.set_value(settings['popup_delay'])
 
-
+        # Group button keys
         for cb_name, setting_name in self.gb_labels_and_settings.items():
             value = settings[setting_name]
             combobox = self.gb_combos[cb_name]
@@ -3034,6 +3159,7 @@ class PrefDialog():
                     combobox.set_active(i)
                     break
 
+        # Window button keys
         for cb_name, setting_name in self.wb_labels_and_settings.items():
             value = settings[setting_name]
             combobox = self.wb_combos[cb_name]
@@ -3046,10 +3172,15 @@ class PrefDialog():
         for name in self.gb_doubleclick_checkbutton_names:
             self.gb_doubleclick_checkbutton[name].set_active(settings[name])
 
+        # Opacify
         self.opacify_cb.set_active(settings['opacify'])
-        self.opacify_scale.set_sensitive(settings['opacify'])
+        self.opacify_group_cb.set_active(settings['opacify_group'])
         self.opacify_scale.set_value(settings['opacify_alpha'])
 
+        self.opacify_group_cb.set_sensitive(settings['opacify'])
+        self.opacify_scale.set_sensitive(settings['opacify'])
+
+        # Colors
         for name, setting_base in self.color_labels_and_settings.items():
             color = gtk.gdk.color_parse(settings[setting_base+'_color'])
             self.color_buttons[name].set_color(color)
@@ -3058,6 +3189,7 @@ class PrefDialog():
                 self.color_buttons[name].set_use_alpha(True)
                 self.color_buttons[name].set_alpha(alpha)
 
+        # Themes
         model = self.theme_combo.get_model()
         for i in range(len(self.theme_combo.get_model())):
             if model[i][0].lower() == settings['theme'].lower():
