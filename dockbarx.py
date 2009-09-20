@@ -2092,6 +2092,9 @@ class GroupButton (gobject.GObject):
                 return
         if not ((b_m_x<0 or b_m_x>(b_r.width-1)) or (b_m_y<0 or b_m_y>(b_r.height-1))):
             # Mouse pointer is over the group button.
+            gobject.timeout_add(50, self.hide_list_request)
+            # This timeout add is needed if mouse cursor leaves the
+            # screen following the screen edge.
             return
         self.hide_list()
         return
