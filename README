@@ -18,14 +18,16 @@ DockbarX is in some way an experimental version of dockbar. If you with stable m
 =======
 INSTALL
 =======
+NOTE! IMPORTANT! From dockbarx x.0.21.12 dockbar uses folders /usr/share/dockbarx and ~/.dockbarx instead of /usr/share/dockbar and ~/.dockbar
+
 1. install python-gnome2-desktop and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt)
 $ sudo apt-get install python-gnome2-desktop python-numpy
 2. copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers
 $ sudo cp dockbarx.py /usr/bin
 $ sudo cp GNOME_DockBarXApplet.server /usr/lib/bonobo/servers
 3. copy the content of themes folder to /usr/share/dockbar/themes (for system wide installation, recommended) or ~/.dockbar/themes (Create the folders if necessary)
-$ sudo mkdir -p /usr/share/dockbar/themes
-$ sudo cp  themes/* /usr/share/dockbar/themes
+$ sudo mkdir -p /usr/share/dockbarx/themes
+$ sudo cp  themes/* /usr/share/dockbarx/themes
 4. add DockBarX applet to panel
 
 You can run it in window (meant for debugging purposes, mostly):

@@ -3314,14 +3314,14 @@ class PrefDialog():
             GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting_base+"_alpha", alpha)
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbar/themes and ~/.dockbar/themes
+        # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
         # and returns a dict of the theme names and paths so that
         # a theme can be loaded
         themes = {}
         theme_paths = []
         homeFolder = os.path.expanduser("~")
-        theme_folder = homeFolder + "/.dockbar/themes"
-        dirs = ["/usr/share/dockbar/themes", theme_folder]
+        theme_folder = homeFolder + "/.dockbarx/themes"
+        dirs = ["/usr/share/dockbarx/themes", theme_folder]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):
@@ -3333,7 +3333,7 @@ class PrefDialog():
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            raise Exception('No working themes found in "/usr/share/dockbar/themes" or "~/.dockbar/themes"')
+            raise Exception('No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
         return themes
 
     def reload_dockbar(self, button=None):
@@ -3484,9 +3484,9 @@ class DockBar(gobject.GObject):
         self.on_active_window_changed(self.screen, None)
 
     def ensure_dockbar_folder(self):
-        # Check if ~/.dockbar exist and make it if not.
+        # Check if ~/.dockbarx exist and make it if not.
         homeFolder = os.path.expanduser("~")
-        dockbar_folder = homeFolder + "/.dockbar"
+        dockbar_folder = homeFolder + "/.dockbarx"
         if not os.path.exists(dockbar_folder):
             os.mkdir(dockbar_folder)
         if not os.path.isdir(dockbar_folder):
@@ -3494,12 +3494,12 @@ class DockBar(gobject.GObject):
         return dockbar_folder
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbar/themes and ~/.dockbar/themes
+        # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
         # and returns a dict of the theme names and paths so that
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/dockbar/themes", self.dockbar_folder+"/themes"]
+        dirs = ["/usr/share/dockbarx/themes", self.dockbar_folder+"/themes"]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):
@@ -3511,7 +3511,7 @@ class DockBar(gobject.GObject):
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            raise Exception('No working themes found in "/usr/share/dockbar/themes" or "~/.dockbar/themes"')
+            raise Exception('No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
         return themes
 
     #### GConf
