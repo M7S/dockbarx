@@ -25,7 +25,7 @@ $ sudo apt-get install python-gnome2-desktop python-numpy
 2. copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers
 $ sudo cp dockbarx.py /usr/bin
 $ sudo cp GNOME_DockBarXApplet.server /usr/lib/bonobo/servers
-3. copy the content of themes folder to /usr/share/dockbar/themes (for system wide installation, recommended) or ~/.dockbar/themes (Create the folders if necessary)
+3. copy the content of themes folder to /usr/share/dockbarx/themes (for system wide installation, recommended) or ~/.dockbarx/themes (Create the folders if necessary)
 $ sudo mkdir -p /usr/share/dockbarx/themes
 $ sudo cp  themes/* /usr/share/dockbarx/themes
 4. add DockBarX applet to panel
@@ -113,7 +113,7 @@ Q: What is Opacify and how do I get it to work?
 A: Opacify is a way to find localize a window with dockbar. When opacify is on and you roll over a name in the window list with the mouse, all other windows will become transparent so that you easy can spot the window. To activate opacify you need to go to the appearance tab of the preference dialog and check in opacify checkbox. Opacify requires compiz fusion  and you need to activate the plugin Opacity, Brightness and Saturation in CompizConfig!
 
 Q: How do I install a theme?
-A: If you find a theme on the web that you like, copy the file (should be SOMETHING.tar.gz) to ~/.dockbar/themes or /usr/share/dockbar/themes. You change themes in the appearance tab of preference dialog. You might need to press the reload button before your newly installed theme shows up.
+A: If you find a theme on the web that you like, copy the file (should be SOMETHING.tar.gz) to ~/.dockbarx/themes or /usr/share/dockbarx/themes. You change themes in the appearance tab of preference dialog. You might need to press the reload button before your newly installed theme shows up.
 
 Q: How can I make an theme of my own?
 A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad.
