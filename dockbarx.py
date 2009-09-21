@@ -3334,12 +3334,22 @@ class PrefDialog():
                     if f[-7:] == '.tar.gz':
                         theme_paths.append(dir+"/"+f)
         for theme_path in theme_paths:
-            name = Theme.check(theme_path)
+            try:
+                name = Theme.check(theme_path)
+            except Exception as detail:
+                print "Error loading theme from %s"%theme_path
+                print detail
+                name = None
             if name != None:
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            raise Exception('No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
+            md = gtk.MessageDialog(None,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                'No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
+            md.run()
+            md.destroy()
         return themes
 
     def reload_dockbar(self, button=None):
@@ -3512,12 +3522,24 @@ class DockBar(gobject.GObject):
                     if f[-7:] == '.tar.gz':
                         theme_paths.append(dir+"/"+f)
         for theme_path in theme_paths:
-            name = Theme.check(theme_path)
+            try:
+                name = Theme.check(theme_path)
+            except Exception as detail:
+                print "Error loading theme from %s"%theme_path
+                print detail
+                name = None
             if name != None:
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            raise Exception('No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
+            md = gtk.MessageDialog(None,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                'No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
+            md.run()
+            md.destroy()
+##            raise Exception('No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
+            sys.exit(1)
         return themes
 
     #### GConf
