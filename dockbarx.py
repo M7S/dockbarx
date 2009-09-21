@@ -2768,9 +2768,9 @@ class GroupButton (gobject.GObject):
         # a delay is therefor needed.
         gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list)
 
-    def action_dbpref (self,event):
+    def action_dbpref (self,widget=None, event=None):
         # Preferences dialog
-        dockbar.on_ppm_pref(event)
+        self.dockbar.on_ppm_pref(event)
 
     def action_none(self, widget = None, event = None):
         pass
@@ -2791,6 +2791,7 @@ class GroupButton (gobject.GObject):
                                   ("compiz scale windows", action_compiz_scale_windows),
                                   ("compiz shift windows", action_compiz_shift_windows),
                                   ("compiz scale all", action_compiz_scale_all),
+                                  ("show preference dialog", action_dbpref),
                                   ("no action", action_none)
                                 ))
 
