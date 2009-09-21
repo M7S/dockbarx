@@ -420,7 +420,7 @@ class IconFactory():
         self.type = type
         for command, args in commands.items():
             try:
-                f = getattr(self,"%s_command"%command)
+                f = getattr(self,"command_%s"%command)
             except:
                 raise
             else:
@@ -432,7 +432,46 @@ class IconFactory():
         self.pixbufs[type] = pixbuf
         return pixbuf
 
-    def if_command(self, pixbuf, type, content=None):
+    def double_pixbuf(self, pixbuf, direction = 'h'):
+        w = pixbuf.get_width()
+        h = pixbuf.get_height()
+        # Make a background almost twice as wide or high
+        # as the pixbuf depending on panel orientation.
+        if direction == 'v':
+            h = h * 2 - 2
+        else:
+            w = w * 2 - 2
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        context = cairo.Context(surface)
+        ctx = gtk.gdk.CairoContext(context)
+        # Put arrow pointing to the empty part on it.
+        if direction == 'v':
+            ctx.move_to(2, h / 2 + 2)
+            ctx.line_to(w - 2, h / 2 + 2)
+            ctx.line_to(w / 2, 0.65 * h + 2)
+            ctx.close_path()
+        else:
+            ctx.move_to(w / 2 + 2, 2)
+            ctx.line_to(w / 2 + 2, h - 2)
+            ctx.line_to(0.65 * w, h / 2)
+            ctx.close_path()
+        ctx.set_source_rgb(0, 0, 0)
+        ctx.fill()
+        sio = StringIO()
+        surface.write_to_png(sio)
+        sio.seek(0)
+        loader = gtk.gdk.PixbufLoader()
+        loader.write(sio.getvalue())
+        loader.close()
+        sio.close()
+        background = loader.get_pixbuf()
+        # And put the pixbuf on the left/upper half of it.
+        pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        return background
+
+
+    #### Flow commands
+    def command_if(self, pixbuf, type, content=None):
         # TODO: complete this
 ##        l = []
 ##        splits = ['!', '(', ')', '&', '|']
@@ -455,28 +494,28 @@ class IconFactory():
         if (is_type and not negation) or (not is_type and negation):
             for command,args in content.items():
                 try:
-                    f = getattr(self,"%s_command"%command)
+                    f = getattr(self,"command_%s"%command)
                 except:
                     raise
                 else:
                     pixbuf = f(pixbuf, **args)
         return pixbuf
 
-    def pixmap_from_self_command(self, pixbuf, name, content=None):
+    def command_pixmap_from_self(self, pixbuf, name, content=None):
         if not name:
             print "Theme Error: no name given for pixbuf_from_self"
             raise Exeption
         self.temp[name]=pixbuf.copy()
         for command,args in content.items():
             try:
-                f = getattr(self,"%s_command"%command)
+                f = getattr(self,"command_%s"%command)
             except:
                 raise
             else:
                 self.temp[name] = f(self.temp[name], **args)
         return pixbuf
 
-    def pixmap_command(self, pixbuf, name, content=None, size=None):
+    def command_pixmap(self, pixbuf, name, content=None, size=None):
         if size:
             # TODO: Fix for different height and width
             w = h = self.size + int(size)
@@ -488,50 +527,16 @@ class IconFactory():
         self.temp[name]=empty
         for command,args in content.items():
             try:
-                f = getattr(self,"%s_command"%command)
+                f = getattr(self,"command_%s"%command)
             except:
                 raise
             else:
                 self.temp[name] = f(self.temp[name], **args)
         return pixbuf
 
-    def fill_command(self, pixbuf, color, opacity=100):
-        if color == "active_color":
-            color = settings['active_glow_color']
-        if color[0]=="#":
-            color = color[1:]
-        try:
-            f = int(color,16)<<8
-        except ValueError:
-            print "Theme error: the color attribute for fill should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
-            raise
-        if opacity == "active_opacity":
-            opacity = settings['active_glow_alpha']
-        else:
-            opacity = int(int(opacity)*2.55 + 0.4)
-        f += opacity
-        pixbuf.fill(f)
-        return pixbuf
 
-    def get_pixmap_command(self, pixbuf, name, size=0):
-        if pixbuf == None:
-            if self.dockbar.orient == 'v':
-                width = int(self.size * ar)
-                height = self.size
-            else:
-                width = self.size
-                height = int(self.size * ar)
-        else:
-            width = self.pixbuf.get_width()
-            height = self.pixbuf.get_height()
-        if self.theme.has_pixbuf(name):
-            pixbuf = self.theme.get_pixbuf(name)
-            pixbuf = temp.scale_simple(width, height, gtk.gdk.INTERP_BILINEAR)
-        else:
-            print "theme error: pixmap %s not found"%name
-        return pixbuf
-
-    def get_icon_command(self,pixbuf=None, size=0):
+    #### Get icon
+    def command_get_icon(self,pixbuf=None, size=0):
         size = int(size)
         if size < 0:
             size = self.size + size
@@ -650,7 +655,45 @@ class IconFactory():
                         return icon
         return None
 
-    def combine_command(self, pixbuf, pix1, pix2, degrees=90):
+
+    #### Other commands
+    def command_get_pixmap(self, pixbuf, name, size=0):
+        if pixbuf == None:
+            if self.dockbar.orient == 'v':
+                width = int(self.size * ar)
+                height = self.size
+            else:
+                width = self.size
+                height = int(self.size * ar)
+        else:
+            width = self.pixbuf.get_width()
+            height = self.pixbuf.get_height()
+        if self.theme.has_pixbuf(name):
+            pixbuf = self.theme.get_pixbuf(name)
+            pixbuf = temp.scale_simple(width, height, gtk.gdk.INTERP_BILINEAR)
+        else:
+            print "theme error: pixmap %s not found"%name
+        return pixbuf
+
+    def command_fill(self, pixbuf, color, opacity=100):
+        if color == "active_color":
+            color = settings['active_glow_color']
+        if color[0]=="#":
+            color = color[1:]
+        try:
+            f = int(color,16)<<8
+        except ValueError:
+            print "Theme error: the color attribute for fill should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
+            raise
+        if opacity == "active_opacity":
+            opacity = settings['active_glow_alpha']
+        else:
+            opacity = int(int(opacity)*2.55 + 0.4)
+        f += opacity
+        pixbuf.fill(f)
+        return pixbuf
+
+    def command_combine(self, pixbuf, pix1, pix2, degrees=90):
         # Combines left half of pixbuf with right half of pixbuf2.
         # The transition between the two halves are soft.
         if pix1=="self":
@@ -697,7 +740,7 @@ class IconFactory():
         sio.close()
         return loader.get_pixbuf()
 
-    def transp_sat_command(self, pixbuf, opacity, saturation):
+    def command_transp_sat(self, pixbuf, opacity, saturation):
         # Makes the icon desaturized and/or transparent.
         opacity = min(255, int(int(opacity)*2.55 + 0.5))
         saturation = min(1.0, float(saturation)/100)
@@ -707,7 +750,7 @@ class IconFactory():
         icon_transp.saturate_and_pixelate(icon_transp, saturation, False)
         return icon_transp
 
-    def composite_command(self, pixbuf, bg, fg, opacity="100"):
+    def command_composite(self, pixbuf, bg, fg, opacity="100"):
         if fg=="self":
             fg = pixbuf
         elif fg in self.temp:
@@ -732,7 +775,7 @@ class IconFactory():
         fg.composite(bg, 0, 0, w, h, 0, 0, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, opacity)
         return bg
 
-    def shrink_command(self, pixbuf, percent=0, pixels=0):
+    def command_shrink(self, pixbuf, percent=0, pixels=0):
         background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         background.fill(0x00000000)
         size = pixbuf.get_width()
@@ -742,7 +785,7 @@ class IconFactory():
         pixbuf.composite(background, offset, offset, small_size, small_size, offset ,offset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
-    def correct_size_command(self, pixbuf):
+    def command_correct_size(self, pixbuf):
         if self.dockbar.orient == 'v':
             width = self.size
             height = int(self.size * self.ar)
@@ -759,7 +802,7 @@ class IconFactory():
                          woffset ,hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
-    def glow_command(self, pixbuf, color, opacity):
+    def command_glow(self, pixbuf, color, opacity):
         # Adds a glow around the parts of the pixbuf that isn't completely
         # transparent.
 
@@ -782,7 +825,7 @@ class IconFactory():
         # Thickness (pixels)
         tk = 2
 
-        colorpb = self.colorize_pixbuf(pixbuf, r, g, b)
+        colorpb = self.command_colorize_pixbuf(pixbuf, r, g, b)
         bg = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         bg.fill(0x00000000)
         glow = bg.copy()
@@ -797,55 +840,7 @@ class IconFactory():
         pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
 
-    def bright_command(self, pixbuf, strenght):
-        # Makes the pixbuf shift lighter.
-        strenght = int(int(strenght) * 2.55 + 0.4)
-        pixbuf = pixbuf.copy()
-        for row in pixbuf.get_pixels_array():
-            for pix in row:
-                pix[0] = min(255, int(pix[0]) + strenght)
-                pix[1] = min(255, int(pix[1]) + strenght)
-                pix[2] = min(255, int(pix[2]) + strenght)
-        return pixbuf
-
-    def double_pixbuf(self, pixbuf, direction = 'h'):
-        w = pixbuf.get_width()
-        h = pixbuf.get_height()
-        # Make a background almost twice as wide or high
-        # as the pixbuf depending on panel orientation.
-        if direction == 'v':
-            h = h * 2 - 2
-        else:
-            w = w * 2 - 2
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        context = cairo.Context(surface)
-        ctx = gtk.gdk.CairoContext(context)
-        # Put arrow pointing to the empty part on it.
-        if direction == 'v':
-            ctx.move_to(2, h / 2 + 2)
-            ctx.line_to(w - 2, h / 2 + 2)
-            ctx.line_to(w / 2, 0.65 * h + 2)
-            ctx.close_path()
-        else:
-            ctx.move_to(w / 2 + 2, 2)
-            ctx.line_to(w / 2 + 2, h - 2)
-            ctx.line_to(0.65 * w, h / 2)
-            ctx.close_path()
-        ctx.set_source_rgb(0, 0, 0)
-        ctx.fill()
-        sio = StringIO()
-        surface.write_to_png(sio)
-        sio.seek(0)
-        loader = gtk.gdk.PixbufLoader()
-        loader.write(sio.getvalue())
-        loader.close()
-        sio.close()
-        background = loader.get_pixbuf()
-        # And put the pixbuf on the left/upper half of it.
-        pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
-
-    def colorize_pixbuf(self, pixbuf, r, g, b):
+    def command_colorize_pixbuf(self, pixbuf, r, g, b):
         # Changes the color of all pixels to r g b.
         # The pixels alpha values are unchanged.
         pixbuf = pixbuf.copy()
@@ -856,7 +851,18 @@ class IconFactory():
                 pix[2] = b
         return pixbuf
 
-    def alpha_mask_command(self, pixbuf, mask):
+    def command_bright(self, pixbuf, strenght):
+        # Makes the pixbuf shift lighter.
+        strenght = int(int(strenght) * 2.55 + 0.4)
+        pixbuf = pixbuf.copy()
+        for row in pixbuf.get_pixels_array():
+            for pix in row:
+                pix[0] = min(255, int(pix[0]) + strenght)
+                pix[1] = min(255, int(pix[1]) + strenght)
+                pix[2] = min(255, int(pix[2]) + strenght)
+        return pixbuf
+
+    def command_alpha_mask(self, pixbuf, mask):
         if mask in self.temp:
             mask = self.temp[mask]
         elif self.theme.has_pixbuf(mask):
