@@ -17,8 +17,7 @@ Bug fixes:
 - Some other cases where the popup window didn't close when it should are now fixed, as well.
 - Untested bug fix for opacify for ubuntu 8.04 (hardy) and other systems with older versions of compiz fusion.
 - Bug #424629: Dockbarx does no longer crash if an invalid theme 
-is found in ~/.dockbarx/themes or /usr/share/dockbarx/themes. A dialog mes
-sage is shown if no working themes are found.
+is found in ~/.dockbarx/themes or /usr/share/dockbarx/themes. A dialog message is shown if no working themes are found.
 
 ... and some code cleanup.
 
