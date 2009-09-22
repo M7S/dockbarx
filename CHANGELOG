@@ -6,8 +6,8 @@ IMPORTANT:
  files instead of /usr/share/dockbar and ~/.dockbar (Bug #429043).
 
 End users features:
-- Compiz Thumnails/preview are ported over from vanilla dockbar and is modified to work with delays.
-- Opacify can now be used at group buttons. (Settings in perfernce dialog.)
+- Compiz Thumbnails/preview are ported over from vanilla dockbar and is modified to work with delays.
+- Opacify can now be used at group buttons. (Settings in preference dialog.)
 - Group button actions 'compiz scale windows' and 'compiz switch windows' now includes the windows from all desktops. Same goes for 'select or compiz scale'.
 - An option for no attention effect added. (Patch by Vermind)
 - Group button action for opening preference dialog is added, since there were no way for AWN users to access it.
@@ -16,11 +16,11 @@ Bug fixes:
 - One of the most long lived and most irritating bugs are now gone: Popup windows now closes even when the mouse is leaving it over one of the rounded corners.
 - Some other cases where the popup window didn't close when it should are now fixed, as well.
 - Untested bug fix for opacify for ubuntu 8.04 (hardy) and other systems with older versions of compiz fusion.
-- Bug #424629: Dockbarx does no longer chrash if an invalid theme 
+- Bug #424629: Dockbarx does no longer crash if an invalid theme 
 is found in ~/.dockbarx/themes or /usr/share/dockbarx/themes. A dialog mes
 sage is shown if no working themes are found.
 
-... and some bit of code cleanup.
+... and some code cleanup.
 
 
 x.0.21.11

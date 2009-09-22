@@ -109,7 +109,7 @@ A2: You can also find the resolution class name by: 1) launching the program you
 Q: How do I get to preference dialog?
 A: Right click the handle (the dots or lines to the left of dockbarx) to get a menu where you can choose the preference option. Viola! Sometimes though, you have to double right click the handle to get the menu. Don't ask me why - just do it.
 
-Q: None of DockbarX's compiz stuff like "compiz scall" work. Why?
+Q: None of DockbarX's compiz stuff like "compiz scale" work. Why?
 A: Make sure you enable the GLib extension in Compiz settings manager and that the compiz plugin dockbarx uses is activated as well. (e.g. for group button action "compiz scale" to work you need the scale plugin activated)
 
 Q: What is Opacify and how do I get it to work?
