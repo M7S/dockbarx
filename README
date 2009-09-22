@@ -18,7 +18,7 @@ DockbarX is in some way an experimental version of dockbar. If you with stable m
 =======
 INSTALL
 =======
-NOTE! IMPORTANT! From dockbarx x.0.21.12 dockbar uses folders /usr/share/dockbarx and ~/.dockbarx instead of /usr/share/dockbar and ~/.dockbar
+NOTE! IMPORTANT! From dockbarx x.0.23.1 dockbar uses folders /usr/share/dockbarx and ~/.dockbarx instead of /usr/share/dockbar and ~/.dockbar
 
 1. install python-gnome2-desktop and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt)
 $ sudo apt-get install python-gnome2-desktop python-numpy
@@ -94,7 +94,7 @@ Ignore: Acts as if windows on other workspaces and viewport doesn't exist.
 
 Switch: Behaves as ignore if there are windows belonging to the group on the current workspace/viewport. If there are no windows belonging to the group on the current workspace/viewport it switches to the workspace/viewport with most windows that belong to the group. This is the default behavior.
 
-Move: Moves windows from other workspaces/viewports to current workspace/viewport. This is the behavior vanilla Dockbar 0.21 uses.
+Move: Moves windows from other workspaces/viewports to current workspace/viewport. This is the behavior vanilla Dockbar uses.
 
 If you select a window in the popup list you will always switch to the workspace/viewport of the window. This is not configurable (vanilla Dockbar behaves the same way).
 
@@ -108,6 +108,9 @@ A2: You can also find the resolution class name by: 1) launching the program you
 
 Q: How do I get to preference dialog?
 A: Right click the handle (the dots or lines to the left of dockbarx) to get a menu where you can choose the preference option. Viola! Sometimes though, you have to double right click the handle to get the menu. Don't ask me why - just do it.
+
+Q: None of DockbarX's compiz stuff like "compiz scall" work. Why?
+A: Make sure you enable the GLib extension in Compiz settings manager and that the compiz plugin dockbarx uses is activated as well. (e.g. for group button action "compiz scale" to work you need the scale plugin activated)
 
 Q: What is Opacify and how do I get it to work?
 A: Opacify is a way to find localize a window with dockbar. When opacify is on and you roll over a name in the window list with the mouse, all other windows will become transparent so that you easy can spot the window. To activate opacify you need to go to the appearance tab of the preference dialog and check in opacify checkbox. Opacify requires compiz fusion  and you need to activate the plugin Opacity, Brightness and Saturation in CompizConfig!
