@@ -24,7 +24,6 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
-import glib
 import gobject
 import sys
 import wnck
@@ -1461,13 +1460,13 @@ class WindowButton():
             self.window_button.drag_highlight()
             self.button_drag_entered = True
             self.dnd_select_window = \
-                glib.timeout_add(600,self.action_select_window)
+                gobject.timeout_add(600,self.action_select_window)
         drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, time)
         return True
 
     def on_button_drag_leave(self, widget, drag_context, time):
         self.button_drag_entered = False
-        glib.source_remove(self.dnd_select_window)
+        gobject.source_remove(self.dnd_select_window)
         self.window_button.drag_unhighlight()
         self.groupbutton.hide_list_request()
 
@@ -2235,7 +2234,7 @@ class GroupButton (gobject.GObject):
     def on_button_drag_motion(self, widget, drag_context, x, y, time):
         if not self.button_drag_entered:
             self.button_drag_entered = True
-            self.dnd_show_popup = glib.timeout_add(settings['popup_delay'], self.show_list)
+            self.dnd_show_popup = gobject.timeout_add(settings['popup_delay'], self.show_list)
             for target in ('text/uri-list', 'text/groupbutton_name'):
                 if target in drag_context.targets and \
                    not self.is_current_drag_source:
@@ -2254,7 +2253,7 @@ class GroupButton (gobject.GObject):
         self.button_drag_entered = False
         self.update_state()
         self.hide_list_request()
-        glib.source_remove(self.dnd_show_popup)
+        gobject.source_remove(self.dnd_show_popup)
         if self.is_current_drag_source:
             # If drag leave signal is given because of a drop,
             # a small delay is needed since
@@ -3337,7 +3336,7 @@ class PrefDialog():
         for theme_path in theme_paths:
             try:
                 name = Theme.check(theme_path)
-            except Exception as detail:
+            except Exception, detail:
                 print "Error loading theme from %s"%theme_path
                 print detail
                 name = None
@@ -3525,7 +3524,7 @@ class DockBar(gobject.GObject):
         for theme_path in theme_paths:
             try:
                 name = Theme.check(theme_path)
-            except Exception as detail:
+            except Exception, detail:
                 print "Error loading theme from %s"%theme_path
                 print detail
                 name = None
