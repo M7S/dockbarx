@@ -343,6 +343,9 @@ class Theme():
     def get_gap(self):
         return int(self.theme['button_pixmap'].get('gap', 0))
 
+    def get_windows_cnt(self):
+        return int(self.theme['button_pixmap'].get('windows_cnt', 1))
+
     def get_aspect_ratio(self):
         ar = self.theme['button_pixmap'].get('aspect_ratio', "1")
         l = ar.split('/',1)
@@ -355,18 +358,19 @@ class Theme():
 class IconFactory():
     """IconFactory takes care of finding the right icon pixbuf for a program and prepares the pixbuf."""
     icon_theme = gtk.icon_theme_get_default()
+    # Constants
     # Icon types
-    SOME_MINIMIZED = 1<<1
-    ALL_MINIMIZED = 1<<2
-    LAUNCHER = 1<<3
+    SOME_MINIMIZED = 1<<4
+    ALL_MINIMIZED = 1<<5
+    LAUNCHER = 1<<6
     # Icon effects
-    MOUSE_OVER = 1<<4
-    NEEDS_ATTENTION = 1<<5
-    BLINK  = 1<<6
+    MOUSE_OVER = 1<<7
+    NEEDS_ATTENTION = 1<<8
+    BLINK  = 1<<9
     # ACTIVE_WINDOW
-    ACTIVE = 1<<7
+    ACTIVE = 1<<10
     # Double width/height icons for drag and drop situations.
-    DRAG_DROPP = 1<<8
+    DRAG_DROPP = 1<<11
     TYPE_DICT = {'some_minimized':SOME_MINIMIZED,
                  'all_minimized':ALL_MINIMIZED,
                  'launcher':LAUNCHER,
@@ -384,6 +388,8 @@ class IconFactory():
 
         self.pixbuf = None
         self.pixbufs = None
+
+        self.max_win_nr = self.theme.get_windows_cnt()
 
     def __del__(self):
         self.apps_by_id = None
@@ -410,6 +416,10 @@ class IconFactory():
     def pixbuf_update(self, type = 0):
         # Checks if the requested pixbuf is already drawn and returns it if it is.
         # Othervice the pixbuf is drawn, saved and returned.
+        self.win_nr = type & 15
+        if self.win_nr > self.max_win_nr:
+            type = (type - self.win_nr) | self.max_win_nr
+            self.win_nr = self.max_win_nr
         if self.pixbufs.has_key(type):
             return self.pixbufs[type]
         self.temp = {}
@@ -470,7 +480,7 @@ class IconFactory():
 
 
     #### Flow commands
-    def command_if(self, pixbuf, type, content=None):
+    def command_if(self, pixbuf, type=None, windows=None, content=None):
         # TODO: complete this
 ##        l = []
 ##        splits = ['!', '(', ')', '&', '|']
@@ -483,14 +493,51 @@ class IconFactory():
 ##                l.append(c)
 ##            else:
 ##                l[-1] += c
+        # Check if the type is right
+        if type != None:
+            negation = False
+            if type[0] == "!" :
+                type = type[1:]
+                negation = True
+            is_type = (type in self.TYPE_DICT \
+                      and self.type & self.TYPE_DICT[type])
+            if (is_type and not negation) or (not is_type and negation):
+                type = True
+            else:
+                type = False
+        else:
+            type = True
 
-        negation = False
-        if type and type[0] == "!" :
-            type = type[1:]
-            negation = True
-        is_type = (type in self.TYPE_DICT \
-        and self.type & self.TYPE_DICT[type])
-        if (is_type and not negation) or (not is_type and negation):
+        #Check if the numbers of windows is right
+        if windows != None:
+            try:
+                for sign in ("!", "<", ">"):
+                    if sign in windows:
+                        win_nr = int(windows[1:])
+                        break
+                else:
+                    win_nr = int(windows)
+            except ValueError:
+                print "Theme Error: The windows attribute of " + \
+                      "an <if> statement must must be a " + \
+                      "number \"3\" or a sign (>, < or !) followed" + \
+                      " by a number, eg. \">2\"" + \
+                      "\""+windows+"\" is incorrect!"
+                return pixbuf
+            if windows[0] == "!" and self.win_nr != win_nr:
+                windows = True
+            elif windows[0] == "<" and self.win_nr < win_nr:
+                windows = True
+            elif windows[0] == ">" and self.win_nr > win_nr:
+                windows = True
+            elif self.win_nr == win_nr:
+                windows = True
+            else:
+                windows = False
+        else:
+            windows = True
+
+        if type and windows:
             for command,args in content.items():
                 try:
                     f = getattr(self,"command_%s"%command)
@@ -1737,10 +1784,11 @@ class GroupButton (gobject.GObject):
         self.attention_effect_running = False
         self.nextlist = None
         self.nextlist_time = None
+        self.mouse_over = False
+        self.opacified = False
         # Compiz sends out false mouse enter messages after button is pressed.
         # This works around that bug.
         self.button_pressed = False
-        self.opacified = False
 
         self.screen = wnck.screen_get_default()
         self.root_xid = self.dockbar.root_xid
@@ -1856,39 +1904,46 @@ class GroupButton (gobject.GObject):
     def update_state(self):
         # Checks button state and set the icon accordingly.
         if self.has_active_window:
-            self.icon_active = IconFactory.ACTIVE
+            icon_active = IconFactory.ACTIVE
         else:
-            self.icon_active = 0
+            icon_active = 0
 
         if self.launcher and not self.windows:
-            self.icon_mode = IconFactory.LAUNCHER
+            icon_mode = IconFactory.LAUNCHER
         elif len(self.windows) - self.minimized_windows_count == 0:
-            self.icon_mode = IconFactory.ALL_MINIMIZED
+            icon_mode = IconFactory.ALL_MINIMIZED
         elif (self.minimized_windows_count - self.locked_windows_count) > 0:
-            self.icon_mode = IconFactory.SOME_MINIMIZED
+            icon_mode = IconFactory.SOME_MINIMIZED
         else:
-            self.icon_mode = 0
+            icon_mode = 0
 
         if self.needs_attention:
             if settings["groupbutton_attention_notification_type"] == 'red':
-                self.icon_effect = IconFactory.NEEDS_ATTENTION
+                icon_effect = IconFactory.NEEDS_ATTENTION
             elif settings["groupbutton_attention_notification_type"] == 'nothing':
                 # Do nothing
-                self.icon_effect = 0
+                icon_effect = 0
             else:
                 self.needs_attention_anim_trigger = False
                 if not self.attention_effect_running:
                     gobject.timeout_add(700, self.attention_effect)
-                self.icon_effect = 0
+                icon_effect = 0
         else:
-            self.icon_effect = 0
+            icon_effect = 0
+
+        if self.mouse_over:
+            mouse_over = IconFactory.MOUSE_OVER
+        else:
+            mouse_over = 0
 
         if self.dnd_highlight:
-            self.dd_effect = IconFactory.DRAG_DROPP
+            dd_effect = IconFactory.DRAG_DROPP
         else:
-            self.dd_effect = 0
+            dd_effect = 0
 
-        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active | self.dd_effect)
+        win_nr = min(len(self.windows), 15)
+        self.state_type = icon_mode | icon_effect | icon_active | mouse_over| dd_effect | win_nr
+        pixbuf = self.icon_factory.pixbuf_update(self.state_type)
         self.image.set_from_pixbuf(pixbuf)
         self.image.show()
         pixbuf = None
@@ -1915,11 +1970,11 @@ class GroupButton (gobject.GObject):
             elif settings["groupbutton_attention_notification_type"] == 'blink':
                 if not self.needs_attention_anim_trigger:
                     self.needs_attention_anim_trigger = True
-                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | IconFactory.BLINK | self.icon_active | self.dd_effect)
+                    pixbuf = self.icon_factory.pixbuf_update(IconFactory.BLINK | self.state_type)
                     self.image.set_from_pixbuf(pixbuf)
                 else:
                     self.needs_attention_anim_trigger = False
-                    pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_active | self.dd_effect)
+                    pixbuf = self.icon_factory.pixbuf_update(self.state_type)
                     self.image.set_from_pixbuf(pixbuf)
                 pixbuf = None
             return True
@@ -2298,8 +2353,8 @@ class GroupButton (gobject.GObject):
         # In compiz there is a enter and a leave event before a button_press event.
         if self.button_pressed :
             return
-        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | IconFactory.MOUSE_OVER | self.icon_active | self.dd_effect)
-        self.image.set_from_pixbuf(pixbuf)
+        self.mouse_over = True
+        self.update_state()
         if settings["popup_delay"]>0:
             self.emit('set-icongeo-delay')
         if not self.dockbar.right_menu_showing and not self.dockbar.dragging:
@@ -2312,8 +2367,8 @@ class GroupButton (gobject.GObject):
     def on_button_mouse_leave (self, widget, event):
         # In compiz there is a enter and a leave event before a button_press event.
         self.button_pressed = False
-        pixbuf = self.icon_factory.pixbuf_update(self.icon_mode | self.icon_effect | self.icon_active | self.dd_effect)
-        self.image.set_from_pixbuf(pixbuf)
+        self.mouse_over = False
+        self.update_state()
         self.hide_list_request()
         if self.popup.window == None:
             # self.hide_list takes care of emitting 'set-icongeo-grp' normally
