@@ -1,13 +1,13 @@
 This document describes how to write themes for dockbarx.
 
-A dockbar theme resides in a tar.gz file. The extention is important since dockbarx finds it's themes by checking ~/.dockbar/themes and /usr/share/dockbar/themes for file with the extension tar.gz. 
+A dockbarx theme resides in a tar.gz file. The extension is important since dockbarx finds it's themes by checking ~/.dockbarx/themes and /usr/share/dockbarx/themes for file with the extension tar.gz. 
 
-The .tar.gz file should consists of a config file, which informs dockbarx how the theme should look, and (optionally) a folder "/pixmap" consiting of the images (pixmaps) that the theme uses.
+The .tar.gz file should consists of a config file, which informs dockbarx how the theme should look, and (optionally) a folder "/pixmap" consisting of the images (pixmaps) that the theme uses.
 
 The config file
 ===============
 
-The config file should be written in xml-form. That means that every element must have a beginning and a end, eg. <example></example> or have an slash at the end, eg. <example />. Attribute values should always be in quotation even numbers, eg. <example question="The meaning of life" answer="42">.
+The config file should be written in XML-form. That means that every element must have a beginning and a end, eg. <example></example> or have an slash at the end, eg. <example />. Attribute values should always be in quotation even numbers, eg. <example question="The meaning of life" answer="42">.
 
 This is the basic structure of the file:
 
@@ -18,7 +18,7 @@ This is the basic structure of the file:
 </button_pixmap>
 </theme>
 
-Nothing should be written outside of <theme></theme>. The name attribute is used in dockbarx to recognise the theme and has to be uniqe. You can't have two themes in dockbarx with the same name.
+Nothing should be written outside of <theme></theme>. The name attribute is used in dockbarx to recognize the theme and has to be unique. You can't have two themes in dockbarx with the same name.
 
 Between the <pixmaps></pixmaps> all the pixmaps used in the theme should be mentioned like this:
 
@@ -26,11 +26,16 @@ Between the <pixmaps></pixmaps> all the pixmaps used in the theme should be ment
 	<pixmap_from_file name="launcher_button" file="launcher_icon.png" />
 </pixmaps>
 
-<pixmap_from_file> is the command to use for registering the pixmaps that are packed in the theme. The name attribute is what you should use later when refering to the pixmap and the file attribute points to the file that should be loaded. In the example above the file launcher_icon.png in folder pixmaps in the theme (.tar.gz) file should be loaded. Don't forget the slash (/) in the end of the command!
+<pixmap_from_file> is the command to use for registering the pixmaps that are packed in the theme. The name attribute is what you should use later when referring to the pixmap and the file attribute points to the file that should be loaded. In the example above the file launcher_icon.png in folder pixmaps in the theme (.tar.gz) file should be loaded. Don't forget the slash (/) in the end of the command!
 
 
-<button_pixmap gap="GAP"></button_pixmap>
-Between <button_pixmap> and </button_pixmap> the instructions for the group button design should be put. The gap attribute sets the gap between the buttons. Things between <button_pixmap> and </button_pixmap> is read like a programming language, top-to-bottom. Here is an example from the default theme:
+<button_pixmap [gap="0"] [aspect_ratio="1"] [windows_cnt="1"]></button_pixmap>
+Between <button_pixmap> and </button_pixmap> the instructions for the group button design should be put. 
+The gap attribute sets the gap between the buttons. Default gap is "0".
+The aspect_ratio attribute sets the aspect ratio for the buttons. It should either be a fraction "4/3" or a float "1.33". Default aspect ratio is "1". 
+The windows_cnt attribute has to be used if the theme should be able to give visual feedback on the numbers of open windows. If windows_cnt is set to "3", the theme engine will get information if there are one, two, or three windows of an program is open. If four or more windows are open, the theme engine will still believe that three windows are open. This attribute exists to save memory. Don't set windows_cnt higher than you need. For example, if you intend to use <if windows="1"></if> and <if windows="2:"> in your theme, then set windows_cnt="2". (More information on the <if></if> block can be found below.) Default windows_cnt is "1", which only should be used if you don't intend to have any visual feedback on the numbers of windows.
+
+Things between <button_pixmap> and </button_pixmap> is read like a programming language, top-to-bottom. Here is an example from the default theme:
 
 EXAMPLE
 <button_pixmap gap="0">
@@ -39,7 +44,7 @@ EXAMPLE
 		<transp_sat opacity="74" saturation="14" />
 	</if>
 	<if type="mouse_over">
-		<bright strenght="13" />
+		<bright strength="13" />
 	</if>
 	<if type="launcher">
 		<shrink percent="20" />
@@ -64,12 +69,13 @@ EXAMPLE
 </button_pixmap>
 
 SIZE ZERO
-Before we look at the different commands used here, let's talk a bit about sizes. Dockbarx needs pixmaps of an certain size (or more exactly, a certain height when used in horizontal panels and a certain width when used in vertical) to work. In the config file this size is called size zero. When working on pixmaps it's not always convenient to use that size. You can specify a smaller size in get_icon (see below) by using a negative number. All sizes in the config file are relative. It's up to you to remember how far under size zero you are. An button_pixmap should always be of size zero when it's done - otherwice dockbarx tries to correct the size by adding transparent borders around the pixmap or by shrinking it. I hope this makes sense to you, if it doen't, just ignore it and simply use trial and error. ;)
+Before we look at the different commands used here, let's talk a bit about sizes. Dockbarx needs pixmaps of an certain size (or more exactly, a certain height when used in horizontal panels and a certain width when used in vertical) to work. In the config file this size is called size zero. When working on pixmaps it's not always convenient to use that size. You can specify a smaller size in get_icon (see below) by using a negative number. All sizes in the config file are relative. It's up to you to remember how far under size zero you are. An button_pixmap should always be of size zero when it's done - otherwise dockbarx tries to correct the size by adding transparent borders around the pixmap or by shrinking it. I hope this makes sense to you, if it doesn't, just ignore it and simply use trial and error. ;)
 
 BUTTON_PIXMAP COMMANDS
-<get_icon [size="-PIXELS"] /> is the command loads the icon for the program that the group button is for, eg. the firefox icon for firefox. The optional size attribute tells which size the icon should be. Size zero means that the icon is as big as the group button. A negative number means that the icon is as many pixels smaller as the number. In the example code above the icon size is two pixels smaller than the groupbutton size. Don't forget the slash (/) in the end of the command!
+<get_icon [size="0"] /> is the command loads the icon for the program that the group button is for, eg. the Firefox icon for Firefox. The optional size attribute tells which size the icon should be. Size zero means that the icon is as big as the group button. A negative number means that the icon is as many pixels smaller as the number. size should never be a positive number! In the example code above the icon size is two pixels smaller than the group button size. Don't forget the slash (/) in the end of the command!
 
-<if type="TYPE"></if> is the command for conditional code. The type argument can be one of the following:
+<if [type="TYPE"] [windows="WINDOWS"]></if> is the command for conditional code. If the type and/or the number of windows argument is/are satisfied, the code between <if> and </if> will be executed.
+The type argument can be one of the following:
 	"all_minimized"
 	Code within <if type="all_minimized"></if> blocks will be read if the icon 
 	that is drawn is for a program with all windows minimized (including programs
@@ -90,34 +96,39 @@ BUTTON_PIXMAP COMMANDS
 
 	"active"
 	Code within <if type="active"></if> blocks will be read if the icon 
-	that is drawn is for a program that has the active (fokused) window.
+	that is drawn is for a program that has the active (focused) window.
 
 	"needs_attention"
 	Code within <if type="needs_attention"></if> blocks will be read if the icon 
 	that is drawn is for a program that has a window that needs attention.
 
 
+The windows argument tells the number of windows that the program should have for the code to be executed. It can either be just a number, e.g. <if windows="3"></if>. In this case the code will be executed only if the program has exactly three windows. You can also have code executed for a range of windows. Eg. if you want code executed when two to four windows are open, the command looks like this: <if windows="2:4"></if>. If you want code that are executed for two or more windows just leave out the later number (<if windows="2:"></if>) or the first number if you want code for two or less windows (<if windows=":2"></if>. You can also use a "!" before a number or range, which means "anything but", eg. "!2" means the code will be executed if the numbers of windows is anything but 2 and "!3:4" means the code will be executed if the numbers of windows are less than three or more than 4. Note! Remember to set the windows_cnt attribute of <button_pixmap> high enough. If you have a <if windows="3:"></if> and windows_cnt="2", the code within that block will never be executed, since three windows will be reported as being only two windows when windows_cnt is "2". In this case you need to set the windows_cnt to "3" or more.
+
 <pixmap name="NAME"></pixmap> 
 Sometimes you want to make a new pixmap to use for compositions or combinations. You can use the <pixmap name="NAME"></pixmap> for making a new empty pixmap. The name attribute sets the name for your pixmap so that you can refer to it when you want to use it later. The size of the new pixmap is the same as them pixmap you currently are working on.
 
-<fill color="COLOR" [opacity="OPACITY"] /> fills the entire pixmap with a color. The color should be a # and a six-digit hex number eg. "#FFFFFF" for white. The opacity should be a number between "0" and "100".
+<fill color="COLOR" [opacity="100"] /> fills the entire pixmap with a color. The color should be a # and a six-digit hex number eg. "#FFFFFF" for white. The opacity should be a number between "0" and "100" (default is "100").
 
-<pixmap_from_self name="NAME"></pixmap_from_self> is the same as <pixmap></pixmap> except that pixmap_from_self makes a copy of the pixmap that you are already making (usually <button_pixmap>) instead of making an empty pixmap. In the exemple above, pixmap_from_self is used to make a slightly transparent and desaturated copy of the current pixmap, that later will be combined with the original icon to make the half greyed out icon that is used for when some windows are minimized.
+<pixmap_from_self name="NAME"></pixmap_from_self> is the same as <pixmap></pixmap> except that pixmap_from_self makes a copy of the pixmap that you are already making (usually <button_pixmap>) instead of making an empty pixmap. In the example above, pixmap_from_self is used to make a slightly transparent and desaturated copy of the current pixmap, that later will be combined with the original icon to make the half greyed out icon that is used for when some windows are minimized.
 
-<bright strenght="STRENGHT" /> is pretty self-explanatory. Brightens the pixmap. Strenght goes from 0 to 100.
+<bright strength="STRENGTH" /> is pretty self-explanatory. Brightens the pixmap. Strength goes from 0 to 100.
 
-<shrink [percent="PERCENT"] [pixels="PIXELS"]> shrinks the pixmap as many percent and/or pixels as are given.
+<shrink [percent="0"] [pixels="0"] /> shrinks the pixmap as many percent and/or pixels as are given.
 
-<transp_sat [opacity="OPACITY"] [saturation="SATURATION"] /> sets transparency and/or saturation for the pixmap. Opacity="100" means that no transparency is added while opacity="0" means a fully transparent pixmap. Likewice, saturation="100" means that no desaturation is taking place while saturation="0" gives a fully desaturated pixmap.
+<transp_sat [opacity="100"] [saturation="100"] /> sets transparency and/or saturation for the pixmap. Opacity="100" means that no transparency is added while opacity="0" means a fully transparent pixmap. Likewise, saturation="100" means that no desaturation is taking place while saturation="0" gives a fully desaturated pixmap.
 
-<glow color="COLOR" opacity="OPACITY" /> adds a glow around the pixmap. The color attribute should be a six-digit hex (eg. "#FFFFFF") or it could be a dockbarx color name (for now only "active_color" is usable). The opacity attribute goes from 0 to 100, but can also be a dockbarx opacity name (for now the only one is active_opacity).
+<glow color="COLOR" [opacity="100"] /> adds a glow around the pixmap. The color attribute should be a six-digit hex (eg. "#FFFFFF") or it could be a dockbarx color name (for now only "active_color" is usable). The opacity attribute goes from 0 to 100, but can also be a dockbarx opacity name (for now the only one is active_opacity).
 
 <correct_size /> adds transparent borders around an pixmap that is smaller than size zero. In other words, the pixmap will be of size zero afterwards.
 
-<composite bg="PIXMAP1" fg="PIXMAP2" opacity="100"/> puts the foreground pixmap (fg) on top of background pixmap (bg). A pixmap can either be a previously made pixmap (made with <pixmap></pixmap> or <pixmap_from_self></pixmap_from_self>), one of the previously loaded pixmaps (<pixmap_from_file />) or the current pixmap (simply refered to as "self"). Opacity sets the opacity of the foreground pixmap. Note: The background pixmap must NOT be smaller in size than the foreground pixmap!
+<composite bg="PIXMAP1" fg="PIXMAP2" [opacity="100"] [xoffset="0"] [yoffset="0"] /> puts the foreground pixmap (fg) on top of background pixmap (bg). A pixmap can either be a previously made pixmap (made with <pixmap></pixmap> or <pixmap_from_self></pixmap_from_self>), one of the previously loaded pixmaps (<pixmap_from_file />) or the current pixmap (simply referred to as "self"). Note: The background pixmap must NOT be smaller in size than the foreground pixmap! 
+The opacity attribute sets the opacity of the foreground pixmap. 
+The xoffset and yoffset attribute offsets the foreground pixmap with the number of pixels specified. xoffset works horizontally and yoffset works vertically. Both positive and negative numbers are allowed. Default is 0 on both. 
 
-<combine [degrees="90"] pix1="PIXMAP1" pix2="PIXMAP2" /> blends two pixmaps together half-by-half. A pixmap can either be a previously made pixmap (made with <pixmap></pixmap> or <pixmap_from_self></pixmap_from_self>), one of the previously loaded pixmaps (<pixmap_from_file />) or the current pixmap (simply refered to as "self"). Degrees option is not yet implemented and the value will be ignored.
+<combine [degrees="90"] pix1="PIXMAP1" pix2="PIXMAP2" /> blends two pixmaps together half-by-half. A pixmap can either be a previously made pixmap (made with <pixmap></pixmap> or <pixmap_from_self></pixmap_from_self>), one of the previously loaded pixmaps (<pixmap_from_file />) or the current pixmap (simply referred to as "self"). Degrees option is not yet implemented and the value will be ignored.
 
 <alpha_mask mask="NAME" /> is used to add an alpha mask to a pixmap. Works a bit as it does in gimp. White color doesn't change opacity at all, while black color makes the pixel completely transparent. The mask can either be a previously made pixmap (made with <pixmap></pixmap> or <pixmap_from_self></pixmap_from_self>) or one of the previously loaded pixmaps (<pixmap_from_file />). (Technicality: To speed things up a bit, only the red channel of the mask is used to decide opacity, so to be exact full red means unchanged opacity while no red means full transparency).
 
+<colorize color="COLOR" /> makes the pixmap one colored. In difference to <fill color="COLOR"/>, it doesn't change the alpha value of the pixmap. This is useful for making one colored silhouettes of icons.
 

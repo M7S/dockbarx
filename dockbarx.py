@@ -481,6 +481,8 @@ class IconFactory():
 
     #### Flow commands
     def command_if(self, pixbuf, type=None, windows=None, content=None):
+        if content == None:
+            return pixbuf
         # TODO: complete this
 ##        l = []
 ##        splits = ['!', '(', ')', '&', '|']
@@ -499,9 +501,9 @@ class IconFactory():
             if type[0] == "!" :
                 type = type[1:]
                 negation = True
-            is_type = (type in self.TYPE_DICT \
+            is_type = bool(type in self.TYPE_DICT \
                       and self.type & self.TYPE_DICT[type])
-            if (is_type and not negation) or (not is_type and negation):
+            if (is_type ^ negation):
                 type = True
             else:
                 type = False
@@ -510,27 +512,29 @@ class IconFactory():
 
         #Check if the numbers of windows is right
         if windows != None:
+            arg = windows
+            negation = False
+            if arg[0] == "!" :
+                arg = windows[1:]
+                negation = True
+            if arg[0] == ":":
+                arg = "0" + arg
+            elif arg[-1] == ":":
+                arg = arg +"15"
+            l = arg.split(":", 1)
             try:
-                for sign in ("!", "<", ">"):
-                    if sign in windows:
-                        win_nr = int(windows[1:])
-                        break
-                else:
-                    win_nr = int(windows)
+                l = [int(n) for n in l]
             except ValueError:
-                print "Theme Error: The windows attribute of " + \
-                      "an <if> statement must must be a " + \
-                      "number \"3\" or a sign (>, < or !) followed" + \
-                      " by a number, eg. \">2\"" + \
-                      "\""+windows+"\" is incorrect!"
+                print 'Theme Error: The windows attribute of ' + \
+                      'an <if> statement can\'t look like this:' + \
+                      ' "%s". See Theming HOWTO for more information'%windows
                 return pixbuf
-            if windows[0] == "!" and self.win_nr != win_nr:
-                windows = True
-            elif windows[0] == "<" and self.win_nr < win_nr:
-                windows = True
-            elif windows[0] == ">" and self.win_nr > win_nr:
-                windows = True
-            elif self.win_nr == win_nr:
+            if len(l) == 1:
+                if (l[0] == self.win_nr) ^ negation:
+                    windows = True
+                else:
+                    windows = False
+            elif (l[0]<=self.win_nr and self.win_nr<=l[1]) ^ negation:
                 windows = True
             else:
                 windows = False
@@ -552,6 +556,8 @@ class IconFactory():
             print "Theme Error: no name given for pixbuf_from_self"
             raise Exeption
         self.temp[name]=pixbuf.copy()
+        if content == None:
+            return pixbuf
         for command,args in content.items():
             try:
                 f = getattr(self,"command_%s"%command)
@@ -562,15 +568,19 @@ class IconFactory():
         return pixbuf
 
     def command_pixmap(self, pixbuf, name, content=None, size=None):
-        if size:
+        if size != None:
             # TODO: Fix for different height and width
             w = h = self.size + int(size)
+        elif pixbuf == None:
+            w = h = self.size
         else:
             w = pixbuf.get_width()
             h = pixbuf.get_height()
-        empty = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
+        empty = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
         empty.fill(0x00000000)
         self.temp[name]=empty
+        if content == None:
+            return pixbuf
         for command,args in content.items():
             try:
                 f = getattr(self,"command_%s"%command)
@@ -786,7 +796,7 @@ class IconFactory():
         sio.close()
         return loader.get_pixbuf()
 
-    def command_transp_sat(self, pixbuf, opacity, saturation):
+    def command_transp_sat(self, pixbuf, opacity=100, saturation=100):
         # Makes the icon desaturized and/or transparent.
         opacity = min(255, int(int(opacity)*2.55 + 0.5))
         saturation = min(1.0, float(saturation)/100)
@@ -796,7 +806,7 @@ class IconFactory():
         icon_transp.saturate_and_pixelate(icon_transp, saturation, False)
         return icon_transp
 
-    def command_composite(self, pixbuf, bg, fg, opacity="100"):
+    def command_composite(self, pixbuf, bg, fg, opacity=100, xoffset=0, yoffset=0):
         if fg=="self":
             fg = pixbuf
         elif fg in self.temp:
@@ -816,9 +826,30 @@ class IconFactory():
         else:
             print "theme error: pixmap %s not found"%bg
         opacity = min(255, int(int(opacity)*2.55 + 0.5))
-        w = fg.get_width()
-        h = fg.get_height()
-        fg.composite(bg, 0, 0, w, h, 0, 0, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, opacity)
+        xoffset = int(xoffset)
+        yoffset = int(yoffset)
+        if xoffset >= 0:
+            if xoffset + fg.get_width() > bg.get_width():
+                w = fg.get_width() - xoffset
+            else:
+                w = fg.get_width()
+        else:
+            w = fg.get_width() + xoffset
+        if yoffset >= 0:
+            if yoffset + fg.get_height() > bg.get_height():
+                h = fg.get_height() - yoffset
+
+            else:
+                h = fg.get_height()
+        else:
+            h = fg.get_height() + yoffset
+        x = max(xoffset, 0)
+        y = max(yoffset, 0)
+        if w <= 0 or h <=0 or x > bg.get_width or y > bg.get_height:
+            # Fg is offset out of the picture.
+            return bg
+##        print "x=%s, y=%s, w=%s, h=%s, xoffset=%s, yoffset=%s"%(x, y, w, h, xoffset, yoffset)
+        fg.composite(bg, x, y, w, h, xoffset, yoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, opacity)
         return bg
 
     def command_shrink(self, pixbuf, percent=0, pixels=0):
@@ -848,20 +879,10 @@ class IconFactory():
                          woffset ,hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
-    def command_glow(self, pixbuf, color, opacity):
+    def command_glow(self, pixbuf, color, opacity=100):
         # Adds a glow around the parts of the pixbuf that isn't completely
         # transparent.
 
-        # Convert color hex-string (format '#FFFFFF')to int r, g, b
-        if color == "active_color":
-            color = settings['active_glow_color']
-        try:
-            r = int(color[1:3], 16)
-            g = int(color[3:5], 16)
-            b = int(color[5:7], 16)
-        except ValueError:
-            print "Theme error: the color attribute for glow command should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
-            raise
 
         # Transparency
         if opacity == "active_opacity":
@@ -871,7 +892,7 @@ class IconFactory():
         # Thickness (pixels)
         tk = 2
 
-        colorpb = self.command_colorize_pixbuf(pixbuf, r, g, b)
+        colorpb = self.command_colorize(pixbuf, color)
         bg = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         bg.fill(0x00000000)
         glow = bg.copy()
@@ -886,9 +907,21 @@ class IconFactory():
         pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
 
-    def command_colorize_pixbuf(self, pixbuf, r, g, b):
-        # Changes the color of all pixels to r g b.
+    def command_colorize(self, pixbuf, color):
+        # Changes the color of all pixels to color.
         # The pixels alpha values are unchanged.
+
+        # Convert color hex-string (format '#FFFFFF')to int r, g, b
+        if color == "active_color":
+            color = settings['active_glow_color']
+        try:
+            r = int(color[1:3], 16)
+            g = int(color[3:5], 16)
+            b = int(color[5:7], 16)
+        except ValueError:
+            print "Theme error: the color attribute for glow command should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
+            return pixbuf
+
         pixbuf = pixbuf.copy()
         for row in pixbuf.get_pixels_array():
             for pix in row:
@@ -897,15 +930,18 @@ class IconFactory():
                 pix[2] = b
         return pixbuf
 
-    def command_bright(self, pixbuf, strenght):
+    def command_bright(self, pixbuf, strength = None, strenght = None):
         # Makes the pixbuf shift lighter.
-        strenght = int(int(strenght) * 2.55 + 0.4)
+        if strength == None and strenght != None:
+            # For compability with older themes.
+            strength = strenght
+        strength = int(int(strength) * 2.55 + 0.4)
         pixbuf = pixbuf.copy()
         for row in pixbuf.get_pixels_array():
             for pix in row:
-                pix[0] = min(255, int(pix[0]) + strenght)
-                pix[1] = min(255, int(pix[1]) + strenght)
-                pix[2] = min(255, int(pix[2]) + strenght)
+                pix[0] = min(255, int(pix[0]) + strength)
+                pix[1] = min(255, int(pix[1]) + strength)
+                pix[2] = min(255, int(pix[2]) + strength)
         return pixbuf
 
     def command_alpha_mask(self, pixbuf, mask):
