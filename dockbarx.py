@@ -848,18 +848,20 @@ class IconFactory():
         if w <= 0 or h <=0 or x > bg.get_width or y > bg.get_height:
             # Fg is offset out of the picture.
             return bg
-##        print "x=%s, y=%s, w=%s, h=%s, xoffset=%s, yoffset=%s"%(x, y, w, h, xoffset, yoffset)
         fg.composite(bg, x, y, w, h, xoffset, yoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, opacity)
         return bg
 
     def command_shrink(self, pixbuf, percent=0, pixels=0):
         background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         background.fill(0x00000000)
-        size = pixbuf.get_width()
-        small_size = int(((100-int(percent)) * size)/100)-int(pixels)
-        pixbuf = pixbuf.scale_simple(small_size, small_size, gtk.gdk.INTERP_BILINEAR)
-        offset = int(float(size - small_size) / 2 + 0.5)
-        pixbuf.composite(background, offset, offset, small_size, small_size, offset ,offset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+        w0 = pixbuf.get_width()
+        h0 = pixbuf.get_width()
+        w = int(((100-int(percent)) * w0)/100)-int(pixels)
+        h = int(((100-int(percent)) * h0)/100)-int(pixels)
+        pixbuf = pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+        x = int(float(w0 - w) / 2 + 0.5)
+        y = int(float(h0 - h) / 2 + 0.5)
+        pixbuf.composite(background, x, y, w, h, x, y, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
     def command_correct_size(self, pixbuf):
