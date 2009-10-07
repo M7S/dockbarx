@@ -2783,7 +2783,7 @@ class GroupButton (gobject.GObject):
                 # Unminimize all
                 unminimize_all_windows_item = gtk.MenuItem('Unminimize all windows')
                 menu.append(unminimize_all_windows_item)
-                unminimize_all_windows_item.connect("activate", self.action_unminimize_all_windows)
+                unminimize_all_windows_item.connect("activate", self.unminimize_all_windows)
                 unminimize_all_windows_item.show()
             else:
                 # Minimize all
