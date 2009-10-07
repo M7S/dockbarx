@@ -855,7 +855,7 @@ class IconFactory():
         background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
         background.fill(0x00000000)
         w0 = pixbuf.get_width()
-        h0 = pixbuf.get_width()
+        h0 = pixbuf.get_height()
         w = int(((100-int(percent)) * w0)/100)-int(pixels)
         h = int(((100-int(percent)) * h0)/100)-int(pixels)
         pixbuf = pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
@@ -878,7 +878,7 @@ class IconFactory():
         woffset = int(float(width - pixbuf.get_width()) / 2 + 0.5)
         hoffset = int(float(height - pixbuf.get_height()) / 2 + 0.5)
         pixbuf.composite(background, woffset, hoffset, pixbuf.get_width(), pixbuf.get_height(), \
-                         woffset ,hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+                         woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
         return background
 
     def command_glow(self, pixbuf, color, opacity=100):
