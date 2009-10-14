@@ -69,6 +69,9 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "popup_delay": 250,
                       "popup_align": "center",
 
+                      "select_one_window": "select or minimize window",
+                      "select_multiple_windows": "select all",
+
                       "active_glow_color": "#FFFF75",
                       "active_glow_alpha": 160,
                       "popup_color": "#333333",
@@ -2506,6 +2509,26 @@ class GroupButton (gobject.GObject):
                 window.unminimize(t)
 
     #### Actions
+    def action_select(self, widget, event):
+        if (self.launcher and not self.windows):
+            self.launcher.launch()
+        # One window
+        elif len(self.windows) == 1:
+            if settings["select_one_window"] == "select window":
+                self.windows.values()[0].action_select_window(widget, event)
+            elif settings["select_one_window"] == "select or minimize window":
+                self.windows.values()[0].action_select_or_minimize_window(widget, event)
+        # Multiple windows
+        elif len(self.windows) > 1:
+            if settings["select_multiple_windows"] == "select all":
+                self.action_select_or_minimize_group(widget, event, minimize=False)
+            if settings["select_multiple_windows"] == "select or minimize all":
+                self.action_select_or_minimize_group(widget, event, minimize=True)
+            if settings["select_multiple_windows"] == "compiz scale":
+                self.action_compiz_scale_windows(widget, event)
+            if settings["select_multiple_windows"] == "cycle through windows":
+                self.action_select_next(widget, event)
+
     def action_select_or_minimize_group(self, widget, event, minimize=True):
         # Brings up all windows or minizes them is they are already on top.
         # (Launches the application if no windows are open)
@@ -2830,6 +2853,12 @@ class GroupButton (gobject.GObject):
         if not self.class_group or \
            len(self.windows) - self.minimized_windows_count == 0:
             return
+        if len(self.windows) - self.minimized_windows_count == 1:
+            for win in self.windows:
+                if not win.is_minimized():
+                    self.windows[win].action_select_window(widget, event)
+                    break
+            return
         try:
             compiz_call('scale/allscreens/initiate_all_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
         except:
@@ -2841,6 +2870,12 @@ class GroupButton (gobject.GObject):
     def action_compiz_shift_windows(self, widget, event):
         if not self.class_group or \
            len(self.windows) - self.minimized_windows_count == 0:
+            return
+        if len(self.windows) - self.minimized_windows_count == 1:
+            for win in self.windows:
+                if not win.is_minimized():
+                    self.windows[win].action_select_window(widget, event)
+                    break
             return
         try:
             compiz_call('shift/allscreens/initiate_all_key','activate','root', self.root_xid,'match','iclass='+self.class_group.get_res_class())
@@ -2867,9 +2902,7 @@ class GroupButton (gobject.GObject):
         pass
 
     action_function_dict = ODict((
-                                  ("select or minimize group", action_select_or_minimize_group),
-                                  ("select group", action_select_only),
-                                  ("select or compiz scale group", action_select_or_compiz_scale),
+                                  ("select", action_select),
                                   ("close all windows", action_close_all_windows),
                                   ("minimize all windows", action_minimize_all_windows),
                                   ("maximize all windows", action_maximize_all_windows),
@@ -2931,147 +2964,46 @@ class PrefDialog():
         notebook = gtk.Notebook()
         notebook.set_tab_pos(gtk.POS_TOP)
         appearance_box = gtk.VBox()
-        behavior_box = gtk.VBox()
+        windowbutton_box = gtk.VBox()
+        groupbutton_box = gtk.VBox()
 
-        #--- Behavior page
-        hbox = gtk.HBox()
-        vbox = gtk.VBox()
-        label1 = gtk.Label("<b><big>Workspace behavior on Select group</big></b>")
-        label1.set_alignment(0,0.5)
-        label1.set_use_markup(True)
-        vbox.pack_start(label1,False)
-        self.rb2_1 = gtk.RadioButton(None, "Ignore windows on other workspaces")
-        self.rb2_1.connect("toggled", self.rb_toggled, "rb2_ignore")
-        self.rb2_2 = gtk.RadioButton(self.rb2_1, "Switch workspace when needed")
-        self.rb2_2.connect("toggled", self.rb_toggled, "rb2_switch")
-        self.rb2_3 = gtk.RadioButton(self.rb2_1, "Move windows from other workspaces")
-        self.rb2_3.connect("toggled", self.rb_toggled, "rb2_move")
-        vbox.pack_start(self.rb2_1, False)
-        vbox.pack_start(self.rb2_2, False)
-        vbox.pack_start(self.rb2_3, False)
-        hbox.pack_start(vbox, True)
-
-        vbox = gtk.VBox()
-        label1 = gtk.Label("<b><big>Popup delay</big></b>")
-        label1.set_alignment(0,0.5)
-        label1.set_use_markup(True)
-        vbox.pack_start(label1,False)
-        spinbox = gtk.HBox()
-        spinlabel = gtk.Label("Delay:")
-        spinlabel.set_alignment(0,0.5)
-        adj = gtk.Adjustment(0, 0, 2000, 1, 50)
-        self.delay_spin = gtk.SpinButton(adj, 0.5, 0)
-        adj.connect("value_changed", self.adjustment_changed, 'popup_delay')
-        spinbox.pack_start(spinlabel, False)
-        spinbox.pack_start(self.delay_spin, False)
-        vbox.pack_start(spinbox, False)
-        hbox.pack_start(vbox, True)
-        behavior_box.pack_start(hbox, False, padding=5)
-
-        label2 = gtk.Label("<b><big>Button configuration</big></b>")
-        label2.set_alignment(0,0.5)
-        label2.set_use_markup(True)
-        behavior_box.pack_start(label2,False, padding=5)
-
-        table = gtk.Table(10,6)
-        label = gtk.Label("<b>Groupbutton actions</b>")
-        label.set_alignment(0,0.5)
-        label.set_use_markup(True)
-        table.attach(label, 0, 6, 0, 1)
-
-        # A directory of combobox names and the name of corresponding setting
-        self.gb_labels_and_settings = {'Left mouse button': "groupbutton_left_click_action",
-                                       'Shift + left mouse button': "groupbutton_shift_and_left_click_action",
-                                       'Middle mouse button': "groupbutton_middle_click_action",
-                                       'Shift + middle mouse button': "groupbutton_shift_and_middle_click_action",
-                                       'Right mouse button': "groupbutton_right_click_action",
-                                       'Shift + right mouse button': "groupbutton_shift_and_right_click_action",
-                                       'Scroll up': "groupbutton_scroll_up",
-                                       'Scroll down': "groupbutton_scroll_down" }
-        # A list to ensure that the order is kept correct
-        gb_button_labels = ['Left mouse button',
-                            'Shift + left mouse button',
-                            'Middle mouse button',
-                            'Shift + middle mouse button',
-                            'Right mouse button',
-                            'Shift + right mouse button',
-                            'Scroll up',
-                            'Scroll down' ]
-        self.gb_combos = {}
-        for i in range(len(gb_button_labels)):
-            text = gb_button_labels[i]
-            label = gtk.Label(text)
-            label.set_alignment(1,0.5)
-            self.gb_combos[text] = gtk.combo_box_new_text()
-            for action in GroupButton.action_function_dict.keys():
-                self.gb_combos[text].append_text(action)
-            self.gb_combos[text].connect('changed', self.cb_changed)
-            # Every second label + combobox on a new row
-            row = i // 2 + 1
-            # Pack odd numbered comboboxes from 3rd column
-            column = (i % 2) * 3
-            table.attach(label, column, column + 1, row, row + 1, xpadding = 5 )
-            table.attach(self.gb_combos[text],column + 1, column + 2, row, row + 1 )
-
-        self.gb_doubleclick_checkbutton_names = ['groupbutton_left_click_double',
-                            'groupbutton_shift_and_left_click_double',
-                            'groupbutton_middle_click_double',
-                            'groupbutton_shift_and_middle_click_double',
-                            'groupbutton_right_click_double',
-                            'groupbutton_shift_and_right_click_double']
-        self.gb_doubleclick_checkbutton = {}
-        for i in range(len(self.gb_doubleclick_checkbutton_names)):
-            name = self.gb_doubleclick_checkbutton_names[i]
-            self.gb_doubleclick_checkbutton[name] = gtk.CheckButton('Double click')
-
-            self.gb_doubleclick_checkbutton[name].connect('toggled', self.checkbutton_toggled, name)
-            # Every second label + combobox on a new row
-            row = i // 2 + 1
-            # Pack odd numbered comboboxes from 3rd column
-            column = (i % 2) * 3
-            table.attach(self.gb_doubleclick_checkbutton[name], column + 2, column + 3, row, row + 1, xpadding = 5 )
-
-
+        #--- WindowButton page
         label = gtk.Label("<b>Windowbutton actions</b>")
         label.set_alignment(0,0.5)
         label.set_use_markup(True)
-        table.attach(label, 0, 6, 5, 6)
+        table = gtk.Table(4,4)
+        table.attach(label, 0, 4, 0, 1)
 
         # A directory of combobox names and the name of corresponding setting
-        self.wb_labels_and_settings = {'Left mouse button': "windowbutton_left_click_action",
-                                  'Shift + left mouse button': "windowbutton_shift_and_left_click_action",
-                                  'Middle mouse button': "windowbutton_middle_click_action",
-                                  'Shift + middle mouse button': "windowbutton_shift_and_middle_click_action",
-                                  'Right mouse button': "windowbutton_right_click_action",
-                                  'Shift + right mouse button': "windowbutton_shift_and_right_click_action",
-                                  'Scroll up': "windowbutton_scroll_up",
-                                  'Scroll down': "windowbutton_scroll_down"}
-        # A list to ensure that the order is kept correct
-        wb_button_labels = ['Left mouse button',
-                            'Shift + left mouse button',
-                            'Middle mouse button',
-                            'Shift + middle mouse button',
-                            'Right mouse button',
-                            'Shift + right mouse button',
-                            'Scroll up',
-                            'Scroll down' ]
+        self.wb_labels_and_settings = ODict((
+                    ('Left mouse button', "windowbutton_left_click_action"),
+                    ('Shift + left mouse button', "windowbutton_shift_and_left_click_action"),
+                    ('Middle mouse button', "windowbutton_middle_click_action"),
+                    ('Shift + middle mouse button', "windowbutton_shift_and_middle_click_action"),
+                    ('Right mouse button', "windowbutton_right_click_action"),
+                    ('Shift + right mouse button', "windowbutton_shift_and_right_click_action"),
+                    ('Scroll up', "windowbutton_scroll_up"),
+                    ('Scroll down', "windowbutton_scroll_down")
+                                           ))
+
         self.wb_combos = {}
-        for i in range(len(wb_button_labels)):
-            text = wb_button_labels[i]
+        for text in self.wb_labels_and_settings:
             label = gtk.Label(text)
             label.set_alignment(1,0.5)
             self.wb_combos[text] = gtk.combo_box_new_text()
             for action in WindowButton.action_function_dict.keys():
                 self.wb_combos[text].append_text(action)
             self.wb_combos[text].connect('changed', self.cb_changed)
+
+            i = self.wb_labels_and_settings.get_index(text)
             # Every second label + combobox on a new row
-            row = i // 2 + 6
+            row = i // 2 + 1
             # Pack odd numbered comboboxes from 3rd column
-            column = (i % 2) * 3
+            column = (i % 2) * 2
             table.attach(label, column, column + 1, row, row + 1 )
             table.attach(self.wb_combos[text], column + 1, column + 2, row, row + 1 )
 
-        behavior_box.pack_start(table, False, padding=5)
+        windowbutton_box.pack_start(table, False, padding=5)
 
         #--- Appearance page
         hbox = gtk.HBox()
@@ -3190,14 +3122,130 @@ class PrefDialog():
             table.attach(self.color_buttons[text], column+1, column+2, row, row + 1)
             table.attach(self.clear_buttons[text], column+2, column+3, row, row + 1, xoptions = gtk.FILL)
 
+        table.set_border_width(5)
         frame.add(table)
         appearance_box.pack_start(frame, False, padding=5)
 
-        label = gtk.Label("Behavior")
-        notebook.append_page(behavior_box, label)
+        #--- Groupbutton page
+        table = gtk.Table(6,4)
+        label = gtk.Label("<b>Groupbutton actions</b>")
+        label.set_alignment(0,0.5)
+        label.set_use_markup(True)
+        table.attach(label, 0, 6, 0, 1)
+
+        # A directory of combobox names and the name of corresponding setting
+        self.gb_labels_and_settings = ODict((
+                                             ('Left mouse button', "groupbutton_left_click_action"),
+                                             ('Shift + left mouse button', "groupbutton_shift_and_left_click_action"),
+                                             ('Middle mouse button', "groupbutton_middle_click_action"),
+                                             ('Shift + middle mouse button', "groupbutton_shift_and_middle_click_action"),
+                                             ( 'Right mouse button', "groupbutton_right_click_action"),
+                                             ('Shift + right mouse button', "groupbutton_shift_and_right_click_action"),
+                                             ('Scroll up', "groupbutton_scroll_up"),
+                                             ('Scroll down', "groupbutton_scroll_down")
+                                           ))
+
+        self.gb_combos = {}
+        for text in self.gb_labels_and_settings:
+            label = gtk.Label(text)
+            label.set_alignment(1,0.5)
+            self.gb_combos[text] = gtk.combo_box_new_text()
+            for action in GroupButton.action_function_dict.keys():
+                self.gb_combos[text].append_text(action)
+            self.gb_combos[text].connect('changed', self.cb_changed)
+
+            i = self.gb_labels_and_settings.get_index(text)
+            # Every second label + combobox on a new row
+            row = i // 2 + 1
+            # Pack odd numbered comboboxes from 3rd column
+            column = (i % 2) * 3
+            table.attach(label, column, column + 1, row, row + 1, xpadding = 5 )
+            table.attach(self.gb_combos[text],column + 1, column + 2, row, row + 1 )
+
+        self.gb_doubleclick_checkbutton_names = ['groupbutton_left_click_double',
+                            'groupbutton_shift_and_left_click_double',
+                            'groupbutton_middle_click_double',
+                            'groupbutton_shift_and_middle_click_double',
+                            'groupbutton_right_click_double',
+                            'groupbutton_shift_and_right_click_double']
+        self.gb_doubleclick_checkbutton = {}
+        for i in range(len(self.gb_doubleclick_checkbutton_names)):
+            name = self.gb_doubleclick_checkbutton_names[i]
+            self.gb_doubleclick_checkbutton[name] = gtk.CheckButton('Double click')
+
+            self.gb_doubleclick_checkbutton[name].connect('toggled', self.checkbutton_toggled, name)
+            # Every second label + combobox on a new row
+            row = i // 2 + 1
+            # Pack odd numbered comboboxes from 3rd column
+            column = (i % 2) * 3
+            table.attach(self.gb_doubleclick_checkbutton[name], column + 2, column + 3, row, row + 1, xpadding = 5 )
+
+        groupbutton_box.pack_start(table, False, padding=5)
+
+        hbox = gtk.HBox()
+        table = gtk.Table(2,4)
+        label = gtk.Label("<b>\"Select\" action options</b>")
+        label.set_alignment(0,0.5)
+        label.set_use_markup(True)
+        table.attach(label,0,2,0,1)
+
+        label = gtk.Label("One window open:")
+        label.set_alignment(1,0.5)
+        self.select_one_cg = gtk.combo_box_new_text()
+        self.select_one_cg.append_text("select window")
+        self.select_one_cg.append_text("select or minimize window")
+        self.select_one_cg.connect('changed', self.cb_changed)
+        table.attach(label,0,1,1,2)
+        table.attach(self.select_one_cg,1,2,1,2)
+
+        label = gtk.Label("Multiple windows open:")
+        label.set_alignment(1,0.5)
+        self.select_multiple_cg = gtk.combo_box_new_text()
+        self.select_multiple_cg.append_text("select all")
+        self.select_multiple_cg.append_text("select or minimize all")
+        self.select_multiple_cg.append_text("compiz scale")
+        self.select_multiple_cg.append_text("cycle through windows")
+        self.select_multiple_cg.connect('changed', self.cb_changed)
+        table.attach(label,0,1,2,3)
+        table.attach(self.select_multiple_cg,1,2,2,3)
+
+        label = gtk.Label("Workspace behavior:")
+        label.set_alignment(1,0.5)
+        self.select_workspace_cg = gtk.combo_box_new_text()
+        self.select_workspace_cg.append_text("Ignore windows on other workspaces")
+        self.select_workspace_cg.append_text("Switch workspace when needed")
+        self.select_workspace_cg.append_text("Move windows from other workspaces")
+        self.select_workspace_cg.connect('changed', self.cb_changed)
+        table.attach(label,0,1,3,4)
+        table.attach(self.select_workspace_cg,1,2,3,4)
+
+        hbox.pack_start(table, False, padding=5)
+
+
+        vbox = gtk.VBox()
+        label1 = gtk.Label("<b>Popup delay</b>")
+        label1.set_alignment(0,0.5)
+        label1.set_use_markup(True)
+        vbox.pack_start(label1,False)
+        spinbox = gtk.HBox()
+        spinlabel = gtk.Label("Delay:")
+        spinlabel.set_alignment(0,0.5)
+        adj = gtk.Adjustment(0, 0, 2000, 1, 50)
+        self.delay_spin = gtk.SpinButton(adj, 0.5, 0)
+        adj.connect("value_changed", self.adjustment_changed, 'popup_delay')
+        spinbox.pack_start(spinlabel, False)
+        spinbox.pack_start(self.delay_spin, False)
+        vbox.pack_start(spinbox, False)
+        hbox.pack_start(vbox, False, padding=20)
+        groupbutton_box.pack_start(hbox, False, padding=10)
+
         label = gtk.Label("Appearance")
         notebook.append_page(appearance_box, label)
         ca.pack_start(notebook)
+        label = gtk.Label("Group Button")
+        notebook.append_page(groupbutton_box, label)
+        label = gtk.Label("Window Button")
+        notebook.append_page(windowbutton_box, label)
 
         self.update()
 
@@ -3218,15 +3266,6 @@ class PrefDialog():
             self.rb1_3.set_active(True)
         elif settings_attention == 'nothing':
             self.rb1_4.set_active(True)
-
-        # Workspace behavior
-        settings_workspace = settings["workspace_behavior"]
-        if settings_workspace == 'ignore':
-            self.rb2_1.set_active(True)
-        elif settings_workspace == 'switch':
-            self.rb2_2.set_active(True)
-        elif settings_workspace == 'move':
-            self.rb2_3.set_active(True)
 
         # Popup alignment
         settings_align = settings["popup_align"]
@@ -3280,6 +3319,30 @@ class PrefDialog():
                 self.color_buttons[name].set_use_alpha(True)
                 self.color_buttons[name].set_alpha(alpha)
 
+        #Select action
+        model = self.select_one_cg.get_model()
+        for i in range(len(self.select_one_cg.get_model())):
+                if model[i][0] == settings['select_one_window'].lower():
+                    self.select_one_cg.set_active(i)
+                    break
+
+        model = self.select_multiple_cg.get_model()
+        for i in range(len(self.select_multiple_cg.get_model())):
+                if model[i][0] == settings['select_multiple_windows'].lower():
+                    self.select_multiple_cg.set_active(i)
+                    break
+
+        model = self.select_workspace_cg.get_model()
+        wso={
+             "ingore":"Ignore windows on other workspaces",
+             "switch":"Switch workspace when needed",
+             "move":"Move windows from other workspaces"
+            }
+        for i in range(len(self.select_workspace_cg.get_model())):
+                if model[i][0] == wso[settings['workspace_behavior'].lower()]:
+                    self.select_workspace_cg.set_active(i)
+                    break
+
         # Themes
         model = self.theme_combo.get_model()
         for i in range(len(self.theme_combo.get_model())):
@@ -3316,19 +3379,6 @@ class PrefDialog():
 
         if rb1_toggled and value != settings["groupbutton_attention_notification_type"]:
             GCONF_CLIENT.set_string(GCONF_DIR+'/groupbutton_attention_notification_type', value)
-
-        if par1 == 'rb2_ignore' and button.get_active():
-            value = 'ignore'
-            rb2_toggled = True
-        if par1 == 'rb2_move' and button.get_active():
-            value = 'move'
-            rb2_toggled = True
-        if par1 == 'rb2_switch' and button.get_active():
-            value = 'switch'
-            rb2_toggled = True
-
-        if rb2_toggled and value != settings["workspace_behavior"]:
-            GCONF_CLIENT.set_string(GCONF_DIR+'/workspace_behavior', value)
 
         if par1 == 'rb3_left' and button.get_active():
             value = 'left'
@@ -3377,6 +3427,32 @@ class PrefDialog():
                 return
             if value != settings['theme']:
                 GCONF_CLIENT.set_string(GCONF_DIR+'/theme', value)
+
+        if combobox == self.select_one_cg:
+            value = combobox.get_active_text()
+            if value == None:
+                return
+            if value != settings['select_one_window']:
+                GCONF_CLIENT.set_string(GCONF_DIR+'/select_one_window', value)
+
+        if combobox == self.select_multiple_cg:
+            value = combobox.get_active_text()
+            if value == None:
+                return
+            if value != settings['select_multiple_windows']:
+                GCONF_CLIENT.set_string(GCONF_DIR+'/select_multiple_windows', value)
+
+        if combobox == self.select_workspace_cg:
+            value = combobox.get_active_text()
+            wso={
+                 "Ignore windows on other workspaces":"ingore",
+                 "Switch workspace when needed":"switch",
+                 "Move windows from other workspaces":"move"
+                }
+            if value == None:
+                return
+            if value != settings['workspace_behavior']:
+                GCONF_CLIENT.set_string(GCONF_DIR+'/workspace_behavior', wso[value])
 
     def adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf
@@ -3495,6 +3571,17 @@ class DockBar(gobject.GObject):
                     settings[name] = gc_value
         GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
         GCONF_CLIENT.notify_add(GCONF_DIR, self.on_gconf_changed, None)
+
+        # Change old settings
+        group_button_actions_d = {"select or minimize group": "select",
+                                  "select group": "select",
+                                  "select or compiz scale group": "select"}
+        for name, value in settings.items():
+            if ("groupbutton" in name) and ("click" in name or "scroll" in name) \
+            and value in group_button_actions_d:
+                settings[name] = group_button_actions_d[value]
+                GCONF_CLIENT.set_string(GCONF_DIR + '/' + name , settings[name])
+
 
         #--- Applet / Window container
         if self.applet != None:
