@@ -2522,11 +2522,19 @@ class GroupButton (gobject.GObject):
         elif len(self.windows) > 1:
             if settings["select_multiple_windows"] == "select all":
                 self.action_select_or_minimize_group(widget, event, minimize=False)
-            if settings["select_multiple_windows"] == "select or minimize all":
+            elif settings["select_multiple_windows"] == "select or minimize all":
                 self.action_select_or_minimize_group(widget, event, minimize=True)
-            if settings["select_multiple_windows"] == "compiz scale":
-                self.action_compiz_scale_windows(widget, event)
-            if settings["select_multiple_windows"] == "cycle through windows":
+            elif settings["select_multiple_windows"] == "compiz scale":
+                if len(self.windows) - self.minimized_windows_count == 1:
+                    if settings["select_one_window"] == "select window":
+                        self.windows.values()[0].action_select_window(widget, event)
+                    elif settings["select_one_window"] == "select or minimize window":
+                        self.windows.values()[0].action_select_or_minimize_window(widget, event)
+                elif len(self.windows) - self.minimized_windows_count == 0:
+                    self.action_select_or_minimize_group(widget, event)
+                else:
+                    self.action_compiz_scale_windows(widget, event)
+            elif settings["select_multiple_windows"] == "cycle through windows":
                 self.action_select_next(widget, event)
 
     def action_select_or_minimize_group(self, widget, event, minimize=True):
