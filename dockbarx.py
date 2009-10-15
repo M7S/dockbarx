@@ -52,7 +52,7 @@ except:
 
 
 ##import pdb
-VERSION = 'x.0.23.1'
+VERSION = 'x.0.23.2'
 
 TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number, is it used anymore?
 
