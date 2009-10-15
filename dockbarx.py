@@ -2739,13 +2739,19 @@ class GroupButton (gobject.GObject):
         if self.nextlist_time == None or time.time() - self.nextlist_time > 2 \
         or self.nextlist == None:
             self.nextlist = []
+            minimized_list = []
             screen = self.screen
             windows_stacked = screen.get_windows_stacked()
             for win in windows_stacked:
                     if win in self.windows:
-                        self.nextlist.append(win)
+                        if win.is_minimized():
+                            minimized_list.append(win)
+                        else:
+                            self.nextlist.append(win)
             # Reverse -> topmost window first
             self.nextlist.reverse()
+            # Add minimized windows last.
+            self.nextlist.extend(minimized_list)
         self.nextlist_time = time.time()
 
         if previous:
