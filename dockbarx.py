@@ -68,6 +68,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "workspace_behavior": "switch",
                       "popup_delay": 250,
                       "popup_align": "center",
+                      "no_popup_for_one_window": False,
 
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
@@ -2395,14 +2396,18 @@ class GroupButton (gobject.GObject):
             return
         self.mouse_over = True
         self.update_state()
-        if settings["popup_delay"]>0:
-            self.emit('set-icongeo-delay')
-        if not self.dockbar.right_menu_showing and not self.dockbar.dragging:
-            gobject.timeout_add(settings['popup_delay'], self.show_list_request)
         if settings["opacify"] and settings["opacify_group"]:
             gobject.timeout_add(settings['popup_delay'],self.opacify_request)
             # Just for safty in case no leave-signal is sent
             gobject.timeout_add(settings['popup_delay']+500, self.deopacify_request)
+
+        if len(self.windows)<=1 and settings['no_popup_for_one_window']:
+            return
+        # Prepare for popup window
+        if settings["popup_delay"]>0:
+            self.emit('set-icongeo-delay')
+        if not self.dockbar.right_menu_showing and not self.dockbar.dragging:
+            gobject.timeout_add(settings['popup_delay'], self.show_list_request)
 
     def on_button_mouse_leave (self, widget, event):
         # In compiz there is a enter and a leave event before a button_press event.
@@ -3237,7 +3242,7 @@ class PrefDialog():
 
 
         vbox = gtk.VBox()
-        label1 = gtk.Label("<b>Popup delay</b>")
+        label1 = gtk.Label("<b>Popup</b>")
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
@@ -3250,6 +3255,10 @@ class PrefDialog():
         spinbox.pack_start(spinlabel, False)
         spinbox.pack_start(self.delay_spin, False)
         vbox.pack_start(spinbox, False)
+
+        self.no_popup_cb = gtk.CheckButton('Show popup only if more than one window is open')
+        self.no_popup_cb.connect('toggled', self.checkbutton_toggled, 'no_popup_for_one_window')
+        vbox.pack_start(self.no_popup_cb, False)
         hbox.pack_start(vbox, False, padding=20)
         groupbutton_box.pack_start(hbox, False, padding=10)
 
@@ -3290,8 +3299,9 @@ class PrefDialog():
         elif settings_align == 'right':
             self.rb3_3.set_active(True)
 
-        # Popup delay
+        # Popup
         self.delay_spin.set_value(settings['popup_delay'])
+        self.no_popup_cb.set_active(settings['no_popup_for_one_window'])
 
         # Group button keys
         for cb_name, setting_name in self.gb_labels_and_settings.items():
