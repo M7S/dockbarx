@@ -1173,7 +1173,7 @@ class Launcher():
             if time.time() - self.lastlaunch < 2:
                 return
         if self.app:
-            print "Executing", app.get_name()
+            print "Executing", self.app.get_name()
             self.lastlaunch = time.time()
             return self.app.launch(None, None)
         else:
