@@ -1329,6 +1329,17 @@ class GroupList():
                 self.list.insert(index, t)
                 return True
 
+    def remove_launcher(self, res_class):
+        if not res_class:
+            return
+        for t in self.list:
+            if res_class == t[0]:
+                n = (t[0], t[1], None)
+                index = self.list.index(t)
+                self.list.remove(t)
+                self.list.insert(index, n)
+                return True
+
     def remove(self,name):
         if not name:
             return
@@ -1909,17 +1920,6 @@ class GroupButton (gobject.GObject):
         else:
             raise Exception, "Can't initiate Group button without class_group or launcher."
 
-        #--- Group name
-        if self.launcher:
-            self.name = self.launcher.get_entry_name()
-        elif self.app:
-            self.name = u"" + self.app.get_name()
-        else:
-            # Uses first half of the name, like "Amarok" from "Amarok - [SONGNAME]"
-            # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
-            # totally screwed up. So far no such program has been reported.
-            self.name = self.class_group.get_name().split(" - ", 1)[0]
-
 
         # Variables
         self.windows = {}
@@ -1991,7 +1991,8 @@ class GroupButton (gobject.GObject):
 
         self.winlist = cairo_popup.vbox
         self.winlist.set_border_width(5)
-        self.popup_label = gtk.Label("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
+        self.popup_label = gtk.Label()
+        self.update_name()
         self.popup_label.set_use_markup(True)
         if self.res_class:
             # Todo: add tooltip when res_class is added.
@@ -2055,6 +2056,18 @@ class GroupButton (gobject.GObject):
 
     def get_class_group(self):
         return self.class_group
+
+    def update_name(self):
+        if self.launcher:
+            self.name = self.launcher.get_entry_name()
+        elif self.app:
+            self.name = u"" + self.app.get_name()
+        else:
+            # Uses first half of the name, like "Amarok" from "Amarok - [SONGNAME]"
+            # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
+            # totally screwed up. So far no such program has been reported.
+            self.name = self.class_group.get_name().split(" - ", 1)[0]
+        self.popup_label.set_label("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
 
     #### State
     def update_popup_label(self):
@@ -2168,6 +2181,9 @@ class GroupButton (gobject.GObject):
             x += a.x
             y += a.y
             window.set_icon_geometry(x, y, a.width, a.height)
+
+        if not self.class_group:
+            self.update_classgroup(window.get_class_group())
 
     def del_window(self,window):
         if window.is_minimized():
@@ -3008,14 +3024,20 @@ class GroupButton (gobject.GObject):
     def action_remove_launcher(self, widget=None, event = None):
         print 'Removing launcher ', self.res_class
         if self.res_class:
-            self.dockbar.groups.remove(self.res_class)
+            name = self.res_class
         else:
-            self.dockbar.groups.remove(self.launcher.get_path())
+            name = self.launcher.get_path()
         self.launcher = None
-        self.action_close_all_windows()
-        self.popup.destroy()
-        self.button.destroy()
-        self.winlist.destroy()
+        if not self.windows:
+            self.dockbar.groups.remove(name)
+            self.popup.destroy()
+            self.button.destroy()
+            self.winlist.destroy()
+        else:
+            self.dockbar.groups.remove_launcher(name)
+            if self.app == None:
+                self.app = self.dockbar.find_gio_app(self.res_class)
+            self.update_name()
         self.dockbar.save_launchers_persistentlist()
 
     def action_minimize_all_other_groups(self, widget, event):
@@ -4089,64 +4111,17 @@ class DockBar(gobject.GObject):
                                 id = self.launchers_by_exec[rc]
                                 print "Partial name for open window matched with executable:", rc
                 if id:
+                    # The window is matching a launcher!
                     path = self.launchers_by_id[id].get_path()
                     self.groups.set_res_class(path, class_group_name)
                     self.groups[class_group_name].add_window(window)
                     self.save_launchers_persistentlist()
                     self.remove_launcher_id_from_undefined_list(id)
                 else:
-                    app = None
-                    app_id = None
-                    rc = u""+class_group_name.lower()
-                    if rc != "":
-                        # WM_CLASS res_class exists.
-                        if rc in self.apps_by_id:
-                            app_id = rc
-                            print "Opened window matched with gio app on id:", rc
-                        elif rc in self.apps_by_name:
-                            app_id = self.apps_by_name[rc]
-                            print "Opened window matched with gio app on name:", rc
-                        elif rc in self.apps_by_exec:
-                            app_id = self.apps_by_exec[rc]
-                            print "Opened window matched with gio app on executable:", rc
-                        else:
-                            for lname in self.apps_by_longname:
-                                pos = lname.find(rc)
-                                if pos>-1: # Check that it is not part of word
-                                    if (pos==0) and (lname[len(rc)] == ' '):
-                                        app_id = self.apps_by_longname[lname]
-                                        print "Opened window matched with gio app on longname:", rc
-                                        break
-                                    elif (pos+len(rc) == len(lname)) and (lname[pos-1] == ' '):
-                                        app_id = self.apps_by_longname[lname]
-                                        print "Opened window matched with gio app on longname:", rc
-                                        break
-                                    elif (lname[pos-1] == ' ') and (lname[pos+len(rc)] == ' '):
-                                        app_id = self.apps_by_longname[lname]
-                                        print "Opened window matched with gio app on longname:", rc
-                                        break
-                        if not app_id:
-                            if rc.find(' ')>-1:
-                                rc = rc.partition(' ')[0] # Cut all before space
-                                print " trying to find as",rc
-                                # Workaround for apps
-                                # with res_class like this 'App 1.2.3' (name with ver)
-                                ### keys()
-                                if rc in self.apps_by_id.keys():
-                                    app_id = rc
-                                    print " found in apps id list as",rc
-                                elif rc in self.apps_by_name.keys():
-                                    app_id = self.apps_by_name[rc]
-                                    print " found in apps name list as",rc
-                                elif rc in self.apps_by_exec.keys():
-                                    app_id = self.apps_by_exec[rc]
-                                    print " found in apps exec list as",rc
-                        if app_id:
-                            app = self.apps_by_id[app_id]
                     # First window of a new group.
+                    app = self.find_gio_app(class_group_name)
                     self.groups[class_group_name] = GroupButton(self,class_group, app=app)
                     self.groups[class_group_name].add_window(window)
-
 
 
     def on_window_closed(self,screen,window):
@@ -4156,6 +4131,56 @@ class DockBar(gobject.GObject):
                 self.groups.get_group(class_group_name).del_window(window)
             del self.windows[window]
 
+    def find_gio_app(self, res_class):
+        app = None
+        app_id = None
+        rc = u""+res_class.lower()
+        if rc != "":
+            # WM_CLASS res_class exists.
+            if rc in self.apps_by_id:
+                app_id = rc
+                print "Opened window matched with gio app on id:", rc
+            elif rc in self.apps_by_name:
+                app_id = self.apps_by_name[rc]
+                print "Opened window matched with gio app on name:", rc
+            elif rc in self.apps_by_exec:
+                app_id = self.apps_by_exec[rc]
+                print "Opened window matched with gio app on executable:", rc
+            else:
+                for lname in self.apps_by_longname:
+                    pos = lname.find(rc)
+                    if pos>-1: # Check that it is not part of word
+                        if (pos==0) and (lname[len(rc)] == ' '):
+                            app_id = self.apps_by_longname[lname]
+                            print "Opened window matched with gio app on longname:", rc
+                            break
+                        elif (pos+len(rc) == len(lname)) and (lname[pos-1] == ' '):
+                            app_id = self.apps_by_longname[lname]
+                            print "Opened window matched with gio app on longname:", rc
+                            break
+                        elif (lname[pos-1] == ' ') and (lname[pos+len(rc)] == ' '):
+                            app_id = self.apps_by_longname[lname]
+                            print "Opened window matched with gio app on longname:", rc
+                            break
+            if not app_id:
+                if rc.find(' ')>-1:
+                    rc = rc.partition(' ')[0] # Cut all before space
+                    print " trying to find as",rc
+                    # Workaround for apps
+                    # with res_class like this 'App 1.2.3' (name with ver)
+                    ### keys()
+                    if rc in self.apps_by_id.keys():
+                        app_id = rc
+                        print " found in apps id list as",rc
+                    elif rc in self.apps_by_name.keys():
+                        app_id = self.apps_by_name[rc]
+                        print " found in apps name list as",rc
+                    elif rc in self.apps_by_exec.keys():
+                        app_id = self.apps_by_exec[rc]
+                        print " found in apps exec list as",rc
+            if app_id:
+                app = self.apps_by_id[app_id]
+        return app
 
     #### Launchers
     def add_launcher(self, res_class, path):
