@@ -402,6 +402,14 @@ class IconFactory():
         self.dockbar = None
         self.theme = None
 
+    def remove_launcher(self, class_group = None, app = None):
+        self.launcher = None
+        self.class_group = class_group
+        self.app = app
+        self.pixbufs = {}
+        self.pixbuf = None
+
+
     def set_size(self, size):
         # Sets the icon size to size - 2 (to make room for a glow
         # around the icon), loads the icon in that size
@@ -3036,8 +3044,13 @@ class GroupButton (gobject.GObject):
         else:
             self.dockbar.groups.remove_launcher(name)
             if self.app == None:
+                # The launcher is not of gio-app type.
+                # The group button will be reset with its
+                # non-launcher name and icon.
                 self.app = self.dockbar.find_gio_app(self.res_class)
-            self.update_name()
+                self.icon_factory.remove_launcher(class_group=self.class_group, app = self.app)
+                self.update_name()
+                self.update_state()
         self.dockbar.save_launchers_persistentlist()
 
     def action_minimize_all_other_groups(self, widget, event):
