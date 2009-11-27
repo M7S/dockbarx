@@ -31,10 +31,7 @@ import gnomeapplet
 import gnome
 import gconf
 import os
-import pickle
 from xdg.DesktopEntry import DesktopEntry
-import gnome.ui
-import gnomevfs
 import dbus
 import pango
 from cStringIO import StringIO
@@ -43,7 +40,7 @@ from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from math import pi
 import cairo
-import time
+from time import time
 
 try:
     import gio
@@ -1068,59 +1065,6 @@ class CairoPopup():
         self.vbox = None
 
 
-class PersistentList():
-    """This class handels a list stored in a file with pickle"""
-    @staticmethod
-    def create_new_list_with(file, list_):
-        try:
-            fd = open(file, "wb")
-        except IOError:
-            raise Exception("Can't open file for writing!")
-        else:
-            pickle.dump(list_, fd)
-            fd.close()
-
-    def __init__(self, path_to_list):
-        if not os.path.exists(path_to_list):
-            self.create_new(path_to_list)
-
-        if not os.path.isfile(path_to_list):
-            raise Exception("Path '"+ path_to_list +"' is not a file!")
-
-        self.path_to_list = path_to_list
-
-    def create_new(self, path_to_list):
-        try:
-            file = open(path_to_list, "wb")
-        except IOError:
-            raise Exception("Can't open file for writing!")
-        else:
-            pickle.dump([], file)
-            file.close()
-
-    def read_list(self):
-        list_ = []
-        try:
-            file = open(self.path_to_list, "rb")
-        except IOError:
-            raise Exception("Can't open file for reading!")
-        else:
-            list_ = pickle.load(file)
-            file.close()
-        return list_
-
-    def write_list(self, list_):
-        if not isinstance(list_, list):
-            raise Exception("Given object is not a list!")
-        try:
-            file = open(self.path_to_list, "wb")
-        except IOError:
-            raise Exception("Can't open file for writing!")
-        else:
-            pickle.dump(list_, file)
-            file.close()
-
-
 class Launcher():
     def __init__(self, res_class, path, dockbar=None):
         self.res_class = res_class
@@ -1178,16 +1122,16 @@ class Launcher():
 
     def launch(self):
         if self.lastlaunch != None:
-            if time.time() - self.lastlaunch < 2:
+            if time() - self.lastlaunch < 2:
                 return
         if self.app:
             print "Executing", self.app.get_name()
-            self.lastlaunch = time.time()
+            self.lastlaunch = time()
             return self.app.launch(None, None)
         else:
             print 'Executing ' + self.desktop_entry.getExec()
             self.execute(self.desktop_entry.getExec())
-            self.lastlaunch = time.time()
+            self.lastlaunch = time()
 
     def remove_args(self, stringToExecute):
         specials = ["%f","%F","%u","%U","%d","%D","%n","%N","%i","%c","%k","%v","%m","%M", "-caption","--view", "\"%c\""]
@@ -1656,16 +1600,16 @@ class WindowButton():
         return False
 
     #### D'n'D
-    def on_button_drag_motion(self, widget, drag_context, x, y, time):
+    def on_button_drag_motion(self, widget, drag_context, x, y, t):
         if not self.button_drag_entered:
             self.window_button.drag_highlight()
             self.button_drag_entered = True
             self.dnd_select_window = \
                 gobject.timeout_add(600,self.action_select_window)
-        drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, time)
+        drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
         return True
 
-    def on_button_drag_leave(self, widget, drag_context, time):
+    def on_button_drag_leave(self, widget, drag_context, t):
         self.button_drag_entered = False
         gobject.source_remove(self.dnd_select_window)
         self.window_button.drag_unhighlight()
@@ -2449,17 +2393,17 @@ class GroupButton (gobject.GObject):
         # not the other way around.
         gobject.timeout_add(30, self.button.show)
 
-    def on_drag_drop(self, wid, drag_context, x, y, time):
+    def on_drag_drop(self, wid, drag_context, x, y, t):
         for target in ('text/groupbutton_name', 'text/uri-list'):
             if target in drag_context.targets:
-                self.button.drag_get_data(drag_context, target, time)
-                drag_context.finish(True, False, time)
+                self.button.drag_get_data(drag_context, target, t)
+                drag_context.finish(True, False, t)
                 break
         else:
-            drag_context.finish(False, False, time)
+            drag_context.finish(False, False, t)
         return True
 
-    def on_drag_data_received(self, wid, context, x, y, selection, targetType, time):
+    def on_drag_data_received(self, wid, context, x, y, selection, targetType, t):
         if self.res_class:
             name = self.res_class
         else:
@@ -2474,7 +2418,7 @@ class GroupButton (gobject.GObject):
             print path
             self.dockbar.make_new_launcher(path, name)
 
-    def on_button_drag_motion(self, widget, drag_context, x, y, time):
+    def on_button_drag_motion(self, widget, drag_context, x, y, t):
         if not self.button_drag_entered:
             self.button_drag_entered = True
             self.dnd_show_popup = gobject.timeout_add(settings['popup_delay'], self.show_list)
@@ -2484,14 +2428,14 @@ class GroupButton (gobject.GObject):
                     self.dnd_highlight = True
                     self.update_state()
         if 'text/groupbutton_name' in drag_context.targets:
-            drag_context.drag_status(gtk.gdk.ACTION_MOVE, time)
+            drag_context.drag_status(gtk.gdk.ACTION_MOVE, t)
         elif 'text/uri-list' in drag_context.targets:
-            drag_context.drag_status(gtk.gdk.ACTION_COPY, time)
+            drag_context.drag_status(gtk.gdk.ACTION_COPY, t)
         else:
-            drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, time)
+            drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
         return True
 
-    def on_button_drag_leave(self, widget, drag_context, time):
+    def on_button_drag_leave(self, widget, drag_context, t):
         self.dnd_highlight = False
         self.button_drag_entered = False
         self.update_state()
@@ -2505,11 +2449,11 @@ class GroupButton (gobject.GObject):
             # the drop is completed.
             gobject.timeout_add(20, self.button.hide)
 
-    def on_popup_drag_motion(self, widget, drag_context, x, y, time):
-        drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, time)
+    def on_popup_drag_motion(self, widget, drag_context, x, y, t):
+        drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
         return True
 
-    def on_popup_drag_leave(self, widget, drag_context, time):
+    def on_popup_drag_leave(self, widget, drag_context, t):
         self.hide_list_request()
 ##        # Just as fail-safe
 ##        self.dnd_highlight = False
@@ -2667,7 +2611,7 @@ class GroupButton (gobject.GObject):
         path = "gio:" + self.app.get_id()[:self.app.get_id().rfind('.')].lower()
         self.launcher = Launcher(self.res_class, path, self.dockbar)
         self.dockbar.groups.set_launcher_path(self.res_class, path)
-        self.dockbar.save_launchers_persistentlist()
+        self.dockbar.update_launchers_list()
 
     #### Actions
     def action_select(self, widget, event):
@@ -2897,7 +2841,7 @@ class GroupButton (gobject.GObject):
     def action_select_next(self, widget=None, event=None, previous=False):
         if not self.windows:
             return
-        if self.nextlist_time == None or time.time() - self.nextlist_time > 2 \
+        if self.nextlist_time == None or time() - self.nextlist_time > 2 \
         or self.nextlist == None:
             self.nextlist = []
             minimized_list = []
@@ -2913,7 +2857,7 @@ class GroupButton (gobject.GObject):
             self.nextlist.reverse()
             # Add minimized windows last.
             self.nextlist.extend(minimized_list)
-        self.nextlist_time = time.time()
+        self.nextlist_time = time()
 
         if previous:
             win = self.nextlist.pop(-1)
@@ -3043,7 +2987,7 @@ class GroupButton (gobject.GObject):
                 self.icon_factory.remove_launcher(class_group=self.class_group, app = self.app)
                 self.update_name()
                 self.update_state()
-        self.dockbar.save_launchers_persistentlist()
+        self.dockbar.update_launchers_list()
 
     def action_minimize_all_other_groups(self, widget, event):
         self.hide_list()
@@ -3835,7 +3779,6 @@ class DockBar(gobject.GObject):
         self.groups = GroupList()
         self.windows = {}
         self.apps_by_id = {}
-        self.launchers = {}
         #--- Generate Gio apps
         self.apps_by_id = {}
         self.apps_by_exec={}
@@ -3897,12 +3840,17 @@ class DockBar(gobject.GObject):
         self.launchers_by_longname={}
 
         # Get list of launchers
-        self.launchers_persistentlist = PersistentList(self.dockbar_folder + "/launchers.list")
-        self.launchers = self.launchers_persistentlist.read_list()
-
+        gconf_launchers = []
+        try:
+            gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING)
+        except:
+            GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
         # Initiate launcher group buttons
-        for (launcher, res_class) in self.launchers:
-            self.add_launcher(launcher, res_class)
+        for launcher in gconf_launchers:
+            res_class, path = launcher.split(';')
+            if res_class == '':
+                res_class = None
+            self.add_launcher(res_class, path)
 
         #--- Initiate windows
         # Initiate group buttons with windows
@@ -4120,7 +4068,7 @@ class DockBar(gobject.GObject):
                     path = self.launchers_by_id[id].get_path()
                     self.groups.set_res_class(path, class_group_name)
                     self.groups[class_group_name].add_window(window)
-                    self.save_launchers_persistentlist()
+                    self.update_launchers_list()
                     self.remove_launcher_id_from_undefined_list(id)
                 else:
                     # First window of a new group.
@@ -4322,7 +4270,7 @@ class DockBar(gobject.GObject):
             index = self.groups.get_index(calling_button) + 1
         button = GroupButton(self, class_group=class_group, launcher=launcher, index=index)
         self.groups.add_group(res_class, button, path, index)
-        self.save_launchers_persistentlist()
+        self.update_launchers_list()
         for window in winlist:
             self.on_window_opened(self.screen, window)
         return True
@@ -4394,7 +4342,7 @@ class DockBar(gobject.GObject):
         for group in repack_list:
             self.container.pack_start(group.button, False)
         self.groups.add_group(name, move_group, move_path, index)
-        self.save_launchers_persistentlist()
+        self.update_launchers_list()
 
     def change_res_class(self, path, res_class=None):
         res_class = self.class_name_dialog(res_class)
@@ -4413,10 +4361,15 @@ class DockBar(gobject.GObject):
         for window in winlist:
             self.on_window_opened(self.screen, window)
 
-    def save_launchers_persistentlist(self):
-        # Writes the list of launchers to hard drive.
-        list_ = self.groups.get_launchers_list()
-        self.launchers_persistentlist.write_list(list_)
+    def update_launchers_list(self):
+        # Saves launchers_list to gconf.
+        launchers_list = self.groups.get_launchers_list()
+        gconf_launchers = []
+        for res_class, path in launchers_list:
+            if res_class == None:
+                res_class = ''
+            gconf_launchers.append(res_class + ';' + path)
+        GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
 
     def remove_launcher_id_from_undefined_list(self, id):
         self.launchers_by_id.pop(id)
