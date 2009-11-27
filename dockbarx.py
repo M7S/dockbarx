@@ -1193,21 +1193,13 @@ class Launcher():
         specials = ["%f","%F","%u","%U","%d","%D","%n","%N","%i","%c","%k","%v","%m","%M", "-caption","--view", "\"%c\""]
         return [element for element in stringToExecute.split() if element not in specials]
 
-    def execute(self, command, run_in_terminal=False, use_xdg_open=False):
+    def execute(self, command):
         command = self.remove_args(command)
-        os.chdir(os.path.expanduser("~"))
-        if run_in_terminal == True:
-            command.insert(0, '-x')
-            command.insert(0, 'gnome-terminal')
-            pid = os.spawnvp(os.P_NOWAIT, '/usr/bin/gnome-terminal', command)
+        if os.path.isdir(command[0]):
+            command = "xdg-open '" + " ".join(command) + "' &"
         else:
-            if use_xdg_open == True:
-                command.insert(0, 'xdg-open')
-            pid = os.fork()
-            if pid:
-                print command
-                os.spawnvp(os.P_NOWAIT,command[0], command)
-                os._exit(0)
+            command = "/bin/sh -c '" + " ".join(command) + "' &"
+        os.system(command)
 
 
 class GroupList():
