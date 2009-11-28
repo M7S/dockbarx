@@ -35,7 +35,7 @@ from xdg.DesktopEntry import DesktopEntry
 import dbus
 import pango
 from cStringIO import StringIO
-import tarfile
+from tarfile import open as taropen
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from math import pi
@@ -269,7 +269,7 @@ class Theme():
     @staticmethod
     def check(path_to_tar):
         #TODO: Optimize this
-        tar = tarfile.open(path_to_tar)
+        tar = taropen(path_to_tar)
         config = tar.extractfile('config')
         parser = make_parser()
         theme_handler = ThemeHandler()
@@ -281,7 +281,7 @@ class Theme():
         return theme_handler.get_name()
 
     def __init__(self, path_to_tar):
-        tar = tarfile.open(path_to_tar)
+        tar = taropen(path_to_tar)
         config = tar.extractfile('config')
 
         parser = make_parser()
@@ -4286,7 +4286,7 @@ class DockBar(gobject.GObject):
         dialog.set_title('Resource Class')
         dialog.set_markup('<b>Enter the resource class name here</b>')
         dialog.format_secondary_markup(
-            'You should have to do this only if the program fails with recognising its windows. '+ \
+            'You should have to do this only if the program fails to recognice its windows. '+ \
             'If the program is already running you should be able to find the resource class name of the program from the dropdown list.')
         #create the text input field
         #entry = gtk.Entry()
