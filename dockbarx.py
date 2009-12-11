@@ -1696,7 +1696,7 @@ class WindowButton():
             self.window.minimize()
 
     #### Actions
-    def action_select_or_minimize_window(self, widget=None, event=None, minimize=True):
+    def action_select_or_minimize_window(self, widget=None, event=None, minimize=True):es
         # The window is activated, unless it is already
         # activated, then it's minimized. Minimized
         # windows are unminimized. The workspace
@@ -3486,7 +3486,7 @@ class PrefDialog():
 
         model = self.select_workspace_cg.get_model()
         wso={
-             "ingore":"Ignore windows on other workspaces",
+             "ignore":"Ignore windows on other workspaces",
              "switch":"Switch workspace when needed",
              "move":"Move windows from other workspaces"
             }
@@ -3597,7 +3597,7 @@ class PrefDialog():
         if combobox == self.select_workspace_cg:
             value = combobox.get_active_text()
             wso={
-                 "Ignore windows on other workspaces":"ingore",
+                 "Ignore windows on other workspaces":"ignore",
                  "Switch workspace when needed":"switch",
                  "Move windows from other workspaces":"move"
                 }
