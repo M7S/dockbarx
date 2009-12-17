@@ -1696,7 +1696,7 @@ class WindowButton():
             self.window.minimize()
 
     #### Actions
-    def action_select_or_minimize_window(self, widget=None, event=None, minimize=True):es
+    def action_select_or_minimize_window(self, widget=None, event=None, minimize=True):
         # The window is activated, unless it is already
         # activated, then it's minimized. Minimized
         # windows are unminimized. The workspace
@@ -1778,9 +1778,9 @@ class WindowButton():
         lock_item = None
         if self.window.get_actions() & action_minimize \
         and not self.locked:
-            lock_item = gtk.MenuItem('Lock')
+            lock_item = gtk.MenuItem('_Lock')
         elif self.locked:
-            lock_item = gtk.MenuItem('Unlock')
+            lock_item = gtk.MenuItem('Un_lock')
         if lock_item:
             menu.append(lock_item)
             lock_item.connect("activate", self.action_lock_or_unlock_window)
@@ -1789,10 +1789,10 @@ class WindowButton():
         minimize_item = None
         if self.window.get_actions() & action_minimize \
         and not self.window.is_minimized():
-            minimize_item = gtk.MenuItem('Minimize')
+            minimize_item = gtk.MenuItem('_Minimize')
         elif self.window.get_actions() & action_unminimize \
         and self.window.is_minimized():
-            minimize_item = gtk.MenuItem('Unminimize')
+            minimize_item = gtk.MenuItem('Un_minimize')
         if minimize_item:
             menu.append(minimize_item)
             minimize_item.connect("activate", self.minimize_window)
@@ -1801,16 +1801,16 @@ class WindowButton():
         maximize_item = None
         if not self.window.is_maximized() \
         and self.window.get_actions() & action_maximize:
-            maximize_item = gtk.MenuItem('Maximize')
+            maximize_item = gtk.MenuItem('Ma_ximize')
         elif self.window.is_maximized() \
         and self.window.get_actions() & action_unminimize:
-            maximize_item = gtk.MenuItem('Unmaximize')
+            maximize_item = gtk.MenuItem('Unma_ximize')
         if maximize_item:
             menu.append(maximize_item)
             maximize_item.connect("activate", self.action_maximize_window)
             maximize_item.show()
         # Close
-        close_item = gtk.MenuItem('Close')
+        close_item = gtk.MenuItem('_Close')
         menu.append(close_item)
         close_item.connect("activate", self.action_close_window)
         close_item.show()
@@ -2906,13 +2906,13 @@ class GroupButton (gobject.GObject):
         menu.connect('selection-done', self.menu_closed)
         if self.app and not self.launcher:
             #Add launcher item
-            add_launcher_item = gtk.MenuItem('Pin application')
+            add_launcher_item = gtk.MenuItem('_Pin application')
             menu.append(add_launcher_item)
             add_launcher_item.connect("activate", self.add_launcher)
             add_launcher_item.show()
         if self.launcher or self.app:
             #Launch program item
-            launch_program_item = gtk.MenuItem('Launch application')
+            launch_program_item = gtk.MenuItem('_Launch application')
             menu.append(launch_program_item)
             launch_program_item.connect("activate", self.action_launch_application)
             launch_program_item.show()
@@ -2936,13 +2936,13 @@ class GroupButton (gobject.GObject):
         if self.windows:
             if len(self.windows) - self.minimized_windows_count == 0:
                 # Unminimize all
-                unminimize_all_windows_item = gtk.MenuItem('Unminimize all windows')
+                unminimize_all_windows_item = gtk.MenuItem('Un_minimize all windows')
                 menu.append(unminimize_all_windows_item)
                 unminimize_all_windows_item.connect("activate", self.unminimize_all_windows)
                 unminimize_all_windows_item.show()
             else:
                 # Minimize all
-                minimize_all_windows_item = gtk.MenuItem('Minimize all windows')
+                minimize_all_windows_item = gtk.MenuItem('_Minimize all windows')
                 menu.append(minimize_all_windows_item)
                 minimize_all_windows_item.connect("activate", self.action_minimize_all_windows)
                 minimize_all_windows_item.show()
@@ -2950,15 +2950,15 @@ class GroupButton (gobject.GObject):
             for window in self.windows:
                 if not window.is_maximized() \
                 and window.get_actions() & action_maximize:
-                    maximize_all_windows_item = gtk.MenuItem('Maximize all windows')
+                    maximize_all_windows_item = gtk.MenuItem('Ma_ximize all windows')
                     break
             else:
-                maximize_all_windows_item = gtk.MenuItem('Unmaximize all windows')
+                maximize_all_windows_item = gtk.MenuItem('Unma_ximize all windows')
             menu.append(maximize_all_windows_item)
             maximize_all_windows_item.connect("activate", self.action_maximize_all_windows)
             maximize_all_windows_item.show()
             # Close all
-            close_all_windows_item = gtk.MenuItem('Close all windows')
+            close_all_windows_item = gtk.MenuItem('_Close all windows')
             menu.append(close_all_windows_item)
             close_all_windows_item.connect("activate", self.action_close_all_windows)
             close_all_windows_item.show()
