@@ -2918,7 +2918,7 @@ class GroupButton (gobject.GObject):
             launch_program_item.show()
         if self.launcher:
             #Remove launcher item
-            remove_launcher_item = gtk.MenuItem('Remove launcher')
+            remove_launcher_item = gtk.MenuItem('Unpin application')
             menu.append(remove_launcher_item)
             remove_launcher_item.connect("activate", self.action_remove_launcher)
             remove_launcher_item.show()
