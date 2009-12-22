@@ -3990,7 +3990,7 @@ class DockBar(gobject.GObject):
             self.container = gtk.VBox()
             self.orient = "v"
         self.applet.add(self.container)
-        for group in self.groups.get_groups:
+        for group in self.groups.get_groups():
             self.container.pack_start(group.button,False)
         self.container.set_spacing(self.theme.get_gap())
         self.container.show_all()
