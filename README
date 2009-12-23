@@ -1,18 +1,15 @@
 ===========
 DESCRIPTION
 ===========
-This is a branch of DockBar (a TaskBar with grouping and group manipulation) with extra, "experimental" features added. 
-
-This is not really a fork of DockBar! It's just another branch of the program. Some of the features in this version will hopefully find it's way into the vanilla DockBar some day, when they are proven stable and useful.
+This is a branch - not a fork - of DockBar (a TaskBar with grouping and group manipulation) with some extra features added. 
 
 
 Dockbar is made by Aleksey Shaferov. 
 DockbarX branch is developed by Matias Särs.
 The button image used in "Default" and "New" themes are is made by Sami Rissanen (st6). 
-Dockbar and DockbarX is licensed under GPL3.
+"Human Bar" theme is made by bigRZA.
+Dockbar and DockbarX are licensed under GPL3.
 
-About the experimental-ness and stability of dockbarx:
-DockbarX is in some way an experimental version of dockbar. If you with stable mean "as bug free as possible", DockbarX will try to achieve that kind of stability. If you with stable mean that the program's default behavior will stay the same from a version to the next and that you won't have to relearn how to use parts of the program from an update to the next, then DockbarX isn't stable.
 
 
 =======
@@ -22,7 +19,7 @@ NOTE! IMPORTANT! From dockbarx x.0.23.1 dockbar uses folders /usr/share/dockbarx
 
 1. install python-gnome2-desktop and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt)
 $ sudo apt-get install python-gnome2-desktop python-numpy
-2. copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers
+2. copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers (64-bit users on mandriva and possibly other rpm-based distributions should use /usr/lib64 instead of /usr/lib)
 $ sudo cp dockbarx.py /usr/bin
 $ sudo cp GNOME_DockBarXApplet.server /usr/lib/bonobo/servers
 3. copy the content of themes folder to /usr/share/dockbarx/themes (for system wide installation, recommended) or ~/.dockbarx/themes (Create the folders if necessary)
@@ -35,6 +32,7 @@ $dockbarx.py run-in-window
 
 INSTALL IN AWN
 
+Note Dockbarx for awn works only with older versions of AWN!
 1. Do a normal install (no need to add dockbarx to panel if you don't want to, of course).
 2. Copy everything from the AWN folder to ~/.config/awn/applets
 3. Remove original taskbar/launcher applet from awn (optional, but recommended)
@@ -70,21 +68,27 @@ middle double click:
 - close group of windows
 
 right click:
--open 'menu'
+- open 'menu'
 
 scroll up/down: 
 - Select next/previous window of the group
 
 
+
 LAUNCHERS:
 Add launchers:
-To add launchers simply drag the launcher you want from your gnome menu to the DockBar. (That means that you should drop it ON an existing button, not to the right or left of them. If you drop the launcher to the right of the buttons you will drop it on the panel and not on the DockBar applet). Write in the resource class name of the application whose launcher you added in the entry dialog and press OK (if the program is already running you can choose the resource class name from the drop down list). The launcher will appear after (on the right side) of the button you dropped the launcher of.
+You can add launchers in two ways. 
+1) Drag a icon from gnome-menu and drop it on dockbarx (that means on an existing icon in dockbarx, otherwise you just make a normal panel launcher). 
+2) Right click on a group button and choose "pin application". (That option does only exist for applications which are correctly indentified by dockbarx. If it doesn't use the first method instead.)
+
+In versions previous to x.0.24.0 you had to enter the resource class name of the application when you added a launcher. This isn't necessary anymore since dockbarx is now guessing it. Dockbarx fails to guess in some circumstances, though. You notice this when the windows of a program opens a new group button instead of using the launcher button. To fix this you need to manually edit the resource class name by right clicking the launcher and choosing "Edit Resource name".
 
 Remove launcher:
-Right click on the launcher you wish to remove. Choose 'Remove launcher' from the menu. This will also close all open windows of that group button.
+Right click on the launcher you wish to remove. Choose 'Unpin application' from the menu. 
 
 Move launchers (and other group buttons):
 Drag and drop ;)
+
 
 
 WORKSPACE/VIEWPORT BEHAVIOR OPTIONS:
@@ -102,9 +106,16 @@ If you select a window in the popup list you will always switch to the workspace
 ===
 FAQ
 ===
-Q: Help!?! I want to add an launcher but I don't know the resource class name of the program.
-A1: The easiest way to add a launcher is to start the program first and then drag the launcher to to the DockBar. The resource class name can then be found in the drop down list.
-A2: You can also find the resolution class name by: 1) launching the program your usual way, 2) when the icon appears in DockBar, hower over it and 3) when the popup window is shown, hower over the popup window title. The resource class name will be shown as a tooltip.
+Q: I added a new launcher for program X but when I click on the launcher a new groupbutton is made for the window instead of using the groupbutton of the launcher. What went wrong?
+A: Dockbarx connects group buttons and windows by using the resource class name of the application. When a launcher is added dockbarx tries to guess the resource class name of that launcher. This works in most cases but not always. Apparently it didn't work for your program X. To fix this, right click on the launcher for program X and choose "Edit Resource name" and enter the correct resource name. If the program is already running you should be able to find it's resource class name in the drop-down list.
+
+Q: There is no menu option to pin program X, but there is one for program Y and Z. WTF?
+A: Dockbarx wasn't able to identify program X correctly then. You can "pin" the program by dragging it's icon from the gnome menu instead. Oh, and you will probably have to enter the resource name manually as well (see previous question).
+
+Q: I want to make a custom launcher. Is it possible?
+A: Yes, it is. There are two ways.
+1) You can change the launcher in gnome-menu (alt+F2 and type "alacarte"). Add the launcher by dragging it or - if it's an old launcher - right click Dockbarx's handle and choose "Update" for the changes to show. 
+2) Drag the launcher from gnome-menu to a folder. Right click it, choose preference and change what you want there. Drag the launcher to dockbarx. Don't delete the launcher from the folder! 
 
 Q: How do I get to preference dialog?
 A: Right click the handle (the dots or lines to the left of dockbarx) to get a menu where you can choose the preference option. Viola! Sometimes though, you have to double right click the handle to get the menu. Don't ask me why - just do it.
@@ -119,7 +130,7 @@ Q: How do I install a theme?
 A: If you find a theme on the web that you like, copy the file (should be SOMETHING.tar.gz) to ~/.dockbarx/themes or /usr/share/dockbarx/themes. You change themes in the appearance tab of preference dialog. You might need to press the reload button before your newly installed theme shows up.
 
 Q: How can I make an theme of my own?
-A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad.
+A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad. I'm happy to help theme developers as much as I can.
 
 
 

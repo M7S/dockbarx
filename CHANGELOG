@@ -1,10 +1,27 @@
 Changelog:
 
+x.0.24.0
+A new launcher system (inspried by Aleksey's elegant launcher system from vanilla dockbar):
+- When you add a launcher by dragging a application from gnome menu you no longer have to enter a resource class name, dockbarx guesses it.
+- If dockbarx isn't able to guess the resource class name of a launcher correctly a "right click" menu option "Edit resource name" is added so that you manually edit the resource class name. 
+- You can add launchers by pinning running applications via the "right click" menu (works for most applications, if the options are missing for an application you can still make a launcher by dragging the icon from gnome menu and manually edit the resource class name.)
+- The launchers information are now stored in gconf instead for in the file  ~/.dockbarx/launchers.list. This will hopefully be a bit more stable.
+- Some bugs in the launcher system are fixed. Some launchers that failed to be created or failed to launch it's application in previous versions should work now.
+
+Other features:
+- A new theme "Human Bar" by bigRZA is included. 
+- Dockbarx should now use slightly less memory (not that much though).
+- Keyboard shortcuts added for the "right click" menus.
+
+Bug fixes:
+- Dockbarx preference window crashed because of a stupid typo when using workspace mode 'ignore'.
+- Dockbarx was freezing when the orientation of the applet changed.
+
 x.0.23.2
 End users features:
 - Visual feedback on the numbers of open windows (if the theme supports it).
 - A new group button action "select" replaces "select group", "select or minimize group" and "select or compiz scale group". You can configure how the new action should act when one window of a program is open and how it should act when multiple windows are open from the properties dialog.
-- Option added: It is possible to not show popup window if there are just one window open . (Usefull in combination with compiz windows preview.)
+- Option added: It is possible to not show popup window if there are just one window open . (Useful in combination with compiz windows preview.)
 - Group button actions "compiz scale" and "compiz shift" will now just s
 elect the window if there are only one unminimized window of a program.
 - Groupbutton action 'select next' changed so that minimized windows are the last to be cycled through.
@@ -12,7 +29,7 @@ elect the window if there are only one unminimized window of a program.
 - "Default" and "New" themes updated to give feedback on multiple windows.
 
 Theme making features:
-- Posibility to add visual feedback on the numbers of windows.
+- Possibility to add visual feedback on the numbers of windows.
 - Offset argument added to <composite>
 - New command: <colorize>
 - Small bug fixes.
@@ -20,8 +37,8 @@ See Theming HOWTO for more information on the above changes.
 
 Bug fixes:
 - Dockbarx should work in intrepid and hardy again.
-- Some icons didn't show up in dockbarx in some circumstanses.
-- Group button menu where not accessable in the last version if all windows where minimized.
+- Some icons didn't show up in dockbarx in some circumstances.
+- Group button menu where not accessible in the last version if all windows where minimized.
 
 
 x.0.23.1
@@ -141,7 +158,7 @@ Experimental 0.21.0
 - Version number changed to follow vanilla Dockbar (nothing ported over from vanilla Dockbar since 0.21 was a bugfix release for bugs - unless I'm mistaken - shouldn't exist in DockbarX)
 - Minimized group icons are less transparent and has a slight notion of color in them
 - The transition between the "minimized" and the "normal" half of the group button when some windows in a group are minimized is now smoother.
-- The group button holding the active button "glows" now instead of using active_icon.png. (Tell me if the glow is a good idea or not. If it is I will add options for changing it's color and thickness from the preference dialog, othervice I will remove it and go back to using active_icon.)
+- The group button holding the active button "glows" now instead of using active_icon.png. (Tell me if the glow is a good idea or not. If it is I will add options for changing it's color and thickness from the preference dialog, otherwise I will remove it and go back to using active_icon.)
 
 Experimental 0.20.8
 - Resource class name is used instead of class name to keep groups together. Before this change DockBarX couldn't recognize that windows of some applications (like video window and control window for xine-ui) belonged together. Some applications (vlc amongst others) don't have a resource class name. These applications will still be using their class name.
