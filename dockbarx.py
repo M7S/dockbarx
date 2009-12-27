@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-#	Copyright 2008, Aleksey Shaferov
+#	Copyright 2008, 2009 Aleksey Shaferov and Matias Sars
 #
 #	DockBar is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -16,11 +16,6 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-# Exmperimental features by Matias Sars
-
-# Some code is borrowed from Ubuntu system panel (c) 2007 S. Chanderbally
-# (http://code.google.com/p/ubuntu-system-panel/)
-
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -28,7 +23,7 @@ import gobject
 import sys
 import wnck
 import gnomeapplet
-import gnome
+##import gnome
 import gconf
 import os
 from xdg.DesktopEntry import DesktopEntry
@@ -41,11 +36,8 @@ from xml.sax.handler import ContentHandler
 from math import pi
 import cairo
 from time import time
+import gio
 
-try:
-    import gio
-except:
-    pass
 
 
 ##import pdb
@@ -639,6 +631,8 @@ class IconFactory():
         pixbuf = None
         if self.class_group:
             name = self.class_group.get_res_class().lower()
+        else:
+            name = "" # Is this clever? Can there be a "" icon?
 
         if self.launcher:
             icon_name = self.launcher.get_icon_name()
@@ -677,7 +671,7 @@ class IconFactory():
             pixbuf = self.class_group.get_icon().copy()
         elif pixbuf == None:
             # If no pixbuf has been found (can only happen for an unlaunched
-            #launcher), make an empty pixbuf and show a warning.
+            # launcher), make an empty pixbuf and show a warning.
             if self.icontheme.has_icon('application-default-icon'):
                 pixbuf = self.icontheme.load_icon('application-default-icon',size,0)
             else:
@@ -3079,7 +3073,7 @@ class AboutDialog():
         self.about = gtk.AboutDialog()
         self.about.set_name("DockBarX Applet")
         self.about.set_version(VERSION)
-        self.about.set_copyright("Copyright (c) 2008-2009 Aleksey Shaferov (Experimental features by Matias S\xc3\xa4rs)")
+        self.about.set_copyright("Copyright (c) 2008-2009 Aleksey Shaferov and Matias S\xc3\xa4rs)")
         self.about.connect("response",self.about_close)
         self.about.show()
 
