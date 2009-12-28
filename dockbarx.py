@@ -4006,69 +4006,72 @@ class DockBar(gobject.GObject):
                 window_button.set_button_active(True)
 
     def on_window_opened(self,screen,window):
-        if not window.is_skip_tasklist() and (window.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
-            class_group = window.get_class_group()
-            class_group_name = class_group.get_res_class()
-            if class_group_name == "":
-                class_group_name = class_group.get_name()
-            self.windows[window]=class_group_name
-            if class_group_name in self.groups.get_res_classes():
-                self.groups[class_group_name].add_window(window)
+        if window.is_skip_tasklist() \
+        or not (window.get_window_type() in [wnck.WINDOW_NORMAL, wnck.WINDOW_DIALOG]):
+            return
+
+        class_group = window.get_class_group()
+        class_group_name = class_group.get_res_class()
+        if class_group_name == "":
+            class_group_name = class_group.get_name()
+        self.windows[window]=class_group_name
+        if class_group_name in self.groups.get_res_classes():
+            self.groups[class_group_name].add_window(window)
+            return
+        id = None
+        rc = u""+class_group_name.lower()
+        if rc != "":
+            if rc in self.launchers_by_id:
+                id = rc
+                print "Opened window matched with launcher on id:", rc
+            elif rc in self.launchers_by_name:
+                id = self.launchers_by_name[rc]
+                print "Opened window matched with launcher on name:", rc
+            elif rc in self.launchers_by_exec:
+                id = self.launchers_by_exec[rc]
+                print "Opened window matched with launcher on executable:", rc
             else:
-                id = None
-                rc = u""+class_group_name.lower()
-                if rc != "":
+                for lname in self.launchers_by_longname:
+                    pos = lname.find(rc)
+                    if pos>-1: # Check that it is not part of word
+                        if (pos==0) and (lname[len(rc)] == ' '):
+                            id = self.launchers_by_longname[lname]
+                            print "Opened window matched with launcher on long name:", rc
+                            break
+                        elif (pos+len(rc) == len(lname)) and (lname[pos-1] == ' '):
+                            id = self.launchers_by_longname[lname]
+                            print "Opened window matched with launcher on long name:", rc
+                            break
+                        elif (lname[pos-1] == ' ') and (lname[pos+len(rc)] == ' '):
+                            id = self.launchers_by_longname[lname]
+                            print "Opened window matched with launcher on long name:", rc
+                            break
+
+            if id == None and rc.find(' ')>-1:
+                    rc = rc.partition(' ')[0] # Cut all before space
+                    # Workaround for apps
+                    # with res_class like this 'App 1.2.3' (name with ver)
                     if rc in self.launchers_by_id:
                         id = rc
-                        print "Opened window matched with launcher on id:", rc
+                        print "Partial name for open window matched with id:", rc
                     elif rc in self.launchers_by_name:
                         id = self.launchers_by_name[rc]
-                        print "Opened window matched with launcher on name:", rc
+                        print "Partial name for open window matched with name:", rc
                     elif rc in self.launchers_by_exec:
                         id = self.launchers_by_exec[rc]
-                        print "Opened window matched with launcher on executable:", rc
-                    else:
-                        for lname in self.launchers_by_longname:
-                            pos = lname.find(rc)
-                            if pos>-1: # Check that it is not part of word
-                                if (pos==0) and (lname[len(rc)] == ' '):
-                                    id = self.launchers_by_longname[lname]
-                                    print "Opened window matched with launcher on long name:", rc
-                                    break
-                                elif (pos+len(rc) == len(lname)) and (lname[pos-1] == ' '):
-                                    id = self.launchers_by_longname[lname]
-                                    print "Opened window matched with launcher on long name:", rc
-                                    break
-                                elif (lname[pos-1] == ' ') and (lname[pos+len(rc)] == ' '):
-                                    id = self.launchers_by_longname[lname]
-                                    print "Opened window matched with launcher on long name:", rc
-                                    break
-
-                    if id == None and rc.find(' ')>-1:
-                            rc = rc.partition(' ')[0] # Cut all before space
-                            # Workaround for apps
-                            # with res_class like this 'App 1.2.3' (name with ver)
-                            if rc in self.launchers_by_id:
-                                id = rc
-                                print "Partial name for open window matched with id:", rc
-                            elif rc in self.launchers_by_name:
-                                id = self.launchers_by_name[rc]
-                                print "Partial name for open window matched with name:", rc
-                            elif rc in self.launchers_by_exec:
-                                id = self.launchers_by_exec[rc]
-                                print "Partial name for open window matched with executable:", rc
-                if id:
-                    # The window is matching a launcher!
-                    path = self.launchers_by_id[id].get_path()
-                    self.groups.set_res_class(path, class_group_name)
-                    self.groups[class_group_name].add_window(window)
-                    self.update_launchers_list()
-                    self.remove_launcher_id_from_undefined_list(id)
-                else:
-                    # First window of a new group.
-                    app = self.find_gio_app(class_group_name)
-                    self.groups[class_group_name] = GroupButton(self,class_group, app=app)
-                    self.groups[class_group_name].add_window(window)
+                        print "Partial name for open window matched with executable:", rc
+        if id:
+            # The window is matching a launcher!
+            path = self.launchers_by_id[id].get_path()
+            self.groups.set_res_class(path, class_group_name)
+            self.groups[class_group_name].add_window(window)
+            self.update_launchers_list()
+            self.remove_launcher_id_from_undefined_list(id)
+        else:
+            # First window of a new group.
+            app = self.find_gio_app(class_group_name)
+            self.groups[class_group_name] = GroupButton(self,class_group, app=app)
+            self.groups[class_group_name].add_window(window)
 
 
     def on_window_closed(self,screen,window):
