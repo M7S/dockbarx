@@ -16,31 +16,113 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import gobject
-import sys
-import wnck
-import gnomeapplet
-##import gnome
-import gconf
-import os
-from xdg.DesktopEntry import DesktopEntry
-import dbus
-import pango
-from cStringIO import StringIO
-from tarfile import open as taropen
-from xml.sax import make_parser
-from xml.sax.handler import ContentHandler
-from math import pi
-import cairo
-from time import time
-import gio
 
+# A try to fix the random crashes on start-up
+from time import sleep
 
-
+try:
+    import pygtk
+except:
+    sleep(5)
+    import pygtk
+try:
+    pygtk.require('2.0')
+except:
+    sleep(5)
+    pygtk.require('2.0')
+try:
+    import gtk
+except:
+    sleep(5)
+    import gtk
+try:
+    import gobject
+except:
+    sleep(5)
+    import gobject
+try:
+    import sys
+except:
+    sleep(5)
+    import sys
+try:
+    import wnck
+except:
+    sleep(5)
+    import wnck
+try:
+    import gnomeapplet
+except:
+    sleep(5)
+    import gnomeapplet
+try:
+    import gconf
+except:
+    sleep(5)
+    import gconf
+try:
+    import os
+except:
+    sleep(5)
+    import os
+try:
+    from xdg.DesktopEntry import DesktopEntry
+except:
+    sleep(5)
+    from xdg.DesktopEntry import DesktopEntry
+try:
+    import dbus
+except:
+    sleep(5)
+    import dbus
+try:
+    import pango
+except:
+    sleep(5)
+    import pango
+try:
+    from cStringIO import StringIO
+except:
+    sleep(5)
+    from cStringIO import StringIO
+try:
+    from tarfile import open as taropen
+except:
+    sleep(5)
+    from tarfile import open as taropen
+try:
+    from xml.sax import make_parser
+except:
+    sleep(5)
+    from xml.sax import make_parser
+try:
+    from xml.sax.handler import ContentHandler
+except:
+    sleep(5)
+    from xml.sax.handler import ContentHandler
+try:
+    from math import pi
+except:
+    sleep(5)
+    from math import pi
+try:
+    import cairo
+except:
+    sleep(5)
+    import cairo
+try:
+    from time import time
+except:
+    sleep(5)
+    from time import time
+try:
+    import gio
+except:
+    sleep(5)
+    import gio
 ##import pdb
+
+
 VERSION = 'x.0.24.0'
 
 TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number, is it used anymore?
@@ -4345,6 +4427,7 @@ class DockBar(gobject.GObject):
         res_class = self.class_name_dialog(res_class)
         if not res_class:
             return False
+        winlist = []
         if res_class in self.groups.get_res_classes():
                 group = self.groups[res_class]
                 # Get the windows for repopulation of the new button
@@ -4357,6 +4440,7 @@ class DockBar(gobject.GObject):
         self.groups.set_res_class(path, res_class)
         for window in winlist:
             self.on_window_opened(self.screen, window)
+        self.update_launchers_list()
 
     def update_launchers_list(self):
         # Saves launchers_list to gconf.
