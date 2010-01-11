@@ -1200,6 +1200,7 @@ class Launcher():
         if self.lastlaunch != None:
             if time() - self.lastlaunch < 2:
                 return
+        os.chdir(os.path.expanduser('~'))
         if self.app:
             print "Executing", self.app.get_name()
             self.lastlaunch = time()
