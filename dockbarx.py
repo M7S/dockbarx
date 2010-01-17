@@ -4119,15 +4119,10 @@ class DockBar(gobject.GObject):
                 for lname in self.launchers_by_longname:
                     pos = lname.find(rc)
                     if pos>-1: # Check that it is not part of word
-                        if (pos==0) and (lname[len(rc)] == ' '):
-                            id = self.launchers_by_longname[lname]
-                            print "Opened window matched with launcher on long name:", rc
-                            break
-                        elif (pos+len(rc) == len(lname)) and (lname[pos-1] == ' '):
-                            id = self.launchers_by_longname[lname]
-                            print "Opened window matched with launcher on long name:", rc
-                            break
-                        elif (lname[pos-1] == ' ') and (lname[pos+len(rc)] == ' '):
+                        if rc == lname \
+                        or (pos==0 and lname[len(rc)] == ' ') \
+                        or (pos+len(rc) == len(lname) and lname[pos-1] == ' ') \
+                        or (lname[pos-1] == ' ' and lname[pos+len(rc)] == ' '):
                             id = self.launchers_by_longname[lname]
                             print "Opened window matched with launcher on long name:", rc
                             break
@@ -4185,15 +4180,10 @@ class DockBar(gobject.GObject):
                 for lname in self.apps_by_longname:
                     pos = lname.find(rc)
                     if pos>-1: # Check that it is not part of word
-                        if (pos==0) and (lname[len(rc)] == ' '):
-                            app_id = self.apps_by_longname[lname]
-                            print "Opened window matched with gio app on longname:", rc
-                            break
-                        elif (pos+len(rc) == len(lname)) and (lname[pos-1] == ' '):
-                            app_id = self.apps_by_longname[lname]
-                            print "Opened window matched with gio app on longname:", rc
-                            break
-                        elif (lname[pos-1] == ' ') and (lname[pos+len(rc)] == ' '):
+                        if rc == lname \
+                        or (pos==0 and lname[len(rc)] == ' ') \
+                        or (pos+len(rc) == len(lname) and lname[pos-1] == ' ') \
+                        or (lname[pos-1] == ' ' and lname[pos+len(rc)] == ' '):
                             app_id = self.apps_by_longname[lname]
                             print "Opened window matched with gio app on longname:", rc
                             break
