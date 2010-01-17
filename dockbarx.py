@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-#	Copyright 2008, 2009 Aleksey Shaferov and Matias Sars
+#	Copyright 2008, 2009, 2010 Aleksey Shaferov and Matias Sars
 #
 #	DockBar is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -351,7 +351,9 @@ class Theme():
             parser.setContentHandler(theme_handler)
             parser.parse(config)
         except:
+            tar.close()
             raise
+        tar.close()
         return theme_handler.get_name()
 
     def __init__(self, path_to_tar):
