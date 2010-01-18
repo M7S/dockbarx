@@ -441,15 +441,17 @@ class IconFactory():
     BLINK  = 1<<9
     # ACTIVE_WINDOW
     ACTIVE = 1<<10
+    LAUNCH_EFFECT = 1<<11
     # Double width/height icons for drag and drop situations.
-    DRAG_DROPP = 1<<11
+    DRAG_DROPP = 1<<12
     TYPE_DICT = {'some_minimized':SOME_MINIMIZED,
                  'all_minimized':ALL_MINIMIZED,
                  'launcher':LAUNCHER,
                  'mouse_over':MOUSE_OVER,
                  'needs_attention':NEEDS_ATTENTION,
                  'blink':BLINK,
-                 'active':ACTIVE}
+                 'active':ACTIVE,
+                 'launching':LAUNCH_EFFECT}
 
     def __init__(self, dockbar, class_group=None, launcher=None, app=None):
         self.dockbar = dockbar
@@ -1956,6 +1958,7 @@ class GroupButton (gobject.GObject):
         self.nextlist_time = None
         self.mouse_over = False
         self.opacified = False
+        self.launch_effect = False
         # Compiz sends out false mouse enter messages after button is pressed.
         # This works around that bug.
         self.button_pressed = False
@@ -2092,6 +2095,11 @@ class GroupButton (gobject.GObject):
             self.name = self.class_group.get_name().split(" - ", 1)[0]
         self.popup_label.set_label("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
 
+    def remove_launch_effect(self):
+        self.launch_effect = False
+        self.update_state()
+        return False
+
     #### State
     def update_popup_label(self):
         self.popup_label.set_text("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
@@ -2132,13 +2140,18 @@ class GroupButton (gobject.GObject):
         else:
             mouse_over = 0
 
+        if self.launch_effect:
+            launch_effect = IconFactory.LAUNCH_EFFECT
+        else:
+            launch_effect = 0
+
         if self.dnd_highlight:
             dd_effect = IconFactory.DRAG_DROPP
         else:
             dd_effect = 0
 
         win_nr = min(len(self.windows), 15)
-        self.state_type = icon_mode | icon_effect | icon_active | mouse_over| dd_effect | win_nr
+        self.state_type = icon_mode | icon_effect | icon_active | mouse_over | launch_effect | dd_effect | win_nr
         pixbuf = self.icon_factory.pixbuf_update(self.state_type)
         self.image.set_from_pixbuf(pixbuf)
         self.image.show()
@@ -2188,6 +2201,9 @@ class GroupButton (gobject.GObject):
             self.minimized_windows_count += 1
         if (self.launcher and len(self.windows)==1):
             self.class_group = window.get_class_group()
+        if self.launch_effect:
+            self.launch_effect = False
+            gobject.source_remove(self.launch_effect_timeout)
         # Update state unless the button hasn't been shown yet.
         self.update_state_request()
 
@@ -2695,7 +2711,7 @@ class GroupButton (gobject.GObject):
     #### Actions
     def action_select(self, widget, event):
         if (self.launcher and not self.windows):
-            self.launcher.launch()
+            self.action_launch_application()
         # One window
         elif len(self.windows) == 1:
             if settings["select_one_window"] == "select window":
@@ -2973,6 +2989,12 @@ class GroupButton (gobject.GObject):
             self.launcher.launch()
         elif self.app:
             self.app.launch(None, None)
+        else:
+            return
+        self.launch_effect = True
+        self.update_state()
+        self.launch_effect_timeout = gobject.timeout_add(5000, self.remove_launch_effect)
+
 
     def action_show_menu(self, widget, event):
         try:
