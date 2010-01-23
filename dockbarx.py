@@ -144,15 +144,6 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
 
-                      "active_glow_color": "#FFFF75",
-                      "active_glow_alpha": 160,
-                      "popup_color": "#333333",
-                      "popup_alpha": 205,
-
-                      "active_text_color": "#FFFF75",
-                      "minimized_text_color": "#9C9C9C",
-                      "normal_text_color": "#FFFFFF",
-
                       "opacify": False,
                       "opacify_group": False,
                       "opacify_alpha": 11,
@@ -180,6 +171,22 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "windowbutton_scroll_up": "shade window",
                       "windowbutton_scroll_down": "unshade window" }
 settings = DEFAULT_SETTINGS.copy()
+
+DEFAULT_COLORS={
+                      "color1": "#333333",
+                      "color1_alpha": 205,
+                      "color2": "#FFFFFF",
+                      "color3": "#FFFF75",
+                      "color4": "#9C9C9C",
+
+                      "color5": "#FFFF75",
+                      "color5_alpha": 160,
+                      "color6": "#000000",
+                      "color7": "#000000",
+                      "color8": "#000000",
+
+               }
+colors={}
 
 
 def compiz_call(obj_path, func_name, *args):
@@ -360,14 +367,17 @@ class Theme():
         tar = taropen(path_to_tar)
         config = tar.extractfile('config')
 
+        # Parse
         parser = make_parser()
         theme_handler = ThemeHandler()
         parser.setContentHandler(theme_handler)
         parser.parse(config)
         self.theme = theme_handler.get_dict()
-        self.name = theme_handler.get_name()
-##        self.print_dict(self.theme)
 
+        # Name
+        self.name = theme_handler.get_name()
+
+        # Pixmaps
         self.pixbufs = {}
         pixmaps = {}
         if self.theme.has_key('pixmaps'):
@@ -375,6 +385,34 @@ class Theme():
         for (type, d) in pixmaps.items():
             if type == 'pixmap_from_file':
                 self.pixbufs[d['name']] = self.load_pixbuf(tar, d['file'])
+
+        # Colors
+        self.color_names = {}
+        self.default_colors = {}
+        self.default_alphas = {}
+        colors = {}
+        if self.theme.has_key('colors'):
+            colors = self.theme['colors']['content']
+        for i in range(1, 9):
+            c = 'color%s'%i
+            if colors.has_key(c):
+                d = colors[c]
+                if d.has_key('name'):
+                    self.color_names[c] = d['name']
+                if d.has_key('default'):
+                    if self.test_color(d['default']):
+                        self.default_colors[c] = d['default']
+                    else:
+                        print 'Theme error: %s\'s default for theme %s cannot be read.'%(c, self.name)
+                        print 'A default color should start with an "#" and be followed by six hex-digits, ' + \
+                              'for example "#FF13A2".'
+                if d.has_key('opacity'):
+                    alpha = d['opacity']
+                    if self.test_alpha(alpha):
+                        self.default_alphas[c] = alpha
+                    else:
+                        print 'Theme error: %s\'s opacity for theme %s cannot be read.'%(c, self.name)
+                        print 'The opacity should be a number ("0"-"100") or the words "not used".'
 
         tar.close()
 
@@ -427,6 +465,35 @@ class Theme():
             ar = float(ar)
         return ar
 
+    def get_default_colors(self):
+        return self.default_colors
+
+    def get_default_alphas(self):
+        return self.default_alphas
+
+    def get_color_names(self):
+        return self.color_names
+
+    def test_color(self, color):
+        if len(color) != 7:
+            return False
+        try:
+            t = int(color[1:], 16)
+        except:
+            return False
+        return True
+
+    def test_alpha(self, alpha):
+        if 'no' in alpha:
+            return True
+        try:
+            t = int(alpha)
+        except:
+            return False
+        if t<0 or t>100:
+            return False
+        return True
+
 class IconFactory():
     """IconFactory takes care of finding the right icon pixbuf for a program and prepares the pixbuf."""
     icon_theme = gtk.icon_theme_get_default()
@@ -466,6 +533,8 @@ class IconFactory():
         self.pixbuf = None
         self.pixbufs = None
 
+        self.average_color = None
+
         self.max_win_nr = self.theme.get_windows_cnt()
 
     def __del__(self):
@@ -492,6 +561,7 @@ class IconFactory():
         # the right size when requested.
         self.size = size
         self.pixbufs = {}
+        self.average_color = None
 
     def reset_active_pixbufs(self):
         pixbufs = self.pixbufs.keys()
@@ -564,6 +634,72 @@ class IconFactory():
         # And put the pixbuf on the left/upper half of it.
         pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return background
+
+    def get_color(self, color):
+        if color == "active_color":
+            color = 'color5'
+        if color in ['color%s'%i for i in range(1, 9)]:
+            color = colors[color]
+        if color == "icon_average":
+            color = self.get_average_color()
+        else:
+            try:
+                if len(color) != 7:
+                    raise ValueError('The string has the wrong lenght')
+                t = int(color[1:], 16)
+            except:
+                print "Theme error: the color attribute for a theme command should be a six" + \
+                      " digit hex string eg. \"#FFFFFF\" or the a dockbarx color (\"color1\"-\"color8\")."
+                raise
+        return color
+
+    def get_alpha(self, alpha):
+        # Transparency
+        if alpha == "active_opacity":
+            alpha = "color5"
+
+        for i in range(1, 9):
+            if alpha in ('color%s'%i, 'opacity%s'%i):
+                if colors.has_key('color%s_alpha'%i):
+                    alpha = colors['color%s_alpha'%i]
+                else:
+                    print "Theme error: The theme has no opacity option for color%s."%i
+                    alpha = 255
+                break
+        else:
+            try:
+                alpha = int(int(alpha) * 2.55 + 0.4)
+                if alpha > 255 or alpha < 0:
+                    raise
+            except:
+                print "Theme error: The opacity attribute of a theme command should be a number" + \
+                      " between \"0\" and \"100\" or \"color1\" to \"color8\"."
+                alpha = 255
+        return alpha
+
+    def get_average_color(self):
+        if self.average_color != None:
+            return self.average_color
+        r = 0
+        b = 0
+        g = 0
+        i = 0
+        for row in self.pixbuf.get_pixels_array():
+            for pix in row:
+                if pix[3] > 30:
+                    i += 1
+                    r += pix[0]
+                    g += pix[1]
+                    b += pix[2]
+        if i > 0:
+            r = int(float(r) / i + 0.5)
+            g = int(float(g) / i + 0.5)
+            b = int(float(b) / i + 0.5)
+        r = ("0%s"%hex(r)[2:])[-2:]
+        g = ("0%s"%hex(g)[2:])[-2:]
+        b = ("0%s"%hex(b)[2:])[-2:]
+        self.average_color = "#"+r+g+b
+        return self.average_color
 
 
     #### Flow commands
@@ -823,19 +959,9 @@ class IconFactory():
         return pixbuf
 
     def command_fill(self, pixbuf, color, opacity=100):
-        if color == "active_color":
-            color = settings['active_glow_color']
-        if color[0]=="#":
-            color = color[1:]
-        try:
-            f = int(color,16)<<8
-        except ValueError:
-            print "Theme error: the color attribute for fill should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
-            raise
-        if opacity == "active_opacity":
-            opacity = settings['active_glow_alpha']
-        else:
-            opacity = int(int(opacity)*2.55 + 0.4)
+        color = self.get_color(color)
+        f = int(color[1:],16)<<8
+        opacity = self.get_alpha(opacity)
         f += opacity
         pixbuf.fill(f)
         return pixbuf
@@ -976,12 +1102,8 @@ class IconFactory():
         # Adds a glow around the parts of the pixbuf that isn't completely
         # transparent.
 
-
-        # Transparency
-        if opacity == "active_opacity":
-            alpha = settings['active_glow_alpha']
-        else:
-            alpha = int(int(opacity) * 2.55 + 0.2)
+        color = self.get_color(color)
+        opacity = self.get_alpha(opacity)
         # Thickness (pixels)
         tk = 2
 
@@ -995,7 +1117,7 @@ class IconFactory():
             colorpb.composite(glow, 0, 0, pixbuf.get_width(), pixbuf.get_height(), x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 170)
         for x, y in ((-tk,-tk), (-tk,tk), (tk,-tk), (tk,tk)):
             colorpb.composite(glow, 0, 0, pixbuf.get_width(), pixbuf.get_height(), x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 70)
-        glow.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, alpha)
+        glow.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, opacity)
         # Now add the pixbuf above the glow
         pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
         return bg
@@ -1005,15 +1127,10 @@ class IconFactory():
         # The pixels alpha values are unchanged.
 
         # Convert color hex-string (format '#FFFFFF')to int r, g, b
-        if color == "active_color":
-            color = settings['active_glow_color']
-        try:
-            r = int(color[1:3], 16)
-            g = int(color[3:5], 16)
-            b = int(color[5:7], 16)
-        except ValueError:
-            print "Theme error: the color attribute for glow command should be a six digit hex string eg. \"#FFFFFF\" or the name of a DockBarX color eg. \"active_color\"."
-            return pixbuf
+        color = self.get_color(color)
+        r = int(color[1:3], 16)
+        g = int(color[3:5], 16)
+        b = int(color[5:7], 16)
 
         pixbuf = pixbuf.copy()
         for row in pixbuf.get_pixels_array():
@@ -1110,12 +1227,12 @@ class CairoPopup():
         ctx.save()
         r = 6
         bg = 0.2
-        color = settings['popup_color']
+        color = colors['color1']
         red = float(int(color[1:3], 16))/255
         green = float(int(color[3:5], 16))/255
         blue = float(int(color[5:7], 16))/255
 
-        alpha= float(settings['popup_alpha']) / 255
+        alpha= float(colors['color1_alpha']) / 255
 
         ctx.move_to(0,r)
         ctx.arc(r, r, r, -pi, -pi/2)
@@ -1461,11 +1578,11 @@ class WindowButton():
         if self.needs_attention:
             attr_list.insert(pango.AttrStyle(pango.STYLE_ITALIC, 0, 50))
         if self.is_active_window:
-            color = settings['active_text_color']
+            color = colors['color3']
         elif self.window.is_minimized():
-            color = settings['minimized_text_color']
+            color = colors['color4']
         else:
-            color = settings['normal_text_color']
+            color = colors['color2']
         # color is a hex-string (like '#FFFFFF').
         r = int(color[1:3], 16)*256
         g = int(color[3:5], 16)*256
@@ -2093,7 +2210,7 @@ class GroupButton (gobject.GObject):
             # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
             # totally screwed up. So far no such program has been reported.
             self.name = self.class_group.get_name().split(" - ", 1)[0]
-        self.popup_label.set_label("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
+        self.popup_label.set_label("<span foreground='"+colors['color2']+"'><big><b>"+self.name+"</b></big></span>")
 
     def remove_launch_effect(self):
         self.launch_effect = False
@@ -2102,7 +2219,7 @@ class GroupButton (gobject.GObject):
 
     #### State
     def update_popup_label(self):
-        self.popup_label.set_text("<span foreground='"+settings['normal_text_color']+"'><big><b>"+self.name+"</b></big></span>")
+        self.popup_label.set_text("<span foreground='"+colors['color2']+"'><big><b>"+self.name+"</b></big></span>")
         self.popup_label.set_use_markup(True)
 
     def update_state(self):
@@ -3201,6 +3318,11 @@ class PrefDialog():
             PrefDialog.__instance.dialog.present()
             return
 
+
+        self.theme_colors = self.dockbar.theme.get_default_colors()
+        self.theme_alphas = self.dockbar.theme.get_default_alphas()
+
+
         PREFDIALOG = self
         self.dialog = gtk.Dialog("DockBarX preferences")
         self.dialog.connect("response",self.dialog_close)
@@ -3260,13 +3382,13 @@ class PrefDialog():
         label1.set_alignment(0,0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
-        self.rb1_1 = gtk.RadioButton(None, "Blinking")
-        self.rb1_1.connect("toggled", self.rb_toggled, "rb1_blink")
-        self.rb1_2 = gtk.RadioButton(self.rb1_1, "Compiz water")
-        self.rb1_2.connect("toggled", self.rb_toggled, "rb1_compwater")
-        self.rb1_3 = gtk.RadioButton(self.rb1_1, "Red background")
+        self.rb1_1 = gtk.RadioButton(None, "Compiz water")
+        self.rb1_1.connect("toggled", self.rb_toggled, "rb1_compwater")
+        self.rb1_2 = gtk.RadioButton(self.rb1_1, "Blinking")
+        self.rb1_2.connect("toggled", self.rb_toggled, "rb1_blink")
+        self.rb1_3 = gtk.RadioButton(self.rb1_1, "Static")
         self.rb1_3.connect("toggled", self.rb_toggled, "rb1_red")
-        self.rb1_4 = gtk.RadioButton(self.rb1_1, "Nothing")
+        self.rb1_4 = gtk.RadioButton(self.rb1_1, "No effect")
         self.rb1_4.connect("toggled", self.rb_toggled, "rb1_nothing")
         vbox.pack_start(self.rb1_1, False)
         vbox.pack_start(self.rb1_2, False)
@@ -3321,7 +3443,9 @@ class PrefDialog():
         label.set_alignment(1,0.5)
         themes = self.find_themes()
         self.theme_combo = gtk.combo_box_new_text()
-        for theme in themes.keys():
+        theme_names = themes.keys()
+        theme_names.sort()
+        for theme in theme_names:
                 self.theme_combo.append_text(theme)
         self.theme_combo.connect('changed', self.cb_changed)
         button = gtk.Button()
@@ -3337,38 +3461,42 @@ class PrefDialog():
         frame = gtk.Frame('Colors')
         frame.set_border_width(5)
         table = gtk.Table(True)
-        # A directory of combobox names and the name of corresponding setting
-        self.color_labels_and_settings = {'Active glow': "active_glow",
-                                          'Popup background': "popup",
-                                          'Active window text': "active_text",
-                                          'Minimized window text': "minimized_text",
-                                          'Normal text': "normal_text"}
-        # A list to ensure that the order is kept correct
-        color_labels = ['Active glow',
-                        'Popup background',
-                        'Active window text',
-                        'Minimized window text',
-                        'Normal text']
+
+        self.default_color_names = {
+            "color1": 'Popup background',
+            "color2": 'Normal text',
+            "color3": 'Active window text',
+            "color4": 'Minimized window text',
+            "color5": 'Active color',
+            "color6": 'Not used',
+            "color7": 'Not used',
+            "color8": 'Not used' }
+        color_names = self.dockbar.theme.get_color_names()
+        self.color_labels = {}
         self.color_buttons = {}
         self.clear_buttons = {}
-        for i in range(len(color_labels)):
-            text = color_labels[i]
-            label = gtk.Label(text)
-            label.set_alignment(1,0.5)
-            self.color_buttons[text] = gtk.ColorButton()
-            self.color_buttons[text].set_title(text)
-            self.color_buttons[text].connect("color-set",  self.color_set, text)
-            self.clear_buttons[text] = gtk.Button()
+        for i in range(0, 8):
+            c = "color%s"%(i+1)
+            if color_names.has_key(c):
+                text = color_names[c].capitalize()
+            else:
+                text = self.default_color_names[c]
+            self.color_labels[c] = gtk.Label(text)
+            self.color_labels[c].set_alignment(1,0.5)
+            self.color_buttons[c] = gtk.ColorButton()
+            self.color_buttons[c].set_title(text)
+            self.color_buttons[c].connect("color-set",  self.color_set, c)
+            self.clear_buttons[c] = gtk.Button()
             image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,gtk.ICON_SIZE_SMALL_TOOLBAR)
-            self.clear_buttons[text].add(image)
-            self.clear_buttons[text].connect("clicked", self.color_reset, text)
+            self.clear_buttons[c].add(image)
+            self.clear_buttons[c].connect("clicked", self.color_reset, c)
             # Every second label + combobox on a new row
             row = i // 2
             # Pack odd numbered comboboxes from 3rd column
             column = (i % 2)*3
-            table.attach(label, column, column + 1, row, row + 1, xoptions = gtk.FILL, xpadding = 5)
-            table.attach(self.color_buttons[text], column+1, column+2, row, row + 1)
-            table.attach(self.clear_buttons[text], column+2, column+3, row, row + 1, xoptions = gtk.FILL)
+            table.attach(self.color_labels[c], column, column + 1, row, row + 1, xoptions = gtk.FILL, xpadding = 5)
+            table.attach(self.color_buttons[c], column+1, column+2, row, row + 1)
+            table.attach(self.clear_buttons[c], column+2, column+3, row, row + 1, xoptions = gtk.FILL)
 
         table.set_border_width(5)
         frame.add(table)
@@ -3510,9 +3638,9 @@ class PrefDialog():
 
         # Attention notification
         settings_attention = settings["groupbutton_attention_notification_type"]
-        if settings_attention == 'blink':
+        if settings_attention == 'compwater':
             self.rb1_1.set_active(True)
-        elif settings_attention == 'compwater':
+        elif settings_attention == 'blink':
             self.rb1_2.set_active(True)
         elif settings_attention == 'red':
             self.rb1_3.set_active(True)
@@ -3564,13 +3692,28 @@ class PrefDialog():
         self.opacify_scale.set_sensitive(settings['opacify'])
 
         # Colors
-        for name, setting_base in self.color_labels_and_settings.items():
-            color = gtk.gdk.color_parse(settings[setting_base+'_color'])
-            self.color_buttons[name].set_color(color)
-            if settings.has_key(setting_base+"_alpha"):
-                alpha = settings[setting_base+"_alpha"] * 256
-                self.color_buttons[name].set_use_alpha(True)
-                self.color_buttons[name].set_alpha(alpha)
+        self.theme_colors = self.dockbar.theme.get_default_colors()
+        self.theme_alphas = self.dockbar.theme.get_default_alphas()
+
+        theme_name = self.dockbar.theme.get_name().replace(' ', '_').encode()
+        theme_name = theme_name.translate(None, '!?*()/#"@')
+        color_dir = GCONF_DIR + '/themes/' + theme_name
+        for i in range(1, 9):
+            c = 'color%s'%i
+            a = c+"_alpha"
+            color = gtk.gdk.color_parse(colors[c])
+            self.color_buttons[c].set_color(color)
+            #Alpha
+            if c in self.theme_alphas \
+            and "no" in self.theme_alphas[c]:
+                self.color_buttons[c].set_use_alpha(False)
+            elif c in self.theme_alphas \
+            or a in DEFAULT_COLORS:
+                alpha = colors[a] * 256
+                self.color_buttons[c].set_use_alpha(True)
+                self.color_buttons[c].set_alpha(alpha)
+            else:
+                self.color_buttons[c].set_use_alpha(False)
 
         #Select action
         model = self.select_one_cg.get_model()
@@ -3713,32 +3856,48 @@ class PrefDialog():
         if value != settings[setting]:
             GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting, value)
 
-    def color_set(self, button, text):
+    def color_set(self, button, c):
         # Read the value from color (and aplha) and write
         # it as 8-bit/channel hex string for gconf.
         # (Alpha is written like int (0-255).)
-        setting_base = self.color_labels_and_settings[text]
-        color_string = settings[setting_base+"_color"]
+        color_string = colors[c]
         color = button.get_color()
         cs = color.to_string()
         # cs has 16-bit per color, we want 8.
         new_color = cs[0:3] + cs[5:7] + cs[9:11]
+        theme_name = self.dockbar.theme.get_name().replace(' ', '_').encode()
+        theme_name = theme_name.translate(None, '!?*()/#"@')
+        color_dir = GCONF_DIR + '/themes/' + theme_name
         if new_color != color_string:
-            GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_base+"_color", new_color)
-        if settings.has_key(setting_base+"_alpha"):
-            alpha = settings[setting_base+"_alpha"]
+            GCONF_CLIENT.set_string(color_dir+'/'+c, new_color)
+        if button.get_use_alpha():
+            if colors.has_key(c+"_alpha"):
+                alpha = colors[c+"_alpha"]
+            else:
+                alpha = None
             new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
             if new_alpha != alpha:
-                GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting_base+"_alpha", new_alpha)
+                GCONF_CLIENT.set_int(color_dir+'/'+c+"_alpha", new_alpha)
 
-    def color_reset(self, button, text):
+    def color_reset(self, button, c):
         # Reset gconf color setting to default.
-        setting_base = self.color_labels_and_settings[text]
-        color_string = DEFAULT_SETTINGS[setting_base+"_color"]
-        GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_base+"_color", color_string)
-        if DEFAULT_SETTINGS.has_key(setting_base+"_alpha"):
-            alpha = DEFAULT_SETTINGS[setting_base+"_alpha"]
-            GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting_base+"_alpha", alpha)
+        if self.theme_colors.has_key(c):
+            color_string = self.theme_colors[c]
+        else:
+            color_string = DEFAULT_COLORS[c]
+        theme_name = self.dockbar.theme.get_name().replace(' ', '_').encode()
+        theme_name = theme_name.translate(None, '!?*()/#"@')
+        color_dir = GCONF_DIR + '/themes/' + theme_name
+        GCONF_CLIENT.set_string(color_dir+'/'+c, color_string)
+        if self.theme_alphas.has_key(c):
+            if 'no' in self.theme_alphas[c]:
+                return
+            alpha = int(int(self.theme_alphas[c]) * 2.55 + 0.4)
+        elif DEFAULT_COLORS.has_key(c+"_alpha"):
+            alpha = DEFAULT_COLORS[c+"_alpha"]
+        else:
+            return
+        GCONF_CLIENT.set_int(color_dir+'/'+c+"_alpha", alpha)
 
     def find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
@@ -3774,8 +3933,22 @@ class PrefDialog():
         return themes
 
     def reload_dockbar(self, button=None):
+
         if self.dockbar:
             self.dockbar.reload()
+        # Color labels
+        color_names = self.dockbar.theme.get_color_names()
+        for i in range(1, 9):
+            c = 'color%s'%i
+            if color_names.has_key(c):
+                text = color_names[c].capitalize()
+            else:
+                text = self.default_color_names[c]
+            self.color_labels[c].set_text(text)
+            self.color_buttons[c].set_title(text)
+
+        # The colors need an update when the theme has changed
+        self.update()
 
 
 class DockBar(gobject.GObject):
@@ -3927,6 +4100,37 @@ class DockBar(gobject.GObject):
                 path = self.themes.values()[0]
                 self.theme = Theme(path)
 
+        #--- Set colors
+        theme_colors = self.theme.get_default_colors()
+        theme_alphas = self.theme.get_default_alphas()
+        theme_name = self.theme.get_name().replace(' ', '_').encode()
+        theme_name = theme_name.translate(None, '!?*()/#"@')
+        color_dir = GCONF_DIR + '/themes/' + theme_name
+        for i in range(1, 9):
+            c = 'color%s'%i
+            a = 'color%s_alpha'%i
+            try:
+                colors[c] = GCONF_CLIENT.get_value(color_dir + '/' + c)
+            except:
+                if c in theme_colors:
+                    colors[c] = theme_colors[c]
+                else:
+                    colors[c] = DEFAULT_COLORS[c]
+                GCONF_CLIENT.set_string(color_dir + '/' + c , colors[c])
+            try:
+                colors[a] = GCONF_CLIENT.get_value(color_dir + '/' + a)
+            except:
+                if c in theme_alphas:
+                    if'no' in theme_alphas[c]:
+                        continue
+                    else:
+                        colors[a] = int(int(theme_alphas[c]) * 2.55 + 0.4)
+                elif a in DEFAULT_COLORS:
+                    colors[a] = DEFAULT_COLORS[a]
+                else:
+                    continue
+                GCONF_CLIENT.set_int(color_dir + '/' + a , colors[a])
+
         # Remove all old groupbuttons.
         for child in self.container.get_children():
             self.container.remove(child)
@@ -4005,7 +4209,8 @@ class DockBar(gobject.GObject):
 
     #### GConf
     def on_gconf_changed(self, client, par2, entry, par4):
-        global settings
+        if entry.get_value() == None:
+            return
         pref_update = False
         changed_settings = []
         entry_get = { str: entry.get_value().get_string,
@@ -4018,21 +4223,31 @@ class DockBar(gobject.GObject):
                 changed_settings.append(key)
                 settings[key] = entry_get[type(value)]()
                 pref_update = True
+
+        theme_name = self.theme.get_name().replace(' ', '_').encode()
+        theme_name = theme_name.translate(None, '!?*()/#"@')
+        for i in range(1, 9):
+            c = 'color%s'%i
+            a = 'color%s_alpha'%i
+            for k in (c, a):
+                if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR, theme_name, k):
+                    value = colors[k]
+                    if entry_get[type(value)]() != value:
+                        changed_settings.append(key)
+                        colors[k] = entry_get[type(value)]()
+                        pref_update = True
+
         if pref_update and PREFDIALOG:
             PREFDIALOG.update()
 
         #TODO: Add check for sane values for critical settings.
 
-        if 'active_glow_color' in changed_settings \
-           or 'active_glow_alpha'  in changed_settings:
-            self.reset_all_active_pixbufs()
-
-        if 'normal_text_color' in changed_settings:
+        if 'color2' in changed_settings:
             self.update_all_popup_labels()
 
         for key in changed_settings:
-            if 'text_color' in key:
-                self.all_windowbuttons_update_state()
+            if 'color' in key:
+                self.all_windowbuttons_update_label_state()
                 break
 
     def reset_all_active_pixbufs(self):
