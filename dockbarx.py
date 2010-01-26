@@ -555,10 +555,6 @@ class IconFactory():
 
 
     def set_size(self, size):
-        # Sets the icon size to size - 2 (to make room for a glow
-        # around the icon), loads the icon in that size
-        # and empties the pixbufs so that new pixbufs will be made in
-        # the right size when requested.
         self.size = size
         self.pixbufs = {}
         self.average_color = None
@@ -2089,10 +2085,7 @@ class GroupButton (gobject.GObject):
         self.icon_factory = IconFactory(self.dockbar, class_group, launcher, app)
         self.button = gtk.EventBox()
         self.button.set_visible_window(False)
-
-        hbox = gtk.HBox()
-        hbox.add(self.image)
-        self.button.add(hbox)
+        self.button.add(self.image)
         self.button.show_all()
         if index == None:
             self.dockbar.container.pack_start(self.button, False)
@@ -3110,7 +3103,7 @@ class GroupButton (gobject.GObject):
             return
         self.launch_effect = True
         self.update_state()
-        self.launch_effect_timeout = gobject.timeout_add(5000, self.remove_launch_effect)
+        self.launch_effect_timeout = gobject.timeout_add(10000, self.remove_launch_effect)
 
 
     def action_show_menu(self, widget, event):
@@ -3909,7 +3902,7 @@ class PrefDialog():
         theme_folder = homeFolder + "/.dockbarx/themes"
         dirs = ["/usr/share/dockbarx/themes", theme_folder]
         for dir in dirs:
-            if os.path.exists(dir):
+            if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
                     if f[-7:] == '.tar.gz':
                         theme_paths.append(dir+"/"+f)
@@ -3960,7 +3953,6 @@ class DockBar(gobject.GObject):
         global settings
         print "dockbar init"
         self.applet = applet
-        self.dockbar_folder = self.ensure_dockbar_folder()
         # self.dragging is used to tell functions wheter
         # a drag-and-drop is going on
         self.dragging = False
@@ -4164,25 +4156,17 @@ class DockBar(gobject.GObject):
 
         self.on_active_window_changed(self.screen, None)
 
-    def ensure_dockbar_folder(self):
-        # Check if ~/.dockbarx exist and make it if not.
-        homeFolder = os.path.expanduser("~")
-        dockbar_folder = homeFolder + "/.dockbarx"
-        if not os.path.exists(dockbar_folder):
-            os.mkdir(dockbar_folder)
-        if not os.path.isdir(dockbar_folder):
-            raise Exception(dockbar_folder + "is not a directory!")
-        return dockbar_folder
-
     def find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
         # and returns a dict of the theme names and paths so that
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/dockbarx/themes", self.dockbar_folder+"/themes"]
+        homeFolder = os.path.expanduser("~")
+        theme_folder = homeFolder + "/.dockbarx/themes"
+        dirs = ["/usr/share/dockbarx/themes", theme_folder]
         for dir in dirs:
-            if os.path.exists(dir):
+            if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
                     if f[-7:] == '.tar.gz':
                         theme_paths.append(dir+"/"+f)
@@ -4203,7 +4187,7 @@ class DockBar(gobject.GObject):
                 'No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
             md.run()
             md.destroy()
-##            raise Exception('No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
+            print 'No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"'
             sys.exit(1)
         return themes
 
