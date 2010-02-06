@@ -442,7 +442,7 @@ class Theme():
             return False
 
     def get_pixbuf(self, name):
-        return self.pixbufs[name]
+        return self.pixbufs[name].copy()
 
     def get_icon_dict(self):
         return self.theme['button_pixmap']['content']
@@ -797,7 +797,7 @@ class IconFactory():
             h = pixbuf.get_height()
         empty = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
         empty.fill(0x00000000)
-        self.temp[name]=empty
+        self.temp[name] = empty
         if content == None:
             return pixbuf
         for command,args in content.items():
@@ -968,7 +968,7 @@ class IconFactory():
         if pix1=="self":
             p1 = pixbuf
         elif pix1 in self.temp:
-            p1 = self.temp[pix1]
+            p1 = self.temp[pix1].copy()
         elif self.theme.has_pixbuf(pix1):
             bg = self.theme.get_pixbuf(pix1)
         else:
@@ -976,7 +976,7 @@ class IconFactory():
         if pix2=="self":
             p2 = pixbuf
         elif pix2 in self.temp:
-            p2 = self.temp[pix2]
+            p2 = self.temp[pix2].copy()
         elif self.theme.has_pixbuf(pix2):
             bg = self.theme.get_pixbuf(pix2)
         else:
@@ -1023,21 +1023,23 @@ class IconFactory():
         if fg=="self":
             fg = pixbuf
         elif fg in self.temp:
-            fg = self.temp[fg]
+            fg = self.temp[fg].copy()
         elif self.theme.has_pixbuf(fg):
             fg = self.theme.get_pixbuf(fg)
             fg = fg.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
         else:
             print "theme error: pixmap %s not found"%fg
+            return pixbuf
         if bg=="self":
             bg = pixbuf
         elif bg in self.temp:
-            bg = self.temp[bg]
+            bg = self.temp[bg].copy()
         elif self.theme.has_pixbuf(bg):
             bg = self.theme.get_pixbuf(bg)
             bg = bg.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
         else:
             print "theme error: pixmap %s not found"%bg
+            return pixbuf
         opacity = min(255, int(int(opacity)*2.55 + 0.5))
         xoffset = int(xoffset)
         yoffset = int(yoffset)
@@ -1152,7 +1154,7 @@ class IconFactory():
 
     def command_alpha_mask(self, pixbuf, mask):
         if mask in self.temp:
-            mask = self.temp[mask]
+            mask = self.temp[mask].copy()
         elif self.theme.has_pixbuf(mask):
             mask = self.theme.get_pixbuf(mask)
         mask = mask.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
@@ -1261,7 +1263,6 @@ class CairoPopup():
 class Launcher():
     def __init__(self, res_class, path, dockbar=None):
         self.res_class = res_class
-        self.lastlaunch = None
         self.path = path
         self.app = None
         if path[:4] == "gio:":
@@ -1314,18 +1315,14 @@ class Launcher():
         return exe
 
     def launch(self):
-        if self.lastlaunch != None:
-            if time() - self.lastlaunch < 2:
-                return
         os.chdir(os.path.expanduser('~'))
         if self.app:
             print "Executing", self.app.get_name()
-            self.lastlaunch = time()
+
             return self.app.launch(None, None)
         else:
             print 'Executing ' + self.desktop_entry.getExec()
             self.execute(self.desktop_entry.getExec())
-            self.lastlaunch = time()
 
     def remove_args(self, stringToExecute):
         specials = ["%f","%F","%u","%U","%d","%D","%n","%N","%i","%c","%k","%v","%m","%M", "-caption","--view", "\"%c\""]
@@ -2071,6 +2068,7 @@ class GroupButton (gobject.GObject):
         self.nextlist_time = None
         self.mouse_over = False
         self.opacified = False
+        self.lastlaunch = None
         self.launch_effect = False
         # Compiz sends out false mouse enter messages after button is pressed.
         # This works around that bug.
@@ -3095,15 +3093,22 @@ class GroupButton (gobject.GObject):
             window.close(t)
 
     def action_launch_application(self, widget=None, event=None):
+        if self.lastlaunch != None \
+        and time() - self.lastlaunch < 2:
+                return
         if self.launcher:
             self.launcher.launch()
         elif self.app:
             self.app.launch(None, None)
         else:
             return
+        self.lastlaunch = time()
         self.launch_effect = True
         self.update_state()
-        self.launch_effect_timeout = gobject.timeout_add(10000, self.remove_launch_effect)
+        if self.windows:
+            self.launch_effect_timeout = gobject.timeout_add(2000, self.remove_launch_effect)
+        else:
+            self.launch_effect_timeout = gobject.timeout_add(10000, self.remove_launch_effect)
 
 
     def action_show_menu(self, widget, event):
