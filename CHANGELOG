@@ -1,5 +1,26 @@
 Changelog:
 
+x.0.24.1
+End user features:
+- An effect on application launch is added (only if the theme supports it). It's static and will be shown from the time a dockbarx launcher is clicked until the window is shown (or in ten seconds max).
+- The custom colors are now saved separately for every theme. When you load a new theme for the first time the default colors for the theme will be loaded. If change any color it will only effect that theme. When you change back to the theme you used before the colors will change back as well.
+- More color options (see theme making features and theming howto for more info.)
+- The theme drop down in preference dialog shows the themes in alphabetical order.
+- Default theme is updated to support the launching effect and the new color options. New theme got that as well and some more. ;)
+- Theme Gaia (know as Gaia 09 by Izoblalax) is added and updated to support all the new dockbarx features.
+
+Theme making features:
+- Themable launching effect added. The command is <if type="launching">.
+- New custom color system. The themes can now set default colors, opacity values and the color name that will be shown in preference dialog.
+- There are now eight custom colors. The functions of color1 to color4 (popup window color and text colors) are hardcoded since the popup window isn't theme-able. Color5 is the color previously known as "attention glow". Color6 to color8 set to "not used" if the theme maker doesn't give them a name. 
+See theming HOWTO for more details.
+
+Bug fixes:
+- In some case dockbarx didn't start if launchers for some programs were added.
+- Dockbarx didn't save the changes if the resource class of a launcher were change manually.
+- Some programs like the terminal started in root folder "/" instead of in of the users home folder "~/" (Bug #500171)
+- Some windows didn't turn up in dockbarx (Bug 501820)
+
 x.0.24.0
 A new launcher system (inspried by Aleksey's elegant launcher system from vanilla dockbar):
 - When you add a launcher by dragging a application from gnome menu you no longer have to enter a resource class name, dockbarx guesses it.

@@ -17,7 +17,8 @@
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# A try to fix the random crashes on start-up
+
+# A try to fix the random crashes on start-up, no idea if it works.
 from time import sleep
 
 try:
@@ -123,7 +124,7 @@ except:
 ##import pdb
 
 
-VERSION = 'x.0.24.0'
+VERSION = 'x.0.24.1'
 
 TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number, is it used anymore?
 

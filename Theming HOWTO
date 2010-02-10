@@ -144,7 +144,16 @@ BUTTON_PIXMAP COMMANDS
 
 	"needs_attention"
 	Code within <if type="needs_attention"></if> blocks will be executed if the icon 
-	that is drawn is for a program that has a window that needs attention.
+	that is drawn is for a program that has a window that needs attention and dockbarx
+	is set to use the static antention.
+
+	"blink"
+	This one is identical to "needs_attention" except it is for the blinking attention.
+
+	"launching"
+	Code within <if type="launching"></if> blocks will be executed if the program is
+	launched from dockbarx and the window hasn't shown yet. Use it to make a launching
+	effect. ;p
 
 If a "!" is set before the type it means all but that type. For exmaple the code within a <if type="!mouse_over"></if> will be executed if the mouse cursor is over the group button for which the icon is drawn.
 
