@@ -3695,7 +3695,10 @@ class PrefDialog():
         self.theme_alphas = self.dockbar.theme.get_default_alphas()
 
         theme_name = self.dockbar.theme.get_name().replace(' ', '_').encode()
-        theme_name = theme_name.translate(None, '!?*()/#"@')
+        try:
+            theme_name = theme_name.translate(None, '!?*()/#"@')
+        except:
+            pass
         color_dir = GCONF_DIR + '/themes/' + theme_name
         for i in range(1, 9):
             c = 'color%s'%i
@@ -3865,7 +3868,10 @@ class PrefDialog():
         # cs has 16-bit per color, we want 8.
         new_color = cs[0:3] + cs[5:7] + cs[9:11]
         theme_name = self.dockbar.theme.get_name().replace(' ', '_').encode()
-        theme_name = theme_name.translate(None, '!?*()/#"@')
+        try:
+            theme_name = theme_name.translate(None, '!?*()/#"@')
+        except:
+            pass
         color_dir = GCONF_DIR + '/themes/' + theme_name
         if new_color != color_string:
             GCONF_CLIENT.set_string(color_dir+'/'+c, new_color)
@@ -3885,7 +3891,10 @@ class PrefDialog():
         else:
             color_string = DEFAULT_COLORS[c]
         theme_name = self.dockbar.theme.get_name().replace(' ', '_').encode()
-        theme_name = theme_name.translate(None, '!?*()/#"@')
+        try:
+            theme_name = theme_name.translate(None, '!?*()/#"@')
+        except:
+            pass
         color_dir = GCONF_DIR + '/themes/' + theme_name
         GCONF_CLIENT.set_string(color_dir+'/'+c, color_string)
         if self.theme_alphas.has_key(c):
@@ -4102,7 +4111,11 @@ class DockBar(gobject.GObject):
         theme_colors = self.theme.get_default_colors()
         theme_alphas = self.theme.get_default_alphas()
         theme_name = self.theme.get_name().replace(' ', '_').encode()
-        theme_name = theme_name.translate(None, '!?*()/#"@')
+        try:
+            theme_name = theme_name.translate(None, '!?*()/#"@')
+        except:
+            # Todo: better error handling here.
+            pass
         color_dir = GCONF_DIR + '/themes/' + theme_name
         for i in range(1, 9):
             c = 'color%s'%i
@@ -4215,7 +4228,10 @@ class DockBar(gobject.GObject):
                 pref_update = True
 
         theme_name = self.theme.get_name().replace(' ', '_').encode()
-        theme_name = theme_name.translate(None, '!?*()/#"@')
+        try:
+            theme_name = theme_name.translate(None, '!?*()/#"@')
+        except:
+            pass
         for i in range(1, 9):
             c = 'color%s'%i
             a = 'color%s_alpha'%i
