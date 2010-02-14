@@ -1,5 +1,8 @@
 Changelog:
 
+x.0.24.1-1
+DockbarX is compatible with python 2.5 (Ubuntu 8.10) again.
+
 x.0.24.1
 End user features:
 - An effect on application launch is added (only if the theme supports it). It's static and will be shown from the time a dockbarx launcher is clicked until the window is shown (or in ten seconds max).
