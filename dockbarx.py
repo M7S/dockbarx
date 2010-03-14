@@ -121,13 +121,14 @@ try:
 except:
     sleep(5)
     import gio
-##import pdb
+
 
 import Image
 import array
 
 import gc
 gc.enable()
+
 
 
 VERSION = 'x.0.24.1-1'
@@ -543,7 +544,6 @@ class IconFactory():
 
     def __init__(self, dockbar, class_group=None, launcher=None, app=None):
         self.dockbar = dockbar
-        self.theme = dockbar.theme
         self.app = app
         self.launcher = launcher
         if self.launcher and self.launcher.app:
@@ -558,16 +558,15 @@ class IconFactory():
 
         self.average_color = None
 
-        self.max_win_nr = self.theme.get_windows_cnt()
+        self.max_win_nr = self.dockbar.theme.get_windows_cnt()
 
     def remove(self):
-        self.app = None
-        self.launcher = None
-        self.class_group = None
+        del self.app
+        del self.launcher
+        del self.class_group
         del self.icon
-        self.surfaces = None
-        self.dockbar = None
-        self.theme = None
+        del self.surfaces
+        del self.dockbar
 
     def remove_launcher(self, class_group = None, app = None):
         self.launcher = None
@@ -602,8 +601,8 @@ class IconFactory():
         if type in self.surfaces:
             return self.surfaces[type]
         surface = None
-        commands = self.theme.get_icon_dict()
-        self.ar = self.theme.get_aspect_ratio()
+        commands = self.dockbar.theme.get_icon_dict()
+        self.ar = self.dockbar.theme.get_aspect_ratio()
         self.type = type
         for command, args in commands.items():
             try:
@@ -988,8 +987,8 @@ class IconFactory():
         else:
             width = surface.get_width()
             height = surface.get_height()
-        if self.theme.has_surface(name):
-            surface = self.resize_surface(self.theme.get_surface(name), width, height)
+        if self.dockbar.theme.has_surface(name):
+            surface = self.resize_surface(self.dockbar.theme.get_surface(name), width, height)
         else:
             print "theme error: pixmap %s not found"%name
         return surface
@@ -1016,20 +1015,20 @@ class IconFactory():
             p1 = surface
         elif pix1 in self.temp:
             p1 = self.temp[pix1]
-        elif self.theme.has_surface(pix1):
+        elif self.dockbar.theme.has_surface(pix1):
             w = surface.get_width()
             h = surface.get_height()
-            p1 = self.resize_surface(self.theme.get_surface(bg), w, h)
+            p1 = self.resize_surface(self.dockbar.theme.get_surface(bg), w, h)
         else:
             print "theme error: pixmap %s not found"%pix1
         if pix2=="self":
             p2 = surface
         elif pix2 in self.temp:
             p2 = self.temp[pix2]
-        elif self.theme.has_surface(pix2):
+        elif self.dockbar.theme.has_surface(pix2):
             w = surface.get_width()
             h = surface.get_height()
-            p2 = self.resize_surface(self.theme.get_surface(bg), w, h)
+            p2 = self.resize_surface(self.dockbar.theme.get_surface(bg), w, h)
         else:
             print "theme error: pixmap %s not found"%pix2
 
@@ -1085,10 +1084,10 @@ class IconFactory():
             foreground = surface
         elif fg in self.temp:
             foreground = self.temp[fg]
-        elif self.theme.has_surface(fg):
+        elif self.dockbar.theme.has_surface(fg):
             w = surface.get_width()
             h = surface.get_height()
-            foreground = self.resize_surface(self.theme.get_surface(fg), w, h)
+            foreground = self.resize_surface(self.dockbar.theme.get_surface(fg), w, h)
         else:
             print "theme error: pixmap %s not found"%fg
             return surface
@@ -1102,10 +1101,10 @@ class IconFactory():
             ctx = cairo.Context(background)
             ctx.set_source_surface(self.temp[bg])
             ctx.paint()
-        elif self.theme.has_surface(bg):
+        elif self.dockbar.theme.has_surface(bg):
             w = surface.get_width()
             h = surface.get_height()
-            background = self.resize_surface(self.theme.get_surface(bg), w, h)
+            background = self.resize_surface(self.dockbar.theme.get_surface(bg), w, h)
         else:
             print "theme error: pixmap %s not found"%bg
             return surface
@@ -1274,8 +1273,8 @@ class IconFactory():
     def command_alpha_mask(self, surface, mask):
         if mask in self.temp:
             mask = self.temp[mask]
-        elif self.theme.has_surface(mask):
-            m = self.surface2pixbuf(self.theme.get_surface(mask))
+        elif self.dockbar.theme.has_surface(mask):
+            m = self.surface2pixbuf(self.dockbar.theme.get_surface(mask))
             m = m.scale_simple(surface.get_width(), surface.get_height(), gtk.gdk.INTERP_BILINEAR)
             mask = self.pixbuf2surface(m)
         w = surface.get_width()
@@ -1646,6 +1645,15 @@ class GroupList():
                 namelist.append(t[2])
         return namelist
 
+    def get_group_identifiers(self):
+        namelist = []
+        for t in self.list:
+            if t[0] == None:
+                namelist.append(t[2])
+            else:
+                namelist.append(t[0])
+        return namelist
+
     def get_non_launcher_names(self):
         #Get a list of names of all buttons without launchers
         namelist = []
@@ -1806,9 +1814,10 @@ class WindowButton():
         del self.icon
         del self.icon_locked
         del self.icon_transp
-        del self.groupbutton
         del self.screen
         del self.window
+        del self.dockbar
+        del self.groupbutton
 
 
     #### Windows's Events
@@ -2569,7 +2578,6 @@ class GroupButton (gobject.GObject):
             self.popup.destroy()
             self.button.destroy()
             self.winlist.destroy()
-            self.dockbar.groups.remove(self.res_class) # Todo: move This
             del self.dockbar
         elif not self.windows and self.launcher and self.popup_showing:
             self.popup.resize(10,10)
@@ -3626,15 +3634,20 @@ class DockBar(gobject.GObject):
 
     def reload(self, event=None, data=None):
 ##        pdb.set_trace()
+        # Remove all old groupbuttons from container.
+        for child in self.container.get_children():
+            self.container.remove(child)
         if self.windows:
             # Removes windows and non-launcher group buttons
             for win in self.screen.get_windows():
                 self.on_window_closed(None, win)
         if self.groups != None:
             # Removes launcher group buttons
-            for group in self.groups.get_groups():
-                group.hide_list()
-                group.icon_factory.remove()
+            for name in self.groups.get_group_identifiers():
+                self.groups[name].hide_list()
+                self.groups[name].icon_factory.remove()
+                self.groups.remove(name)
+
         del self.groups
         del self.windows
         if self.theme:
@@ -3732,9 +3745,6 @@ class DockBar(gobject.GObject):
                 GCONF_CLIENT.set_int(color_dir + '/' + a , colors[a])
 
 ##        pdb.set_trace()
-        # Remove all old groupbuttons.
-        for child in self.container.get_children():
-            self.container.remove(child)
 
         self.container.set_spacing(self.theme.get_gap())
         self.container.show()
@@ -3758,6 +3768,7 @@ class DockBar(gobject.GObject):
         while gtk.events_pending():
             gtk.main_iteration(False)
 
+##        pdb.set_trace()
         # Initiate launcher group buttons
         for launcher in gconf_launchers:
             res_class, path = launcher.split(';')
@@ -4000,8 +4011,11 @@ class DockBar(gobject.GObject):
     def on_window_closed(self,screen,window):
         if window in self.windows:
             class_group_name = self.windows[window]
-            if self.groups.get_group(class_group_name):
-                self.groups.get_group(class_group_name).del_window(window)
+            group = self.groups[class_group_name]
+            if group:
+                group.del_window(window)
+                if not group.windows and not group.launcher:
+                    self.groups.remove(class_group_name)
             del self.windows[window]
 
     def find_gio_app(self, res_class):
