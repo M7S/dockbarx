@@ -121,7 +121,14 @@ try:
 except:
     sleep(5)
     import gio
-##import pdb
+
+
+import Image
+import array
+
+import gc
+gc.enable()
+
 
 
 VERSION = 'x.0.24.1-1'
@@ -358,8 +365,10 @@ class Theme():
             parser.setContentHandler(theme_handler)
             parser.parse(config)
         except:
+            config.close()
             tar.close()
             raise
+        config.close()
         tar.close()
         return theme_handler.get_name()
 
@@ -378,13 +387,13 @@ class Theme():
         self.name = theme_handler.get_name()
 
         # Pixmaps
-        self.pixbufs = {}
+        self.surfaces = {}
         pixmaps = {}
         if self.theme.has_key('pixmaps'):
             pixmaps = self.theme['pixmaps']['content']
         for (type, d) in pixmaps.items():
             if type == 'pixmap_from_file':
-                self.pixbufs[d['name']] = self.load_pixbuf(tar, d['file'])
+                self.surfaces[d['name']] = self.load_surface(tar, d['file'])
 
         # Colors
         self.color_names = {}
@@ -414,6 +423,7 @@ class Theme():
                         print 'Theme error: %s\'s opacity for theme %s cannot be read.'%(c, self.name)
                         print 'The opacity should be a number ("0"-"100") or the words "not used".'
 
+        config.close()
         tar.close()
 
     def print_dict(self, d, indent=""):
@@ -435,14 +445,20 @@ class Theme():
         pixbuf=pixbuf_loader.get_pixbuf()
         return pixbuf
 
-    def has_pixbuf(self, name):
-        if name in self.pixbufs:
+    def load_surface(self, tar, name):
+        f = tar.extractfile('pixmaps/'+name)
+        surface = cairo.ImageSurface.create_from_png(f)
+        f.close()
+        return surface
+
+    def has_surface(self, name):
+        if name in self.surfaces:
             return True
         else:
             return False
 
-    def get_pixbuf(self, name):
-        return self.pixbufs[name].copy()
+    def get_surface(self, name):
+        return self.surfaces[name]
 
     def get_icon_dict(self):
         return self.theme['button_pixmap']['content']
@@ -494,8 +510,14 @@ class Theme():
             return False
         return True
 
+    def remove(self):
+        del self.color_names
+        del self.default_colors
+        del self.default_alphas
+        del self.surfaces
+
 class IconFactory():
-    """IconFactory takes care of finding the right icon pixbuf for a program and prepares the pixbuf."""
+    """IconFactory takes care of finding the right icon for a program and prepares the cairo surface."""
     icon_theme = gtk.icon_theme_get_default()
     # Constants
     # Icon types
@@ -522,7 +544,6 @@ class IconFactory():
 
     def __init__(self, dockbar, class_group=None, launcher=None, app=None):
         self.dockbar = dockbar
-        self.theme = dockbar.theme
         self.app = app
         self.launcher = launcher
         if self.launcher and self.launcher.app:
@@ -530,53 +551,58 @@ class IconFactory():
             self.launcher = None
         self.class_group = class_group
 
-        self.pixbuf = None
-        self.pixbufs = None
+        self.size = 0
+
+        self.icon = None
+        self.surfaces = None
 
         self.average_color = None
 
-        self.max_win_nr = self.theme.get_windows_cnt()
+        self.max_win_nr = self.dockbar.theme.get_windows_cnt()
 
-    def __del__(self):
-        self.app = None
-        self.launcher = None
-        self.class_group = None
-        self.pixbuf = None
-        self.pixbufs = None
-        self.dockbar = None
-        self.theme = None
+    def remove(self):
+        del self.app
+        del self.launcher
+        del self.class_group
+        del self.icon
+        del self.surfaces
+        del self.dockbar
 
     def remove_launcher(self, class_group = None, app = None):
         self.launcher = None
         self.class_group = class_group
         self.app = app
-        self.pixbufs = {}
-        self.pixbuf = None
+        self.surfaces = {}
+        del self.icon
+        self.icon = None
 
 
     def set_size(self, size):
         self.size = size
-        self.pixbufs = {}
+        self.surfaces = {}
         self.average_color = None
 
-    def reset_pixbufs(self):
-        self.pixbufs = {}
+    def get_size(self, size):
+        return self.size
+
+    def reset_surfaces(self):
+        self.surfaces = {}
         self.average_color = None
 
 
-    def pixbuf_update(self, type = 0):
+    def surface_update(self, type = 0):
         # Checks if the requested pixbuf is already drawn and returns it if it is.
-        # Othervice the pixbuf is drawn, saved and returned.
+        # Othervice the surface is drawn, saved and returned.
         self.win_nr = type & 15
         if self.win_nr > self.max_win_nr:
             type = (type - self.win_nr) | self.max_win_nr
             self.win_nr = self.max_win_nr
-        if self.pixbufs.has_key(type):
-            return self.pixbufs[type]
         self.temp = {}
-        pixbuf = None
-        commands = self.theme.get_icon_dict()
-        self.ar = self.theme.get_aspect_ratio()
+        if type in self.surfaces:
+            return self.surfaces[type]
+        surface = None
+        commands = self.dockbar.theme.get_icon_dict()
+        self.ar = self.dockbar.theme.get_aspect_ratio()
         self.type = type
         for command, args in commands.items():
             try:
@@ -584,26 +610,28 @@ class IconFactory():
             except:
                 raise
             else:
-                pixbuf = f(pixbuf, **args)
+                surface = f(surface, **args)
         # Todo: add size correction.
+        self.surfaces[type] = surface
         if type & self.DRAG_DROPP:
-            pixbuf = self.double_pixbuf(pixbuf, self.dockbar.orient)
-        self.temp = None
-        self.pixbufs[type] = pixbuf
-        return pixbuf
+            surface = self.double_surface(surface, self.dockbar.orient)
+        del self.temp
+        gc.collect()
+        return surface
 
-    def double_pixbuf(self, pixbuf, direction = 'h'):
-        w = pixbuf.get_width()
-        h = pixbuf.get_height()
+
+    def double_surface(self, surface, direction = 'h'):
+        w = surface.get_width()
+        h = surface.get_height()
         # Make a background almost twice as wide or high
-        # as the pixbuf depending on panel orientation.
+        # as the surface depending on panel orientation.
         if direction == 'v':
             h = h * 2 - 2
         else:
             w = w * 2 - 2
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        context = cairo.Context(surface)
-        ctx = gtk.gdk.CairoContext(context)
+        bg = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(bg)
+
         # Put arrow pointing to the empty part on it.
         if direction == 'v':
             ctx.move_to(2, h / 2 + 2)
@@ -617,17 +645,11 @@ class IconFactory():
             ctx.close_path()
         ctx.set_source_rgb(0, 0, 0)
         ctx.fill()
-        sio = StringIO()
-        surface.write_to_png(sio)
-        sio.seek(0)
-        loader = gtk.gdk.PixbufLoader()
-        loader.write(sio.getvalue())
-        loader.close()
-        sio.close()
-        background = loader.get_pixbuf()
-        # And put the pixbuf on the left/upper half of it.
-        pixbuf.composite(background, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
+
+        # And put the surface on the left/upper half of it.
+        ctx.set_source_surface(surface, 0, 0)
+        ctx.paint()
+        return bg
 
     def get_color(self, color):
         if color == "active_color":
@@ -644,32 +666,33 @@ class IconFactory():
             except:
                 print "Theme error: the color attribute for a theme command should be a six" + \
                       " digit hex string eg. \"#FFFFFF\" or the a dockbarx color (\"color1\"-\"color8\")."
-                raise
+                color = "#000000"
         return color
 
     def get_alpha(self, alpha):
         # Transparency
         if alpha == "active_opacity":
+            # For backwards compability
             alpha = "color5"
 
         for i in range(1, 9):
             if alpha in ('color%s'%i, 'opacity%s'%i):
                 if colors.has_key('color%s_alpha'%i):
-                    alpha = colors['color%s_alpha'%i]
+                    a = float(colors['color%s_alpha'%i])/255
                 else:
                     print "Theme error: The theme has no opacity option for color%s."%i
-                    alpha = 255
+                    a = 1.0
                 break
         else:
             try:
-                alpha = int(int(alpha) * 2.55 + 0.4)
-                if alpha > 255 or alpha < 0:
+                a = float(alpha)/100
+                if a > 1.0 or a < 0:
                     raise
             except:
                 print "Theme error: The opacity attribute of a theme command should be a number" + \
                       " between \"0\" and \"100\" or \"color1\" to \"color8\"."
-                alpha = 255
-        return alpha
+                a = 1.0
+        return a
 
     def get_average_color(self):
         if self.average_color != None:
@@ -678,7 +701,8 @@ class IconFactory():
         b = 0
         g = 0
         i = 0
-        for row in self.pixbuf.get_pixels_array():
+        pb = self.surface2pixbuf(self.icon)
+        for row in pb.get_pixels_array():
             for pix in row:
                 if pix[3] > 30:
                     i += 1
@@ -693,13 +717,14 @@ class IconFactory():
         g = ("0%s"%hex(g)[2:])[-2:]
         b = ("0%s"%hex(b)[2:])[-2:]
         self.average_color = "#"+r+g+b
+        del pb
         return self.average_color
 
 
     #### Flow commands
-    def command_if(self, pixbuf, type=None, windows=None, content=None):
+    def command_if(self, surface, type=None, windows=None, content=None):
         if content == None:
-            return pixbuf
+            return surface
         # TODO: complete this
 ##        l = []
 ##        splits = ['!', '(', ')', '&', '|']
@@ -745,7 +770,7 @@ class IconFactory():
                 print 'Theme Error: The windows attribute of ' + \
                       'an <if> statement can\'t look like this:' + \
                       ' "%s". See Theming HOWTO for more information'%windows
-                return pixbuf
+                return surface
             if len(l) == 1:
                 if (l[0] == self.win_nr) ^ negation:
                     windows = True
@@ -765,16 +790,21 @@ class IconFactory():
                 except:
                     raise
                 else:
-                    pixbuf = f(pixbuf, **args)
-        return pixbuf
+                    surface = f(surface, **args)
+        return surface
 
-    def command_pixmap_from_self(self, pixbuf, name, content=None):
+    def command_pixmap_from_self(self, surface, name, content=None):
         if not name:
-            print "Theme Error: no name given for pixbuf_from_self"
+            print "Theme Error: no name given for pixmap_from_self"
             raise Exeption
-        self.temp[name]=pixbuf.copy()
+        w = int(surface.get_width())
+        h = int(surface.get_height())
+        self.temp[name] = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(self.temp[name])
+        ctx.set_source_surface(surface)
+        ctx.paint()
         if content == None:
-            return pixbuf
+            return surface
         for command,args in content.items():
             try:
                 f = getattr(self,"command_%s"%command)
@@ -782,22 +812,20 @@ class IconFactory():
                 raise
             else:
                 self.temp[name] = f(self.temp[name], **args)
-        return pixbuf
+        return surface
 
-    def command_pixmap(self, pixbuf, name, content=None, size=None):
+    def command_pixmap(self, surface, name, content=None, size=None):
         if size != None:
             # TODO: Fix for different height and width
             w = h = self.size + int(size)
-        elif pixbuf == None:
+        elif surface == None:
             w = h = self.size
         else:
-            w = pixbuf.get_width()
-            h = pixbuf.get_height()
-        empty = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
-        empty.fill(0x00000000)
-        self.temp[name] = empty
+            w = surface.get_width()
+            h = surface.get_height()
+        self.temp[name] = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         if content == None:
-            return pixbuf
+            return surface
         for command,args in content.items():
             try:
                 f = getattr(self,"command_%s"%command)
@@ -805,35 +833,49 @@ class IconFactory():
                 raise
             else:
                 self.temp[name] = f(self.temp[name], **args)
-        return pixbuf
+        return surface
 
 
     #### Get icon
-    def command_get_icon(self,pixbuf=None, size=0):
+    def command_get_icon(self,surface=None, size=0):
         size = int(size)
         if size < 0:
             size = self.size + size
         else:
             size = self.size
-        if not self.pixbuf or not (self.pixbuf.get_width() == size or self.pixbuf.get_height() == size):
-            self.pixbuf = self.find_icon_pixbuf(size)
-        if self.pixbuf.get_width() != self.pixbuf.get_height():
-            if self.pixbuf.get_width() < self.pixbuf.get_height():
+        if self.icon \
+        and self.icon.get_width() == size \
+        and self.icon.get_height() == size:
+            return self.icon
+        del self.icon
+        pb = self.find_icon_pixbuf(size)
+        if pb.get_width() != pb.get_height():
+            if pb.get_width() < pb.get_height():
                 h = size
-                w = self.pixbuf.get_width() * size/self.pixbuf.get_height()
-            elif self.pixbuf.get_width() > self.pixbuf.get_height():
+                w = pb.get_width() * size/pb.get_height()
+            elif pb.get_width() > pb.get_height():
                 w = size
-                h = self.pixbuf.get_height() * size/self.pixbuf.get_width()
-            background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size, size)
-            background.fill(0x00000000)
-            self.pixbuf = self.pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+                h = pb.get_height() * size/pb.get_width()
+            self.icon = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
+            ctx = gtk.gdk.CairoContext(cairo.Context(self.icon))
+            pbs = pb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
             woffset = int(float(size - w) / 2 + 0.5)
             hoffset = int(float(size - h) / 2 + 0.5)
-            self.pixbuf.composite(background, woffset, hoffset, w, h, woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-            self.pixbuf = background
-        elif self.pixbuf.get_width() != size:
-            self.pixbuf = self.pixbuf.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
-        return self.pixbuf.copy()
+##            pb.composite(background, woffset, hoffset, w, h, woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+##            pb = background
+            ctx.set_source_pixbuf(pb, woffset, hoffset)
+            ctx.paint()
+            del pb
+            del pbs
+        elif pb.get_width() != size:
+            pbs = pb.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
+            self.icon = self.pixbuf2surface(pbs)
+            del pb
+            del pbs
+        else:
+            self.icon = self.pixbuf2surface(pb)
+            del pb
+        return self.icon
 
 
     def find_icon_pixbuf(self, size):
@@ -888,8 +930,8 @@ class IconFactory():
         elif pixbuf == None:
             # If no pixbuf has been found (can only happen for an unlaunched
             # launcher), make an empty pixbuf and show a warning.
-            if self.icontheme.has_icon('application-default-icon'):
-                pixbuf = self.icontheme.load_icon('application-default-icon',size,0)
+            if self.icon_theme.has_icon('application-default-icon'):
+                pixbuf = self.icon_theme.load_icon('application-default-icon',size,0)
             else:
                 pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
                 pixbuf.fill(0x00000000)
@@ -934,8 +976,8 @@ class IconFactory():
 
 
     #### Other commands
-    def command_get_pixmap(self, pixbuf, name, size=0):
-        if pixbuf == None:
+    def command_get_pixmap(self, surface, name, size=0):
+        if surface == None:
             if self.dockbar.orient == 'v':
                 width = int(self.size * ar)
                 height = self.size
@@ -943,61 +985,340 @@ class IconFactory():
                 width = self.size
                 height = int(self.size * ar)
         else:
-            width = self.pixbuf.get_width()
-            height = self.pixbuf.get_height()
-        if self.theme.has_pixbuf(name):
-            pixbuf = self.theme.get_pixbuf(name)
-            pixbuf = temp.scale_simple(width, height, gtk.gdk.INTERP_BILINEAR)
+            width = surface.get_width()
+            height = surface.get_height()
+        if self.dockbar.theme.has_surface(name):
+            surface = self.resize_surface(self.dockbar.theme.get_surface(name), width, height)
         else:
             print "theme error: pixmap %s not found"%name
-        return pixbuf
+        return surface
 
-    def command_fill(self, pixbuf, color, opacity=100):
-        color = self.get_color(color)
-        f = int(color[1:],16)<<8
-        opacity = self.get_alpha(opacity)
-        f += opacity
-        pixbuf.fill(f)
-        return pixbuf
+    def command_fill(self, surface, color, opacity=100):
+        w = surface.get_width()
+        h = surface.get_height()
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+        ctx.set_source_surface(surface)
+        ctx.paint()
 
-    def command_combine(self, pixbuf, pix1, pix2, degrees=90):
-        # Combines left half of pixbuf with right half of pixbuf2.
+        alpha = self.get_alpha(opacity)
+        c = self.get_color(color)
+        r = float(int(c[1:3], 16))/255
+        g = float(int(c[3:5], 16))/255
+        b = float(int(c[5:7], 16))/255
+        ctx.set_source_rgba(r, g, b)
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
+        ctx.paint_with_alpha(alpha)
+        return new
+
+
+    def command_combine(self, surface, pix1, pix2, degrees=90):
+        # Combines left half of surface with right half of surface2.
         # The transition between the two halves are soft.
+        w = surface.get_width()
+        h = surface.get_height()
         if pix1=="self":
-            p1 = pixbuf
+            p1 = surface
         elif pix1 in self.temp:
-            p1 = self.temp[pix1].copy()
-        elif self.theme.has_pixbuf(pix1):
-            bg = self.theme.get_pixbuf(pix1)
+            p1 = self.temp[pix1]
+        elif self.dockbar.theme.has_surface(pix1):
+            w = surface.get_width()
+            h = surface.get_height()
+            p1 = self.resize_surface(self.dockbar.theme.get_surface(bg), w, h)
         else:
             print "theme error: pixmap %s not found"%pix1
         if pix2=="self":
-            p2 = pixbuf
+            p2 = surface
         elif pix2 in self.temp:
-            p2 = self.temp[pix2].copy()
-        elif self.theme.has_pixbuf(pix2):
-            bg = self.theme.get_pixbuf(pix2)
+            p2 = self.temp[pix2]
+        elif self.dockbar.theme.has_surface(pix2):
+            w = surface.get_width()
+            h = surface.get_height()
+            p2 = self.resize_surface(self.dockbar.theme.get_surface(bg), w, h)
         else:
             print "theme error: pixmap %s not found"%pix2
 
         #TODO: Add degrees
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, p1.get_width(), p1.get_height())
-        context = cairo.Context(surface)
-        ctx = gtk.gdk.CairoContext(context)
+        ctx = cairo.Context(surface)
 
         linear = cairo.LinearGradient(0, 0, p1.get_width(), 0)
         linear.add_color_stop_rgba(0.4, 0, 0, 0, 0.5)
         linear.add_color_stop_rgba(0.6, 0, 0, 0, 1)
-        ctx.set_source_pixbuf(p2, 0, 0)
+        ctx.set_source_surface(p2, 0, 0)
         #ctx.mask(linear)
         ctx.paint()
 
         linear = cairo.LinearGradient(0, 0, p1.get_width(), 0)
         linear.add_color_stop_rgba(0.4, 0, 0, 0, 1)
         linear.add_color_stop_rgba(0.6, 0, 0, 0, 0)
-        ctx.set_source_pixbuf(p1, 0, 0)
+        ctx.set_source_surface(p1, 0, 0)
         ctx.mask(linear)
+        try:
+            del pb
+            del pbs
+        except:
+            pass
+        return surface
 
+    def command_transp_sat(self, surface, opacity=100, saturation=100):
+        # Makes the icon desaturized and/or transparent.
+        w = surface.get_width()
+        h = surface.get_height()
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = gtk.gdk.CairoContext(cairo.Context(new))
+        alpha = self.get_alpha(opacity)
+        # Todo: Add error check for saturation
+        if int(saturation) < 100:
+            sio = StringIO()
+            surface.write_to_png(sio)
+            sio.seek(0)
+            loader = gtk.gdk.PixbufLoader()
+            loader.write(sio.getvalue())
+            loader.close()
+            sio.close()
+            pixbuf = loader.get_pixbuf()
+            saturation = min(1.0, float(saturation)/100)
+            pixbuf.saturate_and_pixelate(pixbuf, saturation, False)
+            ctx.set_source_pixbuf(pixbuf, 0, 0)
+            ctx.paint_with_alpha(alpha)
+            del loader
+            del sio
+            del pixbuf
+        else:
+            ctx.set_source_surface(surface)
+            ctx.paint_with_alpha(alpha)
+##        icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
+##        icon_transp.fill(0x00000000)
+##        pixbuf.composite(icon_transp, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, opacity)
+##        icon_transp.saturate_and_pixelate(icon_transp, saturation, False)
+        return new
+
+    def command_composite(self, surface, bg, fg, opacity=100, xoffset=0, yoffset=0):
+        if fg=="self":
+            foreground = surface
+        elif fg in self.temp:
+            foreground = self.temp[fg]
+        elif self.dockbar.theme.has_surface(fg):
+            w = surface.get_width()
+            h = surface.get_height()
+            foreground = self.resize_surface(self.dockbar.theme.get_surface(fg), w, h)
+        else:
+            print "theme error: pixmap %s not found"%fg
+            return surface
+
+        if bg=="self":
+            background = surface
+        elif bg in self.temp:
+            w = self.temp[bg].get_width()
+            h = self.temp[bg].get_height()
+            background = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+            ctx = cairo.Context(background)
+            ctx.set_source_surface(self.temp[bg])
+            ctx.paint()
+        elif self.dockbar.theme.has_surface(bg):
+            w = surface.get_width()
+            h = surface.get_height()
+            background = self.resize_surface(self.dockbar.theme.get_surface(bg), w, h)
+        else:
+            print "theme error: pixmap %s not found"%bg
+            return surface
+
+        opacity = self.get_alpha(opacity)
+        xoffset = float(xoffset)
+        yoffset = float(yoffset)
+        ctx = cairo.Context(background)
+        ctx.set_source_surface(foreground, xoffset, yoffset)
+        ctx.paint_with_alpha(opacity)
+##        if xoffset >= 0:
+##            if xoffset + foreground.get_width() > background.get_width():
+##                w = foreground.get_width() - xoffset
+##            else:
+##                w = foreground.get_width()
+##        else:
+##            w = foreground.get_width() + xoffset
+##        if yoffset >= 0:
+##            if yoffset + foreground.get_height() > background.get_height():
+##                h = foreground.get_height() - yoffset
+##
+##            else:
+##                h = foreground.get_height()
+##        else:
+##            h = foreground.get_height() + yoffset
+##        x = max(xoffset, 0)
+##        y = max(yoffset, 0)
+##        if w <= 0 or h <=0 or x > background.get_width or y > background.get_height:
+##            # Fg is offset out of the picture.
+##            return background
+##        foreground.composite(background, x, y, w, h, xoffset, yoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, opacity)
+##        del surface
+##        surface = self.pixbuf2surface(background)
+        return background
+
+    def command_shrink(self, surface, percent=0, pixels=0):
+##        pixbuf = self.surface2pixbuf(surface)
+##        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
+##        background.fill(0x00000000)
+        w0 = surface.get_width()
+        h0 = surface.get_height()
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w0, h0)
+        ctx = cairo.Context(new)
+
+        w = int(((100-int(percent)) * w0)/100)-int(pixels)
+        h = int(((100-int(percent)) * h0)/100)-int(pixels)
+##        shrinked = pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+        shrinked = self.resize_surface(surface, w, h)
+        x = int(float(w0 - w) / 2 + 0.5)
+        y = int(float(h0 - h) / 2 + 0.5)
+        ctx.set_source_surface(shrinked, x, y)
+        ctx.paint()
+##        pixbuf.composite(background, x, y, w, h, x, y, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+##        del pixbuf
+        del shrinked
+        return new
+
+    def command_correct_size(self, surface):
+        if surface == None:
+            return
+        if self.dockbar.orient == 'v':
+            width = self.size
+            height = int(self.size * self.ar)
+        else:
+            width = int(self.size * self.ar)
+            height = self.size
+        if surface.get_width() == width and surface.get_height() == height:
+            return surface
+##        pixbuf = self.surface2pixbuf(surface)
+##        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width, height)
+##        background.fill(0x00000000)
+        woffset = int(float(width - surface.get_width()) / 2 + 0.5)
+        hoffset = int(float(height - surface.get_height()) / 2 + 0.5)
+##        pixbuf.composite(background, woffset, hoffset, pixbuf.get_width(), pixbuf.get_height(), \
+##                         woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
+##        del surface
+##        new = self.pixbuf2surface(background)
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+        ctx = cairo.Context(new)
+        ctx.set_source_surface(surface, woffset, hoffset)
+        ctx.paint()
+        return new
+
+    def command_glow(self, surface, color, opacity=100):
+        # Adds a glow around the parts of the surface
+        # that isn't completely transparent.
+
+        alpha = self.get_alpha(opacity)
+        # Thickness (pixels)
+        tk = 1.5
+
+
+        # Prepare the glow that should be put behind the icon
+        cs = self.command_colorize(surface, color)
+        w = surface.get_width()
+        h = surface.get_height()
+        glow = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(glow)
+        tk1 = tk/2.0
+        for x, y in ((-tk1,-tk1), (-tk1,tk1), (tk1,-tk1), (tk1,tk1)):
+            ctx.set_source_surface(cs, x, y)
+            ctx.paint_with_alpha(0.66)
+        for x, y in ((-tk,-tk), (-tk,tk), (tk,-tk), (tk,tk)):
+            ctx.set_source_surface(cs, x, y)
+            ctx.paint_with_alpha(0.27)
+
+        # Add glow and icon to a new canvas
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+        ctx.set_source_surface(glow)
+        ctx.paint_with_alpha(alpha)
+        ctx.set_source_surface(surface)
+        ctx.paint()
+        return new
+
+    def command_colorize(self, surface, color):
+        # Changes the color of all pixels to color.
+        # The pixels alpha values are unchanged.
+
+        # Convert color hex-string (format '#FFFFFF')to int r, g, b
+        color = self.get_color(color)
+        r = int(color[1:3], 16)/255.0
+        g = int(color[3:5], 16)/255.0
+        b = int(color[5:7], 16)/255.0
+
+        w = surface.get_width()
+        h = surface.get_height()
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+        ctx.set_source_rgba(r,g,b,1.0)
+        ctx.mask_surface(surface)
+        return new
+
+
+    def command_bright(self, surface, strength = None, strenght = None):
+##        pixbuf = self.surface2pixbuf(surface)
+##        # Makes the pixbuf shift lighter.
+        if strength == None and strenght != None:
+            # For compability with older themes.
+            strength = strenght
+##        strength = int(int(strength) * 2.55 + 0.4)
+##        pixbuf = pixbuf.copy()
+##        for row in pixbuf.get_pixels_array():
+##            for pix in row:
+##                pix[0] = min(255, int(pix[0]) + strength)
+##                pix[1] = min(255, int(pix[1]) + strength)
+##                pix[2] = min(255, int(pix[2]) + strength)
+##        del surface
+##        surface = self.pixbuf2surface(pixbuf)
+##        del pixbuf
+        alpha = self.get_alpha(strength)
+        w = surface.get_width()
+        h = surface.get_height()
+        # Colorize white
+        white = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(white)
+        ctx.set_source_rgba(1.0, 1.0, 1.0, 1.0)
+        ctx.mask_surface(surface)
+        # Apply the white version over the icon
+        # with the chosen alpha value
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+        ctx.set_source_surface(surface)
+        ctx.paint()
+        ctx.set_source_surface(white)
+        ctx.paint_with_alpha(alpha)
+        return new
+
+    def command_alpha_mask(self, surface, mask):
+        if mask in self.temp:
+            mask = self.temp[mask]
+        elif self.dockbar.theme.has_surface(mask):
+            m = self.surface2pixbuf(self.dockbar.theme.get_surface(mask))
+            m = m.scale_simple(surface.get_width(), surface.get_height(), gtk.gdk.INTERP_BILINEAR)
+            mask = self.pixbuf2surface(m)
+        w = surface.get_width()
+        h = surface.get_height()
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+        ctx.set_source_surface(surface)
+        ctx.mask_surface(mask)
+        return new
+
+#### Format conversions
+    def pixbuf2surface(self, pixbuf):
+        if pixbuf == None:
+            return None
+        w = pixbuf.get_width()
+        h = pixbuf.get_height()
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = gtk.gdk.CairoContext(cairo.Context(surface))
+        ctx.set_source_pixbuf(pixbuf, 0, 0)
+        ctx.paint()
+        del pixbuf
+        return surface
+
+    def surface2pixbuf(self, surface):
+        if surface == None:
+            return None
         sio = StringIO()
         surface.write_to_png(sio)
         sio.seek(0)
@@ -1005,164 +1326,75 @@ class IconFactory():
         loader.write(sio.getvalue())
         loader.close()
         sio.close()
-        return loader.get_pixbuf()
-
-    def command_transp_sat(self, pixbuf, opacity=100, saturation=100):
-        # Makes the icon desaturized and/or transparent.
-        opacity = min(255, int(int(opacity)*2.55 + 0.5))
-        saturation = min(1.0, float(saturation)/100)
-        icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
-        icon_transp.fill(0x00000000)
-        pixbuf.composite(icon_transp, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, opacity)
-        icon_transp.saturate_and_pixelate(icon_transp, saturation, False)
-        return icon_transp
-
-    def command_composite(self, pixbuf, bg, fg, opacity=100, xoffset=0, yoffset=0):
-        if fg=="self":
-            fg = pixbuf
-        elif fg in self.temp:
-            fg = self.temp[fg].copy()
-        elif self.theme.has_pixbuf(fg):
-            fg = self.theme.get_pixbuf(fg)
-            fg = fg.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
-        else:
-            print "theme error: pixmap %s not found"%fg
-            return pixbuf
-        if bg=="self":
-            bg = pixbuf
-        elif bg in self.temp:
-            bg = self.temp[bg].copy()
-        elif self.theme.has_pixbuf(bg):
-            bg = self.theme.get_pixbuf(bg)
-            bg = bg.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
-        else:
-            print "theme error: pixmap %s not found"%bg
-            return pixbuf
-        opacity = min(255, int(int(opacity)*2.55 + 0.5))
-        xoffset = int(xoffset)
-        yoffset = int(yoffset)
-        if xoffset >= 0:
-            if xoffset + fg.get_width() > bg.get_width():
-                w = fg.get_width() - xoffset
-            else:
-                w = fg.get_width()
-        else:
-            w = fg.get_width() + xoffset
-        if yoffset >= 0:
-            if yoffset + fg.get_height() > bg.get_height():
-                h = fg.get_height() - yoffset
-
-            else:
-                h = fg.get_height()
-        else:
-            h = fg.get_height() + yoffset
-        x = max(xoffset, 0)
-        y = max(yoffset, 0)
-        if w <= 0 or h <=0 or x > bg.get_width or y > bg.get_height:
-            # Fg is offset out of the picture.
-            return bg
-        fg.composite(bg, x, y, w, h, xoffset, yoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, opacity)
-        return bg
-
-    def command_shrink(self, pixbuf, percent=0, pixels=0):
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
-        background.fill(0x00000000)
-        w0 = pixbuf.get_width()
-        h0 = pixbuf.get_height()
-        w = int(((100-int(percent)) * w0)/100)-int(pixels)
-        h = int(((100-int(percent)) * h0)/100)-int(pixels)
-        pixbuf = pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-        x = int(float(w0 - w) / 2 + 0.5)
-        y = int(float(h0 - h) / 2 + 0.5)
-        pixbuf.composite(background, x, y, w, h, x, y, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
-
-    def command_correct_size(self, pixbuf):
-        if self.dockbar.orient == 'v':
-            width = self.size
-            height = int(self.size * self.ar)
-        else:
-            width = int(self.size * self.ar)
-            height = self.size
-        if pixbuf.get_width() == width and pixbuf.get_height() == height:
-            return pixbuf
-        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width, height)
-        background.fill(0x00000000)
-        woffset = int(float(width - pixbuf.get_width()) / 2 + 0.5)
-        hoffset = int(float(height - pixbuf.get_height()) / 2 + 0.5)
-        pixbuf.composite(background, woffset, hoffset, pixbuf.get_width(), pixbuf.get_height(), \
-                         woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-        return background
-
-    def command_glow(self, pixbuf, color, opacity=100):
-        # Adds a glow around the parts of the pixbuf that isn't completely
-        # transparent.
-
-        color = self.get_color(color)
-        opacity = self.get_alpha(opacity)
-        # Thickness (pixels)
-        tk = 2
-
-        colorpb = self.command_colorize(pixbuf, color)
-        bg = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
-        bg.fill(0x00000000)
-        glow = bg.copy()
-        # Prepare the glow that should be put bind the icon
-        tk1 = tk - int(tk/2)
-        for x, y in ((-tk1,-tk1), (-tk1,tk1), (tk1,-tk1), (tk1,tk1)):
-            colorpb.composite(glow, 0, 0, pixbuf.get_width(), pixbuf.get_height(), x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 170)
-        for x, y in ((-tk,-tk), (-tk,tk), (tk,-tk), (tk,tk)):
-            colorpb.composite(glow, 0, 0, pixbuf.get_width(), pixbuf.get_height(), x, y, 1, 1, gtk.gdk.INTERP_BILINEAR, 70)
-        glow.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, opacity)
-        # Now add the pixbuf above the glow
-        pixbuf.composite(bg, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        return bg
-
-    def command_colorize(self, pixbuf, color):
-        # Changes the color of all pixels to color.
-        # The pixels alpha values are unchanged.
-
-        # Convert color hex-string (format '#FFFFFF')to int r, g, b
-        color = self.get_color(color)
-        r = int(color[1:3], 16)
-        g = int(color[3:5], 16)
-        b = int(color[5:7], 16)
-
-        pixbuf = pixbuf.copy()
-        for row in pixbuf.get_pixels_array():
-            for pix in row:
-                pix[0] = r
-                pix[1] = g
-                pix[2] = b
+        pixbuf = loader.get_pixbuf()
         return pixbuf
 
-    def command_bright(self, pixbuf, strength = None, strenght = None):
-        # Makes the pixbuf shift lighter.
-        if strength == None and strenght != None:
-            # For compability with older themes.
-            strength = strenght
-        strength = int(int(strength) * 2.55 + 0.4)
-        pixbuf = pixbuf.copy()
-        for row in pixbuf.get_pixels_array():
-            for pix in row:
-                pix[0] = min(255, int(pix[0]) + strength)
-                pix[1] = min(255, int(pix[1]) + strength)
-                pix[2] = min(255, int(pix[2]) + strength)
-        return pixbuf
+    def surface2pil(self, surface):
+        w = surface.get_width()
+        h = surface.get_height()
+        return Image.frombuffer("RGBA", (w, h), surface.get_data(), "raw", "RGBA", 0,1)
 
-    def command_alpha_mask(self, pixbuf, mask):
-        if mask in self.temp:
-            mask = self.temp[mask].copy()
-        elif self.theme.has_pixbuf(mask):
-            mask = self.theme.get_pixbuf(mask)
-        mask = mask.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
-        pixbuf = pixbuf.copy()
-        rows = pixbuf.get_pixels_array()
-        mask_rows = mask.get_pixels_array()
-        for m in range(len(rows)):
-            for n in range(len(rows[m])):
-                rows[m, n][3] = int(rows[m, n][3]) * int(mask_rows[m, n][0]) / 255
-        return pixbuf
+
+    def pil2surface(self, im):
+        imgd = im.tostring("raw","RGBA",0,1)
+        a = array.array('B',imgd)
+        w = im.size[0]
+        h = im.size[1]
+        stride = im.size[0] * 4
+        surface = cairo.ImageSurface.create_for_data (a, cairo.FORMAT_ARGB32,
+                                                      w, h, stride)
+        return surface
+
+    def resize_surface(self, surface, w, h):
+        im = self.surface2pil(surface)
+        im = im.resize((w, h), Image.ANTIALIAS)
+##        pb = self.surface2pixbuf(surface)
+##        pbs = pb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+##        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+##        ctx = gtk.gdk.CairoContext(cairo.Context(s))
+##        ctx.set_source_pixbuf(pbs, 0, 0)
+##        ctx.paint()
+##        del pb
+##        del pbs
+##        return s
+        return self.pil2surface(im)
+
+
+
+class CairoButton(gtk.Button):
+    """CairoButton is a gtk button with a cairo surface painted over it."""
+    __gsignals__ = {'expose-event' : 'override',}
+    def __init__(self, surface=None):
+        gtk.Button.__init__(self)
+        self.surface = surface
+        self.connect('delete-event', self.cleanup)
+
+    def update(self, surface):
+        a = self.get_allocation()
+        self.surface = surface
+        if self.window == None:
+            # Find out why is window == None sometimes?
+            return
+        self.window.clear_area(a.x, a.y, a.width, a.height)
+        ctx = self.window.cairo_create()
+        ctx.rectangle(a.x, a.y, a.width, a.height)
+        ctx.clip()
+        ctx.set_source_surface(self.surface, a.x, a.y)
+        ctx.paint()
+
+    def do_expose_event(self, event):
+        if self.surface != None:
+            ctx = self.window.cairo_create()
+            ctx.rectangle(event.area.x, event.area.y,
+                           event.area.width, event.area.height)
+            ctx.clip()
+            a = self.get_allocation()
+            ctx.set_source_surface(self.surface, a.x, a.y)
+            ctx.paint()
+        return
+
+    def cleanup(self, event):
+        del self.surface
 
 class CairoPopup():
     """CairoPopup is a transparent popup window with rounded corners"""
@@ -1202,8 +1434,8 @@ class CairoPopup():
         w,h = self.window.get_size()
         if w==0: w = 800
         if h==0: h = 600
-        self.pixmap = gtk.gdk.Pixmap (None, w, h, 1)
-        ctx = self.pixmap.cairo_create()
+        pixmap = gtk.gdk.Pixmap (None, w, h, 1)
+        ctx = pixmap.cairo_create()
         ctx.save()
         ctx.set_source_rgba(1, 1, 1,0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
@@ -1215,9 +1447,10 @@ class CairoPopup():
             self.window.window.shape_combine_mask(None, 0, 0)
             ctx.rectangle(0,0,w,h)
             ctx.fill()
-            self.window.input_shape_combine_mask(self.pixmap,0,0)
+            self.window.input_shape_combine_mask(pixmap,0,0)
         else:
-            self.window.shape_combine_mask(self.pixmap, 0, 0)
+            self.window.shape_combine_mask(pixmap, 0, 0)
+        del pixmap
 
     def draw_frame(self, ctx, w, h):
         ctx.save()
@@ -1251,11 +1484,11 @@ class CairoPopup():
         ctx.restore()
         ctx.clip()
 
-    def __del__(self):
-        self.window = None
-        self.ctx = None
-        self.pixmap = None
-        self.vbox = None
+##    def __del__(self):
+##        self.window = None
+##        self.ctx = None
+##        self.pixmap = None
+##        self.vbox = None
 
 
 class Launcher():
@@ -1340,8 +1573,8 @@ class GroupList():
     def __init__(self):
         self.list = []
 
-    def __del__(self):
-        self.list = None
+##    def __del__(self):
+##        self.list = None
 
     def __getitem__(self, name):
         return self.get_group(name)
@@ -1428,6 +1661,15 @@ class GroupList():
         for t in self.list:
             if t[0] == None:
                 namelist.append(t[2])
+        return namelist
+
+    def get_group_identifiers(self):
+        namelist = []
+        for t in self.list:
+            if t[0] == None:
+                namelist.append(t[2])
+            else:
+                namelist.append(t[0])
         return namelist
 
     def get_non_launcher_names(self):
@@ -1537,9 +1779,9 @@ class WindowButton():
         self.window_button.connect("button-press-event",self.on_window_button_press_event)
         self.window_button.connect("button-release-event",self.on_window_button_release_event)
         self.window_button.connect("scroll-event",self.on_window_button_scroll_event)
-        self.window.connect("state-changed",self.on_window_state_changed)
-        self.window.connect("icon-changed",self.on_window_icon_changed)
-        self.window.connect("name-changed",self.on_window_name_changed)
+        self.state_changed_event = self.window.connect("state-changed",self.on_window_state_changed)
+        self.icon_changed_event = self.window.connect("icon-changed",self.on_window_icon_changed)
+        self.name_changed_event = self.window.connect("name-changed",self.on_window_name_changed)
 
         #--- D'n'D
         self.window_button.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT, [], 0)
@@ -1587,8 +1829,16 @@ class WindowButton():
         self.groupbutton.disconnect(self.sid2)
         self.groupbutton.disconnect(self.sid4)
         self.groupbutton.dockbar.disconnect(self.sid3)
-        del self.groupbutton.windows[self.window]
-        self.window = None
+        self.window.disconnect(self.state_changed_event)
+        self.window.disconnect(self.icon_changed_event)
+        self.window.disconnect(self.name_changed_event)
+        del self.icon
+        del self.icon_locked
+        del self.icon_transp
+        del self.screen
+        del self.window
+        del self.dockbar
+        del self.groupbutton
 
 
     #### Windows's Events
@@ -1633,7 +1883,7 @@ class WindowButton():
 
         i = gtk.Invisible()
         lock = i.render_icon(gtk.STOCK_DIALOG_AUTHENTICATION,gtk.ICON_SIZE_BUTTON)
-        if pixbuf.get_height != lock.get_height or pixbuf.get_width != lock.get_width:
+        if pixbuf.get_height() != lock.get_height() or pixbuf.get_width() != lock.get_width():
             lock = lock.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
         self.icon_locked = self.icon_transp.copy()
         lock.composite(self.icon_locked, 0, 0, lock.get_width(), lock.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
@@ -1644,6 +1894,8 @@ class WindowButton():
             self.window_button_icon.set_from_pixbuf(self.icon_transp)
         else:
             self.window_button_icon.set_from_pixbuf(self.icon)
+        del pixbuf
+        del lock
 
     def on_window_name_changed(self, window):
         name = u""+window.get_name()
@@ -2077,11 +2329,15 @@ class GroupButton (gobject.GObject):
 
 
         #--- Button
-        self.image = gtk.Image()
         self.icon_factory = IconFactory(self.dockbar, class_group, launcher, app)
-        self.button = gtk.EventBox()
-        self.button.set_visible_window(False)
-        self.button.add(self.image)
+        self.image = gtk.Image() # Todo: REmove
+        gtk_screen = self.dockbar.container.get_screen()
+        colormap = gtk_screen.get_rgba_colormap()
+        if colormap == None:
+            colormap = gtk_screen.get_rgb_colormap()
+        gtk.widget_push_colormap(colormap)
+        self.button = CairoButton()
+        gtk.widget_pop_colormap()
         self.button.show_all()
         if index == None:
             self.dockbar.container.pack_start(self.button, False)
@@ -2097,12 +2353,6 @@ class GroupButton (gobject.GObject):
         self.dockbar.container.show_all()
         self.dockbar.container.show()
 
-
-        # Make sure that the first size-allocate call has
-        # the right width or height, depending on applet orient.
-        # (May not always work.)
-        # TODO: should this be removed? Find out.
-        gobject.idle_add(self.dockbar.container.resize_children)
 
         # Button events
         self.button.connect("enter-notify-event",self.on_button_mouse_enter)
@@ -2168,15 +2418,15 @@ class GroupButton (gobject.GObject):
         self.button.connect("drag_end", self.on_drag_end)
         self.is_current_drag_source = False
 
-    def __del__(self):
-        if self.button:
-            self.button.destroy()
-        self.button = None
-        self.popup = None
-        self.windows = None
-        self.winlist = None
-        self.dockbar = None
-        self.drag_pixbuf = None
+##    def __del__(self):
+##        if self.button:
+##            self.button.destroy()
+##        self.button = None
+##        self.popup = None
+##        self.windows = None
+##        self.winlist = None
+##        self.dockbar = None
+##        self.drag_pixbuf = None
 
     def res_class_changed(self, res_class):
         self.res_class = res_class
@@ -2258,16 +2508,20 @@ class GroupButton (gobject.GObject):
 
         win_nr = min(len(self.windows), 15)
         self.state_type = icon_mode | icon_effect | icon_active | mouse_over | launch_effect | dd_effect | win_nr
-        pixbuf = self.icon_factory.pixbuf_update(self.state_type)
-        self.image.set_from_pixbuf(pixbuf)
-        self.image.show()
-        pixbuf = None
+        surface = self.icon_factory.surface_update(self.state_type)
+        # Set the button size to the size of the surface
+        if self.button.allocation.width != surface.get_width() \
+        or self.button.allocation.height != surface.get_height():
+##            print "w:",  self.button.allocation.width, surface.get_width()
+##            print "h:", self.button.allocation.height, surface.get_height()
+            self.button.set_size_request(surface.get_width(), surface.get_height())
+        self.button.update(surface)
         return False
 
     def update_state_request(self):
         #Update state if the button is shown.
         a = self.button.get_allocation()
-        if a.width>1 and a.height>1:
+        if a.width>10 and a.height>10:
             self.update_state()
 
     def attention_effect (self):
@@ -2285,13 +2539,12 @@ class GroupButton (gobject.GObject):
             elif settings["groupbutton_attention_notification_type"] == 'blink':
                 if not self.needs_attention_anim_trigger:
                     self.needs_attention_anim_trigger = True
-                    pixbuf = self.icon_factory.pixbuf_update(IconFactory.BLINK | self.state_type)
-                    self.image.set_from_pixbuf(pixbuf)
+                    surface = self.icon_factory.surface_update(IconFactory.BLINK | self.state_type)
+                    self.button.update(surface)
                 else:
                     self.needs_attention_anim_trigger = False
-                    pixbuf = self.icon_factory.pixbuf_update(self.state_type)
-                    self.image.set_from_pixbuf(pixbuf)
-                pixbuf = None
+                    surface = self.icon_factory.surface_update(self.state_type)
+                    self.button.update(surface)
             return True
         else:
             self.needs_attention_anim_trigger = False
@@ -2336,15 +2589,18 @@ class GroupButton (gobject.GObject):
         if self.nextlist and window in self.nextlist:
             self.nextlist.remove(window)
         self.windows[window].del_button()
-        self.update_state_request()
+        del self.windows[window]
         if self.needs_attention:
             self.needs_attention_changed()
+        self.update_state_request()
         if not self.windows and not self.launcher:
             self.hide_list()
+            self.icon_factory.remove()
+            del self.icon_factory
             self.popup.destroy()
             self.button.destroy()
             self.winlist.destroy()
-            self.dockbar.groups.remove(self.res_class)
+            del self.dockbar
         elif not self.windows and self.launcher and self.popup_showing:
             self.popup.resize(10,10)
             gobject.idle_add(self.show_list_request)
@@ -2666,19 +2922,18 @@ class GroupButton (gobject.GObject):
         # Sends the new size to icon_factory so that a new icon in the right
         # size can be found. The icon is then updated.
         if self.button_old_alloc != self.button.get_allocation():
-            if self.dockbar.orient == "v":
-                if allocation.width<=1:
-                    return
-                if not self.image.get_pixbuf() or self.image.get_pixbuf().get_width() != allocation.width:
-                    self.icon_factory.set_size(self.button.get_allocation().width)
-                    self.update_state()
-            else:
-                if allocation.height<=1:
-                    return
-                if not self.image.get_pixbuf() or self.image.get_pixbuf().get_height() != allocation.height:
-                    self.icon_factory.set_size(self.button.get_allocation().height)
-                    self.update_state()
-            self.button_old_alloc = self.button.get_allocation()
+            if self.dockbar.orient == "v" and allocation.width>10 \
+            and allocation.width != self.button_old_alloc.width:
+                # A minimium size on 11 is set to stop unnecessary calls
+                # work when the button is created
+                self.icon_factory.set_size(allocation.width)
+                self.update_state()
+            elif allocation.height>10 \
+            and allocation.height != self.button_old_alloc.height:
+                self.icon_factory.set_size(allocation.height)
+                self.update_state()
+            self.button_old_alloc = allocation
+
             # Update icon geometry
             self.emit('set-icongeo-grp')
 
@@ -3187,10 +3442,13 @@ class GroupButton (gobject.GObject):
             name = self.launcher.get_path()
         self.launcher = None
         if not self.windows:
-            self.dockbar.groups.remove(name)
+            self.hide_list()
+            self.icon_factory.remove()
+            del self.icon_factory
             self.popup.destroy()
             self.button.destroy()
             self.winlist.destroy()
+            self.dockbar.groups.remove(name)
         else:
             self.dockbar.groups.remove_launcher(name)
             if self.app == None:
@@ -3312,7 +3570,7 @@ class DockBar(gobject.GObject):
     def __init__(self,applet):
         gobject.GObject.__init__(self)
         global settings
-        print "dockbar init"
+        print "Dockbarx init"
         self.applet = applet
         # self.dragging is used to tell functions wheter
         # a drag-and-drop is going on
@@ -3324,14 +3582,13 @@ class DockBar(gobject.GObject):
         self.groups = None
         self.windows = None
         self.container = None
+        self.theme = None
 
         wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.screen.force_update()
-        self.screen.connect("window-opened",self.on_window_opened)
-        self.screen.connect("window-closed",self.on_window_closed)
-        self.screen.connect("active-window-changed", self.on_active_window_changed)
+
 
         #--- Gconf settings
         gconf_set = { str: GCONF_CLIENT.set_string,
@@ -3398,11 +3655,28 @@ class DockBar(gobject.GObject):
 
 
     def reload(self, event=None, data=None):
+##        pdb.set_trace()
+        # Remove all old groupbuttons from container.
+        for child in self.container.get_children():
+            self.container.remove(child)
+        if self.windows:
+            # Removes windows and non-launcher group buttons
+            for win in self.screen.get_windows():
+                self.on_window_closed(None, win)
         if self.groups != None:
-            for group in self.groups.get_groups():
-                group.hide_list()
+            # Removes launcher group buttons
+            for name in self.groups.get_group_identifiers():
+                self.groups[name].hide_list()
+                self.groups[name].icon_factory.remove()
+                self.groups.remove(name)
+
         del self.groups
         del self.windows
+        if self.theme:
+            self.theme.remove()
+        del self.theme
+        gc.collect()
+        print "Dockbarx reload"
         self.groups = GroupList()
         self.windows = {}
         self.apps_by_id = {}
@@ -3433,11 +3707,14 @@ class DockBar(gobject.GObject):
                     else:
                         self.apps_by_exec[exe] = id
 
+
+##        pdb.set_trace()
         #--- Load theme
         self.themes = self.find_themes()
         default_theme_path = None
         for theme, path in self.themes.items():
             if theme.lower() == settings['theme'].lower():
+##                pdb.set_trace()
                 self.theme = Theme(path)
                 break
             if theme.lower == DEFAULT_SETTINGS['theme'].lower():
@@ -3453,6 +3730,7 @@ class DockBar(gobject.GObject):
                 path = self.themes.values()[0]
                 self.theme = Theme(path)
 
+##        pdb.set_trace()
         #--- Set colors
         theme_colors = self.theme.get_default_colors()
         theme_alphas = self.theme.get_default_alphas()
@@ -3489,9 +3767,7 @@ class DockBar(gobject.GObject):
                     continue
                 GCONF_CLIENT.set_int(color_dir + '/' + a , colors[a])
 
-        # Remove all old groupbuttons.
-        for child in self.container.get_children():
-            self.container.remove(child)
+##        pdb.set_trace()
 
         self.container.set_spacing(self.theme.get_gap())
         self.container.show()
@@ -3508,6 +3784,14 @@ class DockBar(gobject.GObject):
             gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING)
         except:
             GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
+
+
+        # Wait until everything is loaded
+        # before adding groupbuttons
+        while gtk.events_pending():
+            gtk.main_iteration(False)
+
+##        pdb.set_trace()
         # Initiate launcher group buttons
         for launcher in gconf_launchers:
             res_class, path = launcher.split(';')
@@ -3515,10 +3799,17 @@ class DockBar(gobject.GObject):
                 res_class = None
             self.add_launcher(res_class, path)
 
+##        pdb.set_trace()
         #--- Initiate windows
         # Initiate group buttons with windows
         for window in self.screen.get_windows():
             self.on_window_opened(self.screen, window)
+
+##        pdb.set_trace()
+
+        self.screen.connect("window-opened",self.on_window_opened)
+        self.screen.connect("window-closed",self.on_window_closed)
+        self.screen.connect("active-window-changed", self.on_active_window_changed)
 
         self.on_active_window_changed(self.screen, None)
 
@@ -3599,16 +3890,16 @@ class DockBar(gobject.GObject):
                 break
             if 'color' in key:
                 self.all_windowbuttons_update_label_state()
-                self.reset_all_pixbufs()
+                self.reset_all_surfaces()
                 break
 
 
 
-    def reset_all_pixbufs(self):
+    def reset_all_surfaces(self):
         # Removes all saved pixbufs with active glow in groupbuttons iconfactories.
         # Use this def when the looks of active glow has been changed.
         for group in self.groups.get_groups():
-            group.icon_factory.reset_pixbufs()
+            group.icon_factory.reset_surfaces()
 
     def all_windowbuttons_update_label_state(self):
         # Updates all window button labels. To be used when
@@ -3743,8 +4034,11 @@ class DockBar(gobject.GObject):
     def on_window_closed(self,screen,window):
         if window in self.windows:
             class_group_name = self.windows[window]
-            if self.groups.get_group(class_group_name):
-                self.groups.get_group(class_group_name).del_window(window)
+            group = self.groups[class_group_name]
+            if group:
+                group.del_window(window)
+                if not group.windows and not group.launcher:
+                    self.groups.remove(class_group_name)
             del self.windows[window]
 
     def find_gio_app(self, res_class):
@@ -3799,7 +4093,7 @@ class DockBar(gobject.GObject):
         try:
             launcher = Launcher(res_class, path, dockbar=self)
         except:
-            print "ERROR: Couldn't read desktop entry for " + name
+            print "ERROR: Couldn't read desktop entry for " + res_class
             print "path: "+ path
             return
 
