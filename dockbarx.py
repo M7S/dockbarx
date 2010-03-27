@@ -666,7 +666,7 @@ class IconFactory():
             except:
                 print "Theme error: the color attribute for a theme command should be a six" + \
                       " digit hex string eg. \"#FFFFFF\" or the a dockbarx color (\"color1\"-\"color8\")."
-                raise
+                color = "#000000"
         return color
 
     def get_alpha(self, alpha):
@@ -701,7 +701,7 @@ class IconFactory():
         b = 0
         g = 0
         i = 0
-        pb = self.surface2pixbuf(pb)
+        pb = self.surface2pixbuf(self.icon)
         for row in pb.get_pixels_array():
             for pix in row:
                 if pix[3] > 30:
@@ -994,7 +994,13 @@ class IconFactory():
         return surface
 
     def command_fill(self, surface, color, opacity=100):
-        ctx = cairo.Context(surface)
+        w = surface.get_width()
+        h = surface.get_height()
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+        ctx.set_source_surface(surface)
+        ctx.paint()
+
         alpha = self.get_alpha(opacity)
         c = self.get_color(color)
         r = float(int(c[1:3], 16))/255
@@ -1003,7 +1009,7 @@ class IconFactory():
         ctx.set_source_rgba(r, g, b)
         ctx.set_operator(cairo.OPERATOR_SOURCE)
         ctx.paint_with_alpha(alpha)
-        return surface
+        return new
 
 
     def command_combine(self, surface, pix1, pix2, degrees=90):
@@ -1064,11 +1070,20 @@ class IconFactory():
         alpha = self.get_alpha(opacity)
         # Todo: Add error check for saturation
         if int(saturation) < 100:
-            pixbuf = self.surface2pixbuf(surface)
+            sio = StringIO()
+            surface.write_to_png(sio)
+            sio.seek(0)
+            loader = gtk.gdk.PixbufLoader()
+            loader.write(sio.getvalue())
+            loader.close()
+            sio.close()
+            pixbuf = loader.get_pixbuf()
             saturation = min(1.0, float(saturation)/100)
             pixbuf.saturate_and_pixelate(pixbuf, saturation, False)
             ctx.set_source_pixbuf(pixbuf, 0, 0)
             ctx.paint_with_alpha(alpha)
+            del loader
+            del sio
             del pixbuf
         else:
             ctx.set_source_surface(surface)
@@ -1265,10 +1280,13 @@ class IconFactory():
         ctx.mask_surface(surface)
         # Apply the white version over the icon
         # with the chosen alpha value
-        ctx = cairo.Context(surface)
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+        ctx.set_source_surface(surface)
+        ctx.paint()
         ctx.set_source_surface(white)
         ctx.paint_with_alpha(alpha)
-        return surface
+        return new
 
     def command_alpha_mask(self, surface, mask):
         if mask in self.temp:
@@ -1761,9 +1779,9 @@ class WindowButton():
         self.window_button.connect("button-press-event",self.on_window_button_press_event)
         self.window_button.connect("button-release-event",self.on_window_button_release_event)
         self.window_button.connect("scroll-event",self.on_window_button_scroll_event)
-        self.window.connect("state-changed",self.on_window_state_changed)
-        self.window.connect("icon-changed",self.on_window_icon_changed)
-        self.window.connect("name-changed",self.on_window_name_changed)
+        self.state_changed_event = self.window.connect("state-changed",self.on_window_state_changed)
+        self.icon_changed_event = self.window.connect("icon-changed",self.on_window_icon_changed)
+        self.name_changed_event = self.window.connect("name-changed",self.on_window_name_changed)
 
         #--- D'n'D
         self.window_button.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT, [], 0)
@@ -1811,6 +1829,9 @@ class WindowButton():
         self.groupbutton.disconnect(self.sid2)
         self.groupbutton.disconnect(self.sid4)
         self.groupbutton.dockbar.disconnect(self.sid3)
+        self.window.disconnect(self.state_changed_event)
+        self.window.disconnect(self.icon_changed_event)
+        self.window.disconnect(self.name_changed_event)
         del self.icon
         del self.icon_locked
         del self.icon_transp
@@ -1874,6 +1895,7 @@ class WindowButton():
         else:
             self.window_button_icon.set_from_pixbuf(self.icon)
         del pixbuf
+        del lock
 
     def on_window_name_changed(self, window):
         name = u""+window.get_name()
@@ -3548,7 +3570,7 @@ class DockBar(gobject.GObject):
     def __init__(self,applet):
         gobject.GObject.__init__(self)
         global settings
-        print "dockbar init"
+        print "Dockbarx init"
         self.applet = applet
         # self.dragging is used to tell functions wheter
         # a drag-and-drop is going on
@@ -3654,6 +3676,7 @@ class DockBar(gobject.GObject):
             self.theme.remove()
         del self.theme
         gc.collect()
+        print "Dockbarx reload"
         self.groups = GroupList()
         self.windows = {}
         self.apps_by_id = {}
