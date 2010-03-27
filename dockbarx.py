@@ -882,7 +882,7 @@ class IconFactory():
         # Returns the icon pixbuf for the program. Uses the following metods:
 
         # 1) If it is a launcher, return the icon from the launcher's desktopfile
-        # 2) Match the res_class against gio app ids to try to get a desktopfile
+        # 2) Match the identifier against gio app ids to try to get a desktopfile
         #    that way.
         # 3) Check if the res_class fits an iconname.
         # 4) Search in path after a icon matching reclass.
@@ -891,6 +891,9 @@ class IconFactory():
             name = self.class_group.get_res_class().lower()
         else:
             name = "" # Is this clever? Can there be a "" icon?
+
+        if name == "wine":
+            name = ""
 
         if self.launcher:
             icon_name = self.launcher.get_icon_name()
@@ -939,7 +942,7 @@ class IconFactory():
                                   flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                                   type=gtk.MESSAGE_WARNING,
                                   buttons=gtk.BUTTONS_OK,
-                                  message_format='Cannot load icon for launcher '+ self.launcher.get_res_class()+'.')
+                                  message_format='Cannot load icon for launcher '+ self.launcher.get_identifier()+'.')
             dialog.set_title('DockBarX')
             dialog.run()
             dialog.destroy()
@@ -1492,8 +1495,8 @@ class CairoPopup():
 
 
 class Launcher():
-    def __init__(self, res_class, path, dockbar=None):
-        self.res_class = res_class
+    def __init__(self, identifier, path, dockbar=None):
+        self.identifier = identifier
         self.path = path
         self.app = None
         if path[:4] == "gio:":
@@ -1507,11 +1510,11 @@ class Launcher():
             raise Exception("DesktopFile "+path+" doesn't exist.")
 
 
-    def get_res_class(self):
-        return self.res_class
+    def get_identifier(self):
+        return self.identifier
 
-    def set_res_class(self, res_class):
-        self.res_class = res_class
+    def set_identifier(self, identifier):
+        self.identifier = identifier
 
     def get_path(self):
         return self.path
@@ -1579,8 +1582,8 @@ class GroupList():
     def __getitem__(self, name):
         return self.get_group(name)
 
-    def __setitem__(self, res_class, group_button):
-        self.add_group(res_class, group_button)
+    def __setitem__(self, identifier, group_button):
+        self.add_group(identifier, group_button)
 
     def __contains__(self, name):
         if not name:
@@ -1594,10 +1597,10 @@ class GroupList():
         return False
 
     def __iter__(self):
-        return self.get_res_classes().__iter__()
+        return self.get_identifiers().__iter__()
 
-    def add_group(self, res_class, group_button, path_to_launcher=None, index=None):
-        t = (res_class, group_button, path_to_launcher)
+    def add_group(self, identifier, group_button, path_to_launcher=None, index=None):
+        t = (identifier, group_button, path_to_launcher)
         if index:
             self.list.insert(index, t)
         else:
@@ -1622,25 +1625,25 @@ class GroupList():
             if t[2] == name:
                 return t[2]
 
-    def set_launcher_path(self, res_class, path):
-        if not res_class:
+    def set_launcher_path(self, identifier, path):
+        if not identifier:
             return
         for t in self.list:
-            if t[0] == res_class:
+            if t[0] == identifier:
                 n = [t[0], t[1], path]
                 index = self.list.index(t)
                 self.list.remove(t)
                 self.list.insert(index, n)
                 return True
 
-    def set_res_class(self, path, res_class):
+    def set_identifier(self, path, identifier):
         for t in self.list:
             if t[2] == path:
-                n = (res_class, t[1], t[2])
+                n = (identifier, t[1], t[2])
                 index = self.list.index(t)
                 self.list.remove(t)
                 self.list.insert(index, n)
-                n[1].res_class_changed(res_class)
+                n[1].identifier_changed(identifier)
                 return True
 
     def get_groups(self):
@@ -1649,7 +1652,7 @@ class GroupList():
             grouplist.append(t[1])
         return grouplist
 
-    def get_res_classes(self):
+    def get_identifiers(self):
         namelist = []
         for t in self.list:
             if t[0]:
@@ -1663,7 +1666,7 @@ class GroupList():
                 namelist.append(t[2])
         return namelist
 
-    def get_group_identifiers(self):
+    def get_identifiers_or_paths(self):
         namelist = []
         for t in self.list:
             if t[0] == None:
@@ -1704,11 +1707,11 @@ class GroupList():
                 self.list.insert(index, t)
                 return True
 
-    def remove_launcher(self, res_class):
-        if not res_class:
+    def remove_launcher(self, identifier):
+        if not identifier:
             return
         for t in self.list:
-            if res_class == t[0]:
+            if identifier == t[0]:
                 n = (t[0], t[1], None)
                 index = self.list.index(t)
                 self.list.remove(t)
@@ -2286,21 +2289,18 @@ class GroupButton (gobject.GObject):
         "set-icongeo-delay": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
     }
 
-    def __init__(self,dockbar,class_group=None, launcher=None, index=None, app=None):
-        # Todo: replace class_group with res_class
+    def __init__(self,dockbar,class_group=None, identifier=None, launcher=None, index=None, app=None):
         gobject.GObject.__init__(self)
 
         self.launcher = launcher
         self.class_group = class_group
         self.dockbar = dockbar
         self.app = app
-        if class_group:
-            self.res_class = class_group.get_res_class()
-            if self.res_class == "":
-                self.res_class = class_group.get_name()
+        if identifier:
+            self.identifier = identifier
         elif launcher:
-            self.res_class = launcher.get_res_class()
-            # launcher.get_res_class() returns None
+            self.identifier = launcher.get_identifier()
+            # launcher.get_identifier() returns None
             # if the resclass is still unknown
         else:
             raise Exception, "Can't initiate Group button without class_group or launcher."
@@ -2376,9 +2376,9 @@ class GroupButton (gobject.GObject):
         self.popup_label = gtk.Label()
         self.update_name()
         self.popup_label.set_use_markup(True)
-        if self.res_class:
-            # Todo: add tooltip when res_class is added.
-            self.popup_label.set_tooltip_text("Resource class name: "+self.res_class)
+        if self.identifier:
+            # Todo: add tooltip when identifier is added.
+            self.popup_label.set_tooltip_text("Resource class name: "+self.identifier)
         self.winlist.pack_start(self.popup_label,False)
 
 
@@ -2428,10 +2428,10 @@ class GroupButton (gobject.GObject):
 ##        self.dockbar = None
 ##        self.drag_pixbuf = None
 
-    def res_class_changed(self, res_class):
-        self.res_class = res_class
-        self.launcher.set_res_class(res_class)
-        self.popup_label.set_tooltip_text("Resource class name: "+self.res_class)
+    def identifier_changed(self, identifier):
+        self.identifier = identifier
+        self.launcher.set_identifier(identifier)
+        self.popup_label.set_tooltip_text("Resource class name: "+self.identifier)
 
     def update_class_group(self, class_group):
         self.class_group = class_group
@@ -2836,8 +2836,8 @@ class GroupButton (gobject.GObject):
         self.hide_list()
 
     def on_drag_data_get(self, widget, context, selection, targetType, eventTime):
-        if self.res_class:
-            name = self.res_class
+        if self.identifier:
+            name = self.identifier
         else:
             name = self.launcher.get_path()
         selection.set(selection.target, 8, name)
@@ -2861,8 +2861,8 @@ class GroupButton (gobject.GObject):
         return True
 
     def on_drag_data_received(self, wid, context, x, y, selection, targetType, t):
-        if self.res_class:
-            name = self.res_class
+        if self.identifier:
+            name = self.identifier
         else:
             name = self.launcher.get_path()
         if selection.target == 'text/groupbutton_name':
@@ -3060,13 +3060,13 @@ class GroupButton (gobject.GObject):
             if window.is_minimized():
                 window.unminimize(t)
 
-    def change_res_class(self, widget=None, event=None):
-        self.dockbar.change_res_class(self.launcher.get_path(), self.res_class)
+    def change_identifier(self, widget=None, event=None):
+        self.dockbar.change_identifier(self.launcher.get_path(), self.identifier)
 
     def add_launcher(self, widget=None, event=None):
         path = "gio:" + self.app.get_id()[:self.app.get_id().rfind('.')].lower()
-        self.launcher = Launcher(self.res_class, path, self.dockbar)
-        self.dockbar.groups.set_launcher_path(self.res_class, path)
+        self.launcher = Launcher(self.identifier, path, self.dockbar)
+        self.dockbar.groups.set_launcher_path(self.identifier, path)
         self.dockbar.update_launchers_list()
 
     #### Actions
@@ -3391,11 +3391,11 @@ class GroupButton (gobject.GObject):
             menu.append(remove_launcher_item)
             remove_launcher_item.connect("activate", self.action_remove_launcher)
             remove_launcher_item.show()
-            #Edit res_class item
-            edit_res_class_item = gtk.MenuItem('Edit Resource Name')
-            menu.append(edit_res_class_item)
-            edit_res_class_item.connect("activate", self.change_res_class)
-            edit_res_class_item.show()
+            #Edit identifier item
+            edit_identifier_item = gtk.MenuItem('Edit Resource Name')
+            menu.append(edit_identifier_item)
+            edit_identifier_item.connect("activate", self.change_identifier)
+            edit_identifier_item.show()
         if (self.launcher or self.app) and self.windows:
             #Separator
             sep = gtk.SeparatorMenuItem()
@@ -3435,9 +3435,9 @@ class GroupButton (gobject.GObject):
         self.dockbar.right_menu_showing = True
 
     def action_remove_launcher(self, widget=None, event = None):
-        print 'Removing launcher ', self.res_class
-        if self.res_class:
-            name = self.res_class
+        print 'Removing launcher ', self.identifier
+        if self.identifier:
+            name = self.identifier
         else:
             name = self.launcher.get_path()
         self.launcher = None
@@ -3455,7 +3455,7 @@ class GroupButton (gobject.GObject):
                 # The launcher is not of gio-app type.
                 # The group button will be reset with its
                 # non-launcher name and icon.
-                self.app = self.dockbar.find_gio_app(self.res_class)
+                self.app = self.dockbar.find_gio_app(self.identifier)
                 self.icon_factory.remove_launcher(class_group=self.class_group, app = self.app)
                 self.update_name()
                 self.update_state()
@@ -3469,7 +3469,7 @@ class GroupButton (gobject.GObject):
                     gr.windows[win].window.minimize()
 
     def action_compiz_scale_windows(self, widget, event):
-        if not self.res_class or \
+        if not self.class_group or \
            len(self.windows) - self.minimized_windows_count == 0:
             return
         if len(self.windows) - self.minimized_windows_count == 1:
@@ -3479,7 +3479,9 @@ class GroupButton (gobject.GObject):
                     break
             return
         try:
-            compiz_call('scale/allscreens/initiate_all_key','activate','root', self.root_xid,'match','iclass='+self.res_class)
+            compiz_call('scale/allscreens/initiate_all_key', \
+                        'activate','root', self.root_xid,'match', \
+                        'iclass='+self.class_group.get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
@@ -3487,7 +3489,7 @@ class GroupButton (gobject.GObject):
         gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list)
 
     def action_compiz_shift_windows(self, widget, event):
-        if not self.res_class or \
+        if not self.class_group or \
            len(self.windows) - self.minimized_windows_count == 0:
             return
         if len(self.windows) - self.minimized_windows_count == 1:
@@ -3497,7 +3499,9 @@ class GroupButton (gobject.GObject):
                     break
             return
         try:
-            compiz_call('shift/allscreens/initiate_all_key','activate','root', self.root_xid,'match','iclass='+self.res_class)
+            compiz_call('shift/allscreens/initiate_all_key', \
+                        'activate','root', self.root_xid,'match', \
+                        'iclass='+self.class_group.get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
@@ -3665,7 +3669,7 @@ class DockBar(gobject.GObject):
                 self.on_window_closed(None, win)
         if self.groups != None:
             # Removes launcher group buttons
-            for name in self.groups.get_group_identifiers():
+            for name in self.groups.get_identifiers_or_paths():
                 self.groups[name].hide_list()
                 self.groups[name].icon_factory.remove()
                 self.groups.remove(name)
@@ -3794,10 +3798,10 @@ class DockBar(gobject.GObject):
 ##        pdb.set_trace()
         # Initiate launcher group buttons
         for launcher in gconf_launchers:
-            res_class, path = launcher.split(';')
-            if res_class == '':
-                res_class = None
-            self.add_launcher(res_class, path)
+            identifier, path = launcher.split(';')
+            if identifier == '':
+                identifier = None
+            self.add_launcher(identifier, path)
 
 ##        pdb.set_trace()
         #--- Initiate windows
@@ -3967,6 +3971,16 @@ class DockBar(gobject.GObject):
                 window_button = active_group.windows[active_window]
                 window_button.set_button_active(True)
 
+    def on_window_closed(self,screen,window):
+        if window in self.windows:
+            class_group_name = self.windows[window]
+            group = self.groups[class_group_name]
+            if group:
+                group.del_window(window)
+                if not group.windows and not group.launcher:
+                    self.groups.remove(class_group_name)
+            del self.windows[window]
+
     def on_window_opened(self,screen,window):
         if window.is_skip_tasklist() \
         or not (window.get_window_type() in [wnck.WINDOW_NORMAL, wnck.WINDOW_DIALOG]):
@@ -3976,12 +3990,30 @@ class DockBar(gobject.GObject):
         class_group_name = class_group.get_res_class()
         if class_group_name == "":
             class_group_name = class_group.get_name()
-        self.windows[window]=class_group_name
-        if class_group_name in self.groups.get_res_classes():
+        if class_group_name == "Wine":
+            class_group_name = self.get_wine_app_name(window)
+        self.windows[window] = class_group_name
+        if class_group_name in self.groups.get_identifiers():
+            # This isn't the first open window of this group.
             self.groups[class_group_name].add_window(window)
             return
+        id = self.find_matching_launcher(class_group_name)
+        if id:
+            # The window is matching a launcher without open windows.
+            path = self.launchers_by_id[id].get_path()
+            self.groups.set_identifier(path, class_group_name)
+            self.groups[class_group_name].add_window(window)
+            self.update_launchers_list()
+            self.remove_launcher_id_from_undefined_list(id)
+        else:
+            # First window of a new group.
+            app = self.find_gio_app(class_group_name)
+            self.groups[class_group_name] = GroupButton(self,class_group, identifier=class_group_name, app=app)
+            self.groups[class_group_name].add_window(window)
+
+    def find_matching_launcher(self, identifier):
         id = None
-        rc = u""+class_group_name.lower()
+        rc = u""+identifier.lower()
         if rc != "":
             if rc in self.launchers_by_id:
                 id = rc
@@ -4007,7 +4039,7 @@ class DockBar(gobject.GObject):
             if id == None and rc.find(' ')>-1:
                     rc = rc.partition(' ')[0] # Cut all before space
                     # Workaround for apps
-                    # with res_class like this 'App 1.2.3' (name with ver)
+                    # with identifier like this 'App 1.2.3' (name with ver)
                     if rc in self.launchers_by_id:
                         id = rc
                         print "Partial name for open window matched with id:", rc
@@ -4017,34 +4049,12 @@ class DockBar(gobject.GObject):
                     elif rc in self.launchers_by_exec:
                         id = self.launchers_by_exec[rc]
                         print "Partial name for open window matched with executable:", rc
-        if id:
-            # The window is matching a launcher!
-            path = self.launchers_by_id[id].get_path()
-            self.groups.set_res_class(path, class_group_name)
-            self.groups[class_group_name].add_window(window)
-            self.update_launchers_list()
-            self.remove_launcher_id_from_undefined_list(id)
-        else:
-            # First window of a new group.
-            app = self.find_gio_app(class_group_name)
-            self.groups[class_group_name] = GroupButton(self,class_group, app=app)
-            self.groups[class_group_name].add_window(window)
+        return id
 
-
-    def on_window_closed(self,screen,window):
-        if window in self.windows:
-            class_group_name = self.windows[window]
-            group = self.groups[class_group_name]
-            if group:
-                group.del_window(window)
-                if not group.windows and not group.launcher:
-                    self.groups.remove(class_group_name)
-            del self.windows[window]
-
-    def find_gio_app(self, res_class):
+    def find_gio_app(self, identifier):
         app = None
         app_id = None
-        rc = u""+res_class.lower()
+        rc = u""+identifier.lower()
         if rc != "":
             # WM_CLASS res_class exists.
             if rc in self.apps_by_id:
@@ -4072,7 +4082,7 @@ class DockBar(gobject.GObject):
                     rc = rc.partition(' ')[0] # Cut all before space
                     print " trying to find as",rc
                     # Workaround for apps
-                    # with res_class like this 'App 1.2.3' (name with ver)
+                    # with identifier like this 'App 1.2.3' (name with ver)
                     ### keys()
                     if rc in self.apps_by_id.keys():
                         app_id = rc
@@ -4087,18 +4097,29 @@ class DockBar(gobject.GObject):
                 app = self.apps_by_id[app_id]
         return app
 
+    def get_wine_app_name(self, window):
+        # This function guesses an application name base on the window name
+        # since all wine applications are has the identifier "Wine".
+        name = window.get_name()
+        # if the name has " - " in it the application is usually the part after it.
+        name = name.split(" - ")[-1]
+        return "Wine__" + name
+
+
+
+
     #### Launchers
-    def add_launcher(self, res_class, path):
+    def add_launcher(self, identifier, path):
         """Adds a new launcher from a desktop file located at path and from the name"""
         try:
-            launcher = Launcher(res_class, path, dockbar=self)
+            launcher = Launcher(identifier, path, dockbar=self)
         except:
-            print "ERROR: Couldn't read desktop entry for " + res_class
+            print "ERROR: Couldn't read desktop entry for " + identifier
             print "path: "+ path
             return
 
-        self.groups.add_group(res_class, GroupButton(self, launcher=launcher), path)
-        if res_class == None:
+        self.groups.add_group(identifier, GroupButton(self, launcher=launcher), path)
+        if identifier == None:
             id = path[path.rfind('/')+1:path.rfind('.')].lower()
             name = u""+launcher.get_entry_name().lower()
             exe = launcher.get_executable()
@@ -4141,8 +4162,8 @@ class DockBar(gobject.GObject):
             print "name: ", name
         print "executable: ", exe
         print
-        for res_class in self.groups.get_non_launcher_names():
-            rc = u""+res_class.lower()
+        for identifier in self.groups.get_non_launcher_names():
+            rc = u""+identifier.lower()
             if not rc:
                 continue
             if rc == id:
@@ -4163,7 +4184,7 @@ class DockBar(gobject.GObject):
             if rc.find(' ')>-1:
                     rc = rc.partition(' ')[0] # Cut all before space
                     # Workaround for apps
-                    # with res_class like this 'App 1.2.3' (name with ver)
+                    # with identifier like this 'App 1.2.3' (name with ver)
                     if rc == id:
                         break
                     elif rc == name:
@@ -4174,7 +4195,7 @@ class DockBar(gobject.GObject):
             # No open windows where found that could be connected
             # with the new launcher. Id, name and exe will be stored
             # so that it can be checked against new windows later.
-            res_class = None
+            identifier = None
             self.launchers_by_id[id] = launcher
             if lname:
                 self.launchers_by_longname[name] = id
@@ -4183,11 +4204,11 @@ class DockBar(gobject.GObject):
             self.launchers_by_exec[exe] = id
 
         class_group = None
-        if res_class:
-            launcher.set_res_class(res_class)
+        if identifier:
+            launcher.set_identifier(identifier)
         # Remove existing groupbutton for the same program
         winlist = []
-        if calling_button in (res_class, path):
+        if calling_button in (identifier, path):
             index = self.groups.get_index(calling_button)
             group = self.groups[calling_button]
             class_group = group.get_class_group()
@@ -4199,8 +4220,8 @@ class DockBar(gobject.GObject):
             group.winlist.destroy()
             self.groups.remove(calling_button)
         else:
-            if res_class in self.groups.get_res_classes():
-                group = self.groups[res_class]
+            if identifier in self.groups.get_identifiers():
+                group = self.groups[identifier]
                 class_group = group.get_class_group()
                 # Get the windows for repopulation of the new button
                 winlist = group.windows.keys()
@@ -4208,7 +4229,7 @@ class DockBar(gobject.GObject):
                 group.popup.destroy()
                 group.button.destroy()
                 group.winlist.destroy()
-                self.groups.remove(res_class)
+                self.groups.remove(identifier)
             elif path in self.groups.get_undefined_launchers():
                 group = self.groups[path]
                 # Destroy the group button
@@ -4220,14 +4241,14 @@ class DockBar(gobject.GObject):
             # Insert the new button after (to the
             # right of or under) the calling button
             index = self.groups.get_index(calling_button) + 1
-        button = GroupButton(self, class_group=class_group, launcher=launcher, index=index)
-        self.groups.add_group(res_class, button, path, index)
+        button = GroupButton(self, class_group=class_group, identifier=identifier, launcher=launcher, index=index)
+        self.groups.add_group(identifier, button, path, index)
         self.update_launchers_list()
         for window in winlist:
             self.on_window_opened(self.screen, window)
         return True
 
-    def class_name_dialog(self, res_class=None):
+    def class_name_dialog(self, identifier=None):
         # Input dialog for inputting the res_class_name.
         dialog = gtk.MessageDialog(
             None,
@@ -4244,8 +4265,8 @@ class DockBar(gobject.GObject):
         #entry = gtk.Entry()
         combobox = gtk.combo_box_entry_new_text()
         entry = combobox.get_child()
-        if res_class:
-            entry.set_text(res_class)
+        if identifier:
+            entry.set_text(identifier)
         # Fill the popdown list with the names of all class names of buttons that hasn't got a launcher already
         for name in self.groups.get_non_launcher_names():
             combobox.append_text(name)
@@ -4296,21 +4317,21 @@ class DockBar(gobject.GObject):
         self.groups.add_group(name, move_group, move_path, index)
         self.update_launchers_list()
 
-    def change_res_class(self, path, res_class=None):
-        res_class = self.class_name_dialog(res_class)
-        if not res_class:
+    def change_identifier(self, path, identifier=None):
+        identifier = self.class_name_dialog(identifier)
+        if not identifier:
             return False
         winlist = []
-        if res_class in self.groups.get_res_classes():
-                group = self.groups[res_class]
+        if identifier in self.groups.get_identifiers():
+                group = self.groups[identifier]
                 # Get the windows for repopulation of the new button
                 winlist = group.windows.keys()
                 # Destroy the group button
                 group.popup.destroy()
                 group.button.destroy()
                 group.winlist.destroy()
-                self.groups.remove(res_class)
-        self.groups.set_res_class(path, res_class)
+                self.groups.remove(identifier)
+        self.groups.set_identifier(path, identifier)
         for window in winlist:
             self.on_window_opened(self.screen, window)
         self.update_launchers_list()
@@ -4319,10 +4340,10 @@ class DockBar(gobject.GObject):
         # Saves launchers_list to gconf.
         launchers_list = self.groups.get_launchers_list()
         gconf_launchers = []
-        for res_class, path in launchers_list:
-            if res_class == None:
-                res_class = ''
-            gconf_launchers.append(res_class + ';' + path)
+        for identifier, path in launchers_list:
+            if identifier == None:
+                identifier = ''
+            gconf_launchers.append(identifier + ';' + path)
         GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
 
     def remove_launcher_id_from_undefined_list(self, id):
