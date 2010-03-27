@@ -914,7 +914,7 @@ class PrefDialog():
             self.theme_colors = self.theme.get_default_colors()
             self.theme_alphas = self.theme.get_default_alphas()
         else:
-            elf.theme_colors = {}
+            self.theme_colors = {}
             self.theme_alphas = {}
 
         for i in range(1, 9):
