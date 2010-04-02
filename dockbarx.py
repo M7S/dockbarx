@@ -3636,6 +3636,7 @@ class DockBar(gobject.GObject):
             self.applet.connect("delete-event",self.cleanup)
             self.applet.add(self.container)
             self.applet.connect("size-allocate",self.on_applet_size_alloc)
+            self.applet.connect("change_background", self.on_change_background)
             self.pp_menu_xml = """
             <popup name="button3">
                 <menuitem name="About Item" verb="About" stockid="gtk-about" />
@@ -3955,6 +3956,18 @@ class DockBar(gobject.GObject):
             self.container.pack_start(group.button,False)
         self.container.set_spacing(self.theme.get_gap())
         self.container.show_all()
+
+    def on_change_background(self, applet, type, color, pixmap):
+        applet.set_style(None)
+        rc_style = gtk.RcStyle()
+        applet.modify_style(rc_style)
+        if type == gnomeapplet.COLOR_BACKGROUND:
+            applet.modify_bg(gtk.STATE_NORMAL, color)
+        elif type == gnomeapplet.PIXMAP_BACKGROUND:
+            style = applet.style
+            style.bg_pixmap[gtk.STATE_NORMAL] = pixmap
+            applet.set_style(style)
+        return
 
 
     #### Wnck events
