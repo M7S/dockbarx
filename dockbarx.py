@@ -3555,7 +3555,7 @@ class AboutDialog():
         self.about = gtk.AboutDialog()
         self.about.set_name("DockBarX Applet")
         self.about.set_version(VERSION)
-        self.about.set_copyright("Copyright (c) 2008-2009 Aleksey Shaferov and Matias S\xc3\xa4rs)")
+        self.about.set_copyright("Copyright (c) 2008-2009 Aleksey Shaferov and Matias S\xc3\xa4rs")
         self.about.connect("response",self.about_close)
         self.about.show()
 
@@ -3648,9 +3648,10 @@ class DockBar(gobject.GObject):
                                   ("Pref", self.on_ppm_pref),
                                   ("Reload", self.reload)]
             self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
-            self.applet.show_all()
             self.applet_origin_x = -1000 # off screen. there is no 'window' prop
             self.applet_origin_y = -1000 # at this step
+            self.applet.set_background_widget(applet) # background bug workaround
+            self.applet.show_all()
         else:
             self.container = gtk.HBox()
             self.orient = "h"
