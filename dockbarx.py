@@ -155,6 +155,9 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "opacify_group": False,
                       "opacify_alpha": 11,
 
+                      "separate_wine_apps": True,
+                      "separate_ooo_apps": True,
+
                       "groupbutton_left_click_action":"select or minimize group",
                       "groupbutton_shift_and_left_click_action":"launch application",
                       "groupbutton_middle_click_action":"close all windows",
@@ -542,10 +545,11 @@ class IconFactory():
                  'active':ACTIVE,
                  'launching':LAUNCH_EFFECT}
 
-    def __init__(self, dockbar, class_group=None, launcher=None, app=None):
+    def __init__(self, dockbar, class_group=None, launcher=None, app=None, identifier=None):
         self.dockbar = dockbar
         self.app = app
         self.launcher = launcher
+        self.identifier = identifier
         if self.launcher and self.launcher.app:
             self.app = self.launcher.app
             self.launcher = None
@@ -882,19 +886,13 @@ class IconFactory():
         # Returns the icon pixbuf for the program. Uses the following metods:
 
         # 1) If it is a launcher, return the icon from the launcher's desktopfile
-        # 2) Match the identifier against gio app ids to try to get a desktopfile
-        #    that way.
-        # 3) Check if the res_class fits an iconname.
+        # 2) Get the icon from the gio app
+        # 3) Check if the res_class fits an themed icon.
         # 4) Search in path after a icon matching reclass.
+        # 5) Use the mini icon for the class
+
         pixbuf = None
-        if self.class_group:
-            name = self.class_group.get_res_class().lower()
-        else:
-            name = "" # Is this clever? Can there be a "" icon?
-
-        if name == "wine":
-            name = ""
-
+        icon_name = None
         if self.launcher:
             icon_name = self.launcher.get_icon_name()
             if os.path.isfile(icon_name):
@@ -908,44 +906,58 @@ class IconFactory():
                     pixbuf = self.icon_from_file_name(icon.get_file().get_path(), size)
                     if pixbuf != None:
                         return pixbuf
-                icon_name = name
             elif icon.__class__ == gio.ThemedIcon:
                 icon_name = icon.get_names()[0]
+
+        if not icon_name:
+            if self.class_group:
+                icon_name = self.class_group.get_res_class().lower()
             else:
-                icon_name = name
-        else:
-            icon_name = name
+                icon_name = "" # Is this clever? Can there be a "" icon?
+
+            # Special cases
+            if icon_name == "wine" and settings['separate_wine_apps']:
+                for win in self.class_group.get_windows():
+                    if self.identifier[6:] in win.get_name():
+                        return win.get_icon().copy()
+                else:
+                    return self.class_group.get_icon().copy
+            if icon_name.startswith('openoffice'):
+                # Makes sure openoffice gets a themed icon
+                icon_name = "ooo-writer"
 
         if self.icon_theme.has_icon(icon_name):
-            pixbuf = self.icon_theme.load_icon(icon_name,size,0)
-            return pixbuf
-        if icon_name[-4:] == ".svg" or icon_name[-4:] == ".png" or icon_name[-4:] == ".xpm":
-            icon_name = icon_name[:-4]
-            if self.icon_theme.has_icon(icon_name):
-                pixbuf = self.icon_theme.load_icon(icon_name,size,0)
+            return self.icon_theme.load_icon(icon_name,size,0)
+
+        if icon_name[-4:] in (".svg", ".png", ".xpm"):
+            if self.icon_theme.has_icon(icon_name[:-4]):
+                pixbuf = self.icon_theme.load_icon(icon_name[:-4],size,0)
                 if pixbuf != None:
                     return pixbuf
 
         pixbuf = self.icon_search_in_data_path(icon_name, size)
+        if pixbuf != None:
+            return pixbuf
 
-        if pixbuf == None and self.class_group:
-            pixbuf = self.class_group.get_icon().copy()
-        elif pixbuf == None:
-            # If no pixbuf has been found (can only happen for an unlaunched
-            # launcher), make an empty pixbuf and show a warning.
-            if self.icon_theme.has_icon('application-default-icon'):
-                pixbuf = self.icon_theme.load_icon('application-default-icon',size,0)
-            else:
-                pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
-                pixbuf.fill(0x00000000)
-            dialog = gtk.MessageDialog(parent=None,
-                                  flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                                  type=gtk.MESSAGE_WARNING,
-                                  buttons=gtk.BUTTONS_OK,
-                                  message_format='Cannot load icon for launcher '+ self.launcher.get_identifier()+'.')
-            dialog.set_title('DockBarX')
-            dialog.run()
-            dialog.destroy()
+        if self.class_group:
+            return self.class_group.get_icon().copy()
+
+
+        # If no pixbuf has been found (can only happen for an unlaunched
+        # launcher), make an empty pixbuf and show a warning.
+        if self.icon_theme.has_icon('application-default-icon'):
+            pixbuf = self.icon_theme.load_icon('application-default-icon',size,0)
+        else:
+            pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
+            pixbuf.fill(0x00000000)
+        dialog = gtk.MessageDialog(parent=None,
+                              flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                              type=gtk.MESSAGE_WARNING,
+                              buttons=gtk.BUTTONS_OK,
+                              message_format='Cannot load icon for launcher '+ self.launcher.get_identifier()+'.')
+        dialog.set_title('DockBarX')
+        dialog.run()
+        dialog.destroy()
         return pixbuf
 
     def icon_from_file_name(self, icon_name, icon_size = -1):
@@ -2329,7 +2341,7 @@ class GroupButton (gobject.GObject):
 
 
         #--- Button
-        self.icon_factory = IconFactory(self.dockbar, class_group, launcher, app)
+        self.icon_factory = IconFactory(self.dockbar, class_group, launcher, app, self.identifier)
         self.image = gtk.Image() # Todo: REmove
         gtk_screen = self.dockbar.container.get_screen()
         colormap = gtk_screen.get_rgba_colormap()
@@ -3657,6 +3669,11 @@ class DockBar(gobject.GObject):
             self.container = gtk.HBox()
             self.orient = "h"
 
+        # Wait until everything is loaded
+        # before adding groupbuttons
+        while gtk.events_pending():
+            gtk.main_iteration(False)
+
         self.reload()
 
 
@@ -3791,11 +3808,6 @@ class DockBar(gobject.GObject):
         except:
             GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
 
-
-        # Wait until everything is loaded
-        # before adding groupbuttons
-        while gtk.events_pending():
-            gtk.main_iteration(False)
 
 ##        pdb.set_trace()
         # Initiate launcher group buttons
@@ -4004,13 +4016,18 @@ class DockBar(gobject.GObject):
         class_group_name = class_group.get_res_class()
         if class_group_name == "":
             class_group_name = class_group.get_name()
-        if class_group_name == "Wine":
+        # Special cases
+        if class_group_name == "Wine" \
+        and settings['separate_wine_apps']:
             class_group_name = self.get_wine_app_name(window)
+        if class_group_name.startswith("OpenOffice.org"):
+            class_group_name = self.get_ooo_app_name(window)
         self.windows[window] = class_group_name
         if class_group_name in self.groups.get_identifiers():
             # This isn't the first open window of this group.
             self.groups[class_group_name].add_window(window)
             return
+
         id = self.find_matching_launcher(class_group_name)
         if id:
             # The window is matching a launcher without open windows.
@@ -4118,6 +4135,18 @@ class DockBar(gobject.GObject):
         # if the name has " - " in it the application is usually the part after it.
         name = name.split(" - ")[-1]
         return "Wine__" + name
+
+    def get_ooo_app_name(self, window):
+        # Separates the differnt openoffice applications from each other
+        # The names are chosen to match the gio app ids.
+        if not settings['separate_ooo_apps']:
+            return "openoffice.org-writer"
+        name = window.get_name()
+        for app in ['Calc', 'Impress', 'Draw', 'Math']:
+            if name.endswith(app):
+                return "openoffice.org-" + app.lower()
+        else:
+            return "openoffice.org-writer"
 
 
 

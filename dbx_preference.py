@@ -48,6 +48,9 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "opacify_group": False,
                       "opacify_alpha": 11,
 
+                      "separate_wine_apps": True,
+                      "separate_ooo_apps": True,
+
                       "groupbutton_left_click_action":"select or minimize group",
                       "groupbutton_shift_and_left_click_action":"launch application",
                       "groupbutton_middle_click_action":"close all windows",
@@ -426,6 +429,7 @@ class PrefDialog():
         appearance_box = gtk.VBox()
         windowbutton_box = gtk.VBox()
         groupbutton_box = gtk.VBox()
+        advanced_box = gtk.VBox()
 
         #--- WindowButton page
         label = gtk.Label("<b>Windowbutton actions</b>")
@@ -738,6 +742,16 @@ class PrefDialog():
         hbox.pack_start(vbox, False, padding=20)
         groupbutton_box.pack_start(hbox, False, padding=10)
 
+        #--- Advanced page
+        self.wine_apps_cb = gtk.CheckButton('Give each wine application its own group button')
+        self.wine_apps_cb.connect('toggled', self.checkbutton_toggled, 'separate_wine_apps')
+        advanced_box.pack_start(self.wine_apps_cb, False)
+
+        self.ooo_apps_cb = gtk.CheckButton('Keep open office application (Writer, Calc, etc.) separated')
+        self.ooo_apps_cb.connect('toggled', self.checkbutton_toggled, 'separate_ooo_apps')
+        advanced_box.pack_start(self.ooo_apps_cb, False)
+
+
         label = gtk.Label("Appearance")
         notebook.append_page(appearance_box, label)
         ca.pack_start(notebook)
@@ -745,6 +759,8 @@ class PrefDialog():
         notebook.append_page(groupbutton_box, label)
         label = gtk.Label("Window Button")
         notebook.append_page(windowbutton_box, label)
+        label = gtk.Label("Advanced")
+        notebook.append_page(advanced_box, label)
 
         self.update()
 
@@ -964,6 +980,10 @@ class PrefDialog():
             if model[i][0].lower() == settings['theme'].lower():
                 self.theme_combo.set_active(i)
                 break
+
+        # Advanced page stuff
+        self.wine_apps_cb.set_active(settings["separate_wine_apps"])
+        self.ooo_apps_cb.set_active(settings["separate_ooo_apps"])
 
 
 
