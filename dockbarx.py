@@ -910,18 +910,20 @@ class IconFactory():
                 icon_name = icon.get_names()[0]
 
         if not icon_name:
-            if self.class_group:
+            if self.identifier:
+                icon_name = self.identifier.lower()
+            elif self.class_group:
                 icon_name = self.class_group.get_res_class().lower()
             else:
-                icon_name = "" # Is this clever? Can there be a "" icon?
+                icon_name = ""
 
             # Special cases
-            if icon_name == "wine" and settings['separate_wine_apps']:
+            if icon_name.startswith("wine__"):
                 for win in self.class_group.get_windows():
                     if self.identifier[6:] in win.get_name():
                         return win.get_icon().copy()
                 else:
-                    return self.class_group.get_icon().copy
+                    return self.class_group.get_icon().copy()
             if icon_name.startswith('openoffice'):
                 # Makes sure openoffice gets a themed icon
                 icon_name = "ooo-writer"
@@ -1584,7 +1586,7 @@ class Launcher():
 
 
 class GroupList():
-    """GroupList contains a list with touples containing resclass, group button and launcherpath."""
+    """GroupList contains a list with touples containing identifier, group button and launcherpath."""
     def __init__(self):
         self.list = []
 
@@ -2313,7 +2315,7 @@ class GroupButton (gobject.GObject):
         elif launcher:
             self.identifier = launcher.get_identifier()
             # launcher.get_identifier() returns None
-            # if the resclass is still unknown
+            # if the identifier is still unknown
         else:
             raise Exception, "Can't initiate Group button without class_group or launcher."
 
@@ -2390,7 +2392,7 @@ class GroupButton (gobject.GObject):
         self.popup_label.set_use_markup(True)
         if self.identifier:
             # Todo: add tooltip when identifier is added.
-            self.popup_label.set_tooltip_text("Resource class name: "+self.identifier)
+            self.popup_label.set_tooltip_text("Identifier: "+self.identifier)
         self.winlist.pack_start(self.popup_label,False)
 
 
@@ -2443,7 +2445,7 @@ class GroupButton (gobject.GObject):
     def identifier_changed(self, identifier):
         self.identifier = identifier
         self.launcher.set_identifier(identifier)
-        self.popup_label.set_tooltip_text("Resource class name: "+self.identifier)
+        self.popup_label.set_tooltip_text("Identifier: "+self.identifier)
 
     def update_class_group(self, class_group):
         self.class_group = class_group
@@ -3404,7 +3406,7 @@ class GroupButton (gobject.GObject):
             remove_launcher_item.connect("activate", self.action_remove_launcher)
             remove_launcher_item.show()
             #Edit identifier item
-            edit_identifier_item = gtk.MenuItem('Edit Resource Name')
+            edit_identifier_item = gtk.MenuItem('Edit Identifier')
             menu.append(edit_identifier_item)
             edit_identifier_item.connect("activate", self.change_identifier)
             edit_identifier_item.show()
@@ -4087,7 +4089,6 @@ class DockBar(gobject.GObject):
         app_id = None
         rc = u""+identifier.lower()
         if rc != "":
-            # WM_CLASS res_class exists.
             if rc in self.apps_by_id:
                 app_id = rc
                 print "Opened window matched with gio app on id:", rc
@@ -4291,19 +4292,19 @@ class DockBar(gobject.GObject):
             self.on_window_opened(self.screen, window)
         return True
 
-    def class_name_dialog(self, identifier=None):
-        # Input dialog for inputting the res_class_name.
+    def identifier_dialog(self, identifier=None):
+        # Input dialog for inputting the identifier.
         dialog = gtk.MessageDialog(
             None,
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
             gtk.MESSAGE_QUESTION,
             gtk.BUTTONS_OK_CANCEL,
             None)
-        dialog.set_title('Resource Class')
-        dialog.set_markup('<b>Enter the resource class name here</b>')
+        dialog.set_title('Identifier')
+        dialog.set_markup('<b>Enter the identifier here</b>')
         dialog.format_secondary_markup(
             'You should have to do this only if the program fails to recognice its windows. '+ \
-            'If the program is already running you should be able to find the resource class name of the program from the dropdown list.')
+            'If the program is already running you should be able to find the identifier of the program from the dropdown list.')
         #create the text input field
         #entry = gtk.Entry()
         combobox = gtk.combo_box_entry_new_text()
@@ -4318,7 +4319,7 @@ class DockBar(gobject.GObject):
         #allow the user to press enter to do ok
         entry.connect("activate", lambda widget: dialog.response(gtk.RESPONSE_OK))
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label('Class Name:'), False, 5, 5)
+        hbox.pack_start(gtk.Label('Identifier:'), False, 5, 5)
         hbox.pack_end(combobox)
         dialog.vbox.pack_end(hbox, True, True, 0)
         dialog.show_all()
@@ -4361,7 +4362,7 @@ class DockBar(gobject.GObject):
         self.update_launchers_list()
 
     def change_identifier(self, path, identifier=None):
-        identifier = self.class_name_dialog(identifier)
+        identifier = self.identifier_dialog(identifier)
         if not identifier:
             return False
         winlist = []
