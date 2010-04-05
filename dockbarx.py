@@ -2386,6 +2386,7 @@ class GroupButton (gobject.GObject):
         cairo_popup = CairoPopup(colormap)
 
         self.winlist = cairo_popup.vbox
+        self.winlist.set_spacing(2)
         self.winlist.set_border_width(5)
         self.popup_label = gtk.Label()
         self.update_name()
