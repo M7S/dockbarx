@@ -726,7 +726,7 @@ class IconFactory():
 
 
     #### Flow commands
-    def command_if(self, surface, type=None, windows=None, content=None):
+    def command_if(self, surface, type=None, windows=None, size=None, content=None):
         if content == None:
             return surface
         # TODO: complete this
@@ -741,7 +741,7 @@ class IconFactory():
 ##                l.append(c)
 ##            else:
 ##                l[-1] += c
-        # Check if the type is right
+        # Check if the type condition is satisfied
         if type != None:
             negation = False
             if type[0] == "!" :
@@ -749,14 +749,10 @@ class IconFactory():
                 negation = True
             is_type = bool(type in self.TYPE_DICT \
                       and self.type & self.TYPE_DICT[type])
-            if (is_type ^ negation):
-                type = True
-            else:
-                type = False
-        else:
-            type = True
+            if not (is_type ^ negation):
+                return surface
 
-        #Check if the numbers of windows is right
+        #Check if the window number condition is satisfied
         if windows != None:
             arg = windows
             negation = False
@@ -776,25 +772,46 @@ class IconFactory():
                       ' "%s". See Theming HOWTO for more information'%windows
                 return surface
             if len(l) == 1:
-                if (l[0] == self.win_nr) ^ negation:
-                    windows = True
-                else:
-                    windows = False
-            elif (l[0]<=self.win_nr and self.win_nr<=l[1]) ^ negation:
-                windows = True
+                if not ((l[0] == self.win_nr) ^ negation):
+                    return surface
             else:
-                windows = False
-        else:
-            windows = True
+                if not ((l[0]<=self.win_nr and self.win_nr<=l[1]) ^ negation):
+                    return surface
 
-        if type and windows:
-            for command,args in content.items():
-                try:
-                    f = getattr(self,"command_%s"%command)
-                except:
-                    raise
-                else:
-                    surface = f(surface, **args)
+        #Check if the icon size condition is satisfied
+        if size != None:
+            arg = size
+            negation = False
+            if arg[0] == "!" :
+                arg = size[1:]
+                negation = True
+            if arg[0] == ":":
+                arg = "0" + arg
+            elif arg[-1] == ":":
+                arg = arg +"200"
+            l = arg.split(":", 1)
+            try:
+                l = [int(n) for n in l]
+            except ValueError:
+                print 'Theme Error: The size attribute of ' + \
+                      'an <if> statement can\'t look like this:' + \
+                      ' "%s". See Theming HOWTO for more information'%size
+                return surface
+            if len(l) == 1:
+                if not ((l[0] == self.win_nr) ^ negation):
+                    return surface
+            else:
+                if not ((l[0]<=self.size and self.size<=l[1]) ^ negation):
+                    return surface
+
+        # All tests passed, proceed.
+        for command, args in content.items():
+            try:
+                f = getattr(self,"command_%s"%command)
+            except:
+                raise
+            else:
+                surface = f(surface, **args)
         return surface
 
     def command_pixmap_from_self(self, surface, name, content=None):
@@ -4025,6 +4042,8 @@ class DockBar(gobject.GObject):
             class_group_name = self.get_wine_app_name(window)
         if class_group_name.startswith("OpenOffice.org"):
             class_group_name = self.get_ooo_app_name(window)
+            if settings['separate_ooo_apps']:
+                window.connect("name-changed", self.on_ooo_window_name_changed)
         self.windows[window] = class_group_name
         if class_group_name in self.groups.get_identifiers():
             # This isn't the first open window of this group.
@@ -4149,6 +4168,20 @@ class DockBar(gobject.GObject):
                 return "openoffice.org-" + app.lower()
         else:
             return "openoffice.org-writer"
+
+    def on_ooo_window_name_changed(self, window):
+        identifier = None
+        for group in self.groups.get_groups():
+            if window in group.windows:
+                identifier = group.identifier
+                break
+        else:
+            print "OOo app error: Name changed but no group found."
+        if identifier != self.get_ooo_app_name(window):
+            self.on_window_closed(self.screen, window)
+            self.on_window_opened(self.screen, window)
+            if window == self.screen.get_active_window():
+                self.on_active_window_changed(self.screen, None)
 
 
 
