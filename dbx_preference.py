@@ -829,7 +829,7 @@ class PrefDialog():
         if not self.theme:
             colors.clear()
             for i in range(1,9):
-                colors['color%s']="#000000"
+                colors['color%s'%i]="#000000"
             return
         theme_colors = self.theme.get_default_colors()
         theme_alphas = self.theme.get_default_alphas()
