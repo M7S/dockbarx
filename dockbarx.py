@@ -616,39 +616,50 @@ class IconFactory():
             else:
                 surface = f(surface, **args)
         # Todo: add size correction.
-        self.surfaces[type] = surface
         if type & self.DRAG_DROPP:
-            surface = self.double_surface(surface, self.dockbar.orient)
+            surface = self.dd_highlight(surface, self.dockbar.orient)
+        self.surfaces[type] = surface
         del self.temp
         gc.collect()
         return surface
 
 
-    def double_surface(self, surface, direction = 'h'):
+    def dd_highlight(self, surface, direction = 'h'):
         w = surface.get_width()
         h = surface.get_height()
         # Make a background almost twice as wide or high
         # as the surface depending on panel orientation.
         if direction == 'v':
-            h = h * 2 - 2
+            h = h + 4
         else:
-            w = w * 2 - 2
+            w = w + 4
         bg = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(bg)
 
         # Put arrow pointing to the empty part on it.
         if direction == 'v':
-            ctx.move_to(2, h / 2 + 2)
-            ctx.line_to(w - 2, h / 2 + 2)
-            ctx.line_to(w / 2, 0.65 * h + 2)
-            ctx.close_path()
+            ctx.move_to(1, h - 1.5)
+            ctx.line_to(w - 1, h - 1.5)
+            ctx.set_source_rgba(1, 1, 1, 0.2)
+            ctx.set_line_width(2)
+            ctx.stroke()
+            ctx.move_to(2, h - 1.5)
+            ctx.line_to(w - 2, h - 1.5)
+            ctx.set_source_rgba(0, 0, 0, 0.7)
+            ctx.set_line_width(1)
+            ctx.stroke()
         else:
-            ctx.move_to(w / 2 + 2, 2)
-            ctx.line_to(w / 2 + 2, h - 2)
-            ctx.line_to(0.65 * w, h / 2)
-            ctx.close_path()
-        ctx.set_source_rgb(0, 0, 0)
-        ctx.fill()
+            ctx.move_to(w - 1.5, 1)
+            ctx.line_to(w - 1.5, h - 1)
+            ctx.set_source_rgba(1, 1, 1, 0.2)
+            ctx.set_line_width(2)
+            ctx.stroke()
+            ctx.move_to(w - 1.5, 2)
+            ctx.line_to(w - 1.5, h - 2)
+            ctx.set_source_rgba(0, 0, 0, 0.7)
+            ctx.set_line_width(1)
+            ctx.stroke()
+
 
         # And put the surface on the left/upper half of it.
         ctx.set_source_surface(surface, 0, 0)
@@ -1012,7 +1023,7 @@ class IconFactory():
     #### Other commands
     def command_get_pixmap(self, surface, name, size=0):
         if surface == None:
-            if self.dockbar.orient == 'v':
+            if self.dockbar.orient == 'h':
                 width = int(self.size * ar)
                 height = self.size
             else:
@@ -2432,6 +2443,7 @@ class GroupButton (gobject.GObject):
         self.button.connect("drag_data_received", self.on_drag_data_received)
         self.button_drag_entered = False
         self.dnd_highlight = False
+        self.dnd_show_popup = None
         self.dnd_select_window = None
 
         # The popup needs to have a drag_dest just to check
@@ -2910,10 +2922,14 @@ class GroupButton (gobject.GObject):
     def on_button_drag_motion(self, widget, drag_context, x, y, t):
         if not self.button_drag_entered:
             self.button_drag_entered = True
-            self.dnd_show_popup = gobject.timeout_add(settings['popup_delay'], self.show_list)
+            if not 'text/groupbutton_name' in drag_context.targets:
+                if len(self.windows) == 1:
+                    self.dnd_select_window = gobject.timeout_add(600, self.windows.values()[0].action_select_window)
+                elif len(self.windows) > 1:
+                    self.dnd_show_popup = gobject.timeout_add(settings['popup_delay'], self.show_list)
             for target in ('text/uri-list', 'text/groupbutton_name'):
-                if target in drag_context.targets and \
-                   not self.is_current_drag_source:
+                if target in drag_context.targets \
+                and not self.is_current_drag_source:
                     self.dnd_highlight = True
                     self.update_state()
         if 'text/groupbutton_name' in drag_context.targets:
@@ -2929,7 +2945,12 @@ class GroupButton (gobject.GObject):
         self.button_drag_entered = False
         self.update_state()
         self.hide_list_request()
-        gobject.source_remove(self.dnd_show_popup)
+        if self.dnd_show_popup != None:
+            gobject.source_remove(self.dnd_show_popup)
+            self.dnd_show_popup = None
+        if self.dnd_select_window != None:
+            gobject.source_remove(self.dnd_select_window)
+            self.dnd_select_window = None
         if self.is_current_drag_source:
             # If drag leave signal is given because of a drop,
             # a small delay is needed since
@@ -2954,13 +2975,15 @@ class GroupButton (gobject.GObject):
         # Sends the new size to icon_factory so that a new icon in the right
         # size can be found. The icon is then updated.
         if self.button_old_alloc != self.button.get_allocation():
-            if self.dockbar.orient == "v" and allocation.width>10 \
+            if self.dockbar.orient == "v" \
+            and allocation.width>10 and allocation.width < 220 \
             and allocation.width != self.button_old_alloc.width:
                 # A minimium size on 11 is set to stop unnecessary calls
                 # work when the button is created
                 self.icon_factory.set_size(allocation.width)
                 self.update_state()
-            elif allocation.height>10 \
+            elif self.dockbar.orient == "h" \
+            and allocation.height>10 and allocation.height<220\
             and allocation.height != self.button_old_alloc.height:
                 self.icon_factory.set_size(allocation.height)
                 self.update_state()
