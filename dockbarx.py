@@ -147,6 +147,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "popup_delay": 250,
                       "popup_align": "center",
                       "no_popup_for_one_window": False,
+                      "show_only_current_desktop": True,
 
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
@@ -1868,6 +1869,14 @@ class WindowButton():
         attr_list.insert(pango.AttrForeground(r, g, b, 0, 50))
         self.label.set_attributes(attr_list)
 
+    def is_on_current_desktop(self):
+        if (self.window.get_workspace() == None \
+        or self.screen.get_active_workspace() == self.window.get_workspace()) \
+        and self.window.is_in_viewport(self.screen.get_active_workspace()):
+            return True
+        else:
+            return False
+
     def del_button(self):
         self.window_button.destroy()
         self.groupbutton.disconnect(self.sid1)
@@ -1952,13 +1961,23 @@ class WindowButton():
 
     #### Grp signals
     def on_set_icongeo_win(self,arg=None):
+        if settings["show_only_current_desktop"] \
+        and not self.is_on_current_desktop():
+            self.window.set_icon_geometry(0, 0, 0, 0)
+            return
         alloc = self.window_button.get_allocation()
+        w = alloc.width
+        h = alloc.height
         x,y = self.window_button.window.get_origin()
         x += alloc.x
         y += alloc.y
-        self.window.set_icon_geometry(x,y,alloc.width,alloc.height)
+        self.window.set_icon_geometry(x, y, w, h)
 
     def on_set_icongeo_grp(self,arg=None):
+        if settings["show_only_current_desktop"] \
+        and not self.is_on_current_desktop():
+            self.window.set_icon_geometry(0, 0, 0, 0)
+            return
         alloc = self.groupbutton.button.get_allocation()
         if self.groupbutton.button.window:
             x,y = self.groupbutton.button.window.get_origin()
@@ -1969,6 +1988,10 @@ class WindowButton():
     def on_set_icongeo_delay(self,arg=None):
         # This one is used during popup delay to aviod
         # thumbnails on group buttons.
+        if settings["show_only_current_desktop"] \
+        and not self.is_on_current_desktop():
+            self.window.set_icon_geometry(0, 0, 0, 0)
+            return
         alloc = self.groupbutton.button.get_allocation()
         if self.groupbutton.button.window:
             x,y = self.groupbutton.button.window.get_origin()
@@ -2392,7 +2415,7 @@ class GroupButton (gobject.GObject):
             self.dockbar.container.pack_start(self.button, False)
             for group in repack_list:
                 self.dockbar.container.pack_start(group.button, False)
-        self.dockbar.container.show_all()
+##        self.dockbar.container.show_all()
         self.dockbar.container.show()
 
 
@@ -2512,11 +2535,13 @@ class GroupButton (gobject.GObject):
         else:
             icon_active = 0
 
-        if self.launcher and not self.windows:
+        win_nr = min(self.get_windows_count(), 15)
+        mwc = self.get_minimized_windows_count()
+        if self.launcher and win_nr == 0:
             icon_mode = IconFactory.LAUNCHER
-        elif len(self.windows) - self.minimized_windows_count == 0:
+        elif (win_nr - mwc) == 0:
             icon_mode = IconFactory.ALL_MINIMIZED
-        elif (self.minimized_windows_count - self.locked_windows_count) > 0:
+        elif mwc > 0:
             icon_mode = IconFactory.SOME_MINIMIZED
         else:
             icon_mode = 0
@@ -2550,8 +2575,12 @@ class GroupButton (gobject.GObject):
         else:
             dd_effect = 0
 
-        win_nr = min(len(self.windows), 15)
         self.state_type = icon_mode | icon_effect | icon_active | mouse_over | launch_effect | dd_effect | win_nr
+        if win_nr == 0 and not self.launcher:
+            self.button.hide()
+            return
+        else:
+            self.button.show()
         surface = self.icon_factory.surface_update(self.state_type)
         # Set the button size to the size of the surface
         if self.button.allocation.width != surface.get_width() \
@@ -2560,7 +2589,7 @@ class GroupButton (gobject.GObject):
 ##            print "h:", self.button.allocation.height, surface.get_height()
             self.button.set_size_request(surface.get_width(), surface.get_height())
         self.button.update(surface)
-        return False
+        return
 
     def update_state_request(self):
         #Update state if the button is shown.
@@ -2595,6 +2624,37 @@ class GroupButton (gobject.GObject):
             self.attention_effect_running = False
             return False
 
+    #### Window counts
+    def get_windows_count(self):
+        if not settings["show_only_current_desktop"]:
+            return len(self.windows)
+        nr = 0
+        for win in self.windows:
+            if not self.windows[win].is_on_current_desktop():
+                continue
+            nr += 1
+        return nr
+
+    def get_minimized_windows_count(self):
+        nr = 0
+        for win in self.windows:
+            if settings["show_only_current_desktop"] \
+            and not self.windows[win].is_on_current_desktop():
+                continue
+            if win.is_minimized():
+                nr += 1
+        return nr
+
+    def get_unminimized_windows_count(self):
+        nr = 0
+        for win in self.windows:
+            if settings["show_only_current_desktop"] \
+            and not self.windows[win].is_on_current_desktop():
+                continue
+            if not win.is_minimized():
+                nr += 1
+        return nr
+
     #### Window handling
     def add_window(self,window):
         if window in self.windows:
@@ -2612,7 +2672,16 @@ class GroupButton (gobject.GObject):
 
         #Update popup-list if it is being shown.
         if self.popup_showing:
-            self.winlist.show_all()
+            if settings["show_only_current_desktop"]:
+                self.winlist.show()
+                self.popup_label.show()
+                for win in self.windows.values():
+                    if win.is_on_current_desktop():
+                        win.window_button.show_all()
+                    else:
+                        win.window_button.hide_all()
+            else:
+                self.winlist.show_all()
             gobject.idle_add(self.show_list_request)
 
         # Set minimize animation
@@ -2657,6 +2726,26 @@ class GroupButton (gobject.GObject):
                     window_button.set_button_active(False)
             self.update_state_request()
 
+    def get_windows(self):
+        if settings["show_only_current_desktop"]:
+            wins = []
+            for win in self.windows:
+                if self.windows[win].is_on_current_desktop():
+                    wins.append(win)
+            return wins
+        else:
+            return self.windows.keys()
+
+    def get_unminimized_windows(self):
+        wins = []
+        for win in self.windows:
+            if settings["show_only_current_desktop"] \
+            and not self.windows[win].is_on_current_desktop():
+                continue
+            if not win.is_minimized():
+                wins.append(win)
+        return wins
+
     def needs_attention_changed(self):
         # Checks if there are any urgent windows and changes
         # the group button looks if there are at least one
@@ -2692,7 +2781,16 @@ class GroupButton (gobject.GObject):
     def show_list(self):
         # Move popup to it's right spot and show it.
         offset = 3
-        self.winlist.show_all()
+        if settings["show_only_current_desktop"]:
+            self.winlist.show()
+            self.popup_label.show()
+            for win in self.windows.values():
+                if win.is_on_current_desktop():
+                    win.window_button.show_all()
+                else:
+                    win.window_button.hide_all()
+        else:
+            self.winlist.show_all()
         self.popup.resize(10,10)
         x,y = self.button.window.get_origin()
         b_alloc = self.button.get_allocation()
@@ -2722,7 +2820,8 @@ class GroupButton (gobject.GObject):
                 self.popup.move(x - w - offset,y)
             else:
                 self.popup.move(x + b_alloc.width + offset,y)
-        self.popup.show_all()
+
+        self.popup.show()
         self.popup_showing = True
         self.emit('set-icongeo-win')
         return False
@@ -2923,6 +3022,7 @@ class GroupButton (gobject.GObject):
         if not self.button_drag_entered:
             self.button_drag_entered = True
             if not 'text/groupbutton_name' in drag_context.targets:
+                win_nr = self.get_windows_count()
                 if len(self.windows) == 1:
                     self.dnd_select_window = gobject.timeout_add(600, self.windows.values()[0].action_select_window)
                 elif len(self.windows) > 1:
@@ -2965,9 +3065,6 @@ class GroupButton (gobject.GObject):
 
     def on_popup_drag_leave(self, widget, drag_context, t):
         self.hide_list_request()
-##        # Just as fail-safe
-##        self.dnd_highlight = False
-##        self.update_state()
 
 
     #### Events
@@ -3003,7 +3100,7 @@ class GroupButton (gobject.GObject):
             # Just for safty in case no leave-signal is sent
             gobject.timeout_add(settings['popup_delay']+500, self.deopacify_request)
 
-        if len(self.windows)<=1 and settings['no_popup_for_one_window']:
+        if self.get_windows_count() <= 1 and settings['no_popup_for_one_window']:
             return
         # Prepare for popup window
         if settings["popup_delay"]>0:
@@ -3111,7 +3208,7 @@ class GroupButton (gobject.GObject):
 
     def unminimize_all_windows(self, widget=None, event=None):
         t = gtk.get_current_event_time()
-        for window in self.windows:
+        for window in self.get_windows():
             if window.is_minimized():
                 window.unminimize(t)
 
@@ -3126,27 +3223,29 @@ class GroupButton (gobject.GObject):
 
     #### Actions
     def action_select(self, widget, event):
-        if (self.launcher and not self.windows):
+        wins = self.get_windows()
+        if (self.launcher and not wins):
             self.action_launch_application()
         # One window
-        elif len(self.windows) == 1:
+        elif len(wins) == 1:
             if settings["select_one_window"] == "select window":
-                self.windows.values()[0].action_select_window(widget, event)
+                self.windows[wins[0]].action_select_window(widget, event)
             elif settings["select_one_window"] == "select or minimize window":
-                self.windows.values()[0].action_select_or_minimize_window(widget, event)
+                self.windows[wins[0]].action_select_or_minimize_window(widget, event)
         # Multiple windows
-        elif len(self.windows) > 1:
+        elif len(wins) > 1:
             if settings["select_multiple_windows"] == "select all":
                 self.action_select_or_minimize_group(widget, event, minimize=False)
             elif settings["select_multiple_windows"] == "select or minimize all":
                 self.action_select_or_minimize_group(widget, event, minimize=True)
             elif settings["select_multiple_windows"] == "compiz scale":
-                if len(self.windows) - self.minimized_windows_count == 1:
+                umw = self.get_unminimized_windows()
+                if len(umw) == 1:
                     if settings["select_one_window"] == "select window":
-                        self.windows.values()[0].action_select_window(widget, event)
+                        self.windows[umw[0]].action_select_window(widget, event)
                     elif settings["select_one_window"] == "select or minimize window":
-                        self.windows.values()[0].action_select_or_minimize_window(widget, event)
-                elif len(self.windows) - self.minimized_windows_count == 0:
+                        self.windows[umw[0]].action_select_or_minimize_window(widget, event)
+                elif len(umw) == 0:
                     self.action_select_or_minimize_group(widget, event)
                 else:
                     self.action_compiz_scale_windows(widget, event)
@@ -3156,10 +3255,10 @@ class GroupButton (gobject.GObject):
     def action_select_or_minimize_group(self, widget, event, minimize=True):
         # Brings up all windows or minizes them is they are already on top.
         # (Launches the application if no windows are open)
-        if (self.launcher and not self.windows):
-            self.launcher.launch()
-            return
-
+        if settings['show_only_current_desktop']:
+            mode = 'ignore'
+        else:
+            mode = settings['workspace_behavior']
         screen = self.screen
         windows_stacked = screen.get_windows_stacked()
         grp_win_stacked = []
@@ -3182,17 +3281,17 @@ class GroupButton (gobject.GObject):
                     ignored = False
                     if not win.is_pinned() and win.get_workspace() != None \
                        and screen.get_active_workspace() != win.get_workspace():
-                        if settings['workspace_behavior'] == 'move':
+                        if mode == 'move':
                             win.move_to_workspace(screen.get_active_workspace())
-                        else: # settings['workspace_behavior'] == 'ignore' or 'switch'
+                        else: # mode == 'ignore' or 'switch'
                             ignored = True
                     if not win.is_in_viewport(screen.get_active_workspace()):
-                        if settings['workspace_behavior'] == 'move':
+                        if mode == 'move':
                             win_x,win_y,win_w,win_h = win.get_geometry()
                             win.set_geometry(0,3,win_x%screen.get_width(),
                                              win_y%screen.get_height(),
                                              win_w,win_h)
-                        else: # settings['workspace_behavior'] == 'ignore' or 'switch'
+                        else: # mode == 'ignore' or 'switch'
                             ignored = True
                     if not ignored:
                         win.unminimize(event.time)
@@ -3202,7 +3301,7 @@ class GroupButton (gobject.GObject):
 
         # Make a list of the windows in group with the bottom most
         # first and top most last.
-        # If settings['workspace_behavior'] is other than move
+        # If mode is other than move
         # windows on other workspaces is put in a separate list instead.
         # grtop is set to true if not all windows in the group is the
         # topmost windows.
@@ -3213,20 +3312,20 @@ class GroupButton (gobject.GObject):
                     ignored = False
                     if not win.is_pinned() and win.get_workspace() != None \
                        and active_workspace != win.get_workspace():
-                        if settings['workspace_behavior'] == 'move':
+                        if mode == 'move':
                             win.move_to_workspace(screen.get_active_workspace())
                             moved = True
-                        else: # settings['workspace_behavior'] == 'ignore' or 'switch'
+                        else: # mode == 'ignore' or 'switch'
                             ignored = True
                             ignorelist.append(win)
                     if not win.is_in_viewport(screen.get_active_workspace()):
-                        if settings['workspace_behavior'] == 'move':
+                        if mode == 'move':
                             win_x,win_y,win_w,win_h = win.get_geometry()
                             win.set_geometry(0,3,win_x%screen.get_width(),
                                              win_y%screen.get_height(),
                                              win_w,win_h)
                             moved = True
-                        else: # settings['workspace_behavior'] == 'ignore' or 'switch'
+                        else: # mode == 'ignore' or 'switch'
                             ignored = True
                             ignorelist.append(win)
 
@@ -3239,7 +3338,7 @@ class GroupButton (gobject.GObject):
                     if wingr:
                         grtop = False
 
-        if not grp_win_stacked and settings['workspace_behavior'] == 'switch':
+        if not grp_win_stacked and mode == 'switch':
             # Put the windows in dictionaries according to workspace and viewport
             # so we can compare which workspace and viewport that has most windows.
             workspaces ={}
@@ -3319,19 +3418,14 @@ class GroupButton (gobject.GObject):
         self.action_select_or_minimize_group(widget, event, False)
 
     def action_select_or_compiz_scale(self, widget, event):
-        win_nr = len(self.windows)
-        if  win_nr > 1 and (win_nr - self.minimized_windows_count) > 1:
+        wins = self.get_unminimized_windows()
+        if  len(wins) > 1:
             self.action_compiz_scale_windows(widget, event)
-        elif win_nr > 1 and (win_nr - self.minimized_windows_count) == 1:
-            for win in self.windows:
-                if not win.is_minimized():
-                    self.windows[win].action_select_window(widget, event)
-                    break
-        else:
-            self.action_select_or_minimize_group(widget, event)
+        elif len(wins) == 1:
+            self.windows[wins[0]].action_select_window(widget, event)
 
     def action_minimize_all_windows(self,widget=None, event=None):
-        for window in self.windows:
+        for window in self.get_windows():
             window.minimize()
 
     def action_maximize_all_windows(self,widget=None, event=None):
@@ -3340,7 +3434,7 @@ class GroupButton (gobject.GObject):
         except:
             action_maximize = 1 << 14
         maximized = False
-        for window in self.windows:
+        for window in self.get_windows():
             if not window.is_maximized() \
             and window.get_actions() & action_maximize:
                 window.maximize()
@@ -3350,7 +3444,7 @@ class GroupButton (gobject.GObject):
                 window.unmaximize()
 
     def action_select_next(self, widget=None, event=None, previous=False):
-        if not self.windows:
+        if not self.get_windows():
             return
         if self.nextlist_time == None or time() - self.nextlist_time > 2 \
         or self.nextlist == None:
@@ -3358,8 +3452,9 @@ class GroupButton (gobject.GObject):
             minimized_list = []
             screen = self.screen
             windows_stacked = screen.get_windows_stacked()
+            wins = self.get_windows()
             for win in windows_stacked:
-                    if win in self.windows:
+                    if win in wins:
                         if win.is_minimized():
                             minimized_list.append(win)
                         else:
@@ -3397,7 +3492,7 @@ class GroupButton (gobject.GObject):
             t = event.time
         else:
             t = gtk.get_current_event_time()
-        for window in self.windows:
+        for window in self.get_windows():
             window.close(t)
 
     def action_launch_application(self, widget=None, event=None):
@@ -3456,17 +3551,21 @@ class GroupButton (gobject.GObject):
             sep = gtk.SeparatorMenuItem()
             menu.append(sep)
             sep.show()
-        #Close all windows item
-        if self.windows:
-            if len(self.windows) - self.minimized_windows_count == 0:
+        win_nr = self.get_windows_count()
+        if win_nr:
+            if win_nr == 1:
+                t = "window"
+            else:
+                t = "all windows"
+            if self.get_unminimized_windows_count() == 0:
                 # Unminimize all
-                unminimize_all_windows_item = gtk.MenuItem('Un_minimize all windows')
+                unminimize_all_windows_item = gtk.MenuItem('Un_minimize %s'%t)
                 menu.append(unminimize_all_windows_item)
                 unminimize_all_windows_item.connect("activate", self.unminimize_all_windows)
                 unminimize_all_windows_item.show()
             else:
                 # Minimize all
-                minimize_all_windows_item = gtk.MenuItem('_Minimize all windows')
+                minimize_all_windows_item = gtk.MenuItem('_Minimize %s'%t)
                 menu.append(minimize_all_windows_item)
                 minimize_all_windows_item.connect("activate", self.action_minimize_all_windows)
                 minimize_all_windows_item.show()
@@ -3474,22 +3573,22 @@ class GroupButton (gobject.GObject):
             for window in self.windows:
                 if not window.is_maximized() \
                 and window.get_actions() & action_maximize:
-                    maximize_all_windows_item = gtk.MenuItem('Ma_ximize all windows')
+                    maximize_all_windows_item = gtk.MenuItem('Ma_ximize %s'%t)
                     break
             else:
-                maximize_all_windows_item = gtk.MenuItem('Unma_ximize all windows')
+                maximize_all_windows_item = gtk.MenuItem('Unma_ximize %s'%t)
             menu.append(maximize_all_windows_item)
             maximize_all_windows_item.connect("activate", self.action_maximize_all_windows)
             maximize_all_windows_item.show()
             # Close all
-            close_all_windows_item = gtk.MenuItem('_Close all windows')
+            close_all_windows_item = gtk.MenuItem('_Close %s'%t)
             menu.append(close_all_windows_item)
             close_all_windows_item.connect("activate", self.action_close_all_windows)
             close_all_windows_item.show()
         menu.popup(None, None, None, event.button, event.time)
         self.dockbar.right_menu_showing = True
 
-    def action_remove_launcher(self, widget=None, event = None):
+    def action_remove_launcher(self, widget=None, event=None):
         print 'Removing launcher ', self.identifier
         if self.identifier:
             name = self.identifier
@@ -3513,49 +3612,50 @@ class GroupButton (gobject.GObject):
                 self.app = self.dockbar.find_gio_app(self.identifier)
                 self.icon_factory.remove_launcher(class_group=self.class_group, app = self.app)
                 self.update_name()
-                self.update_state()
+            self.update_state()
         self.dockbar.update_launchers_list()
 
     def action_minimize_all_other_groups(self, widget, event):
         self.hide_list()
         for gr in self.dockbar.groups.get_groups():
             if self != gr:
-                for win in gr.windows:
-                    gr.windows[win].window.minimize()
+                for win in gr.get_windows():
+                    win.minimize()
 
     def action_compiz_scale_windows(self, widget, event):
-        if not self.class_group or \
-           len(self.windows) - self.minimized_windows_count == 0:
+        wins = self.get_unminimized_windows()
+        if not self.class_group or not wins:
             return
-        if len(self.windows) - self.minimized_windows_count == 1:
-            for win in self.windows:
-                if not win.is_minimized():
-                    self.windows[win].action_select_window(widget, event)
-                    break
+        if len(wins) == 1:
+            self.windows[wins[0]].action_select_window(widget, event)
             return
+        if settings['show_only_current_desktop']:
+            path = 'scale/allscreens/initiate_key'
+        else:
+            path = 'scale/allscreens/initiate_all_key'
         try:
-            compiz_call('scale/allscreens/initiate_all_key', \
-                        'activate','root', self.root_xid,'match', \
+            compiz_call(path, 'activate','root', self.root_xid,'match', \
                         'iclass='+self.class_group.get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
-        gobject.timeout_add(settings['popup_delay']+ 200, self.hide_list)
+        gobject.timeout_add(settings['popup_delay'] + 200, self.hide_list)
 
     def action_compiz_shift_windows(self, widget, event):
-        if not self.class_group or \
-           len(self.windows) - self.minimized_windows_count == 0:
+        wins = self.get_unminimized_windows()
+        if not self.class_group or not wins:
             return
-        if len(self.windows) - self.minimized_windows_count == 1:
-            for win in self.windows:
-                if not win.is_minimized():
-                    self.windows[win].action_select_window(widget, event)
-                    break
+        if len(wins) == 1:
+            self.windows[wins[0]].action_select_window(widget, event)
             return
+
+        if settings['show_only_current_desktop']:
+            path = 'shift/allscreens/initiate_key'
+        else:
+            path = 'shift/allscreens/initiate_all_key'
         try:
-            compiz_call('shift/allscreens/initiate_all_key', \
-                        'activate','root', self.root_xid,'match', \
+            compiz_call(path, 'activate','root', self.root_xid,'match', \
                         'iclass='+self.class_group.get_res_class())
         except:
             return
@@ -3868,9 +3968,11 @@ class DockBar(gobject.GObject):
 
 ##        pdb.set_trace()
 
-        self.screen.connect("window-opened",self.on_window_opened)
-        self.screen.connect("window-closed",self.on_window_closed)
+        self.screen.connect("window-opened", self.on_window_opened)
+        self.screen.connect("window-closed", self.on_window_closed)
         self.screen.connect("active-window-changed", self.on_active_window_changed)
+        self.screen.connect("viewports-changed", self.on_desktop_changed)
+        self.screen.connect("active-workspace-changed", self.on_desktop_changed)
 
         self.on_active_window_changed(self.screen, None)
 
@@ -3945,6 +4047,12 @@ class DockBar(gobject.GObject):
         if 'color2' in changed_settings:
             self.update_all_popup_labels()
 
+        if 'show_only_current_desktop' in changed_settings:
+            for group in self.groups.get_groups():
+                group.update_state()
+                group.emit('set-icongeo-grp')
+                group.nextlist = None
+
         for key in changed_settings:
             if key == 'theme':
                 self.reload()
@@ -4000,7 +4108,8 @@ class DockBar(gobject.GObject):
         self.applet.remove(self.container)
         self.container.destroy()
         self.container = None
-        if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN or self.applet.get_orient() == gnomeapplet.ORIENT_UP:
+        if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
+        or self.applet.get_orient() == gnomeapplet.ORIENT_UP:
             self.container = gtk.HBox()
             self.orient = "h"
         else:
@@ -4010,7 +4119,11 @@ class DockBar(gobject.GObject):
         for group in self.groups.get_groups():
             self.container.pack_start(group.button,False)
         self.container.set_spacing(self.theme.get_gap())
-        self.container.show_all()
+        if settings["show_only_current_desktop"]:
+            self.container.show()
+            self.on_desktop_changed()
+        else:
+            self.container.show_all()
 
     def on_change_background(self, applet, type, color, pixmap):
         applet.set_style(None)
@@ -4205,6 +4318,16 @@ class DockBar(gobject.GObject):
             self.on_window_opened(self.screen, window)
             if window == self.screen.get_active_window():
                 self.on_active_window_changed(self.screen, None)
+
+
+    #### Desktop events
+    def on_desktop_changed(self, screen=None, workspace=None):
+        if not settings['show_only_current_desktop']:
+            return
+        for group in self.groups.get_groups():
+            group.update_state()
+            group.emit('set-icongeo-grp')
+            group.nextlist = None
 
 
 

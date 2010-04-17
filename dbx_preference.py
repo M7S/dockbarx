@@ -40,6 +40,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "popup_delay": 250,
                       "popup_align": "center",
                       "no_popup_for_one_window": False,
+                      "show_only_current_desktop": True,
 
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
@@ -743,6 +744,10 @@ class PrefDialog():
         groupbutton_box.pack_start(hbox, False, padding=10)
 
         #--- Advanced page
+        self.ignore_workspace_cb = gtk.CheckButton('Ignore windows on other viewports/workspaces')
+        self.ignore_workspace_cb.connect('toggled', self.checkbutton_toggled, 'show_only_current_desktop')
+        advanced_box.pack_start(self.ignore_workspace_cb, False)
+
         self.wine_apps_cb = gtk.CheckButton('Give each wine application its own group button')
         self.wine_apps_cb.connect('toggled', self.checkbutton_toggled, 'separate_wine_apps')
         advanced_box.pack_start(self.wine_apps_cb, False)
@@ -982,6 +987,7 @@ class PrefDialog():
                 break
 
         # Advanced page stuff
+        self.ignore_workspace_cb.set_active(settings["show_only_current_desktop"])
         self.wine_apps_cb.set_active(settings["separate_wine_apps"])
         self.ooo_apps_cb.set_active(settings["separate_ooo_apps"])
 
