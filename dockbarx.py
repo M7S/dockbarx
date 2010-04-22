@@ -3354,6 +3354,14 @@ class GroupButton (gobject.GObject):
                     self.action_compiz_scale_windows(widget, event)
             elif settings["select_multiple_windows"] == "cycle through windows":
                 self.action_select_next(widget, event)
+            elif settings["select_multiple_windows"] == "show popup":
+                self.action_select_popup(widget, event)
+
+    def action_select_popup(self, widget, event):
+        if self.popup_showing is True:
+            self.hide_list()
+        else:
+            self.show_list()
 
     def action_select_or_minimize_group(self, widget, event, minimize=True):
         # Brings up all windows or minizes them is they are already on top.
