@@ -2530,12 +2530,13 @@ class GroupButton (gobject.GObject):
 
     def update_state(self):
         # Checks button state and set the icon accordingly.
-        if self.has_active_window:
-            icon_active = IconFactory.ACTIVE
-        else:
-            icon_active = 0
-
         win_nr = min(self.get_windows_count(), 15)
+        if win_nr == 0 and not self.launcher:
+            self.button.hide()
+            return
+        else:
+            self.button.show()
+
         mwc = self.get_minimized_windows_count()
         if self.launcher and win_nr == 0:
             icon_mode = IconFactory.LAUNCHER
@@ -2546,7 +2547,12 @@ class GroupButton (gobject.GObject):
         else:
             icon_mode = 0
 
-        if self.needs_attention:
+        if self.has_active_window and win_nr>0:
+            icon_active = IconFactory.ACTIVE
+        else:
+            icon_active = 0
+
+        if self.needs_attention and win_nr>0:
             if settings["groupbutton_attention_notification_type"] == 'red':
                 icon_effect = IconFactory.NEEDS_ATTENTION
             elif settings["groupbutton_attention_notification_type"] == 'nothing':
@@ -2575,18 +2581,12 @@ class GroupButton (gobject.GObject):
         else:
             dd_effect = 0
 
+
         self.state_type = icon_mode | icon_effect | icon_active | mouse_over | launch_effect | dd_effect | win_nr
-        if win_nr == 0 and not self.launcher:
-            self.button.hide()
-            return
-        else:
-            self.button.show()
         surface = self.icon_factory.surface_update(self.state_type)
         # Set the button size to the size of the surface
         if self.button.allocation.width != surface.get_width() \
         or self.button.allocation.height != surface.get_height():
-##            print "w:",  self.button.allocation.width, surface.get_width()
-##            print "h:", self.button.allocation.height, surface.get_height()
             self.button.set_size_request(surface.get_width(), surface.get_height())
         self.button.update(surface)
         return
