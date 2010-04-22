@@ -129,6 +129,10 @@ import array
 import gc
 gc.enable()
 
+import ctypes
+libgdk = ctypes.cdll.LoadLibrary("libgdk-x11-2.0.so")
+libX11 = ctypes.cdll.LoadLibrary("libX11.so")
+libXcomposite = ctypes.cdll.LoadLibrary("libXcomposite.so")
 
 
 VERSION = 'x.0.24.1-1'
@@ -148,6 +152,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "popup_align": "center",
                       "no_popup_for_one_window": False,
                       "show_only_current_desktop": True,
+                      "preview": False,
 
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
@@ -1449,7 +1454,6 @@ class CairoPopup():
         self.window = gtk.Window(gtk.WINDOW_POPUP)
         self.window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         gtk.widget_pop_colormap()
-        self.vbox = gtk.VBox()
 
         # Initialize colors, alpha transparency
         self.window.set_app_paintable(1)
@@ -1812,12 +1816,21 @@ class WindowButton():
         hbox = gtk.HBox()
         hbox.pack_start(self.window_button_icon, False, padding = 2)
         hbox.pack_start(self.label, False)
-        self.window_button.add(hbox)
+        if settings["preview"]:
+            self.preview = True
+            vbox = gtk.VBox()
+            vbox.pack_start(hbox, False)
+            self.preview_image =  gtk.Image()
+            vbox.pack_start(self.preview_image, True, True, padding = 4)
+            self.window_button.add(vbox)
+        else:
+            self.preview = False
+            self.window_button.add(hbox)
 
 
         self.update_label_state()
 
-        groupbutton.winlist.pack_start(self.window_button,False)
+        groupbutton.winlist.pack_start(self.window_button,True)
 
         #--- Events
         self.window_button.connect("enter-notify-event",self.on_button_mouse_enter)
@@ -1869,6 +1882,8 @@ class WindowButton():
         attr_list.insert(pango.AttrForeground(r, g, b, 0, 50))
         self.label.set_attributes(attr_list)
 
+
+
     def is_on_current_desktop(self):
         if (self.window.get_workspace() == None \
         or self.screen.get_active_workspace() == self.window.get_workspace()) \
@@ -1894,6 +1909,73 @@ class WindowButton():
         del self.dockbar
         del self.groupbutton
 
+    #### Previews
+    def get_screenshot_xcomposite(self, screen, window, size=200):
+        ''' Get the window pixmap of window from the X compositor extension, return
+            it as a gdk.pixbuf.
+        '''
+        display = screen.get_display()
+        xdisplay = libgdk.gdk_x11_display_get_xdisplay(hash(display))
+
+        xid = window.get_xid()
+
+        # From the Xcomposite manpage:
+        #   XCompositeNameWindowPixmap creates and returns a pixmap id that
+        #   serves as a reference to the off-screen storage for window.
+        p_xid = libXcomposite.XCompositeNameWindowPixmap(xdisplay, xid)
+
+        pixmap = gtk.gdk.pixmap_foreign_new_for_display(display, p_xid)
+
+        if not pixmap:
+            return None
+
+        width, height = pixmap.get_size()
+
+        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width, height)
+
+        pixbuf.get_from_drawable(pixmap, gtk.gdk.colormap_get_system(), 0, 0, 0, 0,
+                                 width, height)
+
+        w = width
+        h = height
+        if w >= h:
+            if w > size:
+                h = int(h * size/width)
+                w = size
+        else:
+            if h > size:
+                h = size
+                w = int(w * size/height)
+
+        pixbuf = pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+
+        del pixmap
+        libX11.XFreePixmap(xdisplay, p_xid)
+
+        return pixbuf
+
+    def update_preview(self, size=200):
+        if not self.preview:
+            return False
+        pixbuf = None
+        scn = gtk.gdk.screen_get_default()
+        if not self.window.is_minimized() and scn.is_composited():
+            try:
+                pixbuf = self.get_screenshot_xcomposite(scn, self.window, size)
+            except:
+                print "Error: couldn't get preview for %s"%self.name
+                raise
+        else:
+            pixbuf = self.window.get_icon()
+        self.preview_image.set_from_pixbuf(pixbuf)
+        del pixbuf
+        gc.collect()
+
+    def clear_preview_image(self):
+        if not self.preview:
+            return False
+        self.preview_image.clear()
+        gc.collect()
 
     #### Windows's Events
     def on_window_state_changed(self, window,changed_mask, new_state):
@@ -1909,12 +1991,16 @@ class WindowButton():
             self.groupbutton.minimized_windows_count+=1
             self.groupbutton.update_state()
             self.update_label_state()
+            if self.groupbutton.popup_showing:
+                self.update_preview()
         elif state_minimized & changed_mask:
             self.window_button_icon.set_from_pixbuf(self.icon)
             self.groupbutton.minimized_windows_count-=1
             if self.locked:
                 self.locked = False
                 self.groupbutton.locked_windows_count -= 1
+            if self.groupbutton.popup_showing:
+                gobject.timeout_add(100, self.update_preview)
             self.groupbutton.update_state()
             self.update_label_state()
 
@@ -2436,22 +2522,29 @@ class GroupButton (gobject.GObject):
             colormap = gtk_screen.get_rgb_colormap()
         cairo_popup = CairoPopup(colormap)
 
-        self.winlist = cairo_popup.vbox
-        self.winlist.set_spacing(2)
-        self.winlist.set_border_width(5)
+        if settings["preview"]:
+            self.winlist = gtk.HBox()
+            self.winlist.set_spacing(4)
+        else:
+            self.winlist = gtk.VBox()
+            self.winlist.set_spacing(2)
+        self.popup_box = gtk.VBox()
+        self.popup_box.set_border_width(5)
+        self.popup_box.set_spacing(2)
         self.popup_label = gtk.Label()
         self.update_name()
         self.popup_label.set_use_markup(True)
         if self.identifier:
             # Todo: add tooltip when identifier is added.
             self.popup_label.set_tooltip_text("Identifier: "+self.identifier)
-        self.winlist.pack_start(self.popup_label,False)
+        self.popup_box.pack_start(self.popup_label, False)
+        self.popup_box.pack_start(self.winlist, False)
 
 
         self.popup = cairo_popup.window
         self.popup_showing = False
         self.popup.connect("leave-notify-event",self.on_popup_mouse_leave)
-        self.popup.add(self.winlist)
+        self.popup.add(self.popup_box)
 
 
         #--- D'n'D
@@ -2781,7 +2874,13 @@ class GroupButton (gobject.GObject):
     def show_list(self):
         # Move popup to it's right spot and show it.
         offset = 3
+
+        if settings["preview"]:
+            #Update previews
+            for win in self.get_windows():
+                self.windows[win].update_preview()
         if settings["show_only_current_desktop"]:
+            self.popup_box.show()
             self.winlist.show()
             self.popup_label.show()
             for win in self.windows.values():
@@ -2790,7 +2889,7 @@ class GroupButton (gobject.GObject):
                 else:
                     win.window_button.hide_all()
         else:
-            self.winlist.show_all()
+            self.popup_box.show_all()
         self.popup.resize(10,10)
         x,y = self.button.window.get_origin()
         b_alloc = self.button.get_allocation()
@@ -2885,6 +2984,10 @@ class GroupButton (gobject.GObject):
         self.popup.hide()
         self.popup_showing = False
         self.emit('set-icongeo-grp')
+        if settings["preview"]:
+            # Remove previews to save memory.
+            for win in self.get_windows():
+                self.windows[win].clear_preview_image()
         return False
 
     #### Opacify
