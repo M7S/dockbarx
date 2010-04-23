@@ -1794,6 +1794,7 @@ class WindowButton():
         self.groupbutton = groupbutton
         self.dockbar = groupbutton.dockbar
         self.screen = self.groupbutton.screen
+        self.preview = False
         self.name = window.get_name()
         self.window = window
         self.locked = False
@@ -1815,7 +1816,7 @@ class WindowButton():
         self.on_window_icon_changed(window)
         hbox = gtk.HBox()
         hbox.pack_start(self.window_button_icon, False, padding = 2)
-        hbox.pack_start(self.label, False)
+        hbox.pack_start(self.label, True, True)
         if settings["preview"]:
             self.preview = True
             vbox = gtk.VBox()
@@ -1823,8 +1824,9 @@ class WindowButton():
             self.preview_image =  gtk.Image()
             vbox.pack_start(self.preview_image, True, True, padding = 4)
             self.window_button.add(vbox)
+            # Fixed with of self.label.
+            self.label.set_ellipsize(pango.ELLIPSIZE_END)
         else:
-            self.preview = False
             self.window_button.add(hbox)
 
 
@@ -1916,42 +1918,34 @@ class WindowButton():
         '''
         display = screen.get_display()
         xdisplay = libgdk.gdk_x11_display_get_xdisplay(hash(display))
-
         xid = window.get_xid()
-
-        # From the Xcomposite manpage:
-        #   XCompositeNameWindowPixmap creates and returns a pixmap id that
-        #   serves as a reference to the off-screen storage for window.
         p_xid = libXcomposite.XCompositeNameWindowPixmap(xdisplay, xid)
-
         pixmap = gtk.gdk.pixmap_foreign_new_for_display(display, p_xid)
 
         if not pixmap:
             return None
 
-        width, height = pixmap.get_size()
+        depth = pixmap.get_depth()
+        if depth <= 24:
+            cmap = screen.get_rgb_colormap()
+        else:
+            cmap = screen.get_rgba_colormap()
+        w, h = pixmap.get_size()
+        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+        pixbuf.get_from_drawable(pixmap, cmap, 0, 0, 0, 0, w, h)
 
-        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width, height)
-
-        pixbuf.get_from_drawable(pixmap, gtk.gdk.colormap_get_system(), 0, 0, 0, 0,
-                                 width, height)
-
-        w = width
-        h = height
         if w >= h:
             if w > size:
-                h = int(h * size/width)
+                h = int(h * size/w)
                 w = size
         else:
             if h > size:
+                w = int(w * size/h)
                 h = size
-                w = int(w * size/height)
-
         pixbuf = pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
 
         del pixmap
         libX11.XFreePixmap(xdisplay, p_xid)
-
         return pixbuf
 
     def update_preview(self, size=200):
@@ -1968,6 +1962,7 @@ class WindowButton():
         else:
             pixbuf = self.window.get_icon()
         self.preview_image.set_from_pixbuf(pixbuf)
+        self.preview_image.set_size_request(size,size)
         del pixbuf
         gc.collect()
 
@@ -2040,7 +2035,7 @@ class WindowButton():
     def on_window_name_changed(self, window):
         name = u""+window.get_name()
         # TODO: fix a better way to shorten names.
-        if len(name) > 40:
+        if len(name) > 40 and not self.preview:
             name = name[0:37]+"..."
         self.name = name
         self.label.set_label(name)
