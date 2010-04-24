@@ -1513,11 +1513,15 @@ class CairoPopup():
 
         alpha= float(colors['color1_alpha']) / 255
 
-        ctx.move_to(0,r)
-        ctx.arc(r, r, r, -pi, -pi/2)
-        ctx.arc(w-r, r, r, -pi/2, 0)
-        ctx.arc(w-r, h-r, r, 0, pi/2)
-        ctx.arc(r, h-r, r, pi/2, pi)
+        lt = 0.5
+        rt = w - 0.5
+        up = 0.5
+        dn = h - 0.5
+        ctx.move_to(lt, up + r)
+        ctx.arc(lt + r, up + r, r, -pi, -pi/2)
+        ctx.arc(rt - r, up + r, r, -pi/2, 0)
+        ctx.arc(rt - r, dn - r, r, 0, pi/2)
+        ctx.arc(lt + r, dn - r, r, pi/2, pi)
         ctx.close_path()
 
         if self.window.is_composited():
@@ -1540,6 +1544,49 @@ class CairoPopup():
 ##        self.pixmap = None
 ##        self.vbox = None
 
+class CairoWindowButton(gtk.Button):
+    """CairoButton is a gtk button with a cairo surface painted over it."""
+    __gsignals__ = {'expose-event' : 'override',}
+    def __init__(self):
+        gtk.Button.__init__(self)
+
+    def do_expose_event(self, event):
+        ctx = self.window.cairo_create()
+        ctx.rectangle(event.area.x, event.area.y,
+                       event.area.width, event.area.height)
+        ctx.clip()
+        a = self.get_allocation()
+        mx , my = self.get_pointer()
+        if mx >= 0 and mx < a.width and my >= 0 and my < a.height:
+            self.draw_frame(ctx, a.x, a.y, a.width, a.height)
+        self.get_child().send_expose(event)
+        return
+
+    def draw_frame(self, ctx, x, y, w, h):
+        r = 6
+        bg = 0.2
+        color = colors['color1']
+        red = float(int(color[1:3], 16))/255
+        green = float(int(color[3:5], 16))/255
+        blue = float(int(color[5:7], 16))/255
+
+        alpha= float(colors['color1_alpha']) / 255
+        lt = x + 0.5
+        rt = x + w - 0.5
+        up = y + 0.5
+        dn = y + h - 0.5
+        ctx.move_to(lt, up + r)
+        ctx.arc(lt + r, up + r, r, -pi, -pi/2)
+        ctx.arc(rt - r, up + r, r, -pi/2, 0)
+        ctx.arc(rt - r, dn - r, r, 0, pi/2)
+        ctx.arc(lt + r, dn - r, r, pi/2, pi)
+        ctx.close_path()
+
+        ctx.set_source_rgba(red, green, blue, alpha)
+        ctx.fill_preserve()
+        ctx.set_source_rgba(0.0, 0.0, 0.0, alpha)
+        ctx.set_line_width(1)
+        ctx.stroke()
 
 class Launcher():
     def __init__(self, identifier, path, dockbar=None):
@@ -1803,9 +1850,9 @@ class WindowButton():
         self.opacified = False
         self.button_pressed = False
 
-        self.window_button = gtk.EventBox()
-        self.window_button.set_visible_window(False)
+        self.window_button = CairoWindowButton()
         self.label = gtk.Label()
+        self.label.set_alignment(0, 0.5)
         self.on_window_name_changed(self.window)
 
         if window.needs_attention():
@@ -1867,8 +1914,8 @@ class WindowButton():
     def update_label_state(self, mouseover=False):
         """Updates the style of the label according to window state."""
         attr_list = pango.AttrList()
-        if mouseover:
-            attr_list.insert(pango.AttrUnderline(pango.UNDERLINE_SINGLE, 0, 50))
+##        if mouseover:
+##            attr_list.insert(pango.AttrUnderline(pango.UNDERLINE_SINGLE, 0, 50))
         if self.needs_attention:
             attr_list.insert(pango.AttrStyle(pango.STYLE_ITALIC, 0, 50))
         if self.is_active_window:
@@ -2192,7 +2239,11 @@ class WindowButton():
     #### D'n'D
     def on_button_drag_motion(self, widget, drag_context, x, y, t):
         if not self.button_drag_entered:
-            self.window_button.drag_highlight()
+##            self.window_button.drag_highlight()
+            event = gtk.gdk.Event(gtk.gdk.EXPOSE)
+            event.window = self.groupbutton.popup.window
+            event.area = self.groupbutton.popup.get_allocation()
+            self.groupbutton.popup.send_expose(event)
             self.button_drag_entered = True
             self.dnd_select_window = \
                 gobject.timeout_add(600,self.action_select_window)
@@ -2202,7 +2253,11 @@ class WindowButton():
     def on_button_drag_leave(self, widget, drag_context, t):
         self.button_drag_entered = False
         gobject.source_remove(self.dnd_select_window)
-        self.window_button.drag_unhighlight()
+##        self.window_button.drag_unhighlight()
+        event = gtk.gdk.Event(gtk.gdk.EXPOSE)
+        event.window = self.groupbutton.popup.window
+        event.area = self.groupbutton.popup.get_allocation()
+        self.groupbutton.popup.send_expose(event)
         self.groupbutton.hide_list_request()
 
 
