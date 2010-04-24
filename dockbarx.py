@@ -129,10 +129,15 @@ import array
 import gc
 gc.enable()
 
-import ctypes
-libgdk = ctypes.cdll.LoadLibrary("libgdk-x11-2.0.so")
-libX11 = ctypes.cdll.LoadLibrary("libX11.so")
-libXcomposite = ctypes.cdll.LoadLibrary("libXcomposite.so")
+try:
+    import ctypes
+    libgdk = ctypes.cdll.LoadLibrary("libgdk-x11-2.0.so")
+    libX11 = ctypes.cdll.LoadLibrary("libX11.so")
+    libXcomposite = ctypes.cdll.LoadLibrary("libXcomposite.so")
+except:
+    libgdk = None
+    libX11 = None
+    libXcomposite = None
 
 
 VERSION = 'x.0.24.1-1'
@@ -1963,6 +1968,8 @@ class WindowButton():
         ''' Get the window pixmap of window from the X compositor extension, return
             it as a gdk.pixbuf.
         '''
+        if None in [libgdk, libXcomposite, libX11]:
+            return None
         display = screen.get_display()
         xdisplay = libgdk.gdk_x11_display_get_xdisplay(hash(display))
         xid = window.get_xid()
@@ -2006,7 +2013,7 @@ class WindowButton():
             except:
                 print "Error: couldn't get preview for %s"%self.name
                 raise
-        else:
+        if pixbuf == None:
             pixbuf = self.window.get_icon()
         self.preview_image.set_from_pixbuf(pixbuf)
         self.preview_image.set_size_request(size,size)
