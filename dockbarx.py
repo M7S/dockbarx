@@ -1460,14 +1460,13 @@ class CairoPopup():
         self.window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         gtk.widget_pop_colormap()
 
-        # Initialize colors, alpha transparency
         self.window.set_app_paintable(1)
 
         self.window.connect("expose_event", self.expose)
 
 
     def expose(self, widget, event):
-        self.setup()
+        self.set_shape_mask()
         w,h = self.window.get_size()
         self.ctx = self.window.window.cairo_create()
         # set a clip region for the expose event, XShape stuff
@@ -1484,19 +1483,34 @@ class CairoPopup():
         self.ctx.clip()
         self.draw_frame(self.ctx, w, h)
 
-    def setup(self):
+    def set_shape_mask(self):
         # Set window shape from alpha mask of background image
         w,h = self.window.get_size()
         if w==0: w = 800
         if h==0: h = 600
         pixmap = gtk.gdk.Pixmap (None, w, h, 1)
         ctx = pixmap.cairo_create()
-        ctx.save()
         ctx.set_source_rgba(1, 1, 1,0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
         ctx.paint()
-        ctx.restore()
-        self.draw_frame(ctx, w, h)
+
+        r = 6
+        lt = 0.5
+        rt = w - 0.5
+        up = 0.5
+        dn = h - 0.5
+        ctx.move_to(lt, up + r)
+        ctx.arc(lt + r, up + r, r, -pi, -pi/2)
+        ctx.arc(rt - r, up + r, r, -pi/2, 0)
+        ctx.arc(rt - r, dn - r, r, 0, pi/2)
+        ctx.arc(lt + r, dn - r, r, pi/2, pi)
+        ctx.close_path()
+
+        if self.window.is_composited():
+            ctx.set_source_rgba(1, 1, 1, 1)
+        else:
+            ctx.set_source_rgb(1, 1, 1)
+        ctx.fill()
 
         if self.window.is_composited():
             self.window.window.shape_combine_mask(None, 0, 0)
@@ -1508,9 +1522,7 @@ class CairoPopup():
         del pixmap
 
     def draw_frame(self, ctx, w, h):
-        ctx.save()
         r = 6
-        bg = 0.2
         color = colors['color1']
         red = float(int(color[1:3], 16))/255
         green = float(int(color[3:5], 16))/255
@@ -1540,14 +1552,6 @@ class CairoPopup():
             ctx.set_source_rgb(0.0, 0.0, 0.0)
         ctx.set_line_width(1)
         ctx.stroke()
-        ctx.restore()
-        ctx.clip()
-
-##    def __del__(self):
-##        self.window = None
-##        self.ctx = None
-##        self.pixmap = None
-##        self.vbox = None
 
 class CairoWindowButton(gtk.Button):
     """CairoButton is a gtk button with a cairo surface painted over it."""
