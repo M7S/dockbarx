@@ -158,6 +158,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "no_popup_for_one_window": False,
                       "show_only_current_desktop": True,
                       "preview": False,
+                      "remember_previews": False,
 
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
@@ -195,7 +196,7 @@ settings = DEFAULT_SETTINGS.copy()
 
 DEFAULT_COLORS={
                       "color1": "#333333",
-                      "color1_alpha": 205,
+                      "color1_alpha": 170,
                       "color2": "#FFFFFF",
                       "color3": "#FFFF75",
                       "color4": "#9C9C9C",
@@ -1141,6 +1142,7 @@ class IconFactory():
             del loader
             del sio
             del pixbuf
+            gc.collect()
         else:
             ctx.set_source_surface(surface)
             ctx.paint_with_alpha(alpha)
@@ -2022,6 +2024,8 @@ class WindowButton():
         scn = gtk.gdk.screen_get_default()
         if not self.window.is_minimized() and scn.is_composited():
             pixbuf = self.get_screenshot_xcomposite(scn, self.window, size)
+        else:
+            pixbuf = self.preview_image.get_pixbuf()
         if pixbuf == None:
             pixbuf = self.window.get_icon()
         self.preview_image.set_from_pixbuf(pixbuf)
@@ -3050,10 +3054,11 @@ class GroupButton (gobject.GObject):
         self.popup.hide()
         self.popup_showing = False
         self.emit('set-icongeo-grp')
-        if settings["preview"]:
+        if settings["preview"] and not settings["remember_previews"]:
             # Remove previews to save memory.
             for win in self.get_windows():
                 self.windows[win].clear_preview_image()
+            gc.collect()
         return False
 
     #### Opacify

@@ -42,6 +42,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "no_popup_for_one_window": False,
                       "show_only_current_desktop": True,
                       "preview": False,
+                      "remember_previews": False,
 
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
@@ -746,9 +747,13 @@ class PrefDialog():
         groupbutton_box.pack_start(hbox, False, padding=10)
 
         #--- Advanced page
-        self.preview_cb = gtk.CheckButton('Show previews (Expreimental feature, high memory use)')
+        self.preview_cb = gtk.CheckButton('Show previews (beta feature)')
         self.preview_cb.connect('toggled', self.checkbutton_toggled, 'preview')
         advanced_box.pack_start(self.preview_cb, False)
+
+        self.remember_previews_cb = gtk.CheckButton('Remember previews for minimized windows (Increaced memory usage)')
+        self.remember_previews_cb.connect('toggled', self.checkbutton_toggled, 'remember_previews')
+        advanced_box.pack_start(self.remember_previews_cb, False)
 
         self.ignore_workspace_cb = gtk.CheckButton('Ignore windows on other viewports/workspaces')
         self.ignore_workspace_cb.connect('toggled', self.checkbutton_toggled, 'show_only_current_desktop')
@@ -994,6 +999,8 @@ class PrefDialog():
 
         # Advanced page stuff
         self.preview_cb.set_active(settings["preview"])
+        self.remember_previews_cb.set_active(settings["remember_previews"])
+        self.remember_previews_cb.set_sensitive(settings["preview"])
         self.ignore_workspace_cb.set_active(settings["show_only_current_desktop"])
         self.wine_apps_cb.set_active(settings["separate_wine_apps"])
         self.ooo_apps_cb.set_active(settings["separate_ooo_apps"])
