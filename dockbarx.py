@@ -1968,14 +1968,23 @@ class WindowButton():
         ''' Get the window pixmap of window from the X compositor extension, return
             it as a gdk.pixbuf.
         '''
+        # Parts of this are ported from Talika (C) 2009-2010 Sinew Software Systems
         if None in [libgdk, libXcomposite, libX11]:
             return None
         display = screen.get_display()
         xdisplay = libgdk.gdk_x11_display_get_xdisplay(hash(display))
         xid = window.get_xid()
-        p_xid = libXcomposite.XCompositeNameWindowPixmap(xdisplay, xid)
-        pixmap = gtk.gdk.pixmap_foreign_new_for_display(display, p_xid)
 
+        libgdk.gdk_error_trap_push()
+        # Call the X function which may cause an error here ...
+        p_xid = libXcomposite.XCompositeNameWindowPixmap(xdisplay, xid)
+        # Flush the X queue to catch errors now.
+        libgdk.gdk_flush()
+        errors = libgdk.gdk_error_trap_pop()
+        if errors:
+            pixmap = None
+        else:
+            pixmap = gtk.gdk.pixmap_foreign_new_for_display(display, p_xid)
         if not pixmap:
             return None
 
@@ -2008,11 +2017,7 @@ class WindowButton():
         pixbuf = None
         scn = gtk.gdk.screen_get_default()
         if not self.window.is_minimized() and scn.is_composited():
-            try:
-                pixbuf = self.get_screenshot_xcomposite(scn, self.window, size)
-            except:
-                print "Error: couldn't get preview for %s"%self.name
-                raise
+            pixbuf = self.get_screenshot_xcomposite(scn, self.window, size)
         if pixbuf == None:
             pixbuf = self.window.get_icon()
         self.preview_image.set_from_pixbuf(pixbuf)
@@ -2049,7 +2054,7 @@ class WindowButton():
                 self.locked = False
                 self.groupbutton.locked_windows_count -= 1
             if self.groupbutton.popup_showing:
-                gobject.timeout_add(100, self.update_preview)
+                gobject.timeout_add(200, self.update_preview)
             self.groupbutton.update_state()
             self.update_label_state()
 
