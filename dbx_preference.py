@@ -706,6 +706,7 @@ class PrefDialog():
         self.select_multiple_cg.append_text("select or minimize all")
         self.select_multiple_cg.append_text("compiz scale")
         self.select_multiple_cg.append_text("cycle through windows")
+        self.select_multiple_cg.append_text("show popup")
         self.select_multiple_cg.connect('changed', self.cb_changed)
         table.attach(label,0,1,2,3)
         table.attach(self.select_multiple_cg,1,2,2,3)
