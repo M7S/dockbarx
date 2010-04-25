@@ -159,6 +159,7 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "show_only_current_desktop": True,
                       "preview": False,
                       "remember_previews": False,
+                      "preview_size": 230,
 
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
@@ -2017,9 +2018,11 @@ class WindowButton():
         libX11.XFreePixmap(xdisplay, p_xid)
         return pixbuf
 
-    def update_preview(self, size=200):
+    def update_preview(self, size=None):
         if not self.preview:
             return False
+        if size == None:
+            size = settings["preview_size"]
         pixbuf = None
         scn = gtk.gdk.screen_get_default()
         if not self.window.is_minimized() and scn.is_composited():

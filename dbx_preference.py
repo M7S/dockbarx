@@ -43,6 +43,8 @@ DEFAULT_SETTINGS = {  "theme": "default",
                       "show_only_current_desktop": True,
                       "preview": False,
                       "remember_previews": False,
+                      "preview_size": 230,
+
 
                       "select_one_window": "select or minimize window",
                       "select_multiple_windows": "select all",
@@ -755,6 +757,16 @@ class PrefDialog():
         self.remember_previews_cb.connect('toggled', self.checkbutton_toggled, 'remember_previews')
         advanced_box.pack_start(self.remember_previews_cb, False)
 
+        spinbox = gtk.HBox()
+        spinlabel = gtk.Label("Preview size:")
+        spinlabel.set_alignment(0,0.5)
+        adj = gtk.Adjustment(200, 50, 800, 1, 50)
+        self.preview_size_spin = gtk.SpinButton(adj, 0.5, 0)
+        adj.connect("value_changed", self.adjustment_changed, 'preview_size')
+        spinbox.pack_start(spinlabel, False)
+        spinbox.pack_start(self.preview_size_spin, False)
+        advanced_box.pack_start(spinbox, False)
+
         self.ignore_workspace_cb = gtk.CheckButton('Ignore windows on other viewports/workspaces')
         self.ignore_workspace_cb.connect('toggled', self.checkbutton_toggled, 'show_only_current_desktop')
         advanced_box.pack_start(self.ignore_workspace_cb, False)
@@ -1001,6 +1013,8 @@ class PrefDialog():
         self.preview_cb.set_active(settings["preview"])
         self.remember_previews_cb.set_active(settings["remember_previews"])
         self.remember_previews_cb.set_sensitive(settings["preview"])
+        self.preview_size_spin.set_value(settings["preview_size"])
+        self.preview_size_spin.set_sensitive(settings["preview"])
         self.ignore_workspace_cb.set_active(settings["show_only_current_desktop"])
         self.wine_apps_cb.set_active(settings["separate_wine_apps"])
         self.ooo_apps_cb.set_active(settings["separate_ooo_apps"])
