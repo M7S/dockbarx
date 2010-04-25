@@ -129,15 +129,17 @@ import array
 import gc
 gc.enable()
 
+libgdk = None
+libX11 = None
+libXcomposite = None
 try:
+    from ctypes.util import find_library
     import ctypes
-    libgdk = ctypes.cdll.LoadLibrary("libgdk-x11-2.0.so")
-    libX11 = ctypes.cdll.LoadLibrary("libX11.so")
-    libXcomposite = ctypes.cdll.LoadLibrary("libXcomposite.so")
+    libgdk = ctypes.cdll.LoadLibrary(find_library("gdk-x11-2.0"))
+    libX11 = ctypes.cdll.LoadLibrary(find_library("X11"))
+    libXcomposite = ctypes.cdll.LoadLibrary(find_library("Xcomposite"))
 except:
-    libgdk = None
-    libX11 = None
-    libXcomposite = None
+    print "Failed loading libraries needed for preview."
 
 
 VERSION = 'x.0.24.1-1'
