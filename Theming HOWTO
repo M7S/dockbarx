@@ -4,6 +4,9 @@ A dockbarx theme resides in a tar.gz file. The extension is important since dock
 
 The .tar.gz file should consists of a config file, which informs dockbarx how the theme should look, and (optionally) a folder "/pixmap" consisting of the images (pixmaps) that the theme uses.
 
+
+*** Observe the changes done to <alpha_mask> in verion x.0.30! ***
+
 The config file
 ===============
 
@@ -118,7 +121,7 @@ BUTTON_PIXMAP COMMANDS
 <get_icon [size="0"] /> is the command loads the icon for the program that the group button is for, eg. the Firefox icon for Firefox. 
 - The size attribute tells which size the icon should be. Default is "0". Size zero means that the icon is as big as the group button. A negative number means that the icon is as many pixels smaller as the number. size should never be a positive number! In the example code above the icon size is two pixels smaller than the group button size. Don't forget the slash (/) in the end of the command!
 
-<if [type="TYPE"] [windows="WINDOWS"]></if> is the command for conditional code. If the type and/or the number of windows argument is/are satisfied, the code between <if> and </if> will be executed.
+<if [type="TYPE"] [windows="WINDOWS"] [size="SIZE"]></if> is the command for conditional code. If the type and/or the number of windows argument is/are satisfied, the code between <if> and </if> will be executed.
 - The type argument can be one of the following:
 	"all_minimized"
 	Code within <if type="all_minimized"></if> blocks will be executed if the icon 
@@ -160,6 +163,8 @@ If a "!" is set before the type it means all but that type. For exmaple the code
 
 The windows argument tells the number of windows that the program should have for the code to be executed. It can either be just a number, e.g. <if windows="3"></if>. In this case the code will be executed only if the program has exactly three windows. You can also have code executed for a range of windows. Eg. if you want code executed when two to four windows are open, the command looks like this: <if windows="2:4"></if>. If you want code that are executed for two or more windows just leave out the later number (<if windows="2:"></if>) or the first number if you want code for two or less windows (<if windows=":2"></if>. You can also use a "!" before a number or range, which means "anything but", eg. "!2" means the code will be executed if the numbers of windows is anything but 2 and "!3:4" means the code will be executed if the numbers of windows are less than three or more than 4. Note! Remember to set the windows_cnt attribute of <button_pixmap> high enough. If you have a <if windows="3:"></if> and windows_cnt="2", the code within that block will never be executed, since three windows will be reported as being only two windows when windows_cnt is "2". In this case you need to set the windows_cnt to "3" or more.
 
+The size argument lets you write code that will be exeuted only if the panel size is within a certain range. The syntax is the same as for the windows attribute, eg. <if size="20:25"></if> would only be executed if the panel was between at least 20 pixels high and at most 25 pixels high.
+
 <pixmap name="NAME"></pixmap> 
 Sometimes you want to make a new pixmap to use for compositions or combinations. You can use the <pixmap name="NAME"></pixmap> for making a new empty pixmap. 
 - The name attribute sets the name for your pixmap so that you can refer to it when you want to use it later. The size of the new pixmap is the same as them pixmap you currently are working on.
@@ -190,8 +195,8 @@ Sometimes you want to make a new pixmap to use for compositions or combinations.
 - A pixmap can either be a previously made pixmap (made with <pixmap></pixmap> or <pixmap_from_self></pixmap_from_self>), one of the previously loaded pixmaps (<pixmap_from_file />) or the current pixmap (simply referred to as "self"). 
 - Degrees option is not yet implemented and the value will be ignored.
 
-<alpha_mask mask="NAME" /> is used to add an alpha mask to a pixmap. Works a bit as it does in gimp. White color doesn't change opacity at all, while black color makes the pixel completely transparent. 
-- The mask can either be a previously made pixmap (made with <pixmap></pixmap> or <pixmap_from_self></pixmap_from_self>) or one of the previously loaded pixmaps (<pixmap_from_file />). (Technicality: To speed things up a bit, only the red channel of the mask is used to decide opacity, so to be exact full red means unchanged opacity while no red means full transparency).
+<alpha_mask mask="NAME" /> is used to add an alpha mask to a pixmap. It applies the alpha channel from the mask onto the pixmap. (Beware! Versions older than x.0.30 used the color channels instead of the alpha channel.)
+- The mask can either be a previously made pixmap (made with <pixmap></pixmap> or <pixmap_from_self></pixmap_from_self>) or one of the previously loaded pixmaps (<pixmap_from_file />). 
 
 <colorize color="COLOR" /> makes the pixmap one colored. In difference to <fill color="COLOR"/>, it doesn't change the alpha value of the pixmap. This is useful for making one colored silhouettes of icons.  
 - The color should be a # and a six-digit hex number eg. "#FFFFFF" for white, or a user customizable color ("color1" to "color8").

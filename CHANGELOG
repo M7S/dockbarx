@@ -1,5 +1,27 @@
 Changelog:
 
+x.0.30
+End user features:
+- Previews added! This feature is still in beta state, though. (Enable it from advanced tab in preference dialog)
+- Improved looks for the window list.
+- Dockbarx has the option to show icons for windows on the current workspace only now. (See advanced tab)
+- Wine applications are no longer all grouped together (unless you want them to be, see advanced tab).
+- OpenOffice applications can be separated so that you have different group buttons for the applications (writer, calc, etc.). This also makes openoffice use themed icons and as well as being pin-able. (See advanced tab)
+- Drag and drop is improved: If you drag anything to an group button with just one open window, the window will be brought up automatically without the need to go to the popup list first. Also, the drop indicator for launchers is made less clumsy and the new look of the popup window make drag and drop through them easier.
+- The windows 7 like option "Show popup" for selecting multiple windows is added (see group button tab in preference dialog).  By Robin Burchell.
+- Preference dialog is now separated from rest of dockbarx. It can be started either the old way or with the command "dbx_preference.py"
+
+Theme makers:
+- The theme eninge uses cairo in stead of pixbufs now. The biggest change (read: inconvenience) is that alpha_mask now uses the actual alpha channel instead of the color channels. The themes need to be updated to work correctly. The resize algorithm is new as well, so check if your themes looks like they used to. Sorry for the inconveniences.
+- A size attribute is added to the if command. It uses the same syntax as the windows_cnt attribute. See theming howto for more information.
+
+Bug fixes:
+- Bug #507692: Dockbarx background wasn't tranparent.
+- Bug #510619: Clicking at pixels around the borders of dockbarx should now work.
+- Dockbarx works ok in vertical mode again.
+
+
+
 x.0.24.1-1
 DockbarX is compatible with python 2.5 (Ubuntu 8.10) again.
 

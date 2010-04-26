@@ -142,7 +142,7 @@ except:
     print "Failed loading libraries needed for preview."
 
 
-VERSION = 'x.0.24.1-1'
+VERSION = 'x.0.30'
 
 TARGET_TYPE_GROUPBUTTON = 134 # Randomly chosen number, is it used anymore?
 
