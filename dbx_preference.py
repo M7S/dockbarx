@@ -967,11 +967,9 @@ class PrefDialog():
             color = gtk.gdk.color_parse(colors[c])
             self.color_buttons[c].set_color(color)
             #Alpha
-            if c in self.theme_alphas \
-            and "no" in self.theme_alphas[c]:
-                self.color_buttons[c].set_use_alpha(False)
-            elif c in self.theme_alphas \
-            or a in DEFAULT_COLORS:
+            if a in colors \
+            and not (c in self.theme_alphas \
+                     and "no" in self.theme_alphas[c]):
                 alpha = colors[a] * 256
                 self.color_buttons[c].set_use_alpha(True)
                 self.color_buttons[c].set_alpha(alpha)
