@@ -1500,10 +1500,10 @@ class CairoPopup():
         ctx.paint()
 
         r = 6
-        lt = 0.5
-        rt = w - 0.5
-        up = 0.5
-        dn = h - 0.5
+        lt = 0
+        rt = w
+        up = 0
+        dn = h
         ctx.move_to(lt, up + r)
         ctx.arc(lt + r, up + r, r, -pi, -pi/2)
         ctx.arc(rt - r, up + r, r, -pi/2, 0)
@@ -1514,7 +1514,9 @@ class CairoPopup():
         if self.window.is_composited():
             ctx.set_source_rgba(1, 1, 1, 1)
         else:
-            ctx.set_source_rgb(1, 1, 1)
+            # A grey color makes the "semi transparent"
+            # rounded corners look most transparent
+            ctx.set_source_rgb(0.5, 0.5, 0.5)
         ctx.fill()
 
         if self.window.is_composited():
