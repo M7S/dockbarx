@@ -16,17 +16,21 @@ Dockbar and DockbarX are licensed under GPL3.
 INSTALL
 =======
 
-1. install python-gnome2-desktop and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed.
+1. install python-gnome2-desktop and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed (if they aren't already).
 $ sudo apt-get install python-gnome2-desktop python-numpy
-2. copy dockbarx.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers (64-bit users on mandriva and possibly other rpm-based distributions should use /usr/lib64 instead of /usr/lib)
+
+2. copy dockbarx.py and dbx_preference.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers (64-bit users on mandriva and possibly other rpm-based distributions should use /usr/lib64 instead of /usr/lib)
 $ sudo cp dockbarx.py /usr/bin
+$ sudo cp dbx_preference.py /usr/bin
 $ sudo cp GNOME_DockBarXApplet.server /usr/lib/bonobo/servers
+
 3. copy the content of themes folder to /usr/share/dockbarx/themes (for system wide installation, recommended) or ~/.dockbarx/themes (Create the folders if necessary)
 $ sudo mkdir -p /usr/share/dockbarx/themes
 $ sudo cp  themes/* /usr/share/dockbarx/themes
+
 4. add DockBarX applet to panel
 
-You can run it in window (meant for debugging purposes, mostly):
+You can ALSOrun it in window (meant for debugging purposes, mostly):
 $dockbarx.py run-in-window
 
 INSTALL IN AWN
