@@ -17,129 +17,81 @@
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import pygtk
+pygtk.require('2.0')
+import gtk
+import gobject
+import gnomeapplet
+import sys
+import dbus
+import gconf
+from xml.sax.handler import ContentHandler
 
-# A try to fix the random crashes on start-up, no idea if it works.
-from time import sleep
-
-try:
-    import pygtk
-except:
-    sleep(5)
-    import pygtk
-try:
-    pygtk.require('2.0')
-except:
-    sleep(5)
-    pygtk.require('2.0')
-try:
-    import gtk
-except:
-    sleep(5)
-    import gtk
-try:
-    import gobject
-except:
-    sleep(5)
-    import gobject
-try:
-    import sys
-except:
-    sleep(5)
-    import sys
-try:
-    import wnck
-except:
-    sleep(5)
-    import wnck
-try:
-    import gnomeapplet
-except:
-    sleep(5)
-    import gnomeapplet
-try:
-    import gconf
-except:
-    sleep(5)
-    import gconf
-try:
-    import os
-except:
-    sleep(5)
-    import os
-try:
-    from xdg.DesktopEntry import DesktopEntry
-except:
-    sleep(5)
-    from xdg.DesktopEntry import DesktopEntry
-try:
-    import dbus
-except:
-    sleep(5)
-    import dbus
-try:
-    import pango
-except:
-    sleep(5)
-    import pango
-try:
-    from cStringIO import StringIO
-except:
-    sleep(5)
-    from cStringIO import StringIO
-try:
-    from tarfile import open as taropen
-except:
-    sleep(5)
-    from tarfile import open as taropen
-try:
-    from xml.sax import make_parser
-except:
-    sleep(5)
-    from xml.sax import make_parser
-try:
-    from xml.sax.handler import ContentHandler
-except:
-    sleep(5)
-    from xml.sax.handler import ContentHandler
-try:
-    from math import pi
-except:
-    sleep(5)
-    from math import pi
-try:
-    import cairo
-except:
-    sleep(5)
-    import cairo
-try:
-    from time import time
-except:
-    sleep(5)
-    from time import time
-try:
-    import gio
-except:
-    sleep(5)
-    import gio
-
-
-import Image
-import array
-
-import gc
-gc.enable()
-
+# These modules will be loaded when
+# When the applet is done.
+wnck = None
+os = None
+DesktopEntry = None
+pango = None
+StringIO = None
+taropen = None
+make_parser = None
+pi = None
+cairo = None
+time = None
+gio = None
+Image = None
+array = None
+gc = None
 libgdk = None
 libX11 = None
 libXcomposite = None
-try:
-    from ctypes.util import find_library
-    import ctypes
-    libgdk = ctypes.cdll.LoadLibrary(find_library("gdk-x11-2.0"))
-    libX11 = ctypes.cdll.LoadLibrary(find_library("X11"))
-    libXcomposite = ctypes.cdll.LoadLibrary(find_library("Xcomposite"))
-except:
-    print "Failed loading libraries needed for preview."
+
+def later_imports():
+    global wnck
+    global os
+    global DesktopEntry
+    global pango
+    global StringIO
+    global taropen
+    global make_parser
+    global pi
+    global cairo
+    global time
+    global gio
+    global Image
+    global array
+    global gc
+    global libgdk
+    global libX11
+    global libXcomposite
+
+    import wnck
+    import os
+    from xdg.DesktopEntry import DesktopEntry
+    import pango
+    from cStringIO import StringIO
+    from tarfile import open as taropen
+    from xml.sax import make_parser
+    from math import pi
+    import cairo
+    from time import time
+    import gio
+    import Image
+    import array
+
+    import gc
+    gc.enable()
+
+
+    try:
+        from ctypes.util import find_library
+        import ctypes
+        libgdk = ctypes.cdll.LoadLibrary(find_library("gdk-x11-2.0"))
+        libX11 = ctypes.cdll.LoadLibrary(find_library("X11"))
+        libXcomposite = ctypes.cdll.LoadLibrary(find_library("Xcomposite"))
+    except:
+        print "Failed loading libraries needed for preview."
 
 
 VERSION = 'x.0.30'
@@ -3917,9 +3869,50 @@ class DockBar(gobject.GObject):
     }
     def __init__(self,applet):
         gobject.GObject.__init__(self)
-        global settings
         print "Dockbarx init"
         self.applet = applet
+
+        #--- Applet / Window container
+        if self.applet != None:
+            self.applet.set_applet_flags(gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
+            if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN or applet.get_orient() == gnomeapplet.ORIENT_UP:
+                self.orient = "h"
+                self.container = gtk.HBox()
+            else:
+                self.orient = "v"
+                self.container = gtk.VBox()
+            self.applet.connect("change-orient",self.on_change_orient)
+            self.applet.connect("delete-event",self.cleanup)
+            self.applet.add(self.container)
+            self.applet.connect("size-allocate",self.on_applet_size_alloc)
+            self.applet.connect("change_background", self.on_change_background)
+            self.pp_menu_xml = """
+            <popup name="button3">
+                <menuitem name="About Item" verb="About" stockid="gtk-about" />
+                <menuitem name="Preferences" verb="Pref" stockid="gtk-properties" />
+                <menuitem name="Reload" verb="Reload" stockid="gtk-refresh" />
+            </popup>
+            """
+
+            self.pp_menu_verbs = [("About", self.on_ppm_about),
+                                  ("Pref", self.on_ppm_pref),
+                                  ("Reload", self.reload)]
+            self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
+            self.applet_origin_x = -1000 # off screen. there is no 'window' prop
+            self.applet_origin_y = -1000 # at this step
+            self.applet.set_background_widget(applet) # background bug workaround
+            self.applet.show_all()
+            gobject.idle_add(self.idle_init)
+        else:
+            self.container = gtk.HBox()
+            self.orient = "h"
+            self.idle_init()
+
+
+
+    def idle_init(self):
+        # Import all stuff.
+        later_imports()
         # self.dragging is used to tell functions wheter
         # a drag-and-drop is going on
         self.dragging = False
@@ -3929,7 +3922,6 @@ class DockBar(gobject.GObject):
         self.opacity_matches = None
         self.groups = None
         self.windows = None
-        self.container = None
         self.theme = None
 
         wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
@@ -3966,47 +3958,13 @@ class DockBar(gobject.GObject):
                 settings[name] = group_button_actions_d[value]
                 GCONF_CLIENT.set_string(GCONF_DIR + '/' + name , settings[name])
 
-
-        #--- Applet / Window container
-        if self.applet != None:
-            self.applet.set_applet_flags(gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
-            if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN or applet.get_orient() == gnomeapplet.ORIENT_UP:
-                self.orient = "h"
-                self.container = gtk.HBox()
-            else:
-                self.orient = "v"
-                self.container = gtk.VBox()
-            self.applet.connect("change-orient",self.on_change_orient)
-            self.applet.connect("delete-event",self.cleanup)
-            self.applet.add(self.container)
-            self.applet.connect("size-allocate",self.on_applet_size_alloc)
-            self.applet.connect("change_background", self.on_change_background)
-            self.pp_menu_xml = """
-            <popup name="button3">
-                <menuitem name="About Item" verb="About" stockid="gtk-about" />
-                <menuitem name="Preferences" verb="Pref" stockid="gtk-properties" />
-                <menuitem name="Reload" verb="Reload" stockid="gtk-refresh" />
-            </popup>
-            """
-
-            self.pp_menu_verbs = [("About", self.on_ppm_about),
-                                  ("Pref", self.on_ppm_pref),
-                                  ("Reload", self.reload)]
-            self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
-            self.applet_origin_x = -1000 # off screen. there is no 'window' prop
-            self.applet_origin_y = -1000 # at this step
-            self.applet.set_background_widget(applet) # background bug workaround
-            self.applet.show_all()
-        else:
-            self.container = gtk.HBox()
-            self.orient = "h"
-
         # Wait until everything is loaded
         # before adding groupbuttons
         while gtk.events_pending():
             gtk.main_iteration(False)
 
-        gobject.idle_add(self.reload)
+        self.reload()
+
 
 
     def reload(self, event=None, data=None):
