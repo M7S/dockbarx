@@ -4006,7 +4006,7 @@ class DockBar(gobject.GObject):
         while gtk.events_pending():
             gtk.main_iteration(False)
 
-        self.reload()
+        gobject.idle_add(self.reload)
 
 
     def reload(self, event=None, data=None):
