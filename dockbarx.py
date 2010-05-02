@@ -2793,6 +2793,11 @@ class GroupButton (gobject.GObject):
         self.update_state_request()
         if not self.windows and not self.launcher:
             self.hide_list()
+            if self.opacified:
+                # Turn of opacify if all windows are closed.
+                self.dockbar.opacified = False
+                self.opacified = False
+                self.deopacify()
             self.icon_factory.remove()
             del self.icon_factory
             self.popup.destroy()
