@@ -30,161 +30,10 @@ from tarfile import open as taropen
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
+from dockbarx.common import Globals, ODict
+
 GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = '/apps/dockbarx'
-
-
-DEFAULT_SETTINGS = {  "theme": "default",
-                      "groupbutton_attention_notification_type": "red",
-                      "workspace_behavior": "switch",
-                      "popup_delay": 250,
-                      "popup_align": "center",
-                      "no_popup_for_one_window": False,
-                      "show_only_current_desktop": True,
-                      "preview": False,
-                      "remember_previews": False,
-                      "preview_size": 230,
-
-
-                      "select_one_window": "select or minimize window",
-                      "select_multiple_windows": "select all",
-
-                      "opacify": False,
-                      "opacify_group": False,
-                      "opacify_alpha": 11,
-
-                      "separate_wine_apps": True,
-                      "separate_ooo_apps": True,
-
-                      "groupbutton_left_click_action":"select or minimize group",
-                      "groupbutton_shift_and_left_click_action":"launch application",
-                      "groupbutton_middle_click_action":"close all windows",
-                      "groupbutton_shift_and_middle_click_action": "no action",
-                      "groupbutton_right_click_action": "show menu",
-                      "groupbutton_shift_and_right_click_action": "no action",
-                      "groupbutton_scroll_up": "select next window",
-                      "groupbutton_scroll_down": "select previous window",
-                      "groupbutton_left_click_double": False,
-                      "groupbutton_shift_and_left_click_double": False,
-                      "groupbutton_middle_click_double": True,
-                      "groupbutton_shift_and_middle_click_double": False,
-                      "groupbutton_right_click_double": False,
-                      "groupbutton_shift_and_right_click_double": False,
-                      "windowbutton_left_click_action":"select or minimize window",
-                      "windowbutton_shift_and_left_click_action":"no action",
-                      "windowbutton_middle_click_action":"close window",
-                      "windowbutton_shift_and_middle_click_action": "no action",
-                      "windowbutton_right_click_action": "show menu",
-                      "windowbutton_shift_and_right_click_action": "no action",
-                      "windowbutton_scroll_up": "shade window",
-                      "windowbutton_scroll_down": "unshade window" }
-settings = DEFAULT_SETTINGS.copy()
-
-DEFAULT_COLORS={
-                      "color1": "#333333",
-                      "color1_alpha": 205,
-                      "color2": "#FFFFFF",
-                      "color3": "#FFFF75",
-                      "color4": "#9C9C9C",
-
-                      "color5": "#FFFF75",
-                      "color5_alpha": 160,
-                      "color6": "#000000",
-                      "color7": "#000000",
-                      "color8": "#000000",
-
-               }
-colors={}
-
-class ODict():
-    """An ordered dictionary.
-
-    Has only the most needed functions of a dict, not all."""
-    def __init__(self, d=[]):
-        if not type(d) in (list, tuple):
-            raise TypeError('The argument has to be a list or a tuple or nothing.')
-        self.list = []
-        for t in d:
-            if not type(d) in (list, tuple):
-                raise ValueError('Every item of the list has to be a list or a tuple.')
-            if not len(t) == 2:
-                raise ValueError('Every tuple in the list needs to be two items long.')
-            self.list.append(t)
-
-    def __getitem__(self, key):
-        for t in self.list:
-            if t[0] == key:
-                return t[1]
-
-    def __setitem__(self, key, value):
-        t = (key, value)
-        self.list.append(t)
-
-    def __contains__(self, key):
-        for t in self.list:
-            if t[0] == key:
-                return True
-        else:
-            return False
-
-    def __iter__(self):
-        return self.keys().__iter__()
-
-    def __eq__(self, x):
-        if type(x) == dict:
-            d = {}
-            for t in self.list:
-                d[t[0]] = t[1]
-            return (d == x)
-        elif x.__class__ == self.__class__:
-            return (self.list == x.list)
-        else:
-            return (self.list == x)
-
-    def __len__(self):
-        return len(self.list)
-
-    def values(self):
-        values = []
-        for t in self.list:
-            values.append(t[1])
-        return values
-
-    def keys(self):
-        keys = []
-        for t in self.list:
-            keys.append(t[0])
-        return keys
-
-    def items(self):
-        return self.list
-
-    def add_at_index(self, index, key, value):
-        t = (key, value)
-        self.list.insert(index, t)
-
-    def get_index(self, key):
-        for t in self.list:
-            if t[0] == key:
-                return self.list.index(t)
-
-    def move(self, key, index):
-        for t in self.list:
-            if key == t[0]:
-                self.list.remove(t)
-                self.list.insert(index, t)
-
-    def remove(self, key):
-        for t in self.list:
-            if key == t[0]:
-                self.list.remove(t)
-
-    def has_key(self, key):
-        for t in self.list:
-            if key == t[0]:
-                return True
-        else:
-            return False
 
 
 class ThemeHandler(ContentHandler):
@@ -269,15 +118,6 @@ class Theme():
         # Name
         self.name = theme_handler.get_name()
 
-        # Pixmaps
-        self.pixbufs = {}
-        pixmaps = {}
-        if self.theme.has_key('pixmaps'):
-            pixmaps = self.theme['pixmaps']['content']
-        for (type, d) in pixmaps.items():
-            if type == 'pixmap_from_file':
-                self.pixbufs[d['name']] = self.load_pixbuf(tar, d['file'])
-
         # Colors
         self.color_names = {}
         self.default_colors = {}
@@ -307,37 +147,6 @@ class Theme():
                         print 'The opacity should be a number ("0"-"100") or the words "not used".'
 
         tar.close()
-
-    def print_dict(self, d, indent=""):
-        for key in d.keys():
-            if key == 'content' or type(d[key]) == dict:
-                print "%s%s={"%(indent,key)
-                self.print_dict(d[key], indent+"   ")
-                print "%s}"%indent
-            else:
-                print '%s%s = %s'%(indent,key,d[key])
-
-    def load_pixbuf(self, tar, name):
-        f = tar.extractfile('pixmaps/'+name)
-        buffer=f.read()
-        pixbuf_loader=gtk.gdk.PixbufLoader()
-        pixbuf_loader.write(buffer)
-        pixbuf_loader.close()
-        f.close()
-        pixbuf=pixbuf_loader.get_pixbuf()
-        return pixbuf
-
-    def has_pixbuf(self, name):
-        if name in self.pixbufs:
-            return True
-        else:
-            return False
-
-    def get_pixbuf(self, name):
-        return self.pixbufs[name].copy()
-
-    def get_icon_dict(self):
-        return self.theme['button_pixmap']['content']
 
     def get_name(self):
         return self.name
@@ -390,38 +199,11 @@ class PrefDialog():
 
     def __init__ (self, dockbar=None):
 
-        #--- Gconf settings
-        gconf_set = { str: GCONF_CLIENT.set_string,
-                     bool: GCONF_CLIENT.set_bool,
-                     int: GCONF_CLIENT.set_int }
-        for name, value in settings.items():
-            gc_value = None
-            try:
-                gc_value = GCONF_CLIENT.get_value(GCONF_DIR + '/' + name)
-            except:
-                gconf_set[type(value)](GCONF_DIR + '/' + name , value)
-            else:
-                if type(gc_value) != type(value):
-                    gconf_set[type(value)](GCONF_DIR + '/' + name , value)
-                else:
-                    settings[name] = gc_value
-        GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
-        GCONF_CLIENT.notify_add(GCONF_DIR, self.on_gconf_changed, None)
-
-        # Change old settings
-        group_button_actions_d = {"select or minimize group": "select",
-                                  "select group": "select",
-                                  "select or compiz scale group": "select"}
-        for name, value in settings.items():
-            if ("groupbutton" in name) and ("click" in name or "scroll" in name) \
-            and value in group_button_actions_d:
-                settings[name] = group_button_actions_d[value]
-                GCONF_CLIENT.set_string(GCONF_DIR + '/' + name , settings[name])
-
+        self.globals = Globals()
+        self.globals.connect('theme-changed', self.on_theme_changed)
+        self.globals.connect('preference-update', self.update)
         self.load_theme()
-        self.get_colors()
 
-        PREFDIALOG = self
         self.dialog = gtk.Dialog("DockBarX preferences")
         self.dialog.connect("response", self.dialog_close)
 
@@ -799,10 +581,10 @@ class PrefDialog():
         self.themes = self.find_themes()
         default_theme_path = None
         for theme, path in self.themes.items():
-            if theme.lower() == settings['theme'].lower():
+            if theme.lower() == self.globals.settings['theme'].lower():
                 self.theme = Theme(path)
                 break
-            if theme.lower == DEFAULT_SETTINGS['theme'].lower():
+            if theme.lower == self.globals.DEFAULT_SETTINGS['theme'].lower():
                 default_theme_path = path
         else:
             if default_theme_path:
@@ -818,6 +600,10 @@ class PrefDialog():
         else:
             self.theme_colors = {}
             self.theme_alphas = {}
+        self.globals.theme_name = self.theme.get_name()
+        self.globals.update_colors(self.theme.get_name(),
+                                   self.theme.get_default_colors(),
+                                   self.theme.get_default_alphas())
 
     def find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
@@ -852,54 +638,12 @@ class PrefDialog():
             md.destroy()
         return themes
 
-    def get_colors(self):
-        # Loads the colors from gconf
-        if not self.theme:
-            colors.clear()
-            for i in range(1,9):
-                colors['color%s'%i]="#000000"
-            return
-        theme_colors = self.theme.get_default_colors()
-        theme_alphas = self.theme.get_default_alphas()
-        theme_name = self.theme.get_name().replace(' ', '_').encode()
-        try:
-            theme_name = theme_name.translate(None, '!?*()/#"@')
-        except:
-            # Todo: better error handling here.
-            pass
-        color_dir = GCONF_DIR + '/themes/' + theme_name
-        colors.clear()
-        for i in range(1, 9):
-            c = 'color%s'%i
-            a = 'color%s_alpha'%i
-            try:
-                colors[c] = GCONF_CLIENT.get_value(color_dir + '/' + c)
-            except:
-                if c in theme_colors:
-                    colors[c] = theme_colors[c]
-                else:
-                    colors[c] = DEFAULT_COLORS[c]
-                GCONF_CLIENT.set_string(color_dir + '/' + c , colors[c])
-            try:
-                colors[a] = GCONF_CLIENT.get_value(color_dir + '/' + a)
-            except:
-                if c in theme_alphas:
-                    if'no' in theme_alphas[c]:
-                        continue
-                    else:
-                        colors[a] = int(int(theme_alphas[c]) * 2.55 + 0.4)
-                elif a in DEFAULT_COLORS:
-                    colors[a] = DEFAULT_COLORS[a]
-                else:
-                    continue
-                GCONF_CLIENT.set_int(color_dir + '/' + a , colors[a])
 
-
-    def update(self):
+    def update(self, arg=None):
         """Set widgets according to settings."""
 
         # Attention notification
-        settings_attention = settings["groupbutton_attention_notification_type"]
+        settings_attention = self.globals.settings["groupbutton_attention_notification_type"]
         if settings_attention == 'compwater':
             self.rb1_1.set_active(True)
         elif settings_attention == 'blink':
@@ -910,7 +654,7 @@ class PrefDialog():
             self.rb1_4.set_active(True)
 
         # Popup alignment
-        settings_align = settings["popup_align"]
+        settings_align = self.globals.settings["popup_align"]
         if settings_align == 'left':
             self.rb3_1.set_active(True)
         elif settings_align == 'center':
@@ -919,12 +663,12 @@ class PrefDialog():
             self.rb3_3.set_active(True)
 
         # Popup
-        self.delay_spin.set_value(settings['popup_delay'])
-        self.no_popup_cb.set_active(settings['no_popup_for_one_window'])
+        self.delay_spin.set_value(self.globals.settings['popup_delay'])
+        self.no_popup_cb.set_active(self.globals.settings['no_popup_for_one_window'])
 
         # Group button keys
         for cb_name, setting_name in self.gb_labels_and_settings.items():
-            value = settings[setting_name]
+            value = self.globals.settings[setting_name]
             combobox = self.gb_combos[cb_name]
             model = combobox.get_model()
             for i in range(len(combobox.get_model())):
@@ -934,7 +678,7 @@ class PrefDialog():
 
         # Window button keys
         for cb_name, setting_name in self.wb_labels_and_settings.items():
-            value = settings[setting_name]
+            value = self.globals.settings[setting_name]
             combobox = self.wb_combos[cb_name]
             model = combobox.get_model()
             for i in range(len(combobox.get_model())):
@@ -943,15 +687,15 @@ class PrefDialog():
                     break
 
         for name in self.gb_doubleclick_checkbutton_names:
-            self.gb_doubleclick_checkbutton[name].set_active(settings[name])
+            self.gb_doubleclick_checkbutton[name].set_active(self.globals.settings[name])
 
         # Opacify
-        self.opacify_cb.set_active(settings['opacify'])
-        self.opacify_group_cb.set_active(settings['opacify_group'])
-        self.opacify_scale.set_value(settings['opacify_alpha'])
+        self.opacify_cb.set_active(self.globals.settings['opacify'])
+        self.opacify_group_cb.set_active(self.globals.settings['opacify_group'])
+        self.opacify_scale.set_value(self.globals.settings['opacify_alpha'])
 
-        self.opacify_group_cb.set_sensitive(settings['opacify'])
-        self.opacify_scale.set_sensitive(settings['opacify'])
+        self.opacify_group_cb.set_sensitive(self.globals.settings['opacify'])
+        self.opacify_scale.set_sensitive(self.globals.settings['opacify'])
 
         # Colors
         if self.theme:
@@ -964,13 +708,13 @@ class PrefDialog():
         for i in range(1, 9):
             c = 'color%s'%i
             a = c+"_alpha"
-            color = gtk.gdk.color_parse(colors[c])
+            color = gtk.gdk.color_parse(self.globals.colors[c])
             self.color_buttons[c].set_color(color)
             #Alpha
-            if a in colors \
+            if a in self.globals.colors \
             and not (c in self.theme_alphas \
                      and "no" in self.theme_alphas[c]):
-                alpha = colors[a] * 256
+                alpha = self.globals.colors[a] * 256
                 self.color_buttons[c].set_use_alpha(True)
                 self.color_buttons[c].set_alpha(alpha)
             else:
@@ -979,13 +723,13 @@ class PrefDialog():
         #Select action
         model = self.select_one_cg.get_model()
         for i in range(len(self.select_one_cg.get_model())):
-                if model[i][0] == settings['select_one_window'].lower():
+                if model[i][0] == self.globals.settings['select_one_window'].lower():
                     self.select_one_cg.set_active(i)
                     break
 
         model = self.select_multiple_cg.get_model()
         for i in range(len(self.select_multiple_cg.get_model())):
-                if model[i][0] == settings['select_multiple_windows'].lower():
+                if model[i][0] == self.globals.settings['select_multiple_windows'].lower():
                     self.select_multiple_cg.set_active(i)
                     break
 
@@ -996,26 +740,26 @@ class PrefDialog():
              "move":"Move windows from other workspaces"
             }
         for i in range(len(self.select_workspace_cg.get_model())):
-                if model[i][0] == wso[settings['workspace_behavior'].lower()]:
+                if model[i][0] == wso[self.globals.settings['workspace_behavior'].lower()]:
                     self.select_workspace_cg.set_active(i)
                     break
 
         # Themes
         model = self.theme_combo.get_model()
         for i in range(len(self.theme_combo.get_model())):
-            if model[i][0].lower() == settings['theme'].lower():
+            if model[i][0].lower() == self.globals.settings['theme'].lower():
                 self.theme_combo.set_active(i)
                 break
 
         # Advanced page stuff
-        self.preview_cb.set_active(settings["preview"])
-        self.remember_previews_cb.set_active(settings["remember_previews"])
-        self.remember_previews_cb.set_sensitive(settings["preview"])
-        self.preview_size_spin.set_value(settings["preview_size"])
-        self.preview_size_spin.set_sensitive(settings["preview"])
-        self.ignore_workspace_cb.set_active(settings["show_only_current_desktop"])
-        self.wine_apps_cb.set_active(settings["separate_wine_apps"])
-        self.ooo_apps_cb.set_active(settings["separate_ooo_apps"])
+        self.preview_cb.set_active(self.globals.settings["preview"])
+        self.remember_previews_cb.set_active(self.globals.settings["remember_previews"])
+        self.remember_previews_cb.set_sensitive(self.globals.settings["preview"])
+        self.preview_size_spin.set_value(self.globals.settings["preview_size"])
+        self.preview_size_spin.set_sensitive(self.globals.settings["preview"])
+        self.ignore_workspace_cb.set_active(self.globals.settings["show_only_current_desktop"])
+        self.wine_apps_cb.set_active(self.globals.settings["separate_wine_apps"])
+        self.ooo_apps_cb.set_active(self.globals.settings["separate_ooo_apps"])
 
 
 
@@ -1042,7 +786,7 @@ class PrefDialog():
             value = 'nothing'
             rb1_toggled = True
 
-        if rb1_toggled and value != settings["groupbutton_attention_notification_type"]:
+        if rb1_toggled and value != self.globals.settings["groupbutton_attention_notification_type"]:
             GCONF_CLIENT.set_string(GCONF_DIR+'/groupbutton_attention_notification_type', value)
 
         if par1 == 'rb3_left' and button.get_active():
@@ -1055,12 +799,12 @@ class PrefDialog():
             value = 'right'
             rb3_toggled = True
 
-        if rb3_toggled and value != settings["popup_align"]:
+        if rb3_toggled and value != self.globals.settings["popup_align"]:
             GCONF_CLIENT.set_string(GCONF_DIR+'/popup_align', value)
 
     def checkbutton_toggled (self,button,name):
         # Read the value of the toggled check button/box and write to gconf
-        if button.get_active() != settings[name]:
+        if button.get_active() != self.globals.settings[name]:
             GCONF_CLIENT.set_bool(GCONF_DIR+'/'+name, button.get_active())
 
 
@@ -1073,7 +817,7 @@ class PrefDialog():
                 value = combobox.get_active_text()
                 if value == None:
                     return
-                if value != settings[setting_name]:
+                if value != self.globals.settings[setting_name]:
                     GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, value)
 
         # Windowbutton settings
@@ -1083,28 +827,28 @@ class PrefDialog():
                 value = combobox.get_active_text()
                 if value == None:
                     return
-                if value != settings[setting_name]:
+                if value != self.globals.settings[setting_name]:
                     GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, value)
 
         if combobox == self.theme_combo:
             value = combobox.get_active_text()
             if value == None:
                 return
-            if value != settings['theme']:
+            if value != self.globals.settings['theme']:
                 GCONF_CLIENT.set_string(GCONF_DIR+'/theme', value)
 
         if combobox == self.select_one_cg:
             value = combobox.get_active_text()
             if value == None:
                 return
-            if value != settings['select_one_window']:
+            if value != self.globals.settings['select_one_window']:
                 GCONF_CLIENT.set_string(GCONF_DIR+'/select_one_window', value)
 
         if combobox == self.select_multiple_cg:
             value = combobox.get_active_text()
             if value == None:
                 return
-            if value != settings['select_multiple_windows']:
+            if value != self.globals.settings['select_multiple_windows']:
                 GCONF_CLIENT.set_string(GCONF_DIR+'/select_multiple_windows', value)
 
         if combobox == self.select_workspace_cg:
@@ -1116,13 +860,13 @@ class PrefDialog():
                 }
             if value == None:
                 return
-            if value != settings['workspace_behavior']:
+            if value != self.globals.settings['workspace_behavior']:
                 GCONF_CLIENT.set_string(GCONF_DIR+'/workspace_behavior', wso[value])
 
     def adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf
         value = int(widget.get_value())
-        if value != settings[setting]:
+        if value != self.globals.settings[setting]:
             GCONF_CLIENT.set_int(GCONF_DIR+'/'+setting, value)
 
     def color_set(self, button, c):
@@ -1131,7 +875,7 @@ class PrefDialog():
         # (Alpha is written like int (0-255).)
         if not self.theme:
             return
-        color_string = colors[c]
+        color_string = self.globals.colors[c]
         color = button.get_color()
         cs = color.to_string()
         # cs has 16-bit per color, we want 8.
@@ -1145,8 +889,8 @@ class PrefDialog():
         if new_color != color_string:
             GCONF_CLIENT.set_string(color_dir+'/'+c, new_color)
         if button.get_use_alpha():
-            if colors.has_key(c+"_alpha"):
-                alpha = colors[c+"_alpha"]
+            if self.globals.colors.has_key(c+"_alpha"):
+                alpha = self.globals.colors[c+"_alpha"]
             else:
                 alpha = None
             new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
@@ -1160,7 +904,7 @@ class PrefDialog():
         if self.theme_colors.has_key(c):
             color_string = self.theme_colors[c]
         else:
-            color_string = DEFAULT_COLORS[c]
+            color_string = self.globals.DEFAULT_COLORS[c]
         theme_name = self.theme.get_name().replace(' ', '_').encode()
         try:
             theme_name = theme_name.translate(None, '!?*()/#"@')
@@ -1172,8 +916,8 @@ class PrefDialog():
             if 'no' in self.theme_alphas[c]:
                 return
             alpha = int(int(self.theme_alphas[c]) * 2.55 + 0.4)
-        elif DEFAULT_COLORS.has_key(c+"_alpha"):
-            alpha = DEFAULT_COLORS[c+"_alpha"]
+        elif self.globals.DEFAULT_COLORS.has_key(c+"_alpha"):
+            alpha = self.globals.DEFAULT_COLORS[c+"_alpha"]
         else:
             return
         GCONF_CLIENT.set_int(color_dir+'/'+c+"_alpha", alpha)
@@ -1182,13 +926,12 @@ class PrefDialog():
         value = self.theme_combo.get_active_text()
         if value == None:
             return
-        if value != settings['theme']:
+        if value != self.globals.settings['theme']:
             GCONF_CLIENT.set_string(GCONF_DIR+'/theme', value)
         else:
             # Check if the theme list
             # has changed anyway.
             self.load_theme()
-            self.get_colors()
             self.theme_combo.get_model().clear()
             theme_names = self.themes.keys()
             theme_names.sort()
@@ -1205,59 +948,23 @@ class PrefDialog():
                 self.color_labels[c].set_text(text)
                 self.color_buttons[c].set_title(text)
 
-    def on_gconf_changed(self, client, par2, entry, par4):
-        if entry.get_value() == None:
-            return
-        pref_update = False
-        changed_settings = []
-        entry_get = { str: entry.get_value().get_string,
-                      bool: entry.get_value().get_bool,
-                      int: entry.get_value().get_int }
-        key = entry.get_key().split('/')[-1]
-        if key in settings:
-            value = settings[key]
-            if entry_get[type(value)]() != value:
-                changed_settings.append(key)
-                settings[key] = entry_get[type(value)]()
-                pref_update = True
-
-        if 'theme' in changed_settings:
-            self.load_theme()
-            self.get_colors()
-            self.theme_combo.get_model().clear()
-            theme_names = self.themes.keys()
-            theme_names.sort()
-            for theme in theme_names:
-                    self.theme_combo.append_text(theme)
-            # Color labels
-            color_names = self.theme.get_color_names()
-            for i in range(1, 9):
-                c = 'color%s'%i
-                if color_names.has_key(c):
-                    text = color_names[c].capitalize()
-                else:
-                    text = self.default_color_names[c]
-                self.color_labels[c].set_text(text)
-                self.color_buttons[c].set_title(text)
-
-        theme_name = self.theme.get_name().replace(' ', '_').encode()
-        try:
-            theme_name = theme_name.translate(None, '!?*()/#"@')
-        except:
-            pass
+    def on_theme_changed(self, arg):
+        self.load_theme()
+        self.theme_combo.get_model().clear()
+        theme_names = self.themes.keys()
+        theme_names.sort()
+        for theme in theme_names:
+                self.theme_combo.append_text(theme)
+        # Color labels
+        color_names = self.theme.get_color_names()
         for i in range(1, 9):
             c = 'color%s'%i
-            a = 'color%s_alpha'%i
-            for k in (c, a):
-                if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR, theme_name, k):
-                    value = colors[k]
-                    if entry_get[type(value)]() != value:
-                        changed_settings.append(key)
-                        colors[k] = entry_get[type(value)]()
-                        pref_update = True
-
-        if pref_update:
-            self.update()
+            if color_names.has_key(c):
+                text = color_names[c].capitalize()
+            else:
+                text = self.default_color_names[c]
+            self.color_labels[c].set_text(text)
+            self.color_buttons[c].set_title(text)
 
 PrefDialog()
 gtk.main()

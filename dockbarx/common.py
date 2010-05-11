@@ -292,6 +292,7 @@ class Globals(gobject.GObject):
         'show-only-current-desktop-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'theme-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'color-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        'preference-update': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
     }
 
     DEFAULT_SETTINGS = {  "theme": "default",
@@ -371,6 +372,7 @@ class Globals(gobject.GObject):
             self.dragging = False
             self.orient = 'h'
             self.apps_by_id = {}
+            self.theme_name = None
 
             # Get gconf settings
             self.settings = self.DEFAULT_SETTINGS.copy()
@@ -419,21 +421,24 @@ class Globals(gobject.GObject):
             if entry_get[type(value)]() != value:
                 changed_settings.append(key)
                 self.settings[key] = entry_get[type(value)]()
+                pref_update = True
 
-        theme_name = self.theme_name.replace(' ', '_').encode()
-        try:
-            theme_name = theme_name.translate(None, '!?*()/#"@')
-        except:
-            pass
-        for i in range(1, 9):
-            c = 'color%s'%i
-            a = 'color%s_alpha'%i
-            for k in (c, a):
-                if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR, theme_name, k):
-                    value = colors[k]
-                    if entry_get[type(value)]() != value:
-                        changed_settings.append(key)
-                        colors[k] = entry_get[type(value)]()
+        if self.theme_name:
+            theme_name = self.theme_name.replace(' ', '_').encode()
+            try:
+                theme_name = theme_name.translate(None, '!?*()/#"@')
+            except:
+                pass
+            for i in range(1, 9):
+                c = 'color%s'%i
+                a = 'color%s_alpha'%i
+                for k in (c, a):
+                    if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR, theme_name, k):
+                        value = self.colors[k]
+                        if entry_get[type(value)]() != value:
+                            changed_settings.append(key)
+                            self.colors[k] = entry_get[type(value)]()
+                            pref_update = True
 
         #TODO: Add check for sane values for critical settings.
 
@@ -447,6 +452,9 @@ class Globals(gobject.GObject):
                 self.emit('theme-changed')
             if 'color' in key:
                 self.emit('color-changed')
+
+        if pref_update == True:
+            self.emit('preference-update')
 
     def update_colors(self, theme_name, theme_colors, theme_alphas):
         # Updates the colors when the theme calls for an update.

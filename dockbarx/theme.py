@@ -83,9 +83,9 @@ class Theme(gobject.GObject):
         self.on_theme_changed()
 
     def on_theme_changed(self, arg=None):
-        themes = self.find_themes()
+        self.themes = self.find_themes()
         default_theme_path = None
-        for theme, path in themes.items():
+        for theme, path in self.themes.items():
             if theme.lower() == self.globals.settings['theme'].lower():
                 self.theme_path = path
                 break
@@ -99,7 +99,7 @@ class Theme(gobject.GObject):
             else:
                 # Just use one of the themes that where found if default
                 # theme couldn't be found either.
-                self.theme_path = themes.values()[0]
+                self.theme_path = self.themes.values()[0]
 
         self.reload()
 

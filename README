@@ -16,32 +16,16 @@ Dockbar and DockbarX are licensed under GPL3.
 INSTALL
 =======
 
-1. install python-gnome2-desktop and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed (if they aren't already).
-$ sudo apt-get install python-gnome2-desktop python-numpy
+1. install python-wnck, python-gnomeapplet and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed (if they aren't already).
+$ sudo apt-get install python-gnomeapplet python-wnck python-numpy
 
-2. copy dockbarx.py and dbx_preference.py to /usr/bin/ and GNOME_DockBarXApplet.server to /usr/lib/bonobo/servers (64-bit users on mandriva and possibly other rpm-based distributions should use /usr/lib64 instead of /usr/lib)
-$ sudo cp dockbarx.py /usr/bin
-$ sudo cp dbx_preference.py /usr/bin
-$ sudo cp GNOME_DockBarXApplet.server /usr/lib/bonobo/servers
+2. Run the setup.py install
+$ sudo ./setup.py install
 
-3. copy the content of themes folder to /usr/share/dockbarx/themes (for system wide installation, recommended) or ~/.dockbarx/themes (Create the folders if necessary)
-$ sudo mkdir -p /usr/share/dockbarx/themes
-$ sudo cp  themes/* /usr/share/dockbarx/themes
+3. add DockBarX applet to panel (kill gnome-panel first if necessary)
 
-4. add DockBarX applet to panel
-
-You can ALSOrun it in window (meant for debugging purposes, mostly):
-$dockbarx.py run-in-window
-
-INSTALL IN AWN
-
-Note Dockbarx for awn works only with older versions of AWN!
-1. Do a normal install (no need to add dockbarx to panel if you don't want to, of course).
-2. Copy everything from the AWN folder to ~/.config/awn/applets
-3. Remove original taskbar/launcher applet from awn (optional, but recommended)
-4. Set 'Icon offset' parameter to 0!
-5. Restart AWN
-6. Add DockBar applet
+You can also run dockbarx in window (meant for debugging purposes, mostly):
+$dockbarx_factory.py run-in-window
 
 
 =====
