@@ -37,6 +37,8 @@ from cairowidgets import *
 from theme import Theme, NoThemesError
 from common import *
 
+VERSION = 'x.0.30'
+
 class AboutDialog():
     __instance = None
 
@@ -255,11 +257,7 @@ class DockBar():
             else:
                 self.globals.orient = "v"
                 self.container = gtk.VBox()
-            self.applet.connect("change-orient",self.on_change_orient)
-            self.applet.connect("delete-event",self.cleanup)
             self.applet.add(self.container)
-            self.applet.connect("size-allocate",self.on_applet_size_alloc)
-            self.applet.connect("change_background", self.on_change_background)
             self.pp_menu_xml = """
             <popup name="button3">
                 <menuitem name="About Item" verb="About" stockid="gtk-about" />
@@ -286,6 +284,11 @@ class DockBar():
             gtk.main_iteration(False)
 
         self.reload()
+        if self.applet != None:
+            self.applet.connect("size-allocate",self.on_applet_size_alloc)
+            self.applet.connect("change_background", self.on_change_background)
+            self.applet.connect("change-orient",self.on_change_orient)
+            self.applet.connect("delete-event",self.cleanup)
 
 
     def reload(self, event=None, data=None):

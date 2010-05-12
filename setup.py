@@ -1,6 +1,10 @@
 #!/usr/bin/python
 
 from distutils.core import setup
+import os
+
+print "Installing DockbarX."
+print
 
 setup(name='Dockbarx',
       version='0.3.1',
@@ -16,3 +20,14 @@ setup(name='Dockbarx',
                   ('/usr/bin', ['dockbarx_factory.py', 'dbx_preference.py']),
                   ('/usr/lib/bonobo/servers', ['GNOME_DockBarXApplet.server'])],
      )
+
+
+# Remove old dockbarx.py so that it isn't imported instead of the package dockbarx when dockbarx is run.
+if os.path.exists('/usr/bin/dockbarx.py'):
+    print
+    print 'There is a dockbarx.py in /usr/bin. This has to be removed to make DockbarX run correctly.'
+    remove = raw_input('Remove /usr/bin/dockbarx.py? (y/n)')
+    if remove[0].lower() == 'y':
+        os.remove('/usr/bin/dockbarx.py')
+    else:
+        print '/usr/bin/dockbarx.py is not removed. Please remove it or rename it manually.'
