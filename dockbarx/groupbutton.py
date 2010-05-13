@@ -17,7 +17,7 @@ from iconfactory import IconFactory
 from common import ODict
 from cairowidgets import CairoButton
 from cairowidgets import CairoPopup
-from common import Globals
+from common import Globals, compiz_call
 
 class Launcher():
     def __init__(self, identifier, path):
