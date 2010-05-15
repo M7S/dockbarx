@@ -81,7 +81,7 @@ class Launcher():
 
             return self.app.launch(None, None)
         else:
-            print 'Executing ' + self.desktop_entry.getExec()
+            print 'Executing %s'%self.desktop_entry.getExec()
             self.execute(self.desktop_entry.getExec())
 
     def remove_args(self, stringToExecute):
@@ -91,9 +91,9 @@ class Launcher():
     def execute(self, command):
         command = self.remove_args(command)
         if os.path.isdir(command[0]):
-            command = "xdg-open '" + " ".join(command) + "' &"
+            command = "xdg-open '%s' &"%(" ".join(command))
         else:
-            command = "/bin/sh -c '" + " ".join(command) + "' &"
+            command = "/bin/sh -c '%s' &"%(" ".join(command))
         os.system(command)
 
 
@@ -107,7 +107,7 @@ class GroupButton (gobject.GObject):
         "set-icongeo-win": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "set-icongeo-grp": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "set-icongeo-delay": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "delete": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "delete": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
         "launch-preference": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "identifier-change": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
         "groupbutton-moved": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
@@ -203,7 +203,7 @@ class GroupButton (gobject.GObject):
         self.popup_label.set_use_markup(True)
         if self.identifier:
             # Todo: add tooltip when identifier is added.
-            self.popup_label.set_tooltip_text("Identifier: "+self.identifier)
+            self.popup_label.set_tooltip_text("Identifier: %s"%self.identifier)
         self.popup_box.pack_start(self.popup_label, False)
         self.popup_box.pack_start(self.winlist, False)
 
@@ -258,7 +258,7 @@ class GroupButton (gobject.GObject):
     def identifier_changed(self, identifier):
         self.identifier = identifier
         self.launcher.set_identifier(identifier)
-        self.popup_label.set_tooltip_text("Identifier: "+self.identifier)
+        self.popup_label.set_tooltip_text("Identifier: %s"%self.identifier)
 
     def update_class_group(self, class_group):
         self.class_group = class_group
@@ -276,7 +276,7 @@ class GroupButton (gobject.GObject):
             # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
             # totally screwed up. So far no such program has been reported.
             self.name = self.class_group.get_name().split(" - ", 1)[0]
-        self.popup_label.set_label("<span foreground='"+self.globals.colors['color2']+"'><big><b>"+self.name+"</b></big></span>")
+        self.popup_label.set_label("<span foreground='%s'><big><b>%s</b></big></span>"%(self.globals.colors['color2'], self.name))
 
     def remove_launch_effect(self):
         self.launch_effect = False
@@ -285,7 +285,7 @@ class GroupButton (gobject.GObject):
 
     #### State
     def update_popup_label(self, arg=None):
-        self.popup_label.set_text("<span foreground='"+self.globals.colors['color2']+"'><big><b>"+self.name+"</b></big></span>")
+        self.popup_label.set_text("<span foreground='%s'><big><b>%s</b></big></span>"%(self.globals.colors['color2'], self.name))
         self.popup_label.set_use_markup(True)
 
     def update_state(self):
@@ -440,6 +440,8 @@ class GroupButton (gobject.GObject):
         wb.connect('minimized', self.on_window_minimized, wb)
         wb.connect('unminimized', self.on_window_unminimized, wb)
         wb.connect('needs-attention-changed', self.on_needs_attention_changed)
+        wb.connect('popup-hide', self.on_popup_hide)
+        wb.connect('popup-expose-request', self.on_popup_expose_request)
         # Update state unless the button hasn't been shown yet.
         self.update_state_request()
 
@@ -613,6 +615,18 @@ class GroupButton (gobject.GObject):
     def on_db_move(self, arg=None):
         self.on_set_icongeo_grp()
 
+    def on_popup_expose_request(self, arg=None):
+        event = gtk.gdk.Event(gtk.gdk.EXPOSE)
+        event.window = self.popup.window
+        event.area = self.popup.get_allocation()
+        self.popup.send_expose(event)
+
+    def on_popup_hide(self, arg=None):
+        self.hide_list()
+
+    def on_popup_hide_request(self, arg=None):
+        self.hide_list_request()
+
     #### Show/hide list
     def show_list_request(self):
         # If mouse cursor is over the button, show popup window.
@@ -765,7 +779,7 @@ class GroupButton (gobject.GObject):
         self.globals.opacified = True
         self.opacified = True
         ov = [self.globals.settings['opacify_alpha']]
-        om = ["!(class="+self.class_group.get_res_class()+" | class=Dockbarx.py)  & (type=Normal | type=Dialog)"]
+        om = ["!(class=%s | class=dockbarx_factory.py)  & (type=Normal | type=Dialog)"%self.class_group.get_res_class()]
         try:
             compiz_call('obs/screen0/opacity_values','set', ov)
             compiz_call('obs/screen0/opacity_matches','set', om)
@@ -1449,7 +1463,7 @@ class GroupButton (gobject.GObject):
             close_all_windows_item.connect("activate", self.action_close_all_windows)
             close_all_windows_item.show()
         menu.popup(None, None, None, event.button, event.time)
-        self.globals.settings.right_menu_showing = True
+        self.globals.right_menu_showing = True
 
     def action_remove_launcher(self, widget=None, event=None):
         print 'Removing launcher ', self.identifier
@@ -1486,7 +1500,7 @@ class GroupButton (gobject.GObject):
             path = 'scale/allscreens/initiate_all_key'
         try:
             compiz_call(path, 'activate','root', self.root_xid,'match', \
-                        'iclass='+self.class_group.get_res_class())
+                        'iclass=%s'%self.class_group.get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
@@ -1507,7 +1521,7 @@ class GroupButton (gobject.GObject):
             path = 'shift/allscreens/initiate_all_key'
         try:
             compiz_call(path, 'activate','root', self.root_xid,'match', \
-                        'iclass='+self.class_group.get_res_class())
+                        'iclass=%s'%self.class_group.get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,

@@ -378,6 +378,7 @@ class IconFactory():
         and self.icon.get_height() == size:
             return self.icon
         del self.icon
+        self.icon = None
         pb = self.find_icon_pixbuf(size)
         if pb.get_width() != pb.get_height():
             if pb.get_width() < pb.get_height():
@@ -482,7 +483,7 @@ class IconFactory():
                               flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                               type=gtk.MESSAGE_WARNING,
                               buttons=gtk.BUTTONS_OK,
-                              message_format='Cannot load icon for launcher '+ self.launcher.get_identifier()+'.')
+                              message_format='Cannot load icon for launcher %s.'%self.launcher.get_identifier())
         dialog.set_title('DockBarX')
         dialog.run()
         dialog.destroy()

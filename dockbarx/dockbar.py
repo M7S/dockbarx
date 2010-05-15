@@ -207,7 +207,7 @@ class GroupList():
                 self.list.insert(index, n)
                 return True
 
-    def remove(self,name):
+    def remove(self, name):
         if not name:
             return
         for t in self.list:
@@ -716,14 +716,14 @@ class DockBar():
         gb = GroupButton(class_group, identifier, launcher, app)
         self.groups.add_group(identifier, gb, path)
         if index == None:
-            self.container.pack_start(self.groups[identifier].button, False)
+            self.container.pack_start(gb.button, False)
         else:
             # Insterts the button on it's index by removing
             # and repacking the buttons that should come after it
             repack_list = self.groups.get_groups()[index:]
             for group in repack_list:
                 self.container.remove(group.button)
-            self.container.pack_start(self.groups[identifier].button, False)
+            self.container.pack_start(gb.button, False)
             for group in repack_list:
                 self.container.pack_start(group.button, False)
 
@@ -738,6 +738,7 @@ class DockBar():
 
     def remove_groupbutton(self, arg, name):
         self.groups.remove(name)
+        self.update_launchers_list()
 
     def on_pinned(self, arg, identifier, path):
         self.groups.set_launcher_path(identifier, path)
@@ -750,7 +751,7 @@ class DockBar():
                 # The launcher is not of gio-app type.
                 # The group button will be reset with its
                 # non-launcher name and icon.
-                gb.app = self.find_gio_app(self.identifier)
+                gb.app = self.find_gio_app(identifier)
                 gb.icon_factory.remove_launcher(class_group=gb.class_group, app = gb.app)
                 gb.update_name()
         self.update_launchers_list()
@@ -770,8 +771,8 @@ class DockBar():
         try:
             launcher = Launcher(identifier, path)
         except:
-            print "ERROR: Couldn't read desktop entry for " + identifier
-            print "path: "+ path
+            print "ERROR: Couldn't read desktop entry for", identifier
+            print "path:", path
             raise
             return
 

@@ -25,7 +25,10 @@ class WindowButton(gobject.GObject):
     __gsignals__ = {
                     "minimized": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
                     "unminimized": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-                    "needs-attention-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
+                    "needs-attention-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+                    "popup-hide": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+                    "popup-hide-request": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+                    "popup-expose-request": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
                    }
     """WindowButton takes care of a window, shows up an icon and name in popup window."""
     def __init__(self, window):
@@ -303,7 +306,7 @@ class WindowButton(gobject.GObject):
         self.globals.opacified = True
         self.opacified = True
         ov = [self.globals.settings['opacify_alpha']]
-        om = ["!(title="+self.window.get_name()+") & !(class=Dockbarx.py)  & (type=Normal | type=Dialog)"]
+        om = ["!(title=%s) & !(class=dockbarx_factory.py)  & (type=Normal | type=Dialog)"%self.window.get_name()]
         try:
             compiz_call('obs/screen0/opacity_values','set', ov)
             compiz_call('obs/screen0/opacity_matches','set', om)
@@ -369,11 +372,7 @@ class WindowButton(gobject.GObject):
     #### D'n'D
     def on_button_drag_motion(self, widget, drag_context, x, y, t):
         if not self.button_drag_entered:
-##            self.window_button.drag_highlight()
-            event = gtk.gdk.Event(gtk.gdk.EXPOSE)
-            event.window = self.groupbutton.popup.window
-            event.area = self.groupbutton.popup.get_allocation()
-            self.groupbutton.popup.send_expose(event)
+            self.emit('popup-expose-request')
             self.button_drag_entered = True
             self.dnd_select_window = \
                 gobject.timeout_add(600,self.action_select_window)
@@ -384,11 +383,8 @@ class WindowButton(gobject.GObject):
         self.button_drag_entered = False
         gobject.source_remove(self.dnd_select_window)
 ##        self.window_button.drag_unhighlight()
-        event = gtk.gdk.Event(gtk.gdk.EXPOSE)
-        event.window = self.groupbutton.popup.window
-        event.area = self.groupbutton.popup.get_allocation()
-        self.groupbutton.popup.send_expose(event)
-        self.groupbutton.hide_list_request()
+        self.emit('popup-expose-request')
+        self.emit('popup-hide-request')
 
 
     #### Events
@@ -462,7 +458,7 @@ class WindowButton(gobject.GObject):
     #### Menu functions
     def menu_closed(self, menushell):
         self.globals.right_menu_showing = False
-        self.groupbutton.popup.hide()
+        self.emit('popup-hide')
 
     def minimize_window(self, widget=None, event=None):
         if self.window.is_minimized():
@@ -490,8 +486,7 @@ class WindowButton(gobject.GObject):
             # Hide popup since mouse movment won't
             # be tracked during compiz move effect
             # which means popup list can be left open.
-            self.groupbutton.popup.hide()
-            self.groupbutton.popup_showing = False
+            self.emit('popup-hide')
         if self.window.is_minimized():
             self.window.unminimize(t)
         elif self.window.is_active() and minimize:
@@ -512,24 +507,7 @@ class WindowButton(gobject.GObject):
             self.window.maximize()
 
     def action_lock_or_unlock_window(self, widget=None, event=None):
-        if self.globals.settings["opacify"]and self.opacified:
-            self.globals.opacified = False
-            self.opacified = False
-            self.deopacify()
-        if self.locked == False:
-            self.locked = True
-            self.groupbutton.locked_windows_count += 1
-            if not self.window.is_minimized():
-                self.window.minimize()
-            else:
-                self.window_button_icon.set_from_pixbuf(self.icon_locked)
-                self.groupbutton.update_state()
-        else:
-            self.locked = False
-            self.groupbutton.locked_windows_count -= 1
-            self.groupbutton.update_state()
-            self.update_label_state()
-            self.window_button_icon.set_from_pixbuf(self.icon_transp)
+        pass
 
     def action_shade_window(self, widget, event):
         self.window.shade()
