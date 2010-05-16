@@ -1108,7 +1108,7 @@ class GroupButton (gobject.GObject):
         self.launcher = Launcher(self.identifier, path)
         self.emit('pinned', self.identifier, path)
 
-    def launch_recent(self, button, event, uri):
+    def launch_item(self, button, event, uri):
         uri = str(uri)
         if uri.startswith('file://'):
             uri = uri[7:]
@@ -1463,29 +1463,32 @@ class GroupButton (gobject.GObject):
             menu.append(sep)
             sep.show()
 
-        # Recent files
+        # Recent and most used files
         if self.app or self.launcher:
             if self.app:
                 appname = self.app.get_id().split('/')[-1]
             else:
                 appname = self.launcher.get_desktop_file_name()
             recent_files = zg.get_recent_for_app(appname)
-            if recent_files:
-                recent_menu = gtk.Menu()
-                recent_menu_item = gtk.MenuItem('Recent')
-                recent_menu_item.set_submenu(recent_menu)
-                menu.append(recent_menu_item)
-                recent_menu_item.show()
+            most_used_files = zg.get_most_used_for_app(appname)
+            for files, menu_name in ((recent_files, 'Recent'), (most_used_files, 'Most used')):
+                if files:
+                    submenu = gtk.Menu()
+                    menu_item = gtk.MenuItem(menu_name)
+                    menu_item.set_submenu(submenu)
+                    menu.append(menu_item)
+                    menu_item.show()
 
-                for ev in recent_files:
-                    for subject in ev.get_subjects():
-                        recent_item = gtk.MenuItem(subject.text or subject.uri, use_underline=False)
-                        recent_menu.append(recent_item)
-                        # "activate" doesn't seem to work on sub menus
-                        # so "button-press-event" is used instead.
-                        recent_item.connect("button-press-event", self.launch_recent, subject.uri)
-                        recent_item.show()
-                #Separator
+                    for ev in files:
+                        for subject in ev.get_subjects():
+                            submenu_item = gtk.MenuItem(subject.text or subject.uri, use_underline=False)
+                            submenu.append(submenu_item)
+                            # "activate" doesn't seem to work on sub menus
+                            # so "button-press-event" is used instead.
+                            submenu_item.connect("button-press-event", self.launch_item, subject.uri)
+                            submenu_item.show()
+            #Separator
+            if recent_files or most_used_files:
                 sep = gtk.SeparatorMenuItem()
                 menu.append(sep)
                 sep.show()
