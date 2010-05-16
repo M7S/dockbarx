@@ -18,6 +18,7 @@ from common import ODict
 from cairowidgets import CairoButton
 from cairowidgets import CairoPopup
 from common import Globals, compiz_call
+import zg
 
 class Launcher():
     def __init__(self, identifier, path):
@@ -44,6 +45,13 @@ class Launcher():
 
     def get_path(self):
         return self.path
+
+    def get_desktop_file_name(self):
+        if self.app:
+            return self.path[4:]
+        else:
+            return self.path.split('/')[-1]
+
 
     def get_icon_name(self):
         if self.app:
@@ -73,6 +81,16 @@ class Launcher():
         if exe.find('.')>-1:
             exe = exe[:exe.rfind('.')]
         return exe
+
+    def launch_with_uri(self, uri):
+        os.chdir(os.path.expanduser('~'))
+        if self.app:
+            uri = uri.replace("%20"," ")
+            self.app.launch_uris([uri], None)
+        else:
+            uri = uri.replace("%20","\ ")
+            self.execute("%s %s"%(self.desktop_entry.getExec(), uri))
+
 
     def launch(self):
         os.chdir(os.path.expanduser('~'))
@@ -1090,6 +1108,21 @@ class GroupButton (gobject.GObject):
         self.launcher = Launcher(self.identifier, path)
         self.emit('pinned', self.identifier, path)
 
+    def launch_item(self, button, event, uri):
+        uri = str(uri)
+        if uri.startswith('file://'):
+            uri = uri[7:]
+
+        if self.app:
+            uri = uri.replace("%20"," ")
+            self.app.launch_uris([uri], None)
+        else:
+            self.launcher.launch_with_uri(uri)
+        if self.windows:
+            self.launch_effect_timeout = gobject.timeout_add(2000, self.remove_launch_effect)
+        else:
+            self.launch_effect_timeout = gobject.timeout_add(10000, self.remove_launch_effect)
+
     #### Actions
     def action_select(self, widget, event):
         wins = self.get_windows()
@@ -1428,6 +1461,38 @@ class GroupButton (gobject.GObject):
             sep = gtk.SeparatorMenuItem()
             menu.append(sep)
             sep.show()
+
+        # Recent and most used files
+        if self.app or self.launcher:
+            if self.app:
+                appname = self.app.get_id().split('/')[-1]
+            else:
+                appname = self.launcher.get_desktop_file_name()
+            recent_files = zg.get_recent_for_app(appname)
+            most_used_files = zg.get_most_used_for_app(appname)
+            for files, menu_name in ((recent_files, 'Recent'), (most_used_files, 'Most used')):
+                if files:
+                    submenu = gtk.Menu()
+                    menu_item = gtk.MenuItem(menu_name)
+                    menu_item.set_submenu(submenu)
+                    menu.append(menu_item)
+                    menu_item.show()
+
+                    for ev in files:
+                        for subject in ev.get_subjects():
+                            submenu_item = gtk.MenuItem(subject.text or subject.uri, use_underline=False)
+                            submenu.append(submenu_item)
+                            # "activate" doesn't seem to work on sub menus
+                            # so "button-press-event" is used instead.
+                            submenu_item.connect("button-press-event", self.launch_item, subject.uri)
+                            submenu_item.show()
+            #Separator
+            if recent_files or most_used_files:
+                sep = gtk.SeparatorMenuItem()
+                menu.append(sep)
+                sep.show()
+
+        # Windows stuff
         win_nr = self.get_windows_count()
         if win_nr:
             if win_nr == 1:
