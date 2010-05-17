@@ -243,9 +243,10 @@ class GroupButton (gobject.GObject):
         self.button.connect("drag_drop", self.on_drag_drop)
         self.button.connect("drag_data_received", self.on_drag_data_received)
         self.button_drag_entered = False
-        self.dnd_highlight = False
+        self.launcher_drag = False
         self.dnd_show_popup = None
         self.dnd_select_window = None
+        self.dd_uri = None
 
         # The popup needs to have a drag_dest just to check
         # if the mouse is howering it during a drag-drop.
@@ -346,6 +347,10 @@ class GroupButton (gobject.GObject):
 
         if self.mouse_over:
             mouse_over = IconFactory.MOUSE_OVER
+        elif self.button_drag_entered and not self.launcher_drag:
+            # Mouse over effect on other drag and drop
+            # than launcher dnd.
+            mouse_over = IconFactory.MOUSE_OVER
         else:
             mouse_over = 0
 
@@ -354,7 +359,7 @@ class GroupButton (gobject.GObject):
         else:
             launch_effect = 0
 
-        if self.dnd_highlight:
+        if self.launcher_drag:
             dd_effect = IconFactory.DRAG_DROPP
         else:
             dd_effect = 0
@@ -882,13 +887,25 @@ class GroupButton (gobject.GObject):
         gobject.timeout_add(30, self.button.show)
 
     def on_drag_drop(self, wid, drag_context, x, y, t):
-        for target in ('text/groupbutton_name', 'text/uri-list'):
-            if target in drag_context.targets:
-                self.button.drag_get_data(drag_context, target, t)
-                drag_context.finish(True, False, t)
-                break
+        if 'text/groupbutton_name' in drag_context.targets:
+            self.button.drag_get_data(drag_context, 'text/groupbutton_name', t)
+            drag_context.finish(True, False, t)
+        elif 'text/uri-list' in drag_context.targets:
+            #Drag data should already be stored in self.dd_uri
+            if ".desktop" in self.dd_uri:
+                # .desktop file! This is a potential launcher.
+                if self.identifier:
+                    name = self.identifier
+                else:
+                    name = self.launcher.get_path()
+                #remove 'file://' and '/n' from the URI
+                path = self.dd_uri[7:-2]
+                path = path.replace("%20"," ")
+                self.emit('launcher-dropped', path, name)
+            drag_context.finish(True, False, t)
         else:
             drag_context.finish(False, False, t)
+        self.dd_uri = None
         return True
 
     def on_drag_data_received(self, wid, context, x, y, selection, targetType, t):
@@ -900,26 +917,36 @@ class GroupButton (gobject.GObject):
             if selection.data != name:
                 self.emit('groupbutton-moved', selection.data, name)
         elif selection.target == 'text/uri-list':
-            #remove 'file://' and '/n' from the URI
-            path = selection.data[7:-2]
-            path = path.replace("%20"," ")
-            print path
-            self.emit('launcher-dropped', path, name)
+            # Uri lists are tested on first motion instead on drop
+            # to check if it's a launcher.
+            # The data is saved in self.dd_uri to be used again
+            # if the file is dropped.
+            self.dd_uri = selection.data
+            if ".desktop" in selection.data:
+                # .desktop file! This is a potential launcher.
+                self.launcher_drag = True
+            self.update_state()
 
     def on_button_drag_motion(self, widget, drag_context, x, y, t):
         if not self.button_drag_entered:
             self.button_drag_entered = True
             if not 'text/groupbutton_name' in drag_context.targets:
                 win_nr = self.get_windows_count()
-                if len(self.windows) == 1:
+                if win_nr == 1:
                     self.dnd_select_window = gobject.timeout_add(600, self.windows.values()[0].action_select_window)
-                elif len(self.windows) > 1:
+                elif win_nr > 1:
                     self.dnd_show_popup = gobject.timeout_add(self.globals.settings['popup_delay'], self.show_list)
-            for target in ('text/uri-list', 'text/groupbutton_name'):
-                if target in drag_context.targets \
-                and not self.is_current_drag_source:
-                    self.dnd_highlight = True
-                    self.update_state()
+            if 'text/groupbutton_name' in drag_context.targets \
+            and not self.is_current_drag_source:
+                self.launcher_drag = True
+                self.update_state()
+            elif 'text/uri-list' in drag_context.targets:
+                # We have to get the data find out if this
+                # is a launcher or something else.
+                self.button.drag_get_data(drag_context, 'text/uri-list', t)
+                # No update_state() here!
+            else:
+                self.update_state()
         if 'text/groupbutton_name' in drag_context.targets:
             drag_context.drag_status(gtk.gdk.ACTION_MOVE, t)
         elif 'text/uri-list' in drag_context.targets:
@@ -929,7 +956,7 @@ class GroupButton (gobject.GObject):
         return True
 
     def on_button_drag_leave(self, widget, drag_context, t):
-        self.dnd_highlight = False
+        self.launcher_drag = False
         self.button_drag_entered = False
         self.update_state()
         self.hide_list_request()
@@ -1456,11 +1483,6 @@ class GroupButton (gobject.GObject):
             menu.append(edit_identifier_item)
             edit_identifier_item.connect("activate", self.change_identifier)
             edit_identifier_item.show()
-        if (self.launcher or self.app) and self.windows:
-            #Separator
-            sep = gtk.SeparatorMenuItem()
-            menu.append(sep)
-            sep.show()
 
         # Recent and most used files
         if self.app or self.launcher:
@@ -1470,6 +1492,11 @@ class GroupButton (gobject.GObject):
                 appname = self.launcher.get_desktop_file_name()
             recent_files = zg.get_recent_for_app(appname)
             most_used_files = zg.get_most_used_for_app(appname)
+            #Separator
+            if recent_files or most_used_files:
+                sep = gtk.SeparatorMenuItem()
+                menu.append(sep)
+                sep.show()
             for files, menu_name in ((recent_files, 'Recent'), (most_used_files, 'Most used')):
                 if files:
                     submenu = gtk.Menu()
@@ -1486,12 +1513,12 @@ class GroupButton (gobject.GObject):
                             # so "button-press-event" is used instead.
                             submenu_item.connect("button-press-event", self.launch_item, subject.uri)
                             submenu_item.show()
-            #Separator
-            if recent_files or most_used_files:
-                sep = gtk.SeparatorMenuItem()
-                menu.append(sep)
-                sep.show()
 
+        if (self.launcher or self.app) and self.windows:
+            #Separator
+            sep = gtk.SeparatorMenuItem()
+            menu.append(sep)
+            sep.show()
         # Windows stuff
         win_nr = self.get_windows_count()
         if win_nr:
