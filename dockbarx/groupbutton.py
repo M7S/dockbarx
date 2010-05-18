@@ -48,7 +48,7 @@ class Launcher():
 
     def get_desktop_file_name(self):
         if self.app:
-            return self.path[4:]
+            return self.app.get_id().split('/')[-1]
         else:
             return self.path.split('/')[-1]
 
@@ -902,6 +902,11 @@ class GroupButton (gobject.GObject):
                 path = self.dd_uri[7:-2]
                 path = path.replace("%20"," ")
                 self.emit('launcher-dropped', path, name)
+            else:
+                uri = self.dd_uri
+                if uri.endswith("/n"):
+                    uri = uri[:-2]
+                self.launch_item(None, None, uri)
             drag_context.finish(True, False, t)
         else:
             drag_context.finish(False, False, t)
