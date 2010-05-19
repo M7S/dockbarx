@@ -1512,7 +1512,10 @@ class GroupButton (gobject.GObject):
 
                     for ev in files:
                         for subject in ev.get_subjects():
-                            submenu_item = gtk.MenuItem(subject.text or subject.uri, use_underline=False)
+                            label = subject.text or subject.uri
+                            if len(label)>40:
+                                label = label[:20]+"..."+label[-17:]
+                            submenu_item = gtk.MenuItem(label, use_underline=False)
                             submenu.append(submenu_item)
                             # "activate" doesn't seem to work on sub menus
                             # so "button-press-event" is used instead.
