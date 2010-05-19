@@ -904,8 +904,8 @@ class GroupButton (gobject.GObject):
                 self.emit('launcher-dropped', path, name)
             else:
                 uri = self.dd_uri
-                if uri.endswith("/n"):
-                    uri = uri[:-2]
+                # Remove the new line at the end
+                uri = uri.rstrip()
                 self.launch_item(None, None, uri)
             drag_context.finish(True, False, t)
         else:
