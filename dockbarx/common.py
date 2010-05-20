@@ -490,3 +490,15 @@ class Globals(gobject.GObject):
                 else:
                     continue
                 GCONF_CLIENT.set_int(color_dir + '/' + a , self.colors[a])
+
+    def get_launchers_from_gconf(self):
+        # Get list of launchers
+        gconf_launchers = []
+        try:
+            gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING)
+        except:
+            GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
+        return gconf_launchers
+
+    def set_launchers_list(self, launchers):
+        GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, launchers)

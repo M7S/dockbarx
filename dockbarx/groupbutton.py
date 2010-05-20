@@ -20,6 +20,14 @@ from cairowidgets import CairoPopup
 from common import Globals, compiz_call
 import zg
 
+class LauncherPathError(Exception):
+    pass
+
+class NoGioAppExistError(Exception):
+    pass
+
+
+
 class Launcher():
     def __init__(self, identifier, path):
         globals = Globals()
@@ -30,11 +38,11 @@ class Launcher():
             if path[4:] in globals.apps_by_id:
                 self.app = globals.apps_by_id[path[4:]]
             else:
-                raise Exception("gio-app "+path[4:]+" doesn't exist.")
+                raise NoGioAppExistError()
         elif os.path.exists(path):
             self.desktop_entry = DesktopEntry(path)
         else:
-            raise Exception("DesktopFile "+path+" doesn't exist.")
+            raise LauncherPathError()
 
 
     def get_identifier(self):

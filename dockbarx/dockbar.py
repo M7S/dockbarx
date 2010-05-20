@@ -25,7 +25,6 @@ import gobject
 import sys
 import wnck
 import gnomeapplet
-import gconf
 import os
 import dbus
 import gio
@@ -361,12 +360,7 @@ class DockBar():
         self.launchers_by_name = {}
         self.launchers_by_longname={}
 
-        # Get list of launchers
-        gconf_launchers = []
-        try:
-            gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING)
-        except:
-            GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
+        gconf_launchers = self.globals.get_launchers_from_gconf()
 
 
         # Initiate launcher group buttons
@@ -374,7 +368,21 @@ class DockBar():
             identifier, path = launcher.split(';')
             if identifier == '':
                 identifier = None
-            self.add_launcher(identifier, path)
+            try:
+                self.add_launcher(identifier, path)
+            except LauncherPathError:
+                message = "The launcher at path %s cant be found. Did you perhaps delete the file?"%path
+                print message
+                md = gtk.MessageDialog(None,
+                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                    gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                    message)
+                md.run()
+                md.destroy()
+            except NoGioAppExistError:
+                print "The Gio app for pinned app %s doesn't exist. The launcher will be removed."%identifier
+        # Update launchers list to remove any launchers that are faulty.
+        self.update_launchers_list()
 
         #--- Initiate windows
         # Initiate group buttons with windows
@@ -390,57 +398,6 @@ class DockBar():
 
         self.on_active_window_changed(self.screen, None)
 
-
-    #### GConf
-##    def on_gconf_changed(self, client, par2, entry, par4):
-##        if entry.get_value() == None:
-##            return
-##        pref_update = False
-##        changed_settings = []
-##        entry_get = { str: entry.get_value().get_string,
-##                      bool: entry.get_value().get_bool,
-##                      int: entry.get_value().get_int }
-##        key = entry.get_key().split('/')[-1]
-##        if key in settings:
-##            value = settings[key]
-##            if entry_get[type(value)]() != value:
-##                changed_settings.append(key)
-##                settings[key] = entry_get[type(value)]()
-##
-##        theme_name = self.theme.get_name().replace(' ', '_').encode()
-##        try:
-##            theme_name = theme_name.translate(None, '!?*()/#"@')
-##        except:
-##            pass
-##        for i in range(1, 9):
-##            c = 'color%s'%i
-##            a = 'color%s_alpha'%i
-##            for k in (c, a):
-##                if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR, theme_name, k):
-##                    value = colors[k]
-##                    if entry_get[type(value)]() != value:
-##                        changed_settings.append(key)
-##                        colors[k] = entry_get[type(value)]()
-##
-##        #TODO: Add check for sane values for critical settings.
-##
-##        if 'color2' in changed_settings:
-##            self.update_all_popup_labels()
-##
-##        if 'show_only_current_desktop' in changed_settings:
-##            for group in self.groups.get_groups():
-##                group.update_state()
-##                group.emit('set-icongeo-grp')
-##                group.nextlist = None
-##
-##        for key in changed_settings:
-##            if key == 'theme':
-##                self.reload()
-##                break
-##            if 'color' in key:
-##                self.all_windowbuttons_update_label_state()
-##                self.reset_all_surfaces()
-##                break
 
 
 
@@ -768,14 +725,7 @@ class DockBar():
     #### Launchers
     def add_launcher(self, identifier, path):
         """Adds a new launcher from a desktop file located at path and from the name"""
-        try:
-            launcher = Launcher(identifier, path)
-        except:
-            print "ERROR: Couldn't read desktop entry for", identifier
-            print "path:", path
-            raise
-            return
-
+        launcher = Launcher(identifier, path)
         self.make_groupbutton(identifier=identifier, launcher=launcher, path = path)
         if identifier == None:
             id = path[path.rfind('/')+1:path.rfind('.')].lower()
@@ -996,7 +946,7 @@ class DockBar():
             if identifier == None:
                 identifier = ''
             gconf_launchers.append(identifier + ';' + path)
-        GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
+        self.globals.set_launchers_list(gconf_launchers)
 
     def remove_launcher_id_from_undefined_list(self, id):
         self.launchers_by_id.pop(id)
