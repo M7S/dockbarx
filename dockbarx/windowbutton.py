@@ -8,7 +8,7 @@ import pango
 import gc
 gc.enable()
 
-from common import ODict, Globals
+from common import ODict, Globals, compiz_call
 from cairowidgets import CairoWindowButton
 
 try:
