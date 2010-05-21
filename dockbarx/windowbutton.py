@@ -39,7 +39,6 @@ class WindowButton(gobject.GObject):
         self.preview = False
         self.name = window.get_name()
         self.window = window
-        self.locked = False
         self.is_active_window = False
         self.needs_attention = False
         self.opacified = False
@@ -131,7 +130,6 @@ class WindowButton(gobject.GObject):
         self.window.disconnect(self.icon_changed_event)
         self.window.disconnect(self.name_changed_event)
         del self.icon
-        del self.icon_locked
         del self.icon_transp
         del self.screen
         del self.window
@@ -218,10 +216,7 @@ class WindowButton(gobject.GObject):
         except:
             state_minimized = 1 << 0
         if state_minimized & changed_mask & new_state:
-            if self.locked:
-                self.window_button_icon.set_from_pixbuf(self.icon_locked)
-            else:
-                self.window_button_icon.set_from_pixbuf(self.icon_transp)
+            self.window_button_icon.set_from_pixbuf(self.icon_transp)
             self.update_label_state()
             self.emit('minimized')
         elif state_minimized & changed_mask:
@@ -236,7 +231,7 @@ class WindowButton(gobject.GObject):
             self.emit('needs-attention-changed')
 
     def on_window_icon_changed(self, window):
-        # Creates pixbufs for minimized, locked and normal icons
+        # Creates pixbufs for minimized and normal icons
         # from the window's mini icon and set the one that should
         # be used as window_button_icon according to window state.
         self.icon = window.get_mini_icon()
@@ -246,21 +241,11 @@ class WindowButton(gobject.GObject):
         pixbuf.composite(self.icon_transp, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 190)
         self.icon_transp.saturate_and_pixelate(self.icon_transp, 0.12, False)
 
-        i = gtk.Invisible()
-        lock = i.render_icon(gtk.STOCK_DIALOG_AUTHENTICATION,gtk.ICON_SIZE_BUTTON)
-        if pixbuf.get_height() != lock.get_height() or pixbuf.get_width() != lock.get_width():
-            lock = lock.scale_simple(pixbuf.get_width(), pixbuf.get_height(), gtk.gdk.INTERP_BILINEAR)
-        self.icon_locked = self.icon_transp.copy()
-        lock.composite(self.icon_locked, 0, 0, lock.get_width(), lock.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-
-        if self.locked:
-            self.window_button_icon.set_from_pixbuf(self.icon_locked)
-        elif window.is_minimized():
+        if window.is_minimized():
             self.window_button_icon.set_from_pixbuf(self.icon_transp)
         else:
             self.window_button_icon.set_from_pixbuf(self.icon)
         del pixbuf
-        del lock
 
     def on_window_name_changed(self, window):
         name = u""+window.get_name()
@@ -300,7 +285,7 @@ class WindowButton(gobject.GObject):
                 self.globals.opacity_matches = compiz_call('obs/screen0/opacity_matches','get')
             except:
                 try:
-                    self.globals.opacity_values = compiz_call('core/screen0/opacity_matches','get')
+                    self.globals.opacity_matches = compiz_call('core/screen0/opacity_matches','get')
                 except:
                     return
         self.globals.opacified = True
@@ -349,7 +334,7 @@ class WindowButton(gobject.GObject):
                 compiz_call('core/screen0/opacity_values','set', self.globals.opacity_values)
                 compiz_call('core/screen0/opacity_matches','set', self.globals.opacity_matches)
             except:
-                pass
+                print "Error: Couldn't set opacity back to normal."
         self.globals.opacity_values = None
         self.globals.opacity_matches = None
         return False
@@ -506,9 +491,6 @@ class WindowButton(gobject.GObject):
         else:
             self.window.maximize()
 
-    def action_lock_or_unlock_window(self, widget=None, event=None):
-        pass
-
     def action_shade_window(self, widget, event):
         self.window.shade()
 
@@ -527,17 +509,6 @@ class WindowButton(gobject.GObject):
         #Creates a popup menu
         menu = gtk.Menu()
         menu.connect('selection-done', self.menu_closed)
-        #(Un)Lock
-        lock_item = None
-        if self.window.get_actions() & action_minimize \
-        and not self.locked:
-            lock_item = gtk.MenuItem('_Lock')
-        elif self.locked:
-            lock_item = gtk.MenuItem('Un_lock')
-        if lock_item:
-            menu.append(lock_item)
-            lock_item.connect("activate", self.action_lock_or_unlock_window)
-            lock_item.show()
         #(Un)Minimize
         minimize_item = None
         if self.window.get_actions() & action_minimize \
@@ -579,7 +550,6 @@ class WindowButton(gobject.GObject):
                                   ('maximize window', action_maximize_window),
                                   ('close window', action_close_window),
                                   ('show menu', action_show_menu),
-                                  ('lock or unlock window', action_lock_or_unlock_window),
                                   ('shade window', action_shade_window),
                                   ('unshade window', action_unshade_window),
                                   ('no action', action_none)

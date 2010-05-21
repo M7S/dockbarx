@@ -242,7 +242,6 @@ class PrefDialog():
                      'maximize window',
                      'close window',
                      'show menu',
-                     'lock or unlock window',
                      'shade window',
                      'unshade window',
                      'no action')

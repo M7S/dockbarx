@@ -166,7 +166,6 @@ class GroupButton (gobject.GObject):
         self.windows = {}
         self.minimized_windows_count = 0
         self.minimized_state = 0
-        self.locked_windows_count = 0
         self.has_active_window = False
         self.needs_attention = False
         self.attention_effect_running = False
@@ -804,7 +803,7 @@ class GroupButton (gobject.GObject):
                 self.globals.opacity_matches = compiz_call('obs/screen0/opacity_matches','get')
             except:
                 try:
-                    self.globals.opacity_values = compiz_call('core/screen0/opacity_matches','get')
+                    self.globals.opacity_matches = compiz_call('core/screen0/opacity_matches','get')
                 except:
                     return
         self.globals.opacified = True
@@ -822,7 +821,7 @@ class GroupButton (gobject.GObject):
                 return
 
     def opacify_request(self):
-        if len(self.windows) - self.minimized_windows_count == 0:
+        if self.get_unminimized_windows_count == 0:
             return False
         # if self.button_pressed is true, opacity_request is called by an
         # wrongly sent out enter_notification_event sent after a
@@ -853,7 +852,7 @@ class GroupButton (gobject.GObject):
                 compiz_call('core/screen0/opacity_values','set', self.globals.opacity_values)
                 compiz_call('core/screen0/opacity_matches','set', self.globals.opacity_matches)
             except:
-                pass
+                print "Error: Couldn't set opacity back to normal."
         self.globals.opacity_values = None
         self.globals.opacity_matches = None
         return False
@@ -1226,8 +1225,7 @@ class GroupButton (gobject.GObject):
         unminimized = False
         if minimized_win_cnt > 0:
             for win in self.windows:
-                if win.is_minimized() \
-                and not self.windows[win].locked:
+                if win.is_minimized():
                     ignored = False
                     if not win.is_pinned() and win.get_workspace() != None \
                        and screen.get_active_workspace() != win.get_workspace():
@@ -1294,8 +1292,6 @@ class GroupButton (gobject.GObject):
             workspaces ={}
             for win in self.windows:
                 if win.get_workspace() == None:
-                    continue
-                if self.windows[win].locked:
                     continue
                 workspace = win.get_workspace()
                 win_x,win_y,win_w,win_h = win.get_geometry()
