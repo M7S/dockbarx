@@ -185,14 +185,7 @@ class GroupButton (gobject.GObject):
 
         #--- Button
         self.icon_factory = IconFactory(class_group, launcher, app, self.identifier)
-        self.image = gtk.Image() # Todo: REmove
-##        gtk_screen = self.dockbar.container.get_screen()
-##        colormap = gtk_screen.get_rgba_colormap()
-##        if colormap == None:
-##            colormap = gtk_screen.get_rgb_colormap()
-##        gtk.widget_push_colormap(colormap)
         self.button = CairoButton()
-##        gtk.widget_pop_colormap()
         self.button.show_all()
 
 
@@ -208,11 +201,7 @@ class GroupButton (gobject.GObject):
 
 
         #--- Popup window
-##        gtk_screen = self.dockbar.container.get_screen()
-##        colormap = gtk_screen.get_rgba_colormap()
-##        if colormap == None:
-##            colormap = gtk_screen.get_rgb_colormap()
-        cairo_popup = CairoPopup() ##colormap)
+        cairo_popup = CairoPopup()
 
         if self.globals.settings["preview"]:
             self.winlist = gtk.HBox()
@@ -271,15 +260,6 @@ class GroupButton (gobject.GObject):
         self.button.connect("drag_end", self.on_drag_end)
         self.is_current_drag_source = False
 
-##    def __del__(self):
-##        if self.button:
-##            self.button.destroy()
-##        self.button = None
-##        self.popup = None
-##        self.windows = None
-##        self.winlist = None
-##        self.dockbar = None
-##        self.drag_pixbuf = None
 
     def identifier_changed(self, identifier):
         self.identifier = identifier

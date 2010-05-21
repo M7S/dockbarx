@@ -367,7 +367,6 @@ class WindowButton(gobject.GObject):
     def on_button_drag_leave(self, widget, drag_context, t):
         self.button_drag_entered = False
         gobject.source_remove(self.dnd_select_window)
-##        self.window_button.drag_unhighlight()
         self.emit('popup-expose-request')
         self.emit('popup-hide-request')
 

@@ -45,15 +45,13 @@ class CairoButton(gtk.Button):
 
 class CairoPopup():
     """CairoPopup is a transparent popup window with rounded corners"""
-    def __init__(self): ##, colormap):
-##        gtk.widget_push_colormap(colormap)
+    def __init__(self):
         self.window = gtk.Window(gtk.WINDOW_POPUP)
         self.window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         gtk_screen = gtk.gdk.screen_get_default()
         colormap = gtk_screen.get_rgba_colormap()
         if colormap == None:
             colormap = gtk_screen.get_rgb_colormap()
-##        gtk.widget_pop_colormap()
         self.window.set_colormap(colormap)
         self.window.set_app_paintable(1)
         self.window.connect("expose_event", self.expose)

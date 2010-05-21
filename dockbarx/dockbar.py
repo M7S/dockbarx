@@ -64,9 +64,6 @@ class GroupList():
     def __init__(self):
         self.list = []
 
-##    def __del__(self):
-##        self.list = None
-
     def __getitem__(self, name):
         return self.get_group(name)
 

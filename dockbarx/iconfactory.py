@@ -392,8 +392,6 @@ class IconFactory():
             pbs = pb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
             woffset = int(float(size - w) / 2 + 0.5)
             hoffset = int(float(size - h) / 2 + 0.5)
-##            pb.composite(background, woffset, hoffset, w, h, woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-##            pb = background
             ctx.set_source_pixbuf(pb, woffset, hoffset)
             ctx.paint()
             del pb
@@ -633,10 +631,6 @@ class IconFactory():
         else:
             ctx.set_source_surface(surface)
             ctx.paint_with_alpha(alpha)
-##        icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
-##        icon_transp.fill(0x00000000)
-##        pixbuf.composite(icon_transp, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, opacity)
-##        icon_transp.saturate_and_pixelate(icon_transp, saturation, False)
         return new
 
     def command_composite(self, surface, bg, fg, opacity=100, xoffset=0, yoffset=0):
@@ -675,35 +669,9 @@ class IconFactory():
         ctx = cairo.Context(background)
         ctx.set_source_surface(foreground, xoffset, yoffset)
         ctx.paint_with_alpha(opacity)
-##        if xoffset >= 0:
-##            if xoffset + foreground.get_width() > background.get_width():
-##                w = foreground.get_width() - xoffset
-##            else:
-##                w = foreground.get_width()
-##        else:
-##            w = foreground.get_width() + xoffset
-##        if yoffset >= 0:
-##            if yoffset + foreground.get_height() > background.get_height():
-##                h = foreground.get_height() - yoffset
-##
-##            else:
-##                h = foreground.get_height()
-##        else:
-##            h = foreground.get_height() + yoffset
-##        x = max(xoffset, 0)
-##        y = max(yoffset, 0)
-##        if w <= 0 or h <=0 or x > background.get_width or y > background.get_height:
-##            # Fg is offset out of the picture.
-##            return background
-##        foreground.composite(background, x, y, w, h, xoffset, yoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, opacity)
-##        del surface
-##        surface = self.pixbuf2surface(background)
         return background
 
     def command_shrink(self, surface, percent=0, pixels=0):
-##        pixbuf = self.surface2pixbuf(surface)
-##        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
-##        background.fill(0x00000000)
         w0 = surface.get_width()
         h0 = surface.get_height()
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w0, h0)
@@ -711,14 +679,11 @@ class IconFactory():
 
         w = int(((100-int(percent)) * w0)/100)-int(pixels)
         h = int(((100-int(percent)) * h0)/100)-int(pixels)
-##        shrinked = pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
         shrinked = self.resize_surface(surface, w, h)
         x = int(float(w0 - w) / 2 + 0.5)
         y = int(float(h0 - h) / 2 + 0.5)
         ctx.set_source_surface(shrinked, x, y)
         ctx.paint()
-##        pixbuf.composite(background, x, y, w, h, x, y, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-##        del pixbuf
         del shrinked
         return new
 
@@ -733,15 +698,8 @@ class IconFactory():
             height = self.size
         if surface.get_width() == width and surface.get_height() == height:
             return surface
-##        pixbuf = self.surface2pixbuf(surface)
-##        background = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width, height)
-##        background.fill(0x00000000)
         woffset = int(float(width - surface.get_width()) / 2 + 0.5)
         hoffset = int(float(height - surface.get_height()) / 2 + 0.5)
-##        pixbuf.composite(background, woffset, hoffset, pixbuf.get_width(), pixbuf.get_height(), \
-##                         woffset, hoffset, 1.0, 1.0, gtk.gdk.INTERP_BILINEAR, 255)
-##        del surface
-##        new = self.pixbuf2surface(background)
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
         ctx = cairo.Context(new)
         ctx.set_source_surface(surface, woffset, hoffset)
@@ -800,21 +758,9 @@ class IconFactory():
 
 
     def command_bright(self, surface, strength = None, strenght = None):
-##        pixbuf = self.surface2pixbuf(surface)
-##        # Makes the pixbuf shift lighter.
         if strength == None and strenght != None:
             # For compability with older themes.
             strength = strenght
-##        strength = int(int(strength) * 2.55 + 0.4)
-##        pixbuf = pixbuf.copy()
-##        for row in pixbuf.get_pixels_array():
-##            for pix in row:
-##                pix[0] = min(255, int(pix[0]) + strength)
-##                pix[1] = min(255, int(pix[1]) + strength)
-##                pix[2] = min(255, int(pix[2]) + strength)
-##        del surface
-##        surface = self.pixbuf2surface(pixbuf)
-##        del pixbuf
         alpha = self.get_alpha(strength)
         w = surface.get_width()
         h = surface.get_height()
@@ -893,15 +839,6 @@ class IconFactory():
     def resize_surface(self, surface, w, h):
         im = self.surface2pil(surface)
         im = im.resize((w, h), Image.ANTIALIAS)
-##        pb = self.surface2pixbuf(surface)
-##        pbs = pb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-##        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-##        ctx = gtk.gdk.CairoContext(cairo.Context(s))
-##        ctx.set_source_pixbuf(pbs, 0, 0)
-##        ctx.paint()
-##        del pb
-##        del pbs
-##        return s
         return self.pil2surface(im)
 
 
