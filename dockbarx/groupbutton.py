@@ -491,21 +491,23 @@ class GroupButton (gobject.GObject):
         if self.needs_attention:
             self.on_needs_attention_changed()
         self.update_state_request()
-        if not self.windows and not self.launcher:
-            self.hide_list()
+        if self.get_unminimized_windows_count() == 0:
             if self.opacified:
-                # Turn of opacify if all windows are closed.
                 self.globals.opacified = False
                 self.opacified = False
                 self.deopacify()
+            if self.popup_showing and self.launcher:
+                # Move the popup.
+                self.popup.resize(10,10)
+                gobject.idle_add(self.show_list_request)
+        if not self.windows and not self.launcher:
+            # Remove group button.
+            self.hide_list()
             self.icon_factory.remove()
             del self.icon_factory
             self.popup.destroy()
             self.button.destroy()
             self.winlist.destroy()
-        elif not self.windows and self.launcher and self.popup_showing:
-            self.popup.resize(10,10)
-            gobject.idle_add(self.show_list_request)
 
     def set_has_active_window(self, mode):
         if mode != self.has_active_window:
