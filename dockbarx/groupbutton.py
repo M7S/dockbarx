@@ -803,7 +803,7 @@ class GroupButton (gobject.GObject):
                 return
 
     def opacify_request(self):
-        if self.get_unminimized_windows_count == 0:
+        if self.get_unminimized_windows_count() == 0:
             return False
         # if self.button_pressed is true, opacity_request is called by an
         # wrongly sent out enter_notification_event sent after a
@@ -1042,36 +1042,29 @@ class GroupButton (gobject.GObject):
             self.action_function_dict[action](self, widget, event)
 
     def on_group_button_release_event(self, widget, event):
-        # Connects right button with right action.
-        if event.state & gtk.gdk.SHIFT_MASK:
-            if event.button == 1 and self.globals.settings['groupbutton_shift_and_left_click_double'] == False \
-               and not self.globals.dragging:
-                action = self.globals.settings['groupbutton_shift_and_left_click_action']
-                self.action_function_dict[action](self, widget, event)
-            elif event.button == 2 and self.globals.settings['groupbutton_shift_and_middle_click_double'] == False:
-                action = self.globals.settings['groupbutton_shift_and_middle_click_action']
-                self.action_function_dict[action](self, widget,event)
-            elif event.button == 3 and self.globals.settings['groupbutton_shift_and_right_click_double'] == False:
-                action = self.globals.settings['groupbutton_shift_and_right_click_action']
-                self.action_function_dict[action](self, widget, event)
+        # Check that the mouse still is over the group button.
+        b_m_x,b_m_y = self.button.get_pointer()
+        b_r = self.button.get_allocation()
+        if not ((b_m_x>=0 and b_m_x<b_r.width) and (b_m_y >= 0 and b_m_y < b_r.height)):
+            return
 
-        else:
-            if event.button == 1 and self.globals.settings['groupbutton_left_click_double'] == False \
-                 and not self.globals.dragging :
-                action = self.globals.settings['groupbutton_left_click_action']
-                self.action_function_dict[action](self, widget, event)
-
-            elif event.button == 2 and self.globals.settings['groupbutton_middle_click_double'] == False:
-                action = self.globals.settings['groupbutton_middle_click_action']
-                self.action_function_dict[action](self, widget,event)
-
-            elif event.button == 3 and self.globals.settings['groupbutton_right_click_double'] == False:
-                action = self.globals.settings['groupbutton_right_click_action']
-                self.action_function_dict[action](self, widget, event)
         # If a drag and drop just finnished set self.draggin to false
         # so that left clicking works normally again
         if event.button == 1 and self.globals.dragging:
             self.globals.dragging = False
+            return
+
+        if not event.button in (1, 2, 3):
+            return
+        button = {1:'left', 2: 'middle', 3: 'right'}[event.button]
+        if event.state & gtk.gdk.SHIFT_MASK:
+            mod = 'shift_and_'
+        else:
+            mod = ''
+        if not self.globals.settings['groupbutton_%s%s_click_double'%(mod, button)]:
+            # No double click required, go ahead and do the action.
+            action = self.globals.settings['groupbutton_%s%s_click_action'%(mod, button)]
+            self.action_function_dict[action](self, widget, event)
 
 
     def on_group_button_press_event(self,widget,event):
@@ -1081,33 +1074,26 @@ class GroupButton (gobject.GObject):
         self.button_pressed = True
         gobject.timeout_add(600, self.set_button_pressed_false)
 
-        if event.type == gtk.gdk._2BUTTON_PRESS and event.state & gtk.gdk.SHIFT_MASK:
-            if event.button == 1 and self.globals.settings['groupbutton_shift_and_left_click_double'] == True:
-                action = self.globals.settings['groupbutton_shift_and_left_click_action']
+        if not event.button in (1, 2, 3):
+            return True
+        button = {1:'left', 2: 'middle', 3: 'right'}[event.button]
+        if event.state & gtk.gdk.SHIFT_MASK:
+            mod = 'shift_and_'
+        else:
+            mod = ''
+        if event.type == gtk.gdk._2BUTTON_PRESS:
+            if self.globals.settings['groupbutton_%s%s_click_double'%(mod, button)]:
+                # This is a double click and the action requires a double click.
+                # Go ahead and do the action.
+                action = self.globals.settings['groupbutton_%s%s_click_action'%(mod, button)]
                 self.action_function_dict[action](self, widget, event)
-            elif event.button == 2 and self.globals.settings['groupbutton_shift_and_middle_click_double'] == True:
-                action = self.globals.settings['groupbutton_shift_and_middle_click_action']
-                self.action_function_dict[action](self, widget,event)
-            elif event.button == 3 and self.globals.settings['groupbutton_shift_and_right_click_double'] == True:
-                action = self.globals.settings['groupbutton_shift_and_right_click_action']
-                self.action_function_dict[action](self, widget, event)
-        elif event.type == gtk.gdk._2BUTTON_PRESS:
-            if event.button == 1 and self.globals.settings['groupbutton_left_click_double'] == True:
-                action = self.globals.settings['groupbutton_left_click_action']
-                self.action_function_dict[action](self, widget, event)
-            elif event.button == 2 and self.globals.settings['groupbutton_middle_click_double'] == True:
-                action = self.globals.settings['groupbutton_middle_click_action']
-                self.action_function_dict[action](self, widget,event)
-            elif event.button == 3 and self.globals.settings['groupbutton_right_click_double'] == True:
-                action = self.globals.settings['groupbutton_right_click_action']
-                self.action_function_dict[action](self, widget, event)
-        # Return False so that a drag-and-drop can be initiated if needed
         elif event.button == 1:
+            # Return False so that a drag-and-drop can be initiated if needed.
             return False
         return True
 
     def set_button_pressed_false(self):
-        # Helper function to group_button_press_event
+        # Helper function to group_button_press_event.
         self.button_pressed = False
         return False
 
