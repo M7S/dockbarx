@@ -386,7 +386,6 @@ class DockBar():
         for window in self.screen.get_windows():
             self.on_window_opened(self.screen, window)
 
-
         self.screen.connect("window-opened", self.on_window_opened)
         self.screen.connect("window-closed", self.on_window_closed)
         self.screen.connect("active-window-changed", self.on_active_window_changed)
@@ -394,9 +393,6 @@ class DockBar():
         self.screen.connect("active-workspace-changed", self.on_desktop_changed)
 
         self.on_active_window_changed(self.screen, None)
-
-
-
 
     def reset_all_surfaces(self):
         # Removes all saved pixbufs with active glow in groupbuttons iconfactories.
@@ -438,19 +434,26 @@ class DockBar():
                     group.on_db_move()
 
     def on_change_orient(self,arg1,data):
-        for group in self.groups.get_groups():
-            self.container.remove(group.button)
-        self.applet.remove(self.container)
-        self.container.destroy()
-        self.container = None
         if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
         or self.applet.get_orient() == gnomeapplet.ORIENT_UP:
+            self.set_orient('h')
+        else:
+            self.set_orient('v')
+
+    def set_orient(self, orient):
+        for group in self.groups.get_groups():
+            self.container.remove(group.button)
+        if self.applet:
+            self.applet.remove(self.container)
+        self.container.destroy()
+        self.container = None
+        self.globals.orient = orient
+        if orient == 'h':
             self.container = gtk.HBox()
-            self.globals.orient = "h"
         else:
             self.container = gtk.VBox()
-            self.globals.orient = "v"
-        self.applet.add(self.container)
+        if self.applet:
+            self.applet.add(self.container)
         for group in self.groups.get_groups():
             self.container.pack_start(group.button,False)
         self.container.set_spacing(self.theme.get_gap())

@@ -11,6 +11,7 @@ from xdg.DesktopEntry import DesktopEntry
 import os
 import gc
 gc.enable()
+from urllib import unquote
 
 from windowbutton import WindowButton
 from iconfactory import IconFactory
@@ -93,10 +94,11 @@ class Launcher():
     def launch_with_uri(self, uri):
         os.chdir(os.path.expanduser('~'))
         if self.app:
-            uri = uri.replace("%20"," ")
+            uri = unquote(uri)
             self.app.launch_uris([uri], None)
         else:
             uri = uri.replace("%20","\ ")
+            uri = unquote(uri)
             self.execute("%s %s"%(self.desktop_entry.getExec(), uri))
 
 
@@ -160,6 +162,7 @@ class GroupButton (gobject.GObject):
             # if the identifier is still unknown
         else:
             raise Exception, "Can't initiate Group button without class_group or launcher."
+
 
 
         # Variables
@@ -654,7 +657,10 @@ class GroupButton (gobject.GObject):
         offset = 3
 
         if self.globals.settings["preview"]:
-            #Update previews
+            # Iterate gtk before loading previews so that
+            # the system doesn't feel slow.
+            while gtk.events_pending():
+                gtk.main_iteration(False)
             for win in self.get_windows():
                 self.windows[win].update_preview()
         if self.globals.settings["show_only_current_desktop"]:

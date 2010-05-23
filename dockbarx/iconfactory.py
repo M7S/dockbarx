@@ -56,7 +56,7 @@ class IconFactory():
         self.size = 0
 
         self.icon = None
-        self.surfaces = None
+        self.surfaces = {}
 
         self.average_color = None
 
@@ -84,7 +84,7 @@ class IconFactory():
         self.surfaces = {}
         self.average_color = None
 
-    def get_size(self, size):
+    def get_size(self):
         return self.size
 
     def reset_surfaces(self, arg=None):

@@ -18,41 +18,80 @@
 ##############################################################################
 
 import awn
-import dockbarx
+import dockbarx.dockbar
+import gobject
 import sys
 import gtk
 
 
-class DockBarApp (awn.Applet):
-    def __init__ (self, uid, orient, height):
-        awn.Applet.__init__(self, uid, orient, height)
+class DockBarApp (awn.AppletSimple):
+    def __init__ (self, uid, panel_id):
+        awn.AppletSimple.__init__(self, "DockbarX", uid, panel_id)
         print "DockBarApp.__init__()"
         print "dockbarx.__file__ = ",dockbarx.__file__
-        print " uid = ",uid,"\n orinet = ", orient,"\n height = ", height
-        self.vbox = gtk.VBox()
-        self.vbox.set_spacing(height)
-        self.hbox = gtk.HBox()
-        self.vbox.add(self.hbox)
-        self.db = dockbarx.DockBar(None)
-        self.vbox.add(self.db.container)
-        self.add(self.vbox)
-        #self.h_size_allocate = self.connect('size-allocate',self.on_size_allocate)
-        self.connect ('height-changed',self.on_height_changed)
-        self.show_all()
-        
-    #def on_size_allocate (self,arg1,arg2):
-    #    print "SA signal"
-    #    print "self.get_allocation().height = ",self.get_allocation().height
-    #    print "self.vbox.get_allocation().height = ",self.vbox.get_allocation().height
-        
-    def on_height_changed (self,arg1,new_height):
-        self.vbox.set_spacing(new_height)
+        print " uid = ",uid,"\n panel_id= ", panel_id
+        self.set_icon_name("gtk-apply")
+        gobject.idle_add(self.on_idle)
 
+
+    def on_idle(self):
+        self.old_child = self.get_child()
+        self.icon = self.get_icon()
+        self.remove(self.old_child)
+        self.db = dockbarx.dockbar.DockBar(None)
+        if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_TOP):
+            self.box = gtk.VBox()
+            self.db.set_orient('h')
+        else:
+            self.box = gtk.HBox()
+            self.db.set_orient('v')
+        if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_RIGHT):
+            self.box.pack_end(self.db.container, False, False)
+        else:
+            self.box.pack_start(self.db.container, False, False)
+        if self.db.globals.orient == 'h':
+            self.db.container.set_size_request(-1, self.get_size()+self.icon.get_offset()+2)
+        else:
+            self.db.container.set_size_request(self.get_size()+self.icon.get_offset()+2, -1)
+        self.add(self.box)
+        self.connect('size-changed',self.on_size_changed)
+        self.connect('position-changed', self.on_position_changed)
+        self.box.show()
+        self.db.container.show()
+        self.show()
+
+    def on_size_changed(self, arg1, new_size):
+        if self.db.globals.orient == 'h':
+            self.db.container.set_size_request(-1, new_size+self.icon.get_offset()+2)
+        else:
+            self.db.container.set_size_request(new_size+self.icon.get_offset()+2, -1)
+
+    def on_position_changed(self, applet, position):
+        self.box.remove(self.db.container)
+        self.remove(self.box)
+        if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_TOP):
+            self.box = gtk.VBox()
+            self.db.set_orient('h')
+        else:
+            self.box = gtk.HBox()
+            self.db.set_orient('v')
+        if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_RIGHT):
+            self.box.pack_end(self.db.container, False, False)
+        else:
+            self.box.pack_start(self.db.container, False, False)
+        if self.db.globals.orient == 'h':
+            self.db.container.set_size_request(-1, self.get_size()+self.icon.get_offset()+2)
+        else:
+            self.db.container.set_size_request(self.get_size()+self.icon.get_offset()+2, -1)
+        self.add(self.box)
+        self.box.show()
+        self.db.container.show()
+        self.show()
 
 if __name__ == "__main__":
     awn.init(sys.argv[1:])
-    print "%s %d %d" % (awn.uid, awn.orient, awn.height)
-    applet = DockBarApp(awn.uid, awn.orient, awn.height)
-    awn.init_applet(applet)
+    print "%s %d" % (awn.uid, awn.panel_id)
+    applet = DockBarApp(awn.uid, awn.panel_id)
+    awn.embed_applet(applet)
     applet.show_all()
     gtk.main()
