@@ -7,6 +7,6 @@ X-AWN-AppletType=Python
 Comment=DockBar for AWN
 X-AWN-AppletExec=DockBarX/DockBarX.py
 Exec=awn-applet -p %k
-Icon=
+Icon=dockbarx
 X-AWN-AppletCategory=Utility
 Name[sv_FI]=DockBarX

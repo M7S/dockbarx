@@ -1,0 +1,11 @@
+
+[Desktop Entry]
+Version=0.39
+Name=DockbarX Preference
+GenericName=Preference Dialog
+Comment=Preference dialog for DockbarX
+Exec=dbx_preference.py
+Icon=dockbarx
+Terminal=false
+Type=Application
+Categories=Utility;
