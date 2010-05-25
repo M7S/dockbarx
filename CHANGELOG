@@ -1,5 +1,25 @@
 Changelog:
 
+x.0.39
+DockbarX x.0.39 uses re-arranged code. DockbarX is now an python package. This will probably make future versions of DockbarX more stable and speed up the development some.
+
+Installation:
+- DockbarX is now installed from a setup.py. To install dockbarx simply run "sudo setup.py install".
+
+En user features:
+- DockbarX do now shows recent and most used files in the menu when right clicking a group button. This feature requires zeitgeist and only works for programs with zeitgeist data sources.
+- Drop a file on a group button and DockbarX will try to launch that application with that file.
+- DockbarX can be used as an AWN 0.4 applet again.
+- DockbarX preference can now be reached from gnome-menu (and consequently be pinned). This is useful for AWN users since you can't reach dockbarx by right clicking the handle when DockbarX is used as an AWN applet.
+- BigRZA was kind enough to design an icon for dockbarx.
+
+Bug fixes:
+- Bug #576671 (and duplicates): DockbarX preference window didn't open.
+- Bug #580374 (and duplicates): Missing .desktop files for a dockbarx launcher won't result in a crash anymore.
+- Various bugs regarding Opacify is fixed.
+- Some other small bugs fixed as well.
+
+
 x.0.30
 End user features:
 - Previews added! This feature is still in beta state, though. (Enable it from advanced tab in preference dialog)

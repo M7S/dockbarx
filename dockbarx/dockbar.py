@@ -1,21 +1,21 @@
 #!/usr/bin/python
 
-
+#   dockbar.py
+#
 #	Copyright 2008, 2009, 2010 Aleksey Shaferov and Matias Sars
 #
-#	DockBar is free software: you can redistribute it and/or modify
+#	DockbarX is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation, either version 3 of the License, or
 #	(at your option) any later version.
 #
-#	DockBar is distributed in the hope that it will be useful,
+#	DockbarX is distributed in the hope that it will be useful,
 #	but WITHOUT ANY WARRANTY; without even the implied warranty of
 #	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #	GNU General Public License for more details.
 #
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
-
 
 
 import pygtk
@@ -36,7 +36,7 @@ from cairowidgets import *
 from theme import Theme, NoThemesError
 from common import *
 
-VERSION = 'x.0.30'
+VERSION = 'x.0.39'
 
 class AboutDialog():
     __instance = None
@@ -48,7 +48,8 @@ class AboutDialog():
             AboutDialog.__instance.about.present()
             return
         self.about = gtk.AboutDialog()
-        self.about.set_name("DockBarX Applet")
+        self.about.set_name("DockbarX Applet")
+        self.about.set_logo_icon_name("dockbarx")
         self.about.set_version(VERSION)
         self.about.set_copyright("Copyright (c) 2008-2009 Aleksey Shaferov and Matias S\xc3\xa4rs")
         self.about.connect("response",self.about_close)

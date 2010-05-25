@@ -1,25 +1,21 @@
 #!/usr/bin/python
 
-
-#	Copyright 2008, Aleksey Shaferov
+#   dbx_preference.py
 #
-#	DockBar is free software: you can redistribute it and/or modify
+#	Copyright 2008, 2009, 2010 Aleksey Shaferov and Matias Sars
+#
+#	DockbarX is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation, either version 3 of the License, or
 #	(at your option) any later version.
 #
-#	DockBar is distributed in the hope that it will be useful,
+#	DockbarX is distributed in the hope that it will be useful,
 #	but WITHOUT ANY WARRANTY; without even the implied warranty of
 #	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #	GNU General Public License for more details.
 #
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
-
-# Exmperimental features by Matias Sars
-
-# Some code is borrowed from Ubuntu system panel (c) 2007 S. Chanderbally
-# (http://code.google.com/p/ubuntu-system-panel/)
 
 import pygtk
 pygtk.require('2.0')
@@ -197,7 +193,7 @@ class Theme():
 
 class PrefDialog():
 
-    def __init__ (self, dockbar=None):
+    def __init__ (self):
 
         self.globals = Globals()
         self.globals.connect('theme-changed', self.on_theme_changed)
@@ -206,6 +202,7 @@ class PrefDialog():
 
         self.dialog = gtk.Dialog("DockBarX preferences")
         self.dialog.connect("response", self.dialog_close)
+        self.dialog.set_icon_name('dockbarx')
 
         try:
             ca = self.dialog.get_content_area()

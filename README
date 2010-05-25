@@ -16,16 +16,26 @@ Dockbar and DockbarX are licensed under GPL3.
 INSTALL
 =======
 
-1. install python-wnck, python-gnomeapplet and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed (if they aren't already).
+1. Install python-wnck, python-gnomeapplet and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). 
 $ sudo apt-get install python-gnomeapplet python-wnck python-numpy
 
-2. Run the setup.py install
+1b. For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed (if they aren't already). For recent and most used files you need zeitgeist. None of these are needed for DockbarX to run and can safely be ignored if you are not interested in theses features.
+$ sudo apt-get install libgtk2.0-0 libx11-6 libxcomposite1 zeitgeist
+
+2. Change directory to where you unpacked dockbarx and run the setup.py install
 $ sudo ./setup.py install
 
-3. add DockBarX applet to panel (kill gnome-panel first if necessary)
+3. Add DockBarX applet to panel (kill gnome-panel first if necessary)
 
 You can also run dockbarx in window (meant for debugging purposes, mostly):
 $dockbarx_factory.py run-in-window
+
+===
+AWN
+===
+To install dockbarx as an AWN 0.4 applet, you should first do an normal install and then copy the content of the AWN folder to ~/.config/AWN/applets. 
+
+Preference dialog: AWN gives you no handle so you can't access preference dialog by right clicking and choosing preference. You can access dockbarx preference window from your gnome menu (Accessories->Dockbarx Preference). If you like you can also pin it to dockbarx.
 
 
 =====
@@ -93,6 +103,12 @@ If you select a window in the popup list you will always switch to the workspace
 ===
 FAQ
 ===
+Q: Why do you want to make Linux into a Microsoft Windows 7 clone?
+A: I don't. The goal of DockbarX isn't to be a clone of the Windows 7 task bar. Windows 7 task bar has a good principle, though.  When it comes to your most used programs it's more productive to do all window handling - launching, selecting, closing, etc. from the same few pixels. If I need a Firefox window I move my mouse cursor to the same spot on the screen regardless of which Firefox window I want and or if I even have opened a Firefox window yet. This behavior is good and it would be stupid not to implement it just because "Windows had it first". Don't reduce your productivity out of stubbornness. When it comes to looks it's up to you to choose a theme that looks like windows 7 or a theme that doesn't look that way.
+
+Q: I want a button for every window instead of all windows of the same application grouped together under one button. When will DockbarX support that?
+A: Never. That would demand quite a bit of restructuring of the code and I believe it's less productive to keep the window buttons ungrouped. You are welcome to change the code yourself if you don't like my decision, or try the applet Talika it might suit your needs better than DockbarX does.
+
 Q: I added a new launcher for program X but when I click on the launcher a new groupbutton is made for the window instead of using the groupbutton of the launcher. What went wrong?
 A: Dockbarx connects group buttons and windows by using the resource class name of the application. When a launcher is added dockbarx tries to guess the resource class name of that launcher. This works in most cases but not always. Apparently it didn't work for your program X. To fix this, right click on the launcher for program X and choose "Edit Resource name" and enter the correct resource name. If the program is already running you should be able to find it's resource class name in the drop-down list.
 
@@ -105,7 +121,7 @@ A: Yes, it is. There are two ways.
 2) Drag the launcher from gnome-menu to a folder. Right click it, choose preference and change what you want there. Drag the launcher to dockbarx. Don't delete the launcher from the folder! 
 
 Q: How do I get to preference dialog?
-A: Right click the handle (the dots or lines to the left of dockbarx) to get a menu where you can choose the preference option. Viola! Sometimes though, you have to double right click the handle to get the menu. Don't ask me why - just do it.
+A: Right click the handle (the dots or lines to the left of dockbarx) to get a menu where you can choose the preference option. Voila! Sometimes though, you have to double right click the handle to get the menu. Don't ask me why - just do it. You can also find the preference dialog from gnome menu (in Accessories).
 
 Q: None of DockbarX's compiz stuff like "compiz scale" work. Why?
 A: Make sure you enable the GLib extension in Compiz settings manager and that the compiz plugin dockbarx uses is activated as well. (e.g. for group button action "compiz scale" to work you need the scale plugin activated)
