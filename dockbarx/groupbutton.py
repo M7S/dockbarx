@@ -570,7 +570,7 @@ class GroupButton (gobject.GObject):
                 wins.append(win)
         return wins
 
-    def on_needs_attention_changed(self):
+    def on_needs_attention_changed(self, arg=None):
         # Checks if there are any urgent windows and changes
         # the group button looks if there are at least one
         for window in self.windows.keys():

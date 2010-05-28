@@ -6,8 +6,8 @@ DockbarX x.0.39 uses re-arranged code. DockbarX is now an python package. This w
 Installation:
 - DockbarX is now installed from a setup.py. To install dockbarx simply run "sudo setup.py install".
 
-En user features:
-- DockbarX do now shows recent and most used files in the menu when right clicking a group button. This feature requires zeitgeist and only works for programs with zeitgeist data sources.
+End user features:
+- DockbarX do now show recent and most used files in the menu when right clicking a group button. This feature requires zeitgeist and only works for programs with zeitgeist data sources.
 - Drop a file on a group button and DockbarX will try to launch that application with that file.
 - DockbarX can be used as an AWN 0.4 applet again.
 - DockbarX preference can now be reached from gnome-menu (and consequently be pinned). This is useful for AWN users since you can't reach dockbarx by right clicking the handle when DockbarX is used as an AWN applet.
