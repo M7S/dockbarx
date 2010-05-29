@@ -33,7 +33,7 @@ $dockbarx_factory.py run-in-window
 ===
 AWN
 ===
-To install dockbarx as an AWN 0.4 applet, you should first do an normal install and then copy the content of the AWN folder to ~/.config/AWN/applets. 
+To install dockbarx as an AWN 0.4 applet, you should first do an normal install and then copy the content of the AWN folder to ~/.config/awn/applets. 
 
 Preference dialog: AWN gives you no handle so you can't access preference dialog by right clicking and choosing preference. You can access dockbarx preference window from your gnome menu (Accessories->Dockbarx Preference). If you like you can also pin it to dockbarx.
 

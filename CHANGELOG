@@ -4,7 +4,7 @@ x.0.39
 DockbarX x.0.39 uses re-arranged code. DockbarX is now an python package. This will probably make future versions of DockbarX more stable and speed up the development some.
 
 Installation:
-- DockbarX is now installed from a setup.py. To install dockbarx simply run "sudo setup.py install".
+- DockbarX is now installed from a setup.py. To install dockbarx simply run "sudo ./setup.py install".
 
 End user features:
 - DockbarX do now show recent and most used files in the menu when right clicking a group button. This feature requires zeitgeist and only works for programs with zeitgeist data sources.
