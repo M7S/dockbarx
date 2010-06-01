@@ -740,16 +740,16 @@ class GroupButton (gobject.GObject):
         and self.get_windows_count() > 0:
             previews = []
             previews.append(win_cnt)
-            for win, wb in self.windows.items():
-                if wb.is_on_current_desktop():
-                    previews.append(5)
-                    previews.append(win.get_xid())
-                    alloc = wb.preview_image.get_allocation()
-                    (xo, yo, w, h) = wb.get_preview_alloc(ps)
-                    previews.append(alloc.x+xo)
-                    previews.append(alloc.y+yo)
-                    previews.append(w)
-                    previews.append(h)
+            for win in self.get_windows():
+                wb = self.windows[win]
+                previews.append(5)
+                previews.append(win.get_xid())
+                alloc = wb.preview_image.get_allocation()
+                (xo, yo, w, h) = wb.get_preview_alloc(ps)
+                previews.append(alloc.x+xo)
+                previews.append(alloc.y+yo)
+                previews.append(w)
+                previews.append(h)
         else:
             previews = [0,5,0,0,0,0,0]
         self.popup.window.property_change(ATOM_PREVIEWS,ATOM_PREVIEWS,32,gtk.gdk.PROP_MODE_REPLACE,previews)
@@ -773,12 +773,12 @@ class GroupButton (gobject.GObject):
         p_x,p_y = self.popup.window.get_origin()
         offset = 3
         b_x,b_y = self.button.window.get_origin()
-        if self.globals.orient == 'h' and b_m_x>=0 and b_m_x<=(b_r.width-1):
+        if self.globals.orient == 'h' and b_m_x>=-8 and b_m_x<=(b_r.width+7):
             if (p_y < b_y and b_m_y>=-offset and b_m_y<=0) \
             or (p_y > b_y and b_m_y>=(b_r.height-1) and b_m_y<=(b_r.height-1+offset)):
                 gobject.timeout_add(50, self.hide_list_request)
                 return
-        elif self.globals.orient == 'v' and b_m_y>=0 and b_m_y<=(b_r.height-1):
+        elif self.globals.orient == 'v' and b_m_y>=-8 and b_m_y<=(b_r.height+7):
             if (p_x < b_x and b_m_x>=-offset and b_m_x<=0) \
             or (p_x > b_x and b_m_x>=(b_r.width-1) and b_m_x<=(b_r.width-1+offset)):
                 gobject.timeout_add(50, self.hide_list_request)
