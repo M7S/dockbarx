@@ -322,7 +322,6 @@ class Globals(gobject.GObject):
                           "no_popup_for_one_window": False,
                           "show_only_current_desktop": False,
                           "preview": False,
-                          "remember_previews": False,
                           "preview_size": 230,
 
                           "select_one_window": "select or minimize window",

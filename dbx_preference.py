@@ -527,13 +527,9 @@ class PrefDialog():
         groupbutton_box.pack_start(hbox, False, padding=10)
 
         #--- Advanced page
-        self.preview_cb = gtk.CheckButton('Show previews (beta feature)')
+        self.preview_cb = gtk.CheckButton('Show previews')
         self.preview_cb.connect('toggled', self.checkbutton_toggled, 'preview')
         advanced_box.pack_start(self.preview_cb, False)
-
-        self.remember_previews_cb = gtk.CheckButton('Remember previews for minimized windows (Increaced memory usage)')
-        self.remember_previews_cb.connect('toggled', self.checkbutton_toggled, 'remember_previews')
-        advanced_box.pack_start(self.remember_previews_cb, False)
 
         spinbox = gtk.HBox()
         spinlabel = gtk.Label("Preview size:")
@@ -749,8 +745,6 @@ class PrefDialog():
 
         # Advanced page stuff
         self.preview_cb.set_active(self.globals.settings["preview"])
-        self.remember_previews_cb.set_active(self.globals.settings["remember_previews"])
-        self.remember_previews_cb.set_sensitive(self.globals.settings["preview"])
         self.preview_size_spin.set_value(self.globals.settings["preview_size"])
         self.preview_size_spin.set_sensitive(self.globals.settings["preview"])
         self.ignore_workspace_cb.set_active(self.globals.settings["show_only_current_desktop"])

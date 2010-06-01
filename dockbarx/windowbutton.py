@@ -29,15 +29,6 @@ gc.enable()
 from common import ODict, Globals, compiz_call
 from cairowidgets import CairoWindowButton
 
-try:
-    from ctypes.util import find_library
-    import ctypes
-    libgdk = ctypes.cdll.LoadLibrary(find_library("gdk-x11-2.0"))
-    libX11 = ctypes.cdll.LoadLibrary(find_library("X11"))
-    libXcomposite = ctypes.cdll.LoadLibrary(find_library("Xcomposite"))
-except:
-    print "Failed loading libraries needed for preview."
-
 
 class WindowButton(gobject.GObject):
     __gsignals__ = {
@@ -156,70 +147,33 @@ class WindowButton(gobject.GObject):
         gc.collect()
 
     #### Previews
-    def get_screenshot_xcomposite(self, screen, window, size=200):
-        ''' Get the window pixmap of window from the X compositor extension, return
-            it as a gdk.pixbuf.
-        '''
-        # Parts of this are ported from Talika (C) 2009-2010 Sinew Software Systems
-        if None in [libgdk, libXcomposite, libX11]:
-            return None
-        display = screen.get_display()
-        xdisplay = libgdk.gdk_x11_display_get_xdisplay(hash(display))
-        xid = window.get_xid()
-
-        libgdk.gdk_error_trap_push()
-        # Call the X function which may cause an error here ...
-        p_xid = libXcomposite.XCompositeNameWindowPixmap(xdisplay, xid)
-        # Flush the X queue to catch errors now.
-        libgdk.gdk_flush()
-        errors = libgdk.gdk_error_trap_pop()
-        if errors:
-            pixmap = None
-        else:
-            pixmap = gtk.gdk.pixmap_foreign_new_for_display(display, p_xid)
-        if not pixmap:
-            return None
-
-        depth = pixmap.get_depth()
-        if depth <= 24:
-            cmap = screen.get_rgb_colormap()
-        else:
-            cmap = screen.get_rgba_colormap()
-        w, h = pixmap.get_size()
-        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
-        pixbuf.get_from_drawable(pixmap, cmap, 0, 0, 0, 0, w, h)
-
-        if w >= h:
-            if w > size:
-                h = int(h * size/w)
-                w = size
-        else:
-            if h > size:
-                w = int(w * size/h)
-                h = size
-        pixbuf = pixbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-
-        del pixmap
-        libX11.XFreePixmap(xdisplay, p_xid)
-        return pixbuf
-
-    def update_preview(self, size=None):
+    def prepare_preview(self, size=None):
         if not self.preview:
             return False
         if size == None:
             size = self.globals.settings["preview_size"]
-        pixbuf = None
-        scn = gtk.gdk.screen_get_default()
-        if not self.window.is_minimized() and scn.is_composited():
-            pixbuf = self.get_screenshot_xcomposite(scn, self.window, size)
-        else:
-            pixbuf = self.preview_image.get_pixbuf()
-        if pixbuf == None:
-            pixbuf = self.window.get_icon()
+        pixbuf = self.window.get_icon()
         self.preview_image.set_from_pixbuf(pixbuf)
         self.preview_image.set_size_request(size,size)
         del pixbuf
         gc.collect()
+
+    def get_preview_alloc(self, size):
+        x,y,w,h = self.window.get_geometry()
+        w = float(w)
+        h = float(h)
+        size = float(size)
+        if w>h:
+            h = size/(w/h)
+            w = size
+            x = 0
+            y = (size - h)//2
+        else:
+            w = size/(h/w)
+            h = size
+            x = (size - w)//2
+            y = 0
+        return (x, y, w, h)
 
     def clear_preview_image(self):
         if not self.preview:

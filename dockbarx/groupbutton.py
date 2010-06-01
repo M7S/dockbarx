@@ -39,6 +39,8 @@ from cairowidgets import CairoPopup
 from common import Globals, compiz_call
 import zg
 
+ATOM_PREVIEWS = gtk.gdk.atom_intern('_KDE_WINDOW_PREVIEW')
+
 class LauncherPathError(Exception):
     pass
 
@@ -541,13 +543,9 @@ class GroupButton (gobject.GObject):
     def on_window_minimized(self, arg, wb):
         self.minimized_windows_count+=1
         self.update_state()
-        if self.popup_showing:
-            wb.update_preview()
 
     def on_window_unminimized(self, arg, wb):
         self.minimized_windows_count-=1
-        if self.popup_showing:
-            gobject.timeout_add(200, wb.update_preview)
         self.update_state()
 
     def get_windows(self):
@@ -675,12 +673,9 @@ class GroupButton (gobject.GObject):
         offset = 3
 
         if self.globals.settings["preview"]:
-            # Iterate gtk before loading previews so that
-            # the system doesn't feel slow.
-            while gtk.events_pending():
-                gtk.main_iteration(False)
+            ps = self.globals.settings['preview_size']
             for win in self.get_windows():
-                self.windows[win].update_preview()
+                self.windows[win].prepare_preview(ps)
         if self.globals.settings["show_only_current_desktop"]:
             self.popup_box.show()
             self.winlist.show()
@@ -721,10 +716,34 @@ class GroupButton (gobject.GObject):
                 self.popup.move(x - w - offset,y)
             else:
                 self.popup.move(x + b_alloc.width + offset,y)
-
         self.popup.show()
         self.popup_showing = True
         self.on_set_icongeo_win()
+        # The popup must be shown before the
+        # preview can be set. Iterate gtk events.
+        while gtk.events_pending():
+                gtk.main_iteration(False)
+        if self.globals.settings["preview"] \
+        and self.get_windows_count() > 0:
+            self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
+            previews = []
+            previews.append(self.get_windows_count())
+            for win, wb in self.windows.items():
+                if wb.is_on_current_desktop():
+                    previews.append(5)
+                    previews.append(win.get_xid())
+                    alloc = wb.preview_image.get_allocation()
+                    (xo, yo, w, h) = wb.get_preview_alloc(ps)
+                    previews.append(alloc.x+xo)
+                    previews.append(alloc.y+yo)
+                    previews.append(w)
+                    previews.append(h)
+        else:
+            self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
+            previews = [0,5,0,0,0,0,0]
+        self.popup.window.property_change(ATOM_PREVIEWS,ATOM_PREVIEWS,32,gtk.gdk.PROP_MODE_REPLACE,previews)
+
+
         return False
 
     def hide_list_request(self):
@@ -786,8 +805,8 @@ class GroupButton (gobject.GObject):
         self.popup.hide()
         self.popup_showing = False
         self.on_set_icongeo_grp()
-        if self.globals.settings["preview"] and not self.globals.settings["remember_previews"]:
-            # Remove previews to save memory.
+        if self.globals.settings["preview"]:
+            # Remove preview icon to save memory
             for win in self.get_windows():
                 self.windows[win].clear_preview_image()
             gc.collect()
