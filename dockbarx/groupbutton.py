@@ -30,6 +30,7 @@ import os
 import gc
 gc.enable()
 from urllib import unquote
+import pango
 
 from windowbutton import WindowButton
 from iconfactory import IconFactory
@@ -672,10 +673,22 @@ class GroupButton (gobject.GObject):
         # Move popup to it's right spot and show it.
         offset = 3
 
-        if self.globals.settings["preview"]:
+        win_cnt = self.get_windows_count()
+        if self.globals.settings["preview"] and win_cnt > 0:
+            if not self.popup.get_property('visible'):
+                self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
             ps = self.globals.settings['preview_size']
             for win in self.get_windows():
                 self.windows[win].prepare_preview(ps)
+
+            p = 4
+            title_width = win_cnt * (ps+p*2) + ( win_cnt-1)*self.popup_box.get_spacing()
+            self.popup_label.set_ellipsize(pango.ELLIPSIZE_END)
+            self.popup_label.set_size_request(title_width, -1)
+        else:
+            if not self.popup.get_property('visible'):
+                self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
+            self.popup_label.set_ellipsize(pango.ELLIPSIZE_NONE)
         if self.globals.settings["show_only_current_desktop"]:
             self.popup_box.show()
             self.winlist.show()
@@ -725,9 +738,8 @@ class GroupButton (gobject.GObject):
                 gtk.main_iteration(False)
         if self.globals.settings["preview"] \
         and self.get_windows_count() > 0:
-            self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
             previews = []
-            previews.append(self.get_windows_count())
+            previews.append(win_cnt)
             for win, wb in self.windows.items():
                 if wb.is_on_current_desktop():
                     previews.append(5)
@@ -739,11 +751,8 @@ class GroupButton (gobject.GObject):
                     previews.append(w)
                     previews.append(h)
         else:
-            self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
             previews = [0,5,0,0,0,0,0]
         self.popup.window.property_change(ATOM_PREVIEWS,ATOM_PREVIEWS,32,gtk.gdk.PROP_MODE_REPLACE,previews)
-
-
         return False
 
     def hide_list_request(self):
