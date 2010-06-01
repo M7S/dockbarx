@@ -19,7 +19,8 @@ INSTALL
 1. Install python-wnck, python-gnomeapplet and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). 
 $ sudo apt-get install python-gnomeapplet python-wnck python-numpy
 
-1b. For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed (if they aren't already). For recent and most used files you need zeitgeist. None of these are needed for DockbarX to run and can safely be ignored if you are not interested in theses features.
+1b. For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed (if they aren't already). For recent and most used files you need zeitgeist 0.3.3 or later from zeitgeist ppa. None of these are needed for DockbarX to run and can safely be ignored if you are not interested in theses features.
+$ sudo add-apt-repository ppa:zeitgeist/ppa && sudo apt-get update
 $ sudo apt-get install libgtk2.0-0 libx11-6 libxcomposite1 zeitgeist
 
 2. Change directory to where you unpacked dockbarx and run the setup.py install
