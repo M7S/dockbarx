@@ -19,7 +19,7 @@ INSTALL
 1. Install python-wnck, python-gnomeapplet and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). 
 $ sudo apt-get install python-gnomeapplet python-wnck python-numpy
 
-1b. For previews libgtk2.0-0, libgx11-6 and libxcomposite1 needs to be installed (if they aren't already). For recent and most used files you need zeitgeist 0.3.3 or later from zeitgeist ppa. None of these are needed for DockbarX to run and can safely be ignored if you are not interested in theses features.
+1b. (Optinal) For recent and most used files you need zeitgeist 0.3.3 or later from zeitgeist ppa.
 $ sudo add-apt-repository ppa:zeitgeist/ppa && sudo apt-get update
 $ sudo apt-get install libgtk2.0-0 libx11-6 libxcomposite1 zeitgeist
 
@@ -27,6 +27,8 @@ $ sudo apt-get install libgtk2.0-0 libx11-6 libxcomposite1 zeitgeist
 $ sudo ./setup.py install
 
 3. Add DockBarX applet to panel (kill gnome-panel first if necessary)
+
+NOTE! To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". (Alternatively you can use kwin as window manager instead of compiz. That will give you previews for minimized windows as well.)
 
 You can also run dockbarx in window (meant for debugging purposes, mostly):
 $dockbarx_factory.py run-in-window

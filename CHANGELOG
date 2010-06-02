@@ -1,5 +1,14 @@
 Changelog:
 
+x.39.1
+End user features:
+- New preview system (ported from vanilla dockbar) that has live previews instead of stills. It is also a lot faster and hopefully more stable. To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails" (or use KDE's window manager kwin, which also gives you previews for minimized windows).
+
+Bug fixes:
+- Bug #576068: DockbarX crashed on stratup when used with AWN 0.4
+- Bug #587494: DockbarX Preference Window crashed on startup.
+- Bug #588052: Attention effect didn't show and didn't turn off.
+
 x.0.39
 DockbarX x.0.39 uses re-arranged code. DockbarX is now an python package. This will probably make future versions of DockbarX more stable and speed up the development some.
 
