@@ -70,7 +70,10 @@ class IconFactory():
             self.launcher = None
         self.class_group = class_group
 
-        self.size = 0
+        # Setting size to something other than zero to
+        # avoid crashes if surface_update() is runned
+        # before the size is set.
+        self.size = 15
 
         self.icon = None
         self.surfaces = {}
