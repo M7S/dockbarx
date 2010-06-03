@@ -263,7 +263,7 @@ class WindowButton(gobject.GObject):
         self.globals.opacified = True
         self.opacified = True
         ov = [self.globals.settings['opacify_alpha']]
-        om = ["!(title=%s) & !(class=dockbarx_factory.py)  & (type=Normal | type=Dialog)"%self.window.get_name()]
+        om = ["!(xid=%s) & !(class=Dockbarx_factory.py)  & (type=Normal | type=Dialog)"%self.window.get_xid()]
         try:
             compiz_call('obs/screen0/opacity_values','set', ov)
             compiz_call('obs/screen0/opacity_matches','set', om)

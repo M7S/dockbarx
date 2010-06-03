@@ -1,6 +1,6 @@
 Changelog:
 
-x.39.1
+x.0.39.1
 End user features:
 - New preview system (ported from vanilla dockbar) that has live previews instead of stills. It is also a lot faster and hopefully more stable. To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails" (or use KDE's window manager kwin, which also gives you previews for minimized windows).
 

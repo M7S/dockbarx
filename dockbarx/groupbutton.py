@@ -843,7 +843,7 @@ class GroupButton (gobject.GObject):
         self.globals.opacified = True
         self.opacified = True
         ov = [self.globals.settings['opacify_alpha']]
-        om = ["!(class=%s | class=dockbarx_factory.py)  & (type=Normal | type=Dialog)"%self.class_group.get_res_class()]
+        om = ["!(class=%s | class=Dockbarx_factory.py)  & (type=Normal | type=Dialog)"%self.class_group.get_res_class()]
         try:
             compiz_call('obs/screen0/opacity_values','set', ov)
             compiz_call('obs/screen0/opacity_matches','set', om)

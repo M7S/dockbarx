@@ -36,7 +36,7 @@ from cairowidgets import *
 from theme import Theme, NoThemesError
 from common import *
 
-VERSION = 'x.0.39.1'
+VERSION = 'x.0.39.1+bzr'
 
 class AboutDialog():
     __instance = None
