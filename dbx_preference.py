@@ -596,6 +596,7 @@ class PrefDialog():
         else:
             self.theme_colors = {}
             self.theme_alphas = {}
+            self.globals.update_colors(None)
 
     def find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes

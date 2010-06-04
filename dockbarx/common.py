@@ -474,8 +474,15 @@ class Globals(gobject.GObject):
         if pref_update == True:
             self.emit('preference-update')
 
-    def update_colors(self, theme_name, theme_colors, theme_alphas):
+    def update_colors(self, theme_name, theme_colors=None, theme_alphas=None):
         # Updates the colors when the theme calls for an update.
+        if theme_name == None:
+            self.colors.clear()
+            # If there are no theme name, preference window wants empty colors.
+            for i in range(1, 9):
+                self.colors['color%s'%i] = "#000000"
+            return
+
         theme_name = theme_name.replace(' ', '_').encode()
         try:
             theme_name = theme_name.translate(None, '!?*()/#"@')

@@ -100,6 +100,9 @@ class IconFactory():
 
 
     def set_size(self, size):
+        if size <= 0:
+            # To avoid chrashes.
+            size = 15
         self.size = size
         self.surfaces = {}
         self.average_color = None
@@ -393,6 +396,9 @@ class IconFactory():
             size = self.size + size
         else:
             size = self.size
+        if size <= 0:
+            # To avoid chrashes.
+            size = 15
         if self.icon \
         and self.icon.get_width() == size \
         and self.icon.get_height() == size:

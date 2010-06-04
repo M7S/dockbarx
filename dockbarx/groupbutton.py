@@ -675,12 +675,15 @@ class GroupButton (gobject.GObject):
 
         win_cnt = self.get_windows_count()
         if self.globals.settings["preview"] and win_cnt > 0:
+            # Set hint type so that previews can be used.
             if not self.popup.get_property('visible'):
                 self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
+            # Make space in where the previews can be placed.
             ps = self.globals.settings['preview_size']
             for win in self.get_windows():
                 self.windows[win].prepare_preview(ps)
 
+            # Set the width of popup window title.
             p = 4
             title_width = win_cnt * (ps+p*2) + ( win_cnt-1)*self.popup_box.get_spacing()
             self.popup_label.set_ellipsize(pango.ELLIPSIZE_END)
@@ -689,6 +692,8 @@ class GroupButton (gobject.GObject):
             if not self.popup.get_property('visible'):
                 self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
             self.popup_label.set_ellipsize(pango.ELLIPSIZE_NONE)
+            self.popup_label.set_size_request(-1, -1)
+
         if self.globals.settings["show_only_current_desktop"]:
             self.popup_box.show()
             self.winlist.show()
@@ -736,6 +741,7 @@ class GroupButton (gobject.GObject):
         # preview can be set. Iterate gtk events.
         while gtk.events_pending():
                 gtk.main_iteration(False)
+        # Tell the compiz/kwin where to put the previews.
         if self.globals.settings["preview"] \
         and self.get_windows_count() > 0:
             previews = []
