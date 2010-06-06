@@ -36,6 +36,9 @@ from cairowidgets import *
 from theme import Theme, NoThemesError
 from common import *
 
+import i18n
+_ = i18n.language.gettext
+
 VERSION = 'x.0.39.1+bzr'
 
 class AboutDialog():
@@ -369,7 +372,11 @@ class DockBar():
             try:
                 self.add_launcher(identifier, path)
             except LauncherPathError:
-                message = "The launcher at path %s cant be found. Did you perhaps delete the file?"%path
+                message = "%s %s %s"%(
+                                        _("The launcher at path"),
+                                        path,
+                                        _("cant be found. Did you perhaps delete the file?")
+                                      )
                 print message
                 md = gtk.MessageDialog(None,
                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -864,11 +871,11 @@ class DockBar():
             gtk.MESSAGE_QUESTION,
             gtk.BUTTONS_OK_CANCEL,
             None)
-        dialog.set_title('Identifier')
-        dialog.set_markup('<b>Enter the identifier here</b>')
+        dialog.set_title(_('Identifier'))
+        dialog.set_markup('<b>%s</b>'%_("Enter the identifier here"))
         dialog.format_secondary_markup(
-            'You should have to do this only if the program fails to recognice its windows. '+ \
-            'If the program is already running you should be able to find the identifier of the program from the dropdown list.')
+            _('You should have to do this only if the program fails to recognice its windows. ')+ \
+            _('If the program is already running you should be able to find the identifier of the program from the dropdown list.'))
         #create the text input field
         #entry = gtk.Entry()
         combobox = gtk.combo_box_entry_new_text()
@@ -883,7 +890,7 @@ class DockBar():
         #allow the user to press enter to do ok
         entry.connect("activate", lambda widget: dialog.response(gtk.RESPONSE_OK))
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label('Identifier:'), False, 5, 5)
+        hbox.pack_start(gtk.Label(_('Identifier:')), False, 5, 5)
         hbox.pack_end(combobox)
         dialog.vbox.pack_end(hbox, True, True, 0)
         dialog.show_all()

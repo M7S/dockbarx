@@ -1,0 +1,395 @@
+# Tranlation template for DockbarX.
+# Copyright (C) 2010 Matias Sars
+# This file is distributed under GPL and BSD licence.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-06-06 09:02+0300\n"
+"PO-Revision-Date: 2010-06-06 09:16+0300\n"
+"Last-Translator: Matias Srs <m7s@bastu.net>\n"
+"Language-Team: Swedish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: iconfactory.py:514
+msgid "Cannot load icon for launcher"
+msgstr "Kan inte ladda ikon för programstartaren"
+
+#: dockbar.py:376
+msgid "The launcher at path"
+msgstr "Programstartaren med sökväg"
+
+#: dockbar.py:378
+msgid "cant be found. Did you perhaps delete the file?"
+msgstr "kan inte hittas. Kanske du har tagit bort filen?"
+
+#: dockbar.py:874 groupbutton.py:247 groupbutton.py:294
+msgid "Identifier"
+msgstr "Identifierare"
+
+#: dockbar.py:875
+msgid "Enter the identifier here"
+msgstr "Skriv namnet på identifieraren här"
+
+#: dockbar.py:877
+msgid ""
+"You should have to do this only if the program fails to recognice its "
+"windows. "
+msgstr "Det här ska endast göras om programmet inte kan identifiera sina fönster"
+
+#: dockbar.py:878
+msgid ""
+"If the program is already running you should be able to find the identifier "
+"of the program from the dropdown list."
+msgstr "Om programmet redan körs kan du hitta identifieraren för programmet i listan."
+
+#: dockbar.py:893
+msgid "Identifier:"
+msgstr "Identifierare:"
+
+#: windowbutton.py:490 groupbutton.py:1578
+msgid "_Minimize"
+msgstr "_Minimera"
+
+#: windowbutton.py:493 groupbutton.py:1572
+msgid "Un_minimize"
+msgstr "Av_minimera"
+
+#: windowbutton.py:502 groupbutton.py:1586
+msgid "Ma_ximize"
+msgstr "Ma_ximera"
+
+#: windowbutton.py:505 groupbutton.py:1589
+msgid "Unma_ximize"
+msgstr "Avma_ximera"
+
+#: windowbutton.py:511 groupbutton.py:1594
+msgid "_Close"
+msgstr "_Stäng"
+
+#: groupbutton.py:1503
+msgid "_Pin application"
+msgstr "_Fäst program"
+
+#: groupbutton.py:1509
+msgid "_Launch application"
+msgstr "S_tarta program"
+
+#: groupbutton.py:1515
+msgid "Unpin application"
+msgstr "Ta bort program"
+
+#: groupbutton.py:1520
+msgid "Edit Identifier"
+msgstr "Ändra identifierare"
+
+#: groupbutton.py:1538
+msgid "Recent"
+msgstr "Senaste"
+
+#: groupbutton.py:1538
+msgid "Most used"
+msgstr "Mest använda"
+
+#: groupbutton.py:1569
+msgid " all windows"
+msgstr " alla fönster"
+
+#: theme.py:154 ../dbx_preference.py:641
+msgid ""
+"No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
+msgstr "Inga teman som fungar finns i /usr/share/dockbarx/themes eller i ~/.dockbarx/themes"
+
+#: ../dbx_preference.py:207
+msgid "DockBarX preferences"
+msgstr "DockbarX inställningar"
+
+#: ../dbx_preference.py:223
+msgid "Windowbutton actions"
+msgstr "Fönsterknapps mekanismer"
+
+#: ../dbx_preference.py:231 ../dbx_preference.py:413
+msgid "Left mouse button"
+msgstr "Vänster musknapp"
+
+#: ../dbx_preference.py:232 ../dbx_preference.py:414
+msgid "Shift + left mouse button"
+msgstr "Shift + vänster musknapp"
+
+#: ../dbx_preference.py:233 ../dbx_preference.py:415
+msgid "Middle mouse button"
+msgstr "Mittenmusknappen"
+
+#: ../dbx_preference.py:234 ../dbx_preference.py:416
+msgid "Shift + middle mouse button"
+msgstr "Shift + mittenmusknappen"
+
+#: ../dbx_preference.py:235 ../dbx_preference.py:417
+msgid "Right mouse button"
+msgstr "Höger musknapp"
+
+#: ../dbx_preference.py:236 ../dbx_preference.py:418
+msgid "Shift + right mouse button"
+msgstr "Shift + höger musknapp"
+
+#: ../dbx_preference.py:237 ../dbx_preference.py:419
+msgid "Scroll up"
+msgstr "Rulla upp"
+
+#: ../dbx_preference.py:238 ../dbx_preference.py:420
+msgid "Scroll down"
+msgstr "Rulla ner"
+
+#: ../dbx_preference.py:242 ../dbx_preference.py:490 ../dbx_preference.py:732
+#: ../dbx_preference.py:865
+msgid "select or minimize window"
+msgstr "aktivera eller minimera fönster"
+
+#: ../dbx_preference.py:243 ../dbx_preference.py:489 ../dbx_preference.py:731
+#: ../dbx_preference.py:864
+msgid "select window"
+msgstr "aktivera fönster"
+
+#: ../dbx_preference.py:244
+msgid "maximize window"
+msgstr "maximera fönster"
+
+#: ../dbx_preference.py:245
+msgid "close window"
+msgstr "stäng fönster"
+
+#: ../dbx_preference.py:246 ../dbx_preference.py:429
+msgid "show menu"
+msgstr "visa meny"
+
+#: ../dbx_preference.py:247
+msgid "shade window"
+msgstr "rulla upp fönster"
+
+#: ../dbx_preference.py:248
+msgid "unshade window"
+msgstr "rulla ner fönster"
+
+#: ../dbx_preference.py:249 ../dbx_preference.py:438
+msgid "no action"
+msgstr "inget"
+
+#: ../dbx_preference.py:274
+msgid "Needs attention effect"
+msgstr "Uppmärksamhets effect"
+
+#: ../dbx_preference.py:278
+msgid "Compiz water"
+msgstr "Compiz vatten"
+
+#: ../dbx_preference.py:280
+msgid "Blinking"
+msgstr "Blinkande"
+
+#: ../dbx_preference.py:282
+msgid "Static"
+msgstr "Statisk"
+
+#: ../dbx_preference.py:284
+msgid "No effect"
+msgstr "Ingen effekt"
+
+#: ../dbx_preference.py:293
+msgid "Popup Settings"
+msgstr "Pop up inställningar"
+
+#: ../dbx_preference.py:297
+msgid "Align left"
+msgstr "Vänsterjusterat"
+
+#: ../dbx_preference.py:299
+msgid "Align center"
+msgstr "Mittjusterat"
+
+#: ../dbx_preference.py:301
+msgid "Align right"
+msgstr "Högerjusterat"
+
+#: ../dbx_preference.py:309 ../dbx_preference.py:313
+msgid "Opacify"
+msgstr "Genomskinlighetseffekt"
+
+#: ../dbx_preference.py:316
+msgid "Opacify group"
+msgstr "Genomskinlighet för grupp"
+
+#: ../dbx_preference.py:320
+msgid "Opacity:"
+msgstr ""
+
+#: ../dbx_preference.py:335
+msgid "Theme:"
+msgstr "Tema:"
+
+#: ../dbx_preference.py:352
+msgid "Colors"
+msgstr "Färger"
+
+#: ../dbx_preference.py:406
+msgid "Groupbutton actions"
+msgstr "Programknapps mekanismer"
+
+#: ../dbx_preference.py:424
+msgid "select"
+msgstr "aktivera"
+
+#: ../dbx_preference.py:425
+msgid "close all windows"
+msgstr "stäng alla fönster"
+
+#: ../dbx_preference.py:426
+msgid "minimize all windows"
+msgstr "minimera alla fönster"
+
+#: ../dbx_preference.py:427
+msgid "maximize all windows"
+msgstr "maximera alla fönster"
+
+#: ../dbx_preference.py:428
+msgid "launch application"
+msgstr "starta program"
+
+#: ../dbx_preference.py:430
+msgid "remove launcher"
+msgstr "ta bort programstartare"
+
+#: ../dbx_preference.py:431
+msgid "select next window"
+msgstr "aktivera nästa fönster"
+
+#: ../dbx_preference.py:432
+msgid "select previous window"
+msgstr "aktivera föregående fönster"
+
+#: ../dbx_preference.py:433
+msgid "minimize all other groups"
+msgstr "minimera alla andra grupper"
+
+#: ../dbx_preference.py:434
+msgid "compiz scale windows"
+msgstr "compiz scale för gruppens fönster"
+
+#: ../dbx_preference.py:435
+msgid "compiz shift windows"
+msgstr "compiz shift för gruppens fönster"
+
+#: ../dbx_preference.py:436
+msgid "compiz scale all"
+msgstr "compiz scale för alla fönster"
+
+#: ../dbx_preference.py:437
+msgid "show preference dialog"
+msgstr "visa inställnings fönstret"
+
+#: ../dbx_preference.py:467
+msgid "Double click"
+msgstr "Dubbelklick"
+
+#: ../dbx_preference.py:480
+msgid "\"Select\" action options"
+msgstr "\"Aktivera\" mekanismens inställningar"
+
+#: ../dbx_preference.py:486
+msgid "One window open:"
+msgstr "Ett fönster öppet"
+
+#: ../dbx_preference.py:495
+msgid "Multiple windows open:"
+msgstr "Flera fönster öppna"
+
+#: ../dbx_preference.py:498 ../dbx_preference.py:741 ../dbx_preference.py:876
+msgid "select all"
+msgstr "välj alla"
+
+#: ../dbx_preference.py:499 ../dbx_preference.py:742 ../dbx_preference.py:877
+msgid "select or minimize all"
+msgstr "välj eller minimera alla"
+
+#: ../dbx_preference.py:500 ../dbx_preference.py:743 ../dbx_preference.py:878
+msgid "compiz scale"
+msgstr "compiz scale"
+
+#: ../dbx_preference.py:501 ../dbx_preference.py:744 ../dbx_preference.py:879
+msgid "cycle through windows"
+msgstr "Aktivera nästa fönster"
+
+#: ../dbx_preference.py:502 ../dbx_preference.py:745 ../dbx_preference.py:880
+msgid "show popup"
+msgstr "Visa fönsterlista"
+
+#: ../dbx_preference.py:507
+msgid "Workspace behavior:"
+msgstr "Arbetsyte beteende"
+
+#: ../dbx_preference.py:510 ../dbx_preference.py:891
+msgid "Ignore windows on other workspaces"
+msgstr "Ignorera fönster på andra arbetsytor"
+
+#: ../dbx_preference.py:511 ../dbx_preference.py:755 ../dbx_preference.py:892
+msgid "Switch workspace when needed"
+msgstr "Flytta till fönstrets arbetsyta"
+
+#: ../dbx_preference.py:512 ../dbx_preference.py:756 ../dbx_preference.py:893
+msgid "Move windows from other workspaces"
+msgstr "Flytta fönster till nuvarande arbetsyta"
+
+#: ../dbx_preference.py:521
+msgid "Popup"
+msgstr "Fönsterlista"
+
+#: ../dbx_preference.py:526
+msgid "Delay:"
+msgstr "Fördröjning"
+
+#: ../dbx_preference.py:535
+msgid "Show popup only if more than one window is open"
+msgstr "Visa fönsterlista endast om fler än ett fönster är öppet"
+
+#: ../dbx_preference.py:542
+msgid "Show previews"
+msgstr "Visa förhandsvisningar"
+
+#: ../dbx_preference.py:547
+msgid "Preview size:"
+msgstr "Storlek på förhandsvisning: "
+
+#: ../dbx_preference.py:556
+msgid "Ignore windows on other viewports/workspaces"
+msgstr "Ignorera fönster som är på andra arbetsytor"
+
+#: ../dbx_preference.py:560
+msgid "Give each wine application its own group button"
+msgstr "Ge varje wine program en egen programknapp"
+
+#: ../dbx_preference.py:564
+msgid "Keep open office application (Writer, Calc, etc.) separated"
+msgstr "Separera på OpenOffice programmen (Writer, Calc, o.s.v.)"
+
+#: ../dbx_preference.py:569
+msgid "Appearance"
+msgstr "Utseende"
+
+#: ../dbx_preference.py:572
+msgid "Group Button"
+msgstr "Programknappar"
+
+#: ../dbx_preference.py:574
+msgid "Window Button"
+msgstr "Fönsterknappar"
+
+#: ../dbx_preference.py:576
+msgid "Advanced"
+msgstr "Avancerat"
+
+#: ../dbx_preference.py:754
+msgid "Ignore windows on other workspace"
+msgstr "Ignorera fönster på andra arbetsytor"

@@ -40,6 +40,9 @@ from cairowidgets import CairoPopup
 from common import Globals, compiz_call
 import zg
 
+import i18n
+_ = i18n.language.gettext
+
 ATOM_PREVIEWS = gtk.gdk.atom_intern('_KDE_WINDOW_PREVIEW')
 
 class LauncherPathError(Exception):
@@ -241,7 +244,7 @@ class GroupButton (gobject.GObject):
         self.popup_label.set_use_markup(True)
         if self.identifier:
             # Todo: add tooltip when identifier is added.
-            self.popup_label.set_tooltip_text("Identifier: %s"%self.identifier)
+            self.popup_label.set_tooltip_text("%s: %s"%(_("Identifier"),self.identifier))
         self.popup_box.pack_start(self.popup_label, False)
         self.popup_box.pack_start(self.winlist, False)
 
@@ -288,7 +291,7 @@ class GroupButton (gobject.GObject):
     def identifier_changed(self, identifier):
         self.identifier = identifier
         self.launcher.set_identifier(identifier)
-        self.popup_label.set_tooltip_text("Identifier: %s"%self.identifier)
+        self.popup_label.set_tooltip_text("%s: %s"%(_("Identifier"),self.identifier))
 
     def update_class_group(self, class_group):
         self.class_group = class_group
@@ -1497,24 +1500,24 @@ class GroupButton (gobject.GObject):
         menu.connect('selection-done', self.menu_closed)
         if self.app and not self.launcher:
             #Add launcher item
-            add_launcher_item = gtk.MenuItem('_Pin application')
+            add_launcher_item = gtk.MenuItem(_('_Pin application'))
             menu.append(add_launcher_item)
             add_launcher_item.connect("activate", self.add_launcher)
             add_launcher_item.show()
         if self.launcher or self.app:
             #Launch program item
-            launch_program_item = gtk.MenuItem('_Launch application')
+            launch_program_item = gtk.MenuItem(_('_Launch application'))
             menu.append(launch_program_item)
             launch_program_item.connect("activate", self.action_launch_application)
             launch_program_item.show()
         if self.launcher:
             #Remove launcher item
-            remove_launcher_item = gtk.MenuItem('Unpin application')
+            remove_launcher_item = gtk.MenuItem(_('Unpin application'))
             menu.append(remove_launcher_item)
             remove_launcher_item.connect("activate", self.action_remove_launcher)
             remove_launcher_item.show()
             #Edit identifier item
-            edit_identifier_item = gtk.MenuItem('Edit Identifier')
+            edit_identifier_item = gtk.MenuItem(_('Edit Identifier'))
             menu.append(edit_identifier_item)
             edit_identifier_item.connect("activate", self.change_identifier)
             edit_identifier_item.show()
@@ -1532,7 +1535,7 @@ class GroupButton (gobject.GObject):
                 sep = gtk.SeparatorMenuItem()
                 menu.append(sep)
                 sep.show()
-            for files, menu_name in ((recent_files, 'Recent'), (most_used_files, 'Most used')):
+            for files, menu_name in ((recent_files, _('Recent')), (most_used_files, _('Most used'))):
                 if files:
                     submenu = gtk.Menu()
                     menu_item = gtk.MenuItem(menu_name)
@@ -1561,18 +1564,18 @@ class GroupButton (gobject.GObject):
         win_nr = self.get_windows_count()
         if win_nr:
             if win_nr == 1:
-                t = "window"
+                t = ""
             else:
-                t = "all windows"
+                t = _(" all windows")
             if self.get_unminimized_windows_count() == 0:
                 # Unminimize all
-                unminimize_all_windows_item = gtk.MenuItem('Un_minimize %s'%t)
+                unminimize_all_windows_item = gtk.MenuItem('%s%s'%(_("Un_minimize"), t))
                 menu.append(unminimize_all_windows_item)
                 unminimize_all_windows_item.connect("activate", self.unminimize_all_windows)
                 unminimize_all_windows_item.show()
             else:
                 # Minimize all
-                minimize_all_windows_item = gtk.MenuItem('_Minimize %s'%t)
+                minimize_all_windows_item = gtk.MenuItem('%s%s'%(_("_Minimize"), t))
                 menu.append(minimize_all_windows_item)
                 minimize_all_windows_item.connect("activate", self.action_minimize_all_windows)
                 minimize_all_windows_item.show()
@@ -1580,15 +1583,15 @@ class GroupButton (gobject.GObject):
             for window in self.windows:
                 if not window.is_maximized() \
                 and window.get_actions() & action_maximize:
-                    maximize_all_windows_item = gtk.MenuItem('Ma_ximize %s'%t)
+                    maximize_all_windows_item = gtk.MenuItem('%s%s'%(_("Ma_ximize"), t))
                     break
             else:
-                maximize_all_windows_item = gtk.MenuItem('Unma_ximize %s'%t)
+                maximize_all_windows_item = gtk.MenuItem('%s%s'%(_("Unma_ximize"), t))
             menu.append(maximize_all_windows_item)
             maximize_all_windows_item.connect("activate", self.action_maximize_all_windows)
             maximize_all_windows_item.show()
             # Close all
-            close_all_windows_item = gtk.MenuItem('_Close %s'%t)
+            close_all_windows_item = gtk.MenuItem('%s%s'%(_("_Close"), t))
             menu.append(close_all_windows_item)
             close_all_windows_item.connect("activate", self.action_close_all_windows)
             close_all_windows_item.show()

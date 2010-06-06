@@ -1,0 +1,395 @@
+# Tranlation template for DockbarX.
+# Copyright (C) 2010 Matias Sars
+# This file is distributed under the same GPL and BSD.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-06-06 09:02+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: iconfactory.py:514
+msgid "Cannot load icon for launcher"
+msgstr ""
+
+#: dockbar.py:376
+msgid "The launcher at path"
+msgstr ""
+
+#: dockbar.py:378
+msgid "cant be found. Did you perhaps delete the file?"
+msgstr ""
+
+#: dockbar.py:874 groupbutton.py:247 groupbutton.py:294
+msgid "Identifier"
+msgstr ""
+
+#: dockbar.py:875
+msgid "Enter the identifier here"
+msgstr ""
+
+#: dockbar.py:877
+msgid ""
+"You should have to do this only if the program fails to recognice its "
+"windows. "
+msgstr ""
+
+#: dockbar.py:878
+msgid ""
+"If the program is already running you should be able to find the identifier "
+"of the program from the dropdown list."
+msgstr ""
+
+#: dockbar.py:893
+msgid "Identifier:"
+msgstr ""
+
+#: windowbutton.py:490 groupbutton.py:1578
+msgid "_Minimize"
+msgstr ""
+
+#: windowbutton.py:493 groupbutton.py:1572
+msgid "Un_minimize"
+msgstr ""
+
+#: windowbutton.py:502 groupbutton.py:1586
+msgid "Ma_ximize"
+msgstr ""
+
+#: windowbutton.py:505 groupbutton.py:1589
+msgid "Unma_ximize"
+msgstr ""
+
+#: windowbutton.py:511 groupbutton.py:1594
+msgid "_Close"
+msgstr ""
+
+#: groupbutton.py:1503
+msgid "_Pin application"
+msgstr ""
+
+#: groupbutton.py:1509
+msgid "_Launch application"
+msgstr ""
+
+#: groupbutton.py:1515
+msgid "Unpin application"
+msgstr ""
+
+#: groupbutton.py:1520
+msgid "Edit Identifier"
+msgstr ""
+
+#: groupbutton.py:1538
+msgid "Recent"
+msgstr ""
+
+#: groupbutton.py:1538
+msgid "Most used"
+msgstr ""
+
+#: groupbutton.py:1569
+msgid " all windows"
+msgstr ""
+
+#: theme.py:154 ../dbx_preference.py:641
+msgid ""
+"No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
+msgstr ""
+
+#: ../dbx_preference.py:207
+msgid "DockBarX preferences"
+msgstr ""
+
+#: ../dbx_preference.py:223
+msgid "Windowbutton actions"
+msgstr ""
+
+#: ../dbx_preference.py:231 ../dbx_preference.py:413
+msgid "Left mouse button"
+msgstr ""
+
+#: ../dbx_preference.py:232 ../dbx_preference.py:414
+msgid "Shift + left mouse button"
+msgstr ""
+
+#: ../dbx_preference.py:233 ../dbx_preference.py:415
+msgid "Middle mouse button"
+msgstr ""
+
+#: ../dbx_preference.py:234 ../dbx_preference.py:416
+msgid "Shift + middle mouse button"
+msgstr ""
+
+#: ../dbx_preference.py:235 ../dbx_preference.py:417
+msgid "Right mouse button"
+msgstr ""
+
+#: ../dbx_preference.py:236 ../dbx_preference.py:418
+msgid "Shift + right mouse button"
+msgstr ""
+
+#: ../dbx_preference.py:237 ../dbx_preference.py:419
+msgid "Scroll up"
+msgstr ""
+
+#: ../dbx_preference.py:238 ../dbx_preference.py:420
+msgid "Scroll down"
+msgstr ""
+
+#: ../dbx_preference.py:242 ../dbx_preference.py:490 ../dbx_preference.py:732
+#: ../dbx_preference.py:865
+msgid "select or minimize window"
+msgstr ""
+
+#: ../dbx_preference.py:243 ../dbx_preference.py:489 ../dbx_preference.py:731
+#: ../dbx_preference.py:864
+msgid "select window"
+msgstr ""
+
+#: ../dbx_preference.py:244
+msgid "maximize window"
+msgstr ""
+
+#: ../dbx_preference.py:245
+msgid "close window"
+msgstr ""
+
+#: ../dbx_preference.py:246 ../dbx_preference.py:429
+msgid "show menu"
+msgstr ""
+
+#: ../dbx_preference.py:247
+msgid "shade window"
+msgstr ""
+
+#: ../dbx_preference.py:248
+msgid "unshade window"
+msgstr ""
+
+#: ../dbx_preference.py:249 ../dbx_preference.py:438
+msgid "no action"
+msgstr ""
+
+#: ../dbx_preference.py:274
+msgid "Needs attention effect"
+msgstr ""
+
+#: ../dbx_preference.py:278
+msgid "Compiz water"
+msgstr ""
+
+#: ../dbx_preference.py:280
+msgid "Blinking"
+msgstr ""
+
+#: ../dbx_preference.py:282
+msgid "Static"
+msgstr ""
+
+#: ../dbx_preference.py:284
+msgid "No effect"
+msgstr ""
+
+#: ../dbx_preference.py:293
+msgid "Popup Settings"
+msgstr ""
+
+#: ../dbx_preference.py:297
+msgid "Align left"
+msgstr ""
+
+#: ../dbx_preference.py:299
+msgid "Align center"
+msgstr ""
+
+#: ../dbx_preference.py:301
+msgid "Align right"
+msgstr ""
+
+#: ../dbx_preference.py:309 ../dbx_preference.py:313
+msgid "Opacify"
+msgstr ""
+
+#: ../dbx_preference.py:316
+msgid "Opacify group"
+msgstr ""
+
+#: ../dbx_preference.py:320
+msgid "Opacity:"
+msgstr ""
+
+#: ../dbx_preference.py:335
+msgid "Theme:"
+msgstr ""
+
+#: ../dbx_preference.py:352
+msgid "Colors"
+msgstr ""
+
+#: ../dbx_preference.py:406
+msgid "Groupbutton actions"
+msgstr ""
+
+#: ../dbx_preference.py:424
+msgid "select"
+msgstr ""
+
+#: ../dbx_preference.py:425
+msgid "close all windows"
+msgstr ""
+
+#: ../dbx_preference.py:426
+msgid "minimize all windows"
+msgstr ""
+
+#: ../dbx_preference.py:427
+msgid "maximize all windows"
+msgstr ""
+
+#: ../dbx_preference.py:428
+msgid "launch application"
+msgstr ""
+
+#: ../dbx_preference.py:430
+msgid "remove launcher"
+msgstr ""
+
+#: ../dbx_preference.py:431
+msgid "select next window"
+msgstr ""
+
+#: ../dbx_preference.py:432
+msgid "select previous window"
+msgstr ""
+
+#: ../dbx_preference.py:433
+msgid "minimize all other groups"
+msgstr ""
+
+#: ../dbx_preference.py:434
+msgid "compiz scale windows"
+msgstr ""
+
+#: ../dbx_preference.py:435
+msgid "compiz shift windows"
+msgstr ""
+
+#: ../dbx_preference.py:436
+msgid "compiz scale all"
+msgstr ""
+
+#: ../dbx_preference.py:437
+msgid "show preference dialog"
+msgstr ""
+
+#: ../dbx_preference.py:467
+msgid "Double click"
+msgstr ""
+
+#: ../dbx_preference.py:480
+msgid "\"Select\" action options"
+msgstr ""
+
+#: ../dbx_preference.py:486
+msgid "One window open:"
+msgstr ""
+
+#: ../dbx_preference.py:495
+msgid "Multiple windows open:"
+msgstr ""
+
+#: ../dbx_preference.py:498 ../dbx_preference.py:741 ../dbx_preference.py:876
+msgid "select all"
+msgstr ""
+
+#: ../dbx_preference.py:499 ../dbx_preference.py:742 ../dbx_preference.py:877
+msgid "select or minimize all"
+msgstr ""
+
+#: ../dbx_preference.py:500 ../dbx_preference.py:743 ../dbx_preference.py:878
+msgid "compiz scale"
+msgstr ""
+
+#: ../dbx_preference.py:501 ../dbx_preference.py:744 ../dbx_preference.py:879
+msgid "cycle through windows"
+msgstr ""
+
+#: ../dbx_preference.py:502 ../dbx_preference.py:745 ../dbx_preference.py:880
+msgid "show popup"
+msgstr ""
+
+#: ../dbx_preference.py:507
+msgid "Workspace behavior:"
+msgstr ""
+
+#: ../dbx_preference.py:510 ../dbx_preference.py:891
+msgid "Ignore windows on other workspaces"
+msgstr ""
+
+#: ../dbx_preference.py:511 ../dbx_preference.py:755 ../dbx_preference.py:892
+msgid "Switch workspace when needed"
+msgstr ""
+
+#: ../dbx_preference.py:512 ../dbx_preference.py:756 ../dbx_preference.py:893
+msgid "Move windows from other workspaces"
+msgstr ""
+
+#: ../dbx_preference.py:521
+msgid "Popup"
+msgstr ""
+
+#: ../dbx_preference.py:526
+msgid "Delay:"
+msgstr ""
+
+#: ../dbx_preference.py:535
+msgid "Show popup only if more than one window is open"
+msgstr ""
+
+#: ../dbx_preference.py:542
+msgid "Show previews"
+msgstr ""
+
+#: ../dbx_preference.py:547
+msgid "Preview size:"
+msgstr ""
+
+#: ../dbx_preference.py:556
+msgid "Ignore windows on other viewports/workspaces"
+msgstr ""
+
+#: ../dbx_preference.py:560
+msgid "Give each wine application its own group button"
+msgstr ""
+
+#: ../dbx_preference.py:564
+msgid "Keep open office application (Writer, Calc, etc.) separated"
+msgstr ""
+
+#: ../dbx_preference.py:569
+msgid "Appearance"
+msgstr ""
+
+#: ../dbx_preference.py:572
+msgid "Group Button"
+msgstr ""
+
+#: ../dbx_preference.py:574
+msgid "Window Button"
+msgstr ""
+
+#: ../dbx_preference.py:576
+msgid "Advanced"
+msgstr ""
+
+#: ../dbx_preference.py:754
+msgid "Ignore windows on other workspace"
+msgstr ""

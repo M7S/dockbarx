@@ -32,6 +32,9 @@ from cStringIO import StringIO
 from theme import Theme
 from common import Globals
 
+import i18n
+_ = i18n.language.gettext
+
 class IconFactory():
     """IconFactory takes care of finding the right icon for a program and prepares the cairo surface."""
     icon_theme = gtk.icon_theme_get_default()
@@ -503,11 +506,13 @@ class IconFactory():
         else:
             pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
             pixbuf.fill(0x00000000)
-        dialog = gtk.MessageDialog(parent=None,
-                              flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                              type=gtk.MESSAGE_WARNING,
-                              buttons=gtk.BUTTONS_OK,
-                              message_format='Cannot load icon for launcher %s.'%self.launcher.get_identifier())
+        dialog = gtk.MessageDialog(
+                    parent=None,
+                    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                    type=gtk.MESSAGE_WARNING,
+                    buttons=gtk.BUTTONS_OK,
+                    message_format='%s %s.'%(_("Cannot load icon for launcher"), self.launcher.get_identifier())
+                                  )
         dialog.set_title('DockBarX')
         dialog.run()
         dialog.destroy()

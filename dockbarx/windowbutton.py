@@ -29,6 +29,9 @@ gc.enable()
 from common import ODict, Globals, compiz_call
 from cairowidgets import CairoWindowButton
 
+import i18n
+_ = i18n.language.gettext
+
 
 class WindowButton(gobject.GObject):
     __gsignals__ = {
@@ -484,10 +487,10 @@ class WindowButton(gobject.GObject):
         minimize_item = None
         if self.window.get_actions() & action_minimize \
         and not self.window.is_minimized():
-            minimize_item = gtk.MenuItem('_Minimize')
+            minimize_item = gtk.MenuItem(_('_Minimize'))
         elif self.window.get_actions() & action_unminimize \
         and self.window.is_minimized():
-            minimize_item = gtk.MenuItem('Un_minimize')
+            minimize_item = gtk.MenuItem(_('Un_minimize'))
         if minimize_item:
             menu.append(minimize_item)
             minimize_item.connect("activate", self.minimize_window)
@@ -496,16 +499,16 @@ class WindowButton(gobject.GObject):
         maximize_item = None
         if not self.window.is_maximized() \
         and self.window.get_actions() & action_maximize:
-            maximize_item = gtk.MenuItem('Ma_ximize')
+            maximize_item = gtk.MenuItem(_('Ma_ximize'))
         elif self.window.is_maximized() \
         and self.window.get_actions() & action_unminimize:
-            maximize_item = gtk.MenuItem('Unma_ximize')
+            maximize_item = gtk.MenuItem(_('Unma_ximize'))
         if maximize_item:
             menu.append(maximize_item)
             maximize_item.connect("activate", self.action_maximize_window)
             maximize_item.show()
         # Close
-        close_item = gtk.MenuItem('_Close')
+        close_item = gtk.MenuItem(_('_Close'))
         menu.append(close_item)
         close_item.connect("activate", self.action_close_window)
         close_item.show()

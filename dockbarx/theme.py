@@ -26,6 +26,9 @@ import os
 from common import ODict
 from common import Globals
 
+import i18n
+_ = i18n.language.gettext
+
 class NoThemesError(Exception):
     pass
 
@@ -148,10 +151,10 @@ class Theme(gobject.GObject):
             md = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                'No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
+                _('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes'))
             md.run()
             md.destroy()
-            raise NoThemesError('No working themes found in "/usr/share/dockbarx/themes" or "~/.dockbarx/themes"')
+            raise NoThemesError('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes')
         return themes
 
     def reload(self):
