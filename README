@@ -28,7 +28,6 @@ $ sudo ./setup.py install
 
 3. Add DockBarX applet to panel (kill gnome-panel first if necessary)
 
-NOTE! To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". (Alternatively you can use kwin as window manager instead of compiz. That will give you previews for minimized windows as well.)
 
 You can also run dockbarx in window (meant for debugging purposes, mostly):
 $dockbarx_factory.py run-in-window
@@ -109,6 +108,13 @@ FAQ
 Q: Why do you want to make Linux into a Microsoft Windows 7 clone?
 A: I don't. The goal of DockbarX isn't to be a clone of the Windows 7 task bar. Windows 7 task bar has a good principle, though.  When it comes to your most used programs it's more productive to do all window handling - launching, selecting, closing, etc. from the same few pixels. If I need a Firefox window I move my mouse cursor to the same spot on the screen regardless of which Firefox window I want and or if I even have opened a Firefox window yet. This behavior is good and it would be stupid not to implement it just because "Windows had it first". Don't reduce your productivity out of stubbornness. When it comes to looks it's up to you to choose a theme that looks like windows 7 or a theme that doesn't look that way.
 
+Here are some historical references about docks:
+http://en.wikipedia.org/wiki/Dock_(computing)
+http://en.wikipedia.org/wiki/Icon_bar
+
+And another interesting link that has had quite a bit of infuence on my work with DockbarX:
+http://arstechnica.com/software/news/2009/01/dock-and-windows-7-taskbar.ars
+
 Q: I want a button for every window instead of all windows of the same application grouped together under one button. When will DockbarX support that?
 A: Never. That would demand quite a bit of restructuring of the code and I believe it's less productive to keep the window buttons ungrouped. You are welcome to change the code yourself if you don't like my decision, or try the applet Talika it might suit your needs better than DockbarX does.
 
@@ -130,7 +136,7 @@ Q: None of DockbarX's compiz stuff like "compiz scale" work. Why?
 A: Make sure you enable the GLib extension in Compiz settings manager and that the compiz plugin dockbarx uses is activated as well. (e.g. for group button action "compiz scale" to work you need the scale plugin activated)
 
 Q: What is Opacify and how do I get it to work?
-A: Opacify is a way to find localize a window with dockbar. When opacify is on and you roll over a name in the window list with the mouse, all other windows will become transparent so that you easy can spot the window. To activate opacify you need to go to the appearance tab of the preference dialog and check in opacify checkbox. Opacify requires compiz fusion  and you need to activate the plugin Opacity, Brightness and Saturation in CompizConfig!
+A: Opacify is a way to find localize a window with dockbar. When opacify is on and you roll over a name in the window list with the mouse, all other windows will become transparent so that you easy can spot the window. To activate opacify you need to go to the appearance tab of the preference dialog and check in opacify checkbox. Opacify requires compiz fusion and you need to activate the plugin Opacity, Brightness and Saturation in CompizConfig!
 
 Q: How do I install a theme?
 A: If you find a theme on the web that you like, copy the file (should be SOMETHING.tar.gz) to ~/.dockbarx/themes or /usr/share/dockbarx/themes. You change themes in the appearance tab of preference dialog. You might need to press the reload button before your newly installed theme shows up.
