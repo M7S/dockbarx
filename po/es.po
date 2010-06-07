@@ -1,236 +1,237 @@
-# Tranlation template for DockbarX.
-# Copyright (C) 2010 Matias Sars
-# This file is distributed under GPL and BSD licence.
+# Spanish translation for dockbar
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the dockbar package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: dockbar\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-06-07 13:51+0300\n"
-"PO-Revision-Date: 2010-06-07 11:30+0000\n"
-"Last-Translator: Matias Särs <Unknown>\n"
-"Language-Team: Swedish\n"
+"PO-Revision-Date: 2010-06-07 03:25+0000\n"
+"Last-Translator: jramirez <Unknown>\n"
+"Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Launchpad-Export-Date: 2010-06-07 15:12+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: dockbarx/iconfactory.py:514
 msgid "Cannot load icon for launcher"
-msgstr "Kan inte ladda ikon för programstartaren"
+msgstr "No pudo cargarse el icono para el lanzador"
 
 #: dockbarx/dockbar.py:376
 msgid "The launcher at path"
-msgstr "Programstartaren med sökväg"
+msgstr "El lanzador en la ruta"
 
 #: dockbarx/dockbar.py:378
 msgid "cant be found. Did you perhaps delete the file?"
-msgstr "kan inte hittas. Kanske du har tagit bort filen?"
+msgstr "no se encuentra. Compruebe que no ha borrado el archivo."
 
 #: dockbarx/dockbar.py:874 dockbarx/groupbutton.py:247
 #: dockbarx/groupbutton.py:294
 msgid "Identifier"
-msgstr "Identifierare"
+msgstr "Identificador"
 
 #: dockbarx/dockbar.py:875
 msgid "Enter the identifier here"
-msgstr "Skriv namnet på identifieraren här"
+msgstr "Ingrese el identificador"
 
 #: dockbarx/dockbar.py:877
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
-msgstr ""
-"Det här ska endast göras om programmet inte kan identifiera sina fönster "
+msgstr "Debe hacer esto sólo si el programa no reconoce su ventana. "
 
 #: dockbarx/dockbar.py:878
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr ""
-"Om programmet redan körs kan du hitta identifieraren för programmet i listan."
+"Si la aplicación ya esta corriendo usted puede encontrar el identificador "
+"desde el menú desplegable"
 
 #: dockbarx/dockbar.py:893
 msgid "Identifier:"
-msgstr "Identifierare:"
+msgstr "Identificador:"
 
 #: dockbarx/windowbutton.py:490 dockbarx/groupbutton.py:1578
 msgid "_Minimize"
-msgstr "_Minimera"
+msgstr "_Minimizar"
 
 #: dockbarx/windowbutton.py:493 dockbarx/groupbutton.py:1572
 msgid "Un_minimize"
-msgstr "Av_minimera"
+msgstr "Restaurar"
 
 #: dockbarx/windowbutton.py:502 dockbarx/groupbutton.py:1586
 msgid "Ma_ximize"
-msgstr "Ma_ximera"
+msgstr "Ma_ximizar"
 
 #: dockbarx/windowbutton.py:505 dockbarx/groupbutton.py:1589
 msgid "Unma_ximize"
-msgstr "Avma_ximera"
+msgstr "Desma_ximizar"
 
 #: dockbarx/windowbutton.py:511 dockbarx/groupbutton.py:1594
 msgid "_Close"
-msgstr "_Stäng"
+msgstr "_Cerrar"
 
 #: dockbarx/groupbutton.py:1503
 msgid "_Pin application"
-msgstr "_Fäst program"
+msgstr "_Sujetar aplicación"
 
 #: dockbarx/groupbutton.py:1509
 msgid "_Launch application"
-msgstr "S_tarta program"
+msgstr "_Ejecutar aplicación"
 
 #: dockbarx/groupbutton.py:1515
 msgid "Unpin application"
-msgstr "Ta bort program"
+msgstr "desprender aplicación"
 
 #: dockbarx/groupbutton.py:1520
 msgid "Edit Identifier"
-msgstr "Ändra identifierare"
+msgstr "Editar Identificador"
 
 #: dockbarx/groupbutton.py:1538
 msgid "Recent"
-msgstr "Senaste"
+msgstr "Reciente"
 
 #: dockbarx/groupbutton.py:1538
 msgid "Most used"
-msgstr "Mest använda"
+msgstr "Más usado"
 
 #: dockbarx/groupbutton.py:1569
 msgid " all windows"
-msgstr " alla fönster"
+msgstr " todas las ventanas"
 
 #: dockbarx/theme.py:154 dbx_preference.py:642
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
-"Inga teman som fungar finns i /usr/share/dockbarx/themes eller i "
+"No se ha encontrado ningún tema válido en /usr/share/dockbarx/themes ni en "
 "~/.dockbarx/themes"
 
 #: dbx_preference.py:208
 msgid "DockBarX preferences"
-msgstr "DockbarX inställningar"
+msgstr "Preferencias de DockBarX"
 
 #: dbx_preference.py:224
 msgid "Windowbutton actions"
-msgstr "Fönsterknapps mekanismer"
+msgstr "Acciones del botón de ventana"
 
 #: dbx_preference.py:232 dbx_preference.py:414
 msgid "Left mouse button"
-msgstr "Vänster musknapp"
+msgstr "Botón izquierdo del ratón"
 
 #: dbx_preference.py:233 dbx_preference.py:415
 msgid "Shift + left mouse button"
-msgstr "Shift + vänster musknapp"
+msgstr "Shift + botón izquierdo del ratón"
 
 #: dbx_preference.py:234 dbx_preference.py:416
 msgid "Middle mouse button"
-msgstr "Mittenmusknappen"
+msgstr "Botón central del ratón"
 
 #: dbx_preference.py:235 dbx_preference.py:417
 msgid "Shift + middle mouse button"
-msgstr "Shift + mittenmusknappen"
+msgstr "Shift + botón central del ratón"
 
 #: dbx_preference.py:236 dbx_preference.py:418
 msgid "Right mouse button"
-msgstr "Höger musknapp"
+msgstr "Botón derecho del ratón"
 
 #: dbx_preference.py:237 dbx_preference.py:419
 msgid "Shift + right mouse button"
-msgstr "Shift + höger musknapp"
+msgstr "Shift + botón derecho del ratón"
 
 #: dbx_preference.py:238 dbx_preference.py:420
 msgid "Scroll up"
-msgstr "Rulla upp"
+msgstr "Desplazar hacia arriba"
 
 #: dbx_preference.py:239 dbx_preference.py:421
 msgid "Scroll down"
-msgstr "Rulla ner"
+msgstr "Desplazar hacia abajo"
 
 #: dbx_preference.py:243 dbx_preference.py:491 dbx_preference.py:733
 #: dbx_preference.py:924
 msgid "select or minimize window"
-msgstr "aktivera eller minimera fönster"
+msgstr "seleccionar o minimizar la ventana"
 
 #: dbx_preference.py:244 dbx_preference.py:490 dbx_preference.py:732
 #: dbx_preference.py:923
 msgid "select window"
-msgstr "aktivera fönster"
+msgstr "seleccionar ventana"
 
 #: dbx_preference.py:245
 msgid "maximize window"
-msgstr "maximera fönster"
+msgstr "maximizar ventana"
 
 #: dbx_preference.py:246
 msgid "close window"
-msgstr "stäng fönster"
+msgstr "cerrar ventana"
 
 #: dbx_preference.py:247 dbx_preference.py:430
 msgid "show menu"
-msgstr "visa meny"
+msgstr "mostrar menú"
 
 #: dbx_preference.py:248
 msgid "shade window"
-msgstr "rulla upp fönster"
+msgstr "sombrear ventana"
 
 #: dbx_preference.py:249
 msgid "unshade window"
-msgstr "rulla ner fönster"
+msgstr "Anular sombra de ventana"
 
 #: dbx_preference.py:250 dbx_preference.py:439
 msgid "no action"
-msgstr "inget"
+msgstr "sin acción"
 
 #: dbx_preference.py:275
 msgid "Needs attention effect"
-msgstr "Uppmärksamhets effect"
+msgstr ""
 
 #: dbx_preference.py:279
 msgid "Compiz water"
-msgstr "Compiz vatten"
+msgstr "Comfiz efecto de agua"
 
 #: dbx_preference.py:281
 msgid "Blinking"
-msgstr "Blinkande"
+msgstr "Parpadeo"
 
 #: dbx_preference.py:283
 msgid "Static"
-msgstr "Statisk"
+msgstr "Estático"
 
 #: dbx_preference.py:285
 msgid "No effect"
-msgstr "Ingen effekt"
+msgstr "Sin efecto"
 
 #: dbx_preference.py:294
 msgid "Popup Settings"
-msgstr "Pop up inställningar"
+msgstr "Opciones de notificación"
 
 #: dbx_preference.py:298
 msgid "Align left"
-msgstr "Vänsterjusterat"
+msgstr "Alinear a la izquierda"
 
 #: dbx_preference.py:300
 msgid "Align center"
-msgstr "Mittjusterat"
+msgstr "Alinear al centro"
 
 #: dbx_preference.py:302
 msgid "Align right"
-msgstr "Högerjusterat"
+msgstr "Alinear a la derecha"
 
 #: dbx_preference.py:310 dbx_preference.py:314
 msgid "Opacify"
-msgstr "Genomskinlighetseffekt"
+msgstr "Opacificar"
 
 #: dbx_preference.py:317
 msgid "Opacify group"
-msgstr "Genomskinlighet för grupp"
+msgstr "Opacificar grupo"
 
 #: dbx_preference.py:321
 msgid "Opacity:"
-msgstr "Opacitet:"
+msgstr "Opacidad:"
 
 #: dbx_preference.py:336
 msgid "Theme:"
@@ -238,188 +239,183 @@ msgstr "Tema:"
 
 #: dbx_preference.py:353
 msgid "Colors"
-msgstr "Färger"
+msgstr "Colores"
 
 #: dbx_preference.py:407
 msgid "Groupbutton actions"
-msgstr "Programknapps mekanismer"
+msgstr "Acciones del botón de grupo"
 
 #: dbx_preference.py:425
 msgid "select"
-msgstr "aktivera"
+msgstr "seleccionar"
 
 #: dbx_preference.py:426
 msgid "close all windows"
-msgstr "stäng alla fönster"
+msgstr "cerrar todas las ventanas"
 
 #: dbx_preference.py:427
 msgid "minimize all windows"
-msgstr "minimera alla fönster"
+msgstr "minimizar todas las ventanas"
 
 #: dbx_preference.py:428
 msgid "maximize all windows"
-msgstr "maximera alla fönster"
+msgstr "maximizar todas las ventanas"
 
 #: dbx_preference.py:429
 msgid "launch application"
-msgstr "starta program"
+msgstr "ejecutar aplicación"
 
 #: dbx_preference.py:431
 msgid "remove launcher"
-msgstr "ta bort programstartare"
+msgstr "eliminar lanzador"
 
 #: dbx_preference.py:432
 msgid "select next window"
-msgstr "aktivera nästa fönster"
+msgstr "seleccionar siguiente ventana"
 
 #: dbx_preference.py:433
 msgid "select previous window"
-msgstr "aktivera föregående fönster"
+msgstr "seleccionar anterior ventana"
 
 #: dbx_preference.py:434
 msgid "minimize all other groups"
-msgstr "minimera alla andra grupper"
+msgstr "minimizar todos los otros grupos"
 
 #: dbx_preference.py:435
 msgid "compiz scale windows"
-msgstr "compiz scale för gruppens fönster"
+msgstr "Compiz efecto de escalar ventanas"
 
 #: dbx_preference.py:436
 msgid "compiz shift windows"
-msgstr "compiz shift för gruppens fönster"
+msgstr "Compiz efecto de mover ventanas"
 
 #: dbx_preference.py:437
 msgid "compiz scale all"
-msgstr "compiz scale för alla fönster"
+msgstr "Compiz escalar todas"
 
 #: dbx_preference.py:438
 msgid "show preference dialog"
-msgstr "visa inställnings fönstret"
+msgstr "Mostrar el diálogo de preferencias"
 
 #: dbx_preference.py:468
 msgid "Double click"
-msgstr "Dubbelklick"
+msgstr "Doble clic"
 
 #: dbx_preference.py:481
 msgid "\"Select\" action options"
-msgstr "\"Aktivera\" mekanismens inställningar"
+msgstr ""
 
 #: dbx_preference.py:487
 msgid "One window open:"
-msgstr "Ett fönster öppet"
+msgstr "Ona ventana abierta:"
 
 #: dbx_preference.py:496
 msgid "Multiple windows open:"
-msgstr "Flera fönster öppna"
+msgstr "Múltiples ventanas abiertas:"
 
 #: dbx_preference.py:499 dbx_preference.py:742 dbx_preference.py:935
 msgid "select all"
-msgstr "välj alla"
+msgstr "seleccionar todos"
 
 #: dbx_preference.py:500 dbx_preference.py:743 dbx_preference.py:936
 msgid "select or minimize all"
-msgstr "välj eller minimera alla"
+msgstr "seleccionar o minimizar todo"
 
 #: dbx_preference.py:501 dbx_preference.py:744 dbx_preference.py:937
 msgid "compiz scale"
-msgstr "compiz scale"
+msgstr "Compiz escalar"
 
 #: dbx_preference.py:502 dbx_preference.py:745 dbx_preference.py:938
 msgid "cycle through windows"
-msgstr "Aktivera nästa fönster"
+msgstr ""
 
 #: dbx_preference.py:503 dbx_preference.py:746 dbx_preference.py:939
 msgid "show popup"
-msgstr "Visa fönsterlista"
+msgstr "mostrar notificación"
 
 #: dbx_preference.py:508
 msgid "Workspace behavior:"
-msgstr "Arbetsyte beteende"
+msgstr "Comportamiento del área de trabajo"
 
 #: dbx_preference.py:511 dbx_preference.py:950
 msgid "Ignore windows on other workspaces"
-msgstr "Ignorera fönster på andra arbetsytor"
+msgstr "Ignorar ventanas en otras áreas de trabajo"
 
 #: dbx_preference.py:512 dbx_preference.py:756 dbx_preference.py:951
 msgid "Switch workspace when needed"
-msgstr "Flytta till fönstrets arbetsyta"
+msgstr "Cambiar área de trabajo cuando se precise"
 
 #: dbx_preference.py:513 dbx_preference.py:757 dbx_preference.py:952
 msgid "Move windows from other workspaces"
-msgstr "Flytta fönster till nuvarande arbetsyta"
+msgstr "Mover ventanas desde otras áreas de trabajo"
 
 #: dbx_preference.py:522
 msgid "Popup"
-msgstr "Fönsterlista"
+msgstr "Notificación emergente"
 
 #: dbx_preference.py:527
 msgid "Delay:"
-msgstr "Fördröjning"
+msgstr "Demora"
 
 #: dbx_preference.py:536
 msgid "Show popup only if more than one window is open"
-msgstr "Visa fönsterlista endast om fler än ett fönster är öppet"
+msgstr "Mostrar notificación sólo si hay más de una ventana abierta"
 
 #: dbx_preference.py:543
 msgid "Show previews"
-msgstr "Visa förhandsvisningar"
+msgstr "Mostrar previsualizaciones"
 
 #: dbx_preference.py:548
 msgid "Preview size:"
-msgstr "Storlek på förhandsvisning:"
+msgstr "Tamaño de las previsualizaciones:"
 
 #: dbx_preference.py:557
 msgid "Ignore windows on other viewports/workspaces"
-msgstr "Ignorera fönster som är på andra arbetsytor"
+msgstr "Ignorar ventanas en otras áreas de trabajo"
 
 #: dbx_preference.py:561
 msgid "Give each wine application its own group button"
-msgstr "Ge varje wine program en egen programknapp"
+msgstr "Darle a cada aplicación de WINE su propio botón de grupo"
 
 #: dbx_preference.py:565
 msgid "Keep open office application (Writer, Calc, etc.) separated"
-msgstr "Separera på OpenOffice programmen (Writer, Calc, o.s.v.)"
+msgstr ""
+"Mantener las aplicaciones de OpenOffice (Writer, Calc, etc.) separadas"
 
 #: dbx_preference.py:570
 msgid "Appearance"
-msgstr "Utseende"
+msgstr "Apariencia"
 
 #: dbx_preference.py:573
 msgid "Group Button"
-msgstr "Programknappar"
+msgstr "Botón de agrupar"
 
 #: dbx_preference.py:575
 msgid "Window Button"
-msgstr "Fönsterknappar"
+msgstr "Botón de ventana"
 
 #: dbx_preference.py:577
 msgid "Advanced"
-msgstr "Avancerat"
+msgstr "Avanzado"
 
 #: dbx_preference.py:755
 msgid "Ignore windows on other workspace"
-msgstr "Ignorera fönster på andra arbetsytor"
+msgstr "Ignorar ventanas en otras áreas de trabajo"
 
 #: dbx_preference.py:835
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
-"Förhandsvisningar kräver att Compiz-insticksmodulen KDE Compability är "
-"aktiverad. Ska DockbarX aktivera den åt dig?"
 
 #: dbx_preference.py:852
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
-"Förhandsvisningar kräver Support Plasma Thumbnails alternativet är valt i "
-"Compiz KDE Compability. Ska DockbarX aktivera det åt dig?"
 
 #: dbx_preference.py:872
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
-"Genomskinlighetseffekten kräver Compiz-insticksmodulen Opacity, Brightness "
-"and Saturation ska vara aktiverat. Ska DockbarX aktivera den åt dig?"
