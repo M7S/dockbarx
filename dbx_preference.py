@@ -25,8 +25,9 @@ import os
 from tarfile import open as taropen
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
+import dbus
 
-from dockbarx.common import Globals, ODict
+from dockbarx.common import *
 
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
@@ -820,6 +821,64 @@ class PrefDialog():
         # Read the value of the toggled check button/box and write to gconf
         if button.get_active() != self.globals.settings[name]:
             GCONF_CLIENT.set_bool(GCONF_DIR+'/'+name, button.get_active())
+
+        if name == "preview" and button.get_active():
+            # Check if the needed compiz plugin is activated
+            # and ask if it should be if it isn't.
+            try:
+                plugins = compiz_call("core/allscreens/active_plugins", "get")
+            except dbus.exceptions.DBusException:
+                # This probably means that compiz isn't running.
+                # Assume that kwin is used instead and do nothing.
+                return
+            if not 'kdecompat' in plugins:
+                message = _("Previews requires the compiz plugin KDE Compability to be activated. Should dockbarx activate it for you?")
+                md = gtk.MessageDialog(None,
+                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
+                    message)
+                response = md.run()
+                md.destroy()
+                if response == gtk.RESPONSE_YES:
+                    plugins.append('kdecompat')
+                    compiz_call("core/allscreens/active_plugins", "set", plugins)
+
+            # Check if Support Plasma thumbnails is activated.
+            try:
+                plasmat = compiz_call("kdecompat/screen0/plasma_thumbnails", "get")
+            except dbus.exceptions.DBusException:
+                return
+            if not plasmat:
+                message = _("Previews requires that Support Plasma Thumnails should be activated in KDE Compability plugin. Should dockbarx activate it for you?")
+                md = gtk.MessageDialog(None,
+                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
+                    message)
+                response = md.run()
+                md.destroy()
+                if response == gtk.RESPONSE_YES:
+                    plugins.append('kdecompat')
+                    compiz_call("kdecompat/screen0/plasma_thumbnails", "set", True)
+
+        if name == "opacify" and button.get_active():
+            # Check if the needed compiz plugin is activated
+            # and ask if it should be if it isn't.
+            try:
+                plugins = compiz_call("core/allscreens/active_plugins", "get")
+            except dbus.exceptions.DBusException:
+                # This probably means that compiz isn't running.
+                return
+            if not 'obs' in plugins:
+                message = _("Opacify requires the compiz plugin Opacity, Brightness and Saturation to be activated. Should dockbarx activate it for you?")
+                md = gtk.MessageDialog(None,
+                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
+                    message)
+                response = md.run()
+                md.destroy()
+                if response == gtk.RESPONSE_YES:
+                    plugins.append('obs')
+                    compiz_call("core/allscreens/active_plugins", "set", plugins)
 
 
     def cb_changed(self, combobox):
