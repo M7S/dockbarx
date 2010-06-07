@@ -463,7 +463,7 @@ class GroupButton (gobject.GObject):
             return
         wb = WindowButton(window)
         self.windows[window] = wb
-        self.winlist.pack_start(wb.window_button, True)
+        self.winlist.pack_start(wb.window_button, False)
         if window.is_minimized():
             self.minimized_windows_count += 1
         if (self.launcher and len(self.windows)==1):
