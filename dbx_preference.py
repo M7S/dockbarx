@@ -973,7 +973,7 @@ class PrefDialog():
             if value == None:
                 return
             if sod[value] != self.globals.settings['select_one_window']:
-                GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, sod[value])
+                GCONF_CLIENT.set_string(GCONF_DIR+'/select_one_window', sod[value])
 
 
         if combobox == self.select_multiple_cg:
@@ -988,7 +988,7 @@ class PrefDialog():
             if value == None:
                 return
             if smd[value] != self.globals.settings['select_multiple_windows']:
-                    GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, smd[value])
+                    GCONF_CLIENT.set_string(GCONF_DIR+'/select_multiple_windows', smd[value])
 
         if combobox == self.select_workspace_cg:
             value = combobox.get_active_text()
