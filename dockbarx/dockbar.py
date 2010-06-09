@@ -1052,6 +1052,10 @@ class DockBar():
         if previous:
             gl.reverse()
         for gr in gl:
+            if gr.list_hide_timeout != None:
+                # Hide the popup if it's opened
+                # by keyboard shortcut.
+                gr.hide_list()
             if gr.has_active_window:
                 active_found = True
                 continue
