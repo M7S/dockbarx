@@ -38,7 +38,7 @@ class WindowButton(gobject.GObject):
                     "minimized": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
                     "unminimized": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
                     "needs-attention-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-                    "popup-hide": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+                    "popup-hide": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
                     "popup-hide-request": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
                     "popup-expose-request": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
                    }
@@ -417,7 +417,7 @@ class WindowButton(gobject.GObject):
     #### Menu functions
     def menu_closed(self, menushell):
         self.globals.right_menu_showing = False
-        self.emit('popup-hide')
+        self.emit('popup-hide', 'menu-closed')
 
     def minimize_window(self, widget=None, event=None):
         if self.window.is_minimized():
@@ -445,7 +445,7 @@ class WindowButton(gobject.GObject):
             # Hide popup since mouse movment won't
             # be tracked during compiz move effect
             # which means popup list can be left open.
-            self.emit('popup-hide')
+            self.emit('popup-hide', 'viewport-change')
         if self.window.is_minimized():
             self.window.unminimize(t)
         elif self.window.is_active() and minimize:

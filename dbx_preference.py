@@ -566,6 +566,48 @@ class PrefDialog():
         self.ooo_apps_cb.connect('toggled', self.checkbutton_toggled, 'separate_ooo_apps')
         advanced_box.pack_start(self.ooo_apps_cb, False)
 
+        frame = gtk.Frame(_('Global Keyboard Shortcuts'))
+        frame.set_border_width(5)
+        table = gtk.Table(True)
+
+        self.gkeys = ODict((
+                       ('gkeys_select_next_group', _('Select next group')),
+                       ('gkeys_select_previous_group', _('Select previous group')),
+                       ('gkeys_select_next_window', _('Select next window in group')),
+                       ('gkeys_select_previous_window', _('Select previous window in group'))
+                     ))
+        self.gkeys_checkbuttons = {}
+        self.gkeys_entries = {}
+        self.gkeys_apply_buttons = {}
+        self.gkeys_clear_buttons = {}
+        for i in range(0, len(self.gkeys)):
+            s = self.gkeys.keys()[i]
+            t = self.gkeys[s]
+            self.gkeys_checkbuttons[s] = gtk.CheckButton(t)
+            self.gkeys_checkbuttons[s].connect('toggled', self.checkbutton_toggled, s)
+
+            self.gkeys_entries[s] = gtk.Entry()
+
+            self.gkeys_apply_buttons[s] = gtk.Button()
+            image = gtk.image_new_from_stock(gtk.STOCK_APPLY,gtk.ICON_SIZE_SMALL_TOOLBAR)
+            self.gkeys_apply_buttons[s].add(image)
+            self.gkeys_apply_buttons[s].connect("clicked", self.apply_gkey, s)
+
+            self.gkeys_clear_buttons[s] = gtk.Button()
+            image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,gtk.ICON_SIZE_SMALL_TOOLBAR)
+            self.gkeys_clear_buttons[s].add(image)
+            self.gkeys_clear_buttons[s].connect("clicked", self.reset_gkey, s)
+
+            table.attach(self.gkeys_checkbuttons[s], 0, 1, i, i + 1, xoptions = gtk.FILL, xpadding = 5)
+            table.attach(self.gkeys_entries[s], 1, 2, i, i + 1, xoptions = gtk.FILL)
+            table.attach(self.gkeys_apply_buttons[s], 2, 3, i, i + 1, xoptions = gtk.FILL)
+            table.attach(self.gkeys_clear_buttons[s], 3, 4, i, i + 1, xoptions = gtk.FILL)
+        label = gtk.Label('Note! Compiz keyboard shortcuts will override these.')
+        table.attach(label,0,4,i+1, i+2, xoptions = gtk.FILL)
+        table.set_border_width(5)
+        frame.add(table)
+        advanced_box.pack_start(frame, False, False, padding=5)
+
 
         label = gtk.Label(_("Appearance"))
         notebook.append_page(appearance_box, label)
@@ -775,6 +817,10 @@ class PrefDialog():
         self.ignore_workspace_cb.set_active(self.globals.settings["show_only_current_desktop"])
         self.wine_apps_cb.set_active(self.globals.settings["separate_wine_apps"])
         self.ooo_apps_cb.set_active(self.globals.settings["separate_ooo_apps"])
+
+        for s in self.gkeys:
+            self.gkeys_checkbuttons[s].set_active(self.globals.settings[s])
+            self.gkeys_entries[s].set_text(self.globals.settings['%s_keystr'%s])
 
 
 
@@ -1014,6 +1060,28 @@ class PrefDialog():
         else:
             return
         GCONF_CLIENT.set_int(color_dir+'/'+c+"_alpha", alpha)
+
+    def apply_gkey(self, button, setting):
+        keystr = self.gkeys_entries[setting].get_text()
+        buttons = ('<control>', '<alt>', '<super>')
+        for b in buttons:
+            if b in keystr:
+                break
+        else:
+            message = _("You need to have at least one mod key (<control>, <alt> or <super>) in the keyboard string.")
+            md = gtk.MessageDialog(self.dialog,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_WARNING, gtk.BUTTONS_OK,
+                message)
+            md.run()
+            md.destroy()
+            return
+        GCONF_CLIENT.set_string(GCONF_DIR+'/'+'%s_keystr'%setting, keystr)
+
+    def reset_gkey(self, button, setting):
+        keystr = self.globals.DEFAULT_SETTINGS['%s_keystr'%setting]
+        GCONF_CLIENT.set_string(GCONF_DIR+'/'+'%s_keystr'%setting, keystr)
+        self.gkeys_entries[setting].set_text(keystr)
 
     def set_theme(self, button=None):
         value = self.theme_combo.get_active_text()

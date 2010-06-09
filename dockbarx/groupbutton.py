@@ -202,6 +202,7 @@ class GroupButton (gobject.GObject):
         self.opacified = False
         self.lastlaunch = None
         self.launch_effect = False
+        self.list_hide_timeout = None
         # Compiz sends out false mouse enter messages after button is pressed.
         # This works around that bug.
         self.button_pressed = False
@@ -656,7 +657,13 @@ class GroupButton (gobject.GObject):
         event.area = self.popup.get_allocation()
         self.popup.send_expose(event)
 
-    def on_popup_hide(self, arg=None):
+    def on_popup_hide(self, arg=None, reason=None):
+        if reason == 'viewport-change' \
+        and self.list_hide_timeout != None:
+            # The list brought up by keyboard
+            # and will close by itself later
+            # no need to close it now.
+            return
         self.hide_list()
 
     def on_popup_hide_request(self, arg=None):
@@ -828,6 +835,9 @@ class GroupButton (gobject.GObject):
             for win in self.get_windows():
                 self.windows[win].clear_preview_image()
             gc.collect()
+        if self.list_hide_timeout != None:
+            gobject.source_remove(self.list_hide_timeout)
+            self.list_hide_timeout = None
         return False
 
     #### Opacify
@@ -1461,6 +1471,13 @@ class GroupButton (gobject.GObject):
 
     def action_select_previous(self, widget=None, event=None):
         self.action_select_next(widget, event, previous=True)
+
+    def action_select_next_with_popup(self, widget=None, event=None, previous=False):
+        self.show_list()
+        self.action_select_next(widget, event, previous)
+        if self.list_hide_timeout != None:
+            gobject.source_remove(self.list_hide_timeout)
+        self.list_hide_timeout = gobject.timeout_add(2000, self.hide_list_request)
 
     def action_close_all_windows(self, widget=None, event=None):
         if event:

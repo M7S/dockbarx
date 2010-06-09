@@ -28,6 +28,7 @@ import gnomeapplet
 import os
 import dbus
 import gio
+import keybinder
 import gc
 gc.enable()
 
@@ -88,6 +89,9 @@ class GroupList():
     def __iter__(self):
         return self.get_identifiers().__iter__()
 
+    def __len__(self):
+        return self.list.__len__()
+
     def add_group(self, identifier, group_button, path_to_launcher=None, index=None):
         t = (identifier, group_button, path_to_launcher)
         if index:
@@ -95,15 +99,16 @@ class GroupList():
         else:
             self.list.append(t)
 
-    def get_group(self, name):
-        if not name:
-            return
-        for t in self.list:
-            if t[0] == name:
-                return t[1]
-        for t in self.list:
-            if t[2] == name:
-                return t[1]
+    def get_group(self, name=None, index=None):
+        if name:
+            for t in self.list:
+                if t[0] == name:
+                    return t[1]
+            for t in self.list:
+                if t[2] == name:
+                    return t[1]
+        elif index:
+            return self.list[index][1]
 
     def get_launcher_path(self, name):
         if not name:
@@ -172,15 +177,20 @@ class GroupList():
                 namelist.append(t[0])
         return namelist
 
-    def get_index(self, name):
-        if not name:
+    def get_index(self, gr):
+        if not gr:
             return
-        for t in self.list:
-            if t[0]==name:
-                return self.list.index(t)
-        for t in self.list:
-            if t[2]==name:
-                return self.list.index(t)
+        if isinstance(gr, GroupButton):
+            for t in self.list:
+                if t[1]==gr:
+                    return self.list.index(t)
+        else:
+            for t in self.list:
+                if t[0]==gr:
+                    return self.list.index(t)
+            for t in self.list:
+                if t[2]==gr:
+                    return self.list.index(t)
 
     def move(self, name, index):
         if not name:
@@ -239,6 +249,13 @@ class DockBar():
         self.container = None
         self.theme = None
 
+        self.gkeys = {
+                        'gkeys_select_next_group': None,
+                        'gkeys_select_previous_group': None,
+                        'gkeys_select_next_window': None,
+                        'gkeys_select_previous_window': None
+                     }
+
         wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
@@ -289,6 +306,9 @@ class DockBar():
             self.applet.connect("change_background", self.on_change_background)
             self.applet.connect("change-orient",self.on_change_orient)
             self.applet.connect("delete-event",self.cleanup)
+
+        self.on_gkeys_changed(dialog=False)
+        self.globals.connect('gkey-changed', self.on_gkeys_changed)
 
 
     def reload(self, event=None, data=None):
@@ -401,6 +421,7 @@ class DockBar():
         self.screen.connect("active-workspace-changed", self.on_desktop_changed)
 
         self.on_active_window_changed(self.screen, None)
+
 
     def reset_all_surfaces(self):
         # Removes all saved pixbufs with active glow in groupbuttons iconfactories.
@@ -967,3 +988,103 @@ class DockBar():
 
     def cleanup(self,event):
         del self.applet
+
+    #### Keyboard actions
+    def on_gkeys_changed(self, arg=None, dialog=True):
+        functions = {
+                    "gkeys_select_next_group": self.gkey_select_next_group,
+                    "gkeys_select_previous_group": self.gkey_select_previous_group,
+                    "gkeys_select_next_window": self.gkey_select_next_window_in_group,
+                    "gkeys_select_previous_window": self.gkey_select_previous_window_in_group,
+                   }
+        translations = {
+                        'gkeys_select_next_group': _('Select next group'),
+                        'gkeys_select_previous_group': _('Select previous group'),
+                        'gkeys_select_next_window': _('Select next window in group'),
+                        'gkeys_select_previous_window': _('Select previous window in group')
+                       }
+        for (s, f) in functions.items():
+            if self.gkeys[s] != None:
+                keybinder.unbind(self.gkeys[s])
+                self.gkeys[s] = None
+            if not self.globals.settings[s]:
+                # The global key is not in use
+                continue
+            keystr = self.globals.settings['%s_keystr'%s]
+            try:
+                if keybinder.bind(keystr, f):
+                    # Key succesfully bound.
+                    self.gkeys[s]= keystr
+                    error = False
+                else:
+                    error = True
+                    reason = ""
+                    # Keybinder sometimes doesn't unbind faulty binds.
+                    # We have to do it manually.
+                    try:
+                        keybinder.unbind(keystr)
+                    except:
+                        pass
+            except KeyError:
+                error = True
+                reason = _("The key is already bound elsewhere.")
+            if error:
+                message = _("Error: DockbarX couldn't set global keybinding '%(keystr)' for %(function).")%{'keystr':keystr, 'function':translations[s]}
+                text = "%s %s"%(message, reason)
+                print text
+                if dialog:
+                    md = gtk.MessageDialog(
+                                            None,
+                                            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                                            gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                                            text
+                                          )
+                    md.run()
+                    md.destroy()
+
+
+    def gkey_select_next_group(self, previous=False):
+        active_found = False
+        gl = self.groups.get_groups()
+        # Repeat list twice so we can get
+        # back to the first group after the last
+        gl = gl + gl
+        if previous:
+            gl.reverse()
+        for gr in gl:
+            if gr.has_active_window:
+                active_found = True
+                continue
+
+            if active_found and gr.get_windows_count()>0:
+                # This is the group we will active.
+                # Remove the nextlist just in case
+                # action_select was recently used.
+                gr.nextlist = None
+                gr.action_select_next()
+                return
+
+        # No group contained the active window.
+        # Activate the topmost window that exists
+        # in a group instead.
+        windows_stacked = self.screen.get_windows_stacked()
+        for win in windows_stacked:
+            if win in self.windows:
+                if not self.globals.settings['show_only_current_desktop'] \
+                or (self.window.get_workspace() == None \
+                or self.screen.get_active_workspace() == self.window.get_workspace()) \
+                and self.window.is_in_viewport(self.screen.get_active_workspace()):
+                    t = gtk.get_current_event_time()
+                    win.activate(t)
+                    break
+
+    def gkey_select_previous_group(self):
+        self.gkey_select_next_group(previous=True)
+
+    def gkey_select_next_window_in_group(self, previous=False):
+        for gr in self.groups.get_groups():
+            if gr.has_active_window:
+                gr.action_select_next_with_popup(previous=previous)
+
+    def gkey_select_previous_window_in_group(self):
+        self.gkey_select_next_window_in_group(previous=True)

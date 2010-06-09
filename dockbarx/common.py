@@ -67,6 +67,9 @@ class ODict():
         t = (key, value)
         self.list.append(t)
 
+    def __len__(self):
+        self.list.__len__()
+
     def __contains__(self, key):
         for t in self.list:
             if t[0] == key:
@@ -145,9 +148,11 @@ class Globals(gobject.GObject):
         'theme-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'color-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'preference-update': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        'gkey-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
     }
 
-    DEFAULT_SETTINGS = {  "theme": "default",
+    DEFAULT_SETTINGS = {
+                          "theme": "default",
                           "groupbutton_attention_notification_type": "red",
                           "workspace_behavior": "switch",
                           "popup_delay": 250,
@@ -188,7 +193,17 @@ class Globals(gobject.GObject):
                           "windowbutton_right_click_action": "show menu",
                           "windowbutton_shift_and_right_click_action": "no action",
                           "windowbutton_scroll_up": "shade window",
-                          "windowbutton_scroll_down": "unshade window" }
+                          "windowbutton_scroll_down": "unshade window",
+
+                          "gkeys_select_next_group": False,
+                          "gkeys_select_next_group_keystr": '<super>Tab',
+                          "gkeys_select_previous_group": False,
+                          "gkeys_select_previous_group_keystr": '<super><shift>Tab',
+                          "gkeys_select_next_window": False,
+                          "gkeys_select_next_window_keystr": '<super><control>Tab',
+                          "gkeys_select_previous_window": False,
+                          "gkeys_select_previous_window_keystr": '<super><control><shift>Tab'
+                       }
 
     DEFAULT_COLORS={
                       "color1": "#333333",
@@ -303,6 +318,8 @@ class Globals(gobject.GObject):
                 self.emit('theme-changed')
             if 'color' in key:
                 self.emit('color-changed')
+            if 'gkey' in key:
+                self.emit('gkey-changed')
 
         if pref_update == True:
             self.emit('preference-update')
