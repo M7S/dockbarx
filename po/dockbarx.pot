@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-06-09 13:06+0300\n"
+"POT-Creation-Date: 2010-06-09 13:23+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -72,8 +72,9 @@ msgid "The key is already bound elsewhere."
 msgstr ""
 
 #: dockbarx/dockbar.py:1032
+#, python-format
 msgid ""
-"Error: DockbarX couldn't set global keybinding '%(keystr)' for %(function)."
+"Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
 msgstr ""
 
 #: dockbarx/windowbutton.py:490 dockbarx/groupbutton.py:1595

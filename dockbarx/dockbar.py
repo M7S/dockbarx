@@ -1029,7 +1029,7 @@ class DockBar():
                 error = True
                 reason = _("The key is already bound elsewhere.")
             if error:
-                message = _("Error: DockbarX couldn't set global keybinding '%(keystr)' for %(function).")%{'keystr':keystr, 'function':translations[s]}
+                message = _("Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s.")%{'keystr':keystr, 'function':translations[s]}
                 text = "%s %s"%(message, reason)
                 print text
                 if dialog:
