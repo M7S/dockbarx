@@ -37,10 +37,24 @@ mo_location = LOCALE_DIR
 # Lets tell those details to gettext
 #  (nothing to change here for you)
 gettext.install (True)
+
 gettext.bindtextdomain (APP_NAME,
                         mo_location)
 gettext.textdomain (APP_NAME)
 language = gettext.translation (APP_NAME,
+                                mo_location,
+                                languages = languages,
+                                fallback = True)
+
+
+
+theme = None
+
+def load_theme_translation():
+    global theme
+    gettext.bindtextdomain ('dockbarx-themes',
+                        mo_location)
+    theme = gettext.translation (   'dockbarx-themes',
                                 mo_location,
                                 languages = languages,
                                 fallback = True)

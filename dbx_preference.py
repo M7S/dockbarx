@@ -31,7 +31,7 @@ from dockbarx.common import *
 
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
-
+dockbarx.i18n.load_theme_translation()
 
 GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = '/apps/dockbarx'
@@ -354,9 +354,6 @@ class PrefDialog():
         frame.set_border_width(5)
         table = gtk.Table(True)
 
-        # No translations for colors (for now)
-        # since the color names are controlled
-        # by the theme.
         self.default_color_names = {
             "color1": 'Popup background',
             "color2": 'Normal text',
@@ -381,6 +378,8 @@ class PrefDialog():
                 text = color_names[c].capitalize()
             else:
                 text = self.default_color_names[c]
+            # Translate
+            text = dockbarx.i18n.theme.gettext(text)
             self.color_labels[c] = gtk.Label(text)
             self.color_labels[c].set_alignment(1,0.5)
             self.color_buttons[c] = gtk.ColorButton()
@@ -1124,6 +1123,8 @@ class PrefDialog():
                 text = color_names[c].capitalize()
             else:
                 text = self.default_color_names[c]
+            # Translate
+            text = dockbarx.i18n.theme.gettext(text)
             self.color_labels[c].set_text(text)
             self.color_buttons[c].set_title(text)
 

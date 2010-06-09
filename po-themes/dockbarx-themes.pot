@@ -1,0 +1,61 @@
+# Tranlation template for DockbarX.
+# Copyright (C) 2010 Matias Sars
+# This file is distributed under the same GPL and BSD.
+
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-06-09 13:23+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "Popup background"
+msgstr ""
+
+msgid "Normal text"
+msgstr ""
+
+msgid "Active window text"
+msgstr ""
+
+msgid "Minimized window text"
+msgstr ""
+
+msgid "Active color"
+msgstr ""
+
+msgid "Not used"
+msgstr ""
+
+msgid "Active"
+msgstr ""
+
+msgid "Launching color"
+msgstr ""
+
+msgid "Attention color"
+msgstr ""
+
+msgid "Minimized color"
+msgstr ""
+
+msgid "Active glow"
+msgstr ""
+
+msgid "Button color"
+msgstr ""
+
+# Theme unite_v
+msgid "Active + indicator color"
+msgstr ""
+
+# Theme Dock[_v]
+msgid "Active + dots color"
+msgstr ""
+
