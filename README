@@ -1,13 +1,16 @@
 ===========
 DESCRIPTION
 ===========
-This is a branch - not a fork - of DockBar (a TaskBar with grouping and group manipulation) with some extra features added. 
+This is a branch of DockBar (a TaskBar with grouping and group manipulation) with some extra features added. 
 
 
 Dockbar is made by Aleksey Shaferov. 
 DockbarX branch is developed by Matias Särs.
-The button image used in "Default" and "New" themes are is made by Sami Rissanen (st6). 
+The icon is made by BigRZA.
 "Human Bar" theme is made by bigRZA.
+"Gaia" is made by Izobalax.
+The button image used in "Default" and "New" themes are is made by Sami Rissanen (st6). 
+
 Dockbar and DockbarX are licensed under GPL3.
 
 
@@ -16,10 +19,11 @@ Dockbar and DockbarX are licensed under GPL3.
 INSTALL
 =======
 
-1. Install python-wnck, python-gnomeapplet and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). 
-$ sudo apt-get install python-gnomeapplet python-wnck python-numpy
+Note! New dependency: python-keybinder
+1. Install python-wnck, python-gnomeapplet, python-keybinder and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). 
+$ sudo apt-get install python-gnomeapplet python-wnck python-keybinder python-numpy
 
-1b. (Optinal) For recent and most used files you need zeitgeist 0.3.3 or later from zeitgeist ppa.
+1b. (Optional) For recent and most used files you need zeitgeist 0.3.3 or later from zeitgeist ppa.
 $ sudo add-apt-repository ppa:zeitgeist/ppa && sudo apt-get update
 $ sudo apt-get install libgtk2.0-0 libx11-6 libxcomposite1 zeitgeist
 

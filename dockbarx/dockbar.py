@@ -40,7 +40,7 @@ from common import *
 import i18n
 _ = i18n.language.gettext
 
-VERSION = 'x.0.39.2+bzr'
+VERSION = 'x.0.39.3'
 
 class AboutDialog():
     __instance = None

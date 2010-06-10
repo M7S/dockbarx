@@ -7,45 +7,45 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-06-07 13:51+0300\n"
-"PO-Revision-Date: 2010-06-07 05:25+0000\n"
-"Last-Translator: Atbeyi <Unknown>\n"
+"POT-Creation-Date: 2010-06-09 13:23+0300\n"
+"PO-Revision-Date: 2010-06-07 16:58+0000\n"
+"Last-Translator: Matias Särs <Unknown>\n"
 "Language-Team: Turkish <tr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-06-07 15:12+0000\n"
+"X-Launchpad-Export-Date: 2010-06-10 14:20+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: dockbarx/iconfactory.py:514
 msgid "Cannot load icon for launcher"
 msgstr "Çalıştırı için simge yüklenemedi"
 
-#: dockbarx/dockbar.py:376
+#: dockbarx/dockbar.py:396
 msgid "The launcher at path"
 msgstr "Hedefteki Çalıştırıcı"
 
-#: dockbarx/dockbar.py:378
+#: dockbarx/dockbar.py:398
 msgid "cant be found. Did you perhaps delete the file?"
 msgstr "bulunamadı. Dosyayı silmiş olabilir misiniz?"
 
-#: dockbarx/dockbar.py:874 dockbarx/groupbutton.py:247
-#: dockbarx/groupbutton.py:294
+#: dockbarx/dockbar.py:895 dockbarx/groupbutton.py:248
+#: dockbarx/groupbutton.py:295
 msgid "Identifier"
 msgstr "Tanımlayıcı"
 
-#: dockbarx/dockbar.py:875
+#: dockbarx/dockbar.py:896
 msgid "Enter the identifier here"
 msgstr "Tanımlayıcıyı buraya girin"
 
-#: dockbarx/dockbar.py:877
+#: dockbarx/dockbar.py:898
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
 "Bunu sadece program pencereleri tanımakta başarısız olursa yapmalısınız. "
 
-#: dockbarx/dockbar.py:878
+#: dockbarx/dockbar.py:899
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
@@ -53,59 +53,85 @@ msgstr ""
 "Eğer program halihazırda çalışıyorsa açılabilir listede programın "
 "tanımlayıcısını bulabilmelisiniz."
 
-#: dockbarx/dockbar.py:893
+#: dockbarx/dockbar.py:914
 msgid "Identifier:"
 msgstr "Tanımlayıcı:"
 
-#: dockbarx/windowbutton.py:490 dockbarx/groupbutton.py:1578
+#: dockbarx/dockbar.py:1001 dbx_preference.py:574
+msgid "Select next group"
+msgstr ""
+
+#: dockbarx/dockbar.py:1002 dbx_preference.py:575
+msgid "Select previous group"
+msgstr ""
+
+#: dockbarx/dockbar.py:1003 dbx_preference.py:576
+msgid "Select next window in group"
+msgstr ""
+
+#: dockbarx/dockbar.py:1004 dbx_preference.py:577
+msgid "Select previous window in group"
+msgstr ""
+
+#: dockbarx/dockbar.py:1030
+msgid "The key is already bound elsewhere."
+msgstr ""
+
+#: dockbarx/dockbar.py:1032
+#, python-format
+msgid ""
+"Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
+msgstr ""
+
+#: dockbarx/windowbutton.py:490 dockbarx/groupbutton.py:1595
 msgid "_Minimize"
 msgstr "_Küçült"
 
-#: dockbarx/windowbutton.py:493 dockbarx/groupbutton.py:1572
+#: dockbarx/windowbutton.py:493 dockbarx/groupbutton.py:1589
 msgid "Un_minimize"
 msgstr "_Küçültme"
 
-#: dockbarx/windowbutton.py:502 dockbarx/groupbutton.py:1586
+#: dockbarx/windowbutton.py:502 dockbarx/groupbutton.py:1603
 msgid "Ma_ximize"
 msgstr "_Büyüt"
 
-#: dockbarx/windowbutton.py:505 dockbarx/groupbutton.py:1589
+#: dockbarx/windowbutton.py:505 dockbarx/groupbutton.py:1606
 msgid "Unma_ximize"
 msgstr "Büyüt_meyi geri al"
 
-#: dockbarx/windowbutton.py:511 dockbarx/groupbutton.py:1594
+#: dockbarx/windowbutton.py:511 dockbarx/groupbutton.py:1611
 msgid "_Close"
 msgstr "_Kapat"
 
-#: dockbarx/groupbutton.py:1503
+#: dockbarx/groupbutton.py:1520
 msgid "_Pin application"
 msgstr "_Tuttur"
 
-#: dockbarx/groupbutton.py:1509
+#: dockbarx/groupbutton.py:1526
 msgid "_Launch application"
 msgstr "_Uygulamayı Çalıştır"
 
-#: dockbarx/groupbutton.py:1515
+#: dockbarx/groupbutton.py:1532
 msgid "Unpin application"
 msgstr "Tutturma"
 
-#: dockbarx/groupbutton.py:1520
+#: dockbarx/groupbutton.py:1537
 msgid "Edit Identifier"
 msgstr "Tanımlayıcıyı Düzenle"
 
-#: dockbarx/groupbutton.py:1538
+#: dockbarx/groupbutton.py:1555
 msgid "Recent"
 msgstr "En Son"
 
-#: dockbarx/groupbutton.py:1538
+#: dockbarx/groupbutton.py:1555
 msgid "Most used"
 msgstr "Sık kullanılan"
 
-#: dockbarx/groupbutton.py:1569
+#: dockbarx/groupbutton.py:1586
 msgid " all windows"
 msgstr " tüm pencereler"
 
-#: dockbarx/theme.py:154 dbx_preference.py:642
+#: dockbarx/theme.py:154 dbx_preference.py:684
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
@@ -152,13 +178,13 @@ msgstr "Yukarı kaydır"
 msgid "Scroll down"
 msgstr "Aşağı kaydır"
 
-#: dbx_preference.py:243 dbx_preference.py:491 dbx_preference.py:733
-#: dbx_preference.py:924
+#: dbx_preference.py:243 dbx_preference.py:491 dbx_preference.py:775
+#: dbx_preference.py:970
 msgid "select or minimize window"
 msgstr "seç ya da pencereyi küçült"
 
-#: dbx_preference.py:244 dbx_preference.py:490 dbx_preference.py:732
-#: dbx_preference.py:923
+#: dbx_preference.py:244 dbx_preference.py:490 dbx_preference.py:774
+#: dbx_preference.py:969
 msgid "select window"
 msgstr "pencereyi seç"
 
@@ -314,23 +340,23 @@ msgstr "Bir pencere açık"
 msgid "Multiple windows open:"
 msgstr "Bir çok pencere açık"
 
-#: dbx_preference.py:499 dbx_preference.py:742 dbx_preference.py:935
+#: dbx_preference.py:499 dbx_preference.py:784 dbx_preference.py:981
 msgid "select all"
 msgstr "tümünü seç"
 
-#: dbx_preference.py:500 dbx_preference.py:743 dbx_preference.py:936
+#: dbx_preference.py:500 dbx_preference.py:785 dbx_preference.py:982
 msgid "select or minimize all"
 msgstr "seç ya da tümünü küçült"
 
-#: dbx_preference.py:501 dbx_preference.py:744 dbx_preference.py:937
+#: dbx_preference.py:501 dbx_preference.py:786 dbx_preference.py:983
 msgid "compiz scale"
 msgstr "compiz ölçekle"
 
-#: dbx_preference.py:502 dbx_preference.py:745 dbx_preference.py:938
+#: dbx_preference.py:502 dbx_preference.py:787 dbx_preference.py:984
 msgid "cycle through windows"
 msgstr "pencereler arasında gezin"
 
-#: dbx_preference.py:503 dbx_preference.py:746 dbx_preference.py:939
+#: dbx_preference.py:503 dbx_preference.py:788 dbx_preference.py:985
 msgid "show popup"
 msgstr "açılır pencereyi göster"
 
@@ -338,15 +364,15 @@ msgstr "açılır pencereyi göster"
 msgid "Workspace behavior:"
 msgstr "çalışma alanı tepkisi"
 
-#: dbx_preference.py:511 dbx_preference.py:950
+#: dbx_preference.py:511 dbx_preference.py:996
 msgid "Ignore windows on other workspaces"
 msgstr "pencereleri ya da diğer çalışma alanlarını yoksay"
 
-#: dbx_preference.py:512 dbx_preference.py:756 dbx_preference.py:951
+#: dbx_preference.py:512 dbx_preference.py:798 dbx_preference.py:997
 msgid "Switch workspace when needed"
 msgstr "Gerektiğinde çalışma alanını değiştir"
 
-#: dbx_preference.py:513 dbx_preference.py:757 dbx_preference.py:952
+#: dbx_preference.py:513 dbx_preference.py:799 dbx_preference.py:998
 msgid "Move windows from other workspaces"
 msgstr "Pencereleri çalışma alanlarından taşı"
 
@@ -382,40 +408,50 @@ msgstr "Bütün Wine uygulamalarına kendi grup düğmesini ver"
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "Open Office uygulamalarını (Write, Calc, vb) ayrı tut"
 
-#: dbx_preference.py:570
+#: dbx_preference.py:569
+msgid "Global Keyboard Shortcuts"
+msgstr ""
+
+#: dbx_preference.py:612
 msgid "Appearance"
 msgstr "Görünüm"
 
-#: dbx_preference.py:573
+#: dbx_preference.py:615
 msgid "Group Button"
 msgstr "Grup Düğmesi"
 
-#: dbx_preference.py:575
+#: dbx_preference.py:617
 msgid "Window Button"
 msgstr "Pencere Düğmesi"
 
-#: dbx_preference.py:577
+#: dbx_preference.py:619
 msgid "Advanced"
 msgstr "Gelişmiş"
 
-#: dbx_preference.py:755
+#: dbx_preference.py:797
 msgid "Ignore windows on other workspace"
 msgstr "Diğer çalışma alanlarındaki pencereleri yoksay"
 
-#: dbx_preference.py:835
+#: dbx_preference.py:881
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference.py:852
+#: dbx_preference.py:898
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference.py:872
+#: dbx_preference.py:918
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
+msgstr ""
+
+#: dbx_preference.py:1071
+msgid ""
+"You need to have at least one mod key (<control>, <alt> or <super>) in the "
+"keyboard string."
 msgstr ""

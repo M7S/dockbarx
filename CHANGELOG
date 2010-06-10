@@ -1,5 +1,18 @@
 Changelog:
 
+x.0.39.3
+End user features:
+- Global shortcuts added. You can now cykel through groups or through windows within a group. See Advanced tab of preference window. New dependency: python-keybinder.
+- Translation support added for theme colors.
+
+Bug fixes:
+- Bug #591511 fixed: "Select action" options couldn't be changed. (Patch by eoe42)
+
+Translations:
+- Brazilian Portuguese, Dutch, German, Greek, Polish and Russian added. Some of these translations are only half-done, but they are still included to encourage people to go on finish them. 
+- Swedish updated. 
+Big thanks to all translators!
+
 x.0.39.2
 End user features:
 - DockbarX now supports translations. This release features Swedish, Spanish and Turkish translations. If you want to translate dockbarx into your language go to https://translations.launchpad.net/dockbar/dockbarx
