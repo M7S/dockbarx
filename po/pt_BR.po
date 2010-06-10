@@ -1,0 +1,464 @@
+# Brazilian Portuguese translation for dockbar
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the dockbar package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dockbar\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2010-06-09 13:23+0300\n"
+"PO-Revision-Date: 2010-06-07 22:46+0000\n"
+"Last-Translator: Igor Belchior <Unknown>\n"
+"Language-Team: Brazilian Portuguese <pt_BR@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2010-06-10 14:20+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: dockbarx/iconfactory.py:514
+msgid "Cannot load icon for launcher"
+msgstr "Não foi possível carregar o ícone"
+
+#: dockbarx/dockbar.py:396
+msgid "The launcher at path"
+msgstr ""
+
+#: dockbarx/dockbar.py:398
+msgid "cant be found. Did you perhaps delete the file?"
+msgstr "Não foi encontrado. Você por acaso deletou o arquivo?"
+
+#: dockbarx/dockbar.py:895 dockbarx/groupbutton.py:248
+#: dockbarx/groupbutton.py:295
+msgid "Identifier"
+msgstr "Identificador"
+
+#: dockbarx/dockbar.py:896
+msgid "Enter the identifier here"
+msgstr "Entre com a identificação"
+
+#: dockbarx/dockbar.py:898
+msgid ""
+"You should have to do this only if the program fails to recognice its "
+"windows. "
+msgstr ""
+"Você só precisa fazer isso caso o programa falhe em reconhecer a janela. "
+
+#: dockbarx/dockbar.py:899
+msgid ""
+"If the program is already running you should be able to find the identifier "
+"of the program from the dropdown list."
+msgstr ""
+"Se o programa estiver aberto você poderá encontrá-lo na caixa de opções."
+
+#: dockbarx/dockbar.py:914
+msgid "Identifier:"
+msgstr "Identificador:"
+
+#: dockbarx/dockbar.py:1001 dbx_preference.py:574
+msgid "Select next group"
+msgstr ""
+
+#: dockbarx/dockbar.py:1002 dbx_preference.py:575
+msgid "Select previous group"
+msgstr ""
+
+#: dockbarx/dockbar.py:1003 dbx_preference.py:576
+msgid "Select next window in group"
+msgstr ""
+
+#: dockbarx/dockbar.py:1004 dbx_preference.py:577
+msgid "Select previous window in group"
+msgstr ""
+
+#: dockbarx/dockbar.py:1030
+msgid "The key is already bound elsewhere."
+msgstr ""
+
+#: dockbarx/dockbar.py:1032
+#, python-format
+msgid ""
+"Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
+msgstr ""
+
+#: dockbarx/windowbutton.py:490 dockbarx/groupbutton.py:1595
+msgid "_Minimize"
+msgstr "Minimizar."
+
+#: dockbarx/windowbutton.py:493 dockbarx/groupbutton.py:1589
+msgid "Un_minimize"
+msgstr "Restaurar."
+
+#: dockbarx/windowbutton.py:502 dockbarx/groupbutton.py:1603
+msgid "Ma_ximize"
+msgstr "Maximizar"
+
+#: dockbarx/windowbutton.py:505 dockbarx/groupbutton.py:1606
+msgid "Unma_ximize"
+msgstr "Restaurar"
+
+#: dockbarx/windowbutton.py:511 dockbarx/groupbutton.py:1611
+msgid "_Close"
+msgstr "_Fechar"
+
+#: dockbarx/groupbutton.py:1520
+msgid "_Pin application"
+msgstr "Fixar o aplicativo"
+
+#: dockbarx/groupbutton.py:1526
+msgid "_Launch application"
+msgstr "Iniciar o aplicativo"
+
+#: dockbarx/groupbutton.py:1532
+msgid "Unpin application"
+msgstr "Remover aplicativo"
+
+#: dockbarx/groupbutton.py:1537
+msgid "Edit Identifier"
+msgstr "Editar identificador"
+
+#: dockbarx/groupbutton.py:1555
+msgid "Recent"
+msgstr "Recente"
+
+#: dockbarx/groupbutton.py:1555
+msgid "Most used"
+msgstr "Mais utilizados"
+
+#: dockbarx/groupbutton.py:1586
+msgid " all windows"
+msgstr " Todas as janelas"
+
+#: dockbarx/theme.py:154 dbx_preference.py:684
+msgid ""
+"No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
+msgstr ""
+"Não foram encontrados temas em /usr/share/dockbarx/themes ou "
+"~/.dockbarx/themes"
+
+#: dbx_preference.py:208
+msgid "DockBarX preferences"
+msgstr "Preferências DockBarX"
+
+#: dbx_preference.py:224
+msgid "Windowbutton actions"
+msgstr ""
+
+#: dbx_preference.py:232 dbx_preference.py:414
+msgid "Left mouse button"
+msgstr "Botão esquerdo do mouse"
+
+#: dbx_preference.py:233 dbx_preference.py:415
+msgid "Shift + left mouse button"
+msgstr "Shift + Botão esquerdo do mouse"
+
+#: dbx_preference.py:234 dbx_preference.py:416
+msgid "Middle mouse button"
+msgstr "Botão do meio do mouse"
+
+#: dbx_preference.py:235 dbx_preference.py:417
+msgid "Shift + middle mouse button"
+msgstr "Shift + Botão do meio do mouse"
+
+#: dbx_preference.py:236 dbx_preference.py:418
+msgid "Right mouse button"
+msgstr "Botão direito do mouse"
+
+#: dbx_preference.py:237 dbx_preference.py:419
+msgid "Shift + right mouse button"
+msgstr "Shift + Botão direito do mouse"
+
+#: dbx_preference.py:238 dbx_preference.py:420
+msgid "Scroll up"
+msgstr "Rolar para cima"
+
+#: dbx_preference.py:239 dbx_preference.py:421
+msgid "Scroll down"
+msgstr "Rolar para baixo"
+
+#: dbx_preference.py:243 dbx_preference.py:491 dbx_preference.py:775
+#: dbx_preference.py:970
+msgid "select or minimize window"
+msgstr "Selecionar ou minimizar janela"
+
+#: dbx_preference.py:244 dbx_preference.py:490 dbx_preference.py:774
+#: dbx_preference.py:969
+msgid "select window"
+msgstr "Selecionar janela"
+
+#: dbx_preference.py:245
+msgid "maximize window"
+msgstr "maximizar janela"
+
+#: dbx_preference.py:246
+msgid "close window"
+msgstr "Fechar janela"
+
+#: dbx_preference.py:247 dbx_preference.py:430
+msgid "show menu"
+msgstr "Exibir menu"
+
+#: dbx_preference.py:248
+msgid "shade window"
+msgstr "Sombrear janela"
+
+#: dbx_preference.py:249
+msgid "unshade window"
+msgstr "Remover sombreamento da janela"
+
+#: dbx_preference.py:250 dbx_preference.py:439
+msgid "no action"
+msgstr "Sem ação"
+
+#: dbx_preference.py:275
+msgid "Needs attention effect"
+msgstr "Efeito para chamar atenção"
+
+#: dbx_preference.py:279
+msgid "Compiz water"
+msgstr "Efeito de água do compiz"
+
+#: dbx_preference.py:281
+msgid "Blinking"
+msgstr "Piscando"
+
+#: dbx_preference.py:283
+msgid "Static"
+msgstr "Estático"
+
+#: dbx_preference.py:285
+msgid "No effect"
+msgstr "Sem efeito"
+
+#: dbx_preference.py:294
+msgid "Popup Settings"
+msgstr "Configurações da popup"
+
+#: dbx_preference.py:298
+msgid "Align left"
+msgstr "Alinhar à esquerda"
+
+#: dbx_preference.py:300
+msgid "Align center"
+msgstr "Centralizar"
+
+#: dbx_preference.py:302
+msgid "Align right"
+msgstr "Alinha à direita"
+
+#: dbx_preference.py:310 dbx_preference.py:314
+msgid "Opacify"
+msgstr "Tornar opaco"
+
+#: dbx_preference.py:317
+msgid "Opacify group"
+msgstr "Tornar opaco o grupo"
+
+#: dbx_preference.py:321
+msgid "Opacity:"
+msgstr "Opacidade:"
+
+#: dbx_preference.py:336
+msgid "Theme:"
+msgstr "Tema:"
+
+#: dbx_preference.py:353
+msgid "Colors"
+msgstr "Cores"
+
+#: dbx_preference.py:407
+msgid "Groupbutton actions"
+msgstr ""
+
+#: dbx_preference.py:425
+msgid "select"
+msgstr "Selecionar"
+
+#: dbx_preference.py:426
+msgid "close all windows"
+msgstr "Fechar todas as janelas"
+
+#: dbx_preference.py:427
+msgid "minimize all windows"
+msgstr "Minimizar todas as janelas"
+
+#: dbx_preference.py:428
+msgid "maximize all windows"
+msgstr "Maximizar todas as janelas"
+
+#: dbx_preference.py:429
+msgid "launch application"
+msgstr "Iniciar aplicativo"
+
+#: dbx_preference.py:431
+msgid "remove launcher"
+msgstr "Remover aplicativo"
+
+#: dbx_preference.py:432
+msgid "select next window"
+msgstr "Selecionar próxima janela"
+
+#: dbx_preference.py:433
+msgid "select previous window"
+msgstr "Selecionar janela anterior"
+
+#: dbx_preference.py:434
+msgid "minimize all other groups"
+msgstr "Minimizar todos os outros grupos"
+
+#: dbx_preference.py:435
+msgid "compiz scale windows"
+msgstr "Efeito janelas escaladas do compiz"
+
+#: dbx_preference.py:436
+msgid "compiz shift windows"
+msgstr "Efeito janelas saltadas do compiz"
+
+#: dbx_preference.py:437
+msgid "compiz scale all"
+msgstr ""
+
+#: dbx_preference.py:438
+msgid "show preference dialog"
+msgstr "Exibir diálogo de preferências"
+
+#: dbx_preference.py:468
+msgid "Double click"
+msgstr "Duplo clique"
+
+#: dbx_preference.py:481
+msgid "\"Select\" action options"
+msgstr "Selecione opções de ação"
+
+#: dbx_preference.py:487
+msgid "One window open:"
+msgstr "Uma janela aberta:"
+
+#: dbx_preference.py:496
+msgid "Multiple windows open:"
+msgstr "Múltiplas janelas abertas:"
+
+#: dbx_preference.py:499 dbx_preference.py:784 dbx_preference.py:981
+msgid "select all"
+msgstr "Selecionar tudo"
+
+#: dbx_preference.py:500 dbx_preference.py:785 dbx_preference.py:982
+msgid "select or minimize all"
+msgstr "Selecionar ou minimizar tudo"
+
+#: dbx_preference.py:501 dbx_preference.py:786 dbx_preference.py:983
+msgid "compiz scale"
+msgstr ""
+
+#: dbx_preference.py:502 dbx_preference.py:787 dbx_preference.py:984
+msgid "cycle through windows"
+msgstr ""
+
+#: dbx_preference.py:503 dbx_preference.py:788 dbx_preference.py:985
+msgid "show popup"
+msgstr "Exibir popup"
+
+#: dbx_preference.py:508
+msgid "Workspace behavior:"
+msgstr "Comportamento do espaço de trabalho"
+
+#: dbx_preference.py:511 dbx_preference.py:996
+msgid "Ignore windows on other workspaces"
+msgstr "Ignorar janelas em outros espaços de trabalho"
+
+#: dbx_preference.py:512 dbx_preference.py:798 dbx_preference.py:997
+msgid "Switch workspace when needed"
+msgstr "Mudar espaço de trabalho quando necessário"
+
+#: dbx_preference.py:513 dbx_preference.py:799 dbx_preference.py:998
+msgid "Move windows from other workspaces"
+msgstr "Mover janelas de outros espaços de trabalho"
+
+#: dbx_preference.py:522
+msgid "Popup"
+msgstr "Popup"
+
+#: dbx_preference.py:527
+msgid "Delay:"
+msgstr "Atraso:"
+
+#: dbx_preference.py:536
+msgid "Show popup only if more than one window is open"
+msgstr "Apenas exibir popup se houver mais de uma janela aberta"
+
+#: dbx_preference.py:543
+msgid "Show previews"
+msgstr "Mostrar pré-visualizações"
+
+#: dbx_preference.py:548
+msgid "Preview size:"
+msgstr "Tamanho da pré-visualização"
+
+#: dbx_preference.py:557
+msgid "Ignore windows on other viewports/workspaces"
+msgstr "Ignorar janelas em outros espaços de trabalho"
+
+#: dbx_preference.py:561
+msgid "Give each wine application its own group button"
+msgstr "Dar a cada aplicativo wine o seu próprio grupo."
+
+#: dbx_preference.py:565
+msgid "Keep open office application (Writer, Calc, etc.) separated"
+msgstr ""
+"Manter os aplicativos do open office separados ((Writer, Calc, etc.))"
+
+#: dbx_preference.py:569
+msgid "Global Keyboard Shortcuts"
+msgstr ""
+
+#: dbx_preference.py:612
+msgid "Appearance"
+msgstr "Aparência"
+
+#: dbx_preference.py:615
+msgid "Group Button"
+msgstr ""
+
+#: dbx_preference.py:617
+msgid "Window Button"
+msgstr ""
+
+#: dbx_preference.py:619
+msgid "Advanced"
+msgstr "Avançado"
+
+#: dbx_preference.py:797
+msgid "Ignore windows on other workspace"
+msgstr "Ignorar janelas em outros espaços de trabalho"
+
+#: dbx_preference.py:881
+msgid ""
+"Previews requires the compiz plugin KDE Compability to be activated. Should "
+"dockbarx activate it for you?"
+msgstr ""
+"A pré-visualização em miniatura requer que o plugin do compiz \"KDE "
+"Compability\" esteja ativado. Gostaria que a DockBarX ative pra você?"
+
+#: dbx_preference.py:898
+msgid ""
+"Previews requires that Support Plasma Thumnails should be activated in KDE "
+"Compability plugin. Should dockbarx activate it for you?"
+msgstr ""
+"A pré-visualização em miniatura requer que o Support Plasma Thumbnails "
+"esteja ativado em \"KDE Compability\" . Gostaria que a DockBarX ative pra "
+"você?"
+
+#: dbx_preference.py:918
+msgid ""
+"Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
+"activated. Should dockbarx activate it for you?"
+msgstr ""
+"A opacidade requer que o plugin  Opacity, Brightness and Saturation do "
+"compiz esteja ativado. Gostaria que a DockBarX ative para você?"
+
+#: dbx_preference.py:1071
+msgid ""
+"You need to have at least one mod key (<control>, <alt> or <super>) in the "
+"keyboard string."
+msgstr ""
