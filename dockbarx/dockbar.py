@@ -722,7 +722,8 @@ class DockBar():
 
 
     #### Groupbuttons
-    def make_groupbutton(self, class_group=None, identifier=None, launcher=None, app=None, path=None, index=None):
+    def make_groupbutton(self, class_group=None, identifier=None, 
+                         launcher=None, app=None, path=None, index=None):
         gb = GroupButton(class_group, identifier, launcher, app)
         if index == None:
             self.container.pack_start(gb.button, False)

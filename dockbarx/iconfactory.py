@@ -500,12 +500,16 @@ class IconFactory():
         else:
             pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
             pixbuf.fill(0x00000000)
+        if self.launcher:
+            name = self.launcher.get_entry_name()
+        elif self.app:
+            name = self.app.get_name()
         dialog = gtk.MessageDialog(
                     parent=None,
                     flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                     type=gtk.MESSAGE_WARNING,
                     buttons=gtk.BUTTONS_OK,
-                    message_format='%s %s.'%(_("Cannot load icon for launcher"), self.launcher.get_identifier())
+                    message_format='%s %s.'%(_("Cannot load icon for launcher"), name)
                                   )
         dialog.set_title('DockBarX')
         dialog.run()
