@@ -1175,16 +1175,20 @@ class GroupButton (gobject.GObject):
         self.launcher = Launcher(self.identifier, path)
         self.emit('pinned', self.identifier, path)
 
-    def launch_item(self, button, event, uri):
-        uri = str(uri)
-        if uri.startswith('file://'):
-            uri = uri[7:]
+    def launch_item(self, button, event, uris):
+        uris = str(uris)
+        # Multiple uris are separated with newlines
+        uri_list = uris.split('\n')
+        for uri in uri_list:
+            uri = uri.rstrip()
+            if uri.startswith('file://'):
+                uri = uri[7:]
 
-        if self.app:
-            uri = uri.replace("%20"," ")
-            self.app.launch_uris([uri], None)
-        else:
-            self.launcher.launch_with_uri(uri)
+            if self.app:
+                uri = uri.replace("%20"," ")
+                self.app.launch_uris([uri], None)
+            else:
+                self.launcher.launch_with_uri(uri)
         if self.windows:
             self.launch_effect_timeout = gobject.timeout_add(2000, self.remove_launch_effect)
         else:
