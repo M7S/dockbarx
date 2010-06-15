@@ -101,19 +101,8 @@ class Launcher():
     def get_executable(self):
         if self.app:
             return self.app.get_executable()
-
-        exe = self.desktop_entry.getExec()
-        l= exe.split()
-        if l[0] in ('sudo','gksudo', 'gksu',
-                    'java','mono',
-                    'ruby','python'):
-            exe = l[1]
         else:
-            exe = l[0]
-        exe = exe[exe.rfind('/')+1:]
-        if exe.find('.')>-1:
-            exe = exe[:exe.rfind('.')]
-        return exe
+            return self.desktop_entry.getExec()
 
     def launch_with_uri(self, uri):
         os.chdir(os.path.expanduser('~'))
@@ -185,7 +174,7 @@ class GroupButton (gobject.GObject):
             # launcher.get_identifier() returns None
             # if the identifier is still unknown
         else:
-            raise Exception, "Can't initiate Group button without class_group or launcher."
+            raise Exception, "Can't initiate Group button without identifier or launcher."
 
 
 

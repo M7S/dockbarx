@@ -472,12 +472,6 @@ class IconFactory():
                 icon_name = ""
 
             # Special cases
-            if icon_name.startswith("wine__"):
-                for win in self.class_group.get_windows():
-                    if self.identifier[6:] in win.get_name():
-                        return win.get_icon().copy()
-                else:
-                    return self.class_group.get_icon().copy()
             if icon_name.startswith('openoffice'):
                 # Makes sure openoffice gets a themed icon
                 icon_name = "ooo-writer"

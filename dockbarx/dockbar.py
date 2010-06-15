@@ -42,6 +42,9 @@ _ = i18n.language.gettext
 
 VERSION = 'x.0.39.3-1'
 
+
+ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
+
 class AboutDialog():
     __instance = None
 
@@ -337,30 +340,35 @@ class DockBar():
         self.globals.apps_by_id = {}
         #--- Generate Gio apps
         self.globals.apps_by_id = {}
-        self.globals.apps_by_exec={}
-        self.globals.apps_by_name = {}
-        self.globals.apps_by_longname={}
+        self.app_ids_by_exec = {}
+        self.app_ids_by_name = {}
+        self.app_ids_by_longname = {}
+        self.wine_app_ids_by_program = {}
         for app in gio.app_info_get_all():
             id = app.get_id()
             id = id[:id.rfind('.')].lower()
             name = u""+app.get_name().lower()
             exe = app.get_executable()
-            if id[:5] != 'wine-' and exe:
-                # wine not supported.
-                # skip empty exec
+            if exe:
                 self.globals.apps_by_id[id] = app
+                if id[:5] == 'wine-':
+                    cmd = u""+app.get_commandline()
+                    if cmd.find('.exe')>0:
+                        program = cmd[cmd.rfind('\\')+1:cmd.rfind('.')+4].lower()
+                        self.wine_app_ids_by_program[program] = id
                 if name.find(' ')>-1:
-                    self.globals.apps_by_longname[name] = id
+                    self.app_ids_by_longname[name] = id
                 else:
-                    self.globals.apps_by_name[name] = id
+                    self.app_ids_by_name[name] = id
                 if exe not in ('sudo','gksudo',
                                 'java','mono',
                                 'ruby','python'):
                     if exe[0] == '/':
                         exe = exe[exe.rfind('/')+1:]
-                        self.globals.apps_by_exec[exe] = id
+                        self.app_ids_by_exec[exe] = id
                     else:
-                        self.globals.apps_by_exec[exe] = id
+                        self.app_ids_by_exec[exe] = id
+        
 
 
         try:
@@ -377,9 +385,10 @@ class DockBar():
 
         #--- Initiate launchers
         self.launchers_by_id = {}
-        self.launchers_by_exec={}
-        self.launchers_by_name = {}
-        self.launchers_by_longname={}
+        self.launcher_ids_by_exec = {}
+        self.launcher_ids_by_name = {}
+        self.launcher_ids_by_longname = {}
+        self.launcher_ids_by_wine_program = {}
 
         gconf_launchers = self.globals.get_launchers_from_gconf()
 
@@ -522,12 +531,12 @@ class DockBar():
 
     def on_window_closed(self,screen,window):
         if window in self.windows:
-            class_group_name = self.windows[window]
-            group = self.groups[class_group_name]
+            identifier = self.windows[window]
+            group = self.groups[identifier]
             if group:
                 group.del_window(window)
                 if not group.windows and not group.launcher:
-                    self.groups.remove(class_group_name)
+                    self.groups.remove(identifier)
             del self.windows[window]
 
     def on_window_opened(self,screen,window):
@@ -535,60 +544,83 @@ class DockBar():
         or not (window.get_window_type() in [wnck.WINDOW_NORMAL, wnck.WINDOW_DIALOG]):
             return
 
+        gdkw = gtk.gdk.window_foreign_new(window.get_xid())
+        wm_class_property = gdkw.property_get(ATOM_WM_CLASS)[2].split('\0')
+        res_class = u"" + wm_class_property[1].lower()
+        res_name  = u"" + wm_class_property[0].lower()
         class_group = window.get_class_group()
-        class_group_name = class_group.get_res_class()
-        if class_group_name == "":
-            class_group_name = class_group.get_name()
+        identifier = res_class
+        if identifier == "":
+            identifier = res_name
         # Special cases
-        if class_group_name == "Wine" \
+        if identifier == "wine" \
         and self.globals.settings['separate_wine_apps']:
-            class_group_name = self.get_wine_app_name(window)
-        if class_group_name.startswith("OpenOffice.org"):
-            class_group_name = self.get_ooo_app_name(window)
+            identifier = res_name
+            wine = True
+        else:
+            wine = False
+        if identifier.startswith("openoffice.org"):
+            identifier = self.get_ooo_app_name(window)
             if self.globals.settings['separate_ooo_apps']:
                 window.connect("name-changed", self.on_ooo_window_name_changed)
-        self.windows[window] = class_group_name
-        if class_group_name in self.groups.get_identifiers():
+        self.windows[window] = identifier
+        if identifier in self.groups.get_identifiers():
             # This isn't the first open window of this group.
-            self.groups[class_group_name].add_window(window)
+            self.groups[identifier].add_window(window)
             return
 
-        id = self.find_matching_launcher(class_group_name)
-        if id:
+        if wine:
+            if identifier in self.launcher_ids_by_wine_program:
+                launcher_id = self.launcher_ids_by_wine_program[identifier]
+            else:
+                launcher_id = None
+        else:
+            launcher_id = self.find_launcher_id(identifier)
+        if launcher_id:
             # The window is matching a launcher without open windows.
-            path = self.launchers_by_id[id].get_path()
-            self.groups.set_identifier(path, class_group_name)
-            self.groups[class_group_name].add_window(window)
+            launcher = self.launchers_by_id[launcher_id]
+            path = launcher.get_path()
+            self.groups.set_identifier(path, identifier)
+            self.groups[identifier].add_window(window)
             self.update_launchers_list()
-            self.remove_launcher_id_from_undefined_list(id)
+            self.remove_launcher_id_from_undefined_list(launcher_id)
         else:
             # First window of a new group.
-            app = self.find_gio_app(class_group_name)
-            self.make_groupbutton(class_group, identifier=class_group_name, app=app)
-            self.groups[class_group_name].add_window(window)
+            if wine:
+                if res_name in self.wine_app_ids_by_program:
+                    app_id = self.wine_app_ids_by_program[res_name]
+                    app = self.globals.apps_by_id[app_id]
+                else:
+                    app = None
+            else:
+                app = self.find_gio_app(identifier)
+            self.make_groupbutton(class_group, 
+                                  identifier=identifier,
+                                  app=app)
+            self.groups[identifier].add_window(window)
 
-    def find_matching_launcher(self, identifier):
+    def find_launcher_id(self, identifier):
         id = None
         rc = u""+identifier.lower()
         if rc != "":
             if rc in self.launchers_by_id:
                 id = rc
                 print "Opened window matched with launcher on id:", rc
-            elif rc in self.launchers_by_name:
-                id = self.launchers_by_name[rc]
+            elif rc in self.launcher_ids_by_name:
+                id = self.launcher_ids_by_name[rc]
                 print "Opened window matched with launcher on name:", rc
-            elif rc in self.launchers_by_exec:
-                id = self.launchers_by_exec[rc]
+            elif rc in self.launcher_ids_by_exec:
+                id = self.launcher_ids_by_exec[rc]
                 print "Opened window matched with launcher on executable:", rc
             else:
-                for lname in self.launchers_by_longname:
+                for lname in self.launcher_ids_by_longname:
                     pos = lname.find(rc)
                     if pos>-1: # Check that it is not part of word
                         if rc == lname \
                         or (pos==0 and lname[len(rc)] == ' ') \
                         or (pos+len(rc) == len(lname) and lname[pos-1] == ' ') \
                         or (lname[pos-1] == ' ' and lname[pos+len(rc)] == ' '):
-                            id = self.launchers_by_longname[lname]
+                            id = self.launcher_ids_by_longname[lname]
                             print "Opened window matched with launcher on long name:", rc
                             break
 
@@ -599,11 +631,11 @@ class DockBar():
                     if rc in self.launchers_by_id:
                         id = rc
                         print "Partial name for open window matched with id:", rc
-                    elif rc in self.launchers_by_name:
-                        id = self.launchers_by_name[rc]
+                    elif rc in self.launcher_ids_by_name:
+                        id = self.launcher_ids_by_name[rc]
                         print "Partial name for open window matched with name:", rc
-                    elif rc in self.launchers_by_exec:
-                        id = self.launchers_by_exec[rc]
+                    elif rc in self.launcher_ids_by_exec:
+                        id = self.launcher_ids_by_exec[rc]
                         print "Partial name for open window matched with executable:", rc
         return id
 
@@ -615,21 +647,21 @@ class DockBar():
             if rc in self.globals.apps_by_id:
                 app_id = rc
                 print "Opened window matched with gio app on id:", rc
-            elif rc in self.globals.apps_by_name:
-                app_id = self.globals.apps_by_name[rc]
+            elif rc in self.app_ids_by_name:
+                app_id = self.app_ids_by_name[rc]
                 print "Opened window matched with gio app on name:", rc
-            elif rc in self.globals.apps_by_exec:
-                app_id = self.globals.apps_by_exec[rc]
+            elif rc in self.app_ids_by_exec:
+                app_id = self.app_ids_by_exec[rc]
                 print "Opened window matched with gio app on executable:", rc
             else:
-                for lname in self.globals.apps_by_longname:
+                for lname in self.app_ids_by_longname:
                     pos = lname.find(rc)
                     if pos>-1: # Check that it is not part of word
                         if rc == lname \
                         or (pos==0 and lname[len(rc)] == ' ') \
                         or (pos+len(rc) == len(lname) and lname[pos-1] == ' ') \
                         or (lname[pos-1] == ' ' and lname[pos+len(rc)] == ' '):
-                            app_id = self.globals.apps_by_longname[lname]
+                            app_id = self.app_ids_by_longname[lname]
                             print "Opened window matched with gio app on longname:", rc
                             break
             if not app_id:
@@ -642,23 +674,15 @@ class DockBar():
                     if rc in self.globals.apps_by_id.keys():
                         app_id = rc
                         print " found in apps id list as",rc
-                    elif rc in self.globals.apps_by_name.keys():
-                        app_id = self.globals.apps_by_name[rc]
+                    elif rc in self.app_ids_by_name.keys():
+                        app_id = self.app_ids_by_name[rc]
                         print " found in apps name list as",rc
-                    elif rc in self.globals.apps_by_exec.keys():
-                        app_id = self.globals.apps_by_exec[rc]
+                    elif rc in self.app_ids_by_exec.keys():
+                        app_id = self.app_ids_by_exec[rc]
                         print " found in apps exec list as",rc
             if app_id:
                 app = self.globals.apps_by_id[app_id]
         return app
-
-    def get_wine_app_name(self, window):
-        # This function guesses an application name base on the window name
-        # since all wine applications are has the identifier "Wine".
-        name = window.get_name()
-        # if the name has " - " in it the application is usually the part after it.
-        name = name.split(" - ")[-1]
-        return "Wine__" + name
 
     def get_ooo_app_name(self, window):
         # Separates the differnt openoffice applications from each other
@@ -666,7 +690,7 @@ class DockBar():
         if not self.globals.settings['separate_ooo_apps']:
             return "openoffice.org-writer"
         name = window.get_name()
-        for app in ['Calc', 'Impress', 'Draw', 'Math']:
+        for app in ['calc', 'impress', 'draw', 'math']:
             if name.endswith(app):
                 return "openoffice.org-" + app.lower()
         else:
@@ -700,7 +724,6 @@ class DockBar():
     #### Groupbuttons
     def make_groupbutton(self, class_group=None, identifier=None, launcher=None, app=None, path=None, index=None):
         gb = GroupButton(class_group, identifier, launcher, app)
-        self.groups.add_group(identifier, gb, path)
         if index == None:
             self.container.pack_start(gb.button, False)
         else:
@@ -712,6 +735,7 @@ class DockBar():
             self.container.pack_start(gb.button, False)
             for group in repack_list:
                 self.container.pack_start(group.button, False)
+        self.groups.add_group(identifier, gb, path, index)
 
         gb.connect('delete', self.remove_groupbutton)
         gb.connect('identifier-change', self.change_identifier)
@@ -737,7 +761,11 @@ class DockBar():
                 # The launcher is not of gio-app type.
                 # The group button will be reset with its
                 # non-launcher name and icon.
-                gb.app = self.find_gio_app(identifier)
+                if identifier in self.wine_app_ids_by_program:
+                    app_id = self.wine_app_ids_by_program[identifier]
+                    gb.app = self.globals.apps_by_id[app_id]
+                else:
+                    gb.app = self.find_gio_app(identifier)
                 gb.icon_factory.remove_launcher(class_group=gb.class_group, app = gb.app)
                 gb.update_name()
         self.update_launchers_list()
@@ -753,19 +781,40 @@ class DockBar():
 
     #### Launchers
     def add_launcher(self, identifier, path):
-        """Adds a new launcher from a desktop file located at path and from the name"""
+        # Path either points to the path where the launcher.desktop can be 
+        # found or tells which gio app the launcher will use (eg. "gio:gedit").
         launcher = Launcher(identifier, path)
-        self.make_groupbutton(identifier=identifier, launcher=launcher, path = path)
+        self.make_groupbutton(identifier=identifier, 
+                              launcher=launcher, path = path)
         if identifier == None:
+            # identifier should only be None if the launcher is dropped,
+            # in other words: not of gio-app type.
             id = path[path.rfind('/')+1:path.rfind('.')].lower()
-            name = u""+launcher.get_entry_name().lower()
-            exe = launcher.get_executable()
             self.launchers_by_id[id] = launcher
-            if name.find(' ')>-1:
-                self.launchers_by_longname[name] = id
+            
+            exe = launcher.get_executable()
+            if self.globals.settings["separate_wine_apps"] \
+            and "wine" in exe and ".exe" in exe:
+                exe = exe[exe.rfind('\\')+1:exe.rfind('.')+4].lower()
+                self.launcher_ids_by_wine_program[exe] = id
+                return
+            l= exe.split()
+            if l[0] in ('sudo','gksudo', 'gksu',
+                        'java','mono',
+                        'ruby','python'):
+                exe = l[1]
             else:
-                self.launchers_by_name[name] = id
-            self.launchers_by_exec[exe] = id
+                exe = l[0]
+            exe = exe[exe.rfind('/')+1:]
+            if exe.find('.')>-1:
+                exe = exe[:exe.rfind('.')]
+            self.launcher_ids_by_exec[exe] = id
+            
+            name = u""+launcher.get_entry_name().lower()
+            if name.find(' ')>-1:
+                self.launcher_ids_by_longname[name] = id
+            else:
+                self.launcher_ids_by_name[name] = id
 
     def on_launcher_dropped(self, arg, path, calling_button):
         # Creates a new launcher with a desktop file located at path
@@ -782,12 +831,29 @@ class DockBar():
         id = path[path.rfind('/')+1:path.rfind('.')].lower()
         name = u""+launcher.get_entry_name().lower()
         exe = launcher.get_executable()
+        if self.globals.settings["separate_wine_apps"] \
+        and "wine" in exe and ".exe" in exe:
+                exe = exe[exe.rfind('\\')+1:exe.rfind('.')+4].lower()
+                wine = True
+        else:
+            wine = False
+            l= exe.split()
+            if l[0] in ('sudo','gksudo', 'gksu',
+                        'java','mono',
+                        'ruby','python'):
+                exe = l[1]
+            else:
+                exe = l[0]
+            exe = exe[exe.rfind('/')+1:]
+            if exe.find('.')>-1:
+                exe = exe[:exe.rfind('.')]
 
         if name.find(' ')>-1:
             lname = name
         else:
             lname = None
 
+        # Todo: Does this do anything?
         if exe[0] == '/':
             exe = exe[exe.rfind('/')+1:]
 
@@ -803,6 +869,11 @@ class DockBar():
             rc = u""+identifier.lower()
             if not rc:
                 continue
+            if wine:
+                if rc == exe:
+                    break
+                else:
+                    continue
             if rc == id:
                 break
             if rc == name:
@@ -833,12 +904,16 @@ class DockBar():
             # with the new launcher. Id, name and exe will be stored
             # so that it can be checked against new windows later.
             identifier = None
+            
             self.launchers_by_id[id] = launcher
-            if lname:
-                self.launchers_by_longname[name] = id
+            if wine:
+                self.launcher_ids_by_wine_program[exe] = id
             else:
-                self.launchers_by_name[name] = id
-            self.launchers_by_exec[exe] = id
+                if lname:
+                    self.launcher_ids_by_longname[name] = id
+                else:
+                    self.launcher_ids_by_name[name] = id
+                self.launcher_ids_by_exec[exe] = id
 
         class_group = None
         if identifier:
@@ -878,7 +953,9 @@ class DockBar():
             # Insert the new button after (to the
             # right of or under) the calling button
             index = self.groups.get_index(calling_button) + 1
-        self.make_groupbutton(class_group=class_group, identifier=identifier, launcher=launcher, index=index, path=path)
+        self.make_groupbutton(class_group=class_group, 
+                              identifier=identifier, launcher=launcher, 
+                              index=index, path=path)
         self.update_launchers_list()
         for window in winlist:
             self.on_window_opened(self.screen, window)
@@ -903,13 +980,15 @@ class DockBar():
         entry = combobox.get_child()
         if identifier:
             entry.set_text(identifier)
-        # Fill the popdown list with the names of all class names of buttons that hasn't got a launcher already
+        # Fill the popdown list with the names of all class
+        # names of buttons that hasn't got a launcher already
         for name in self.groups.get_non_launcher_names():
             combobox.append_text(name)
         entry = combobox.get_child()
         #entry.set_text('')
         #allow the user to press enter to do ok
-        entry.connect("activate", lambda widget: dialog.response(gtk.RESPONSE_OK))
+        entry.connect("activate", 
+                      lambda widget: dialog.response(gtk.RESPONSE_OK))
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label(_('Identifier:')), False, 5, 5)
         hbox.pack_end(combobox)
@@ -979,8 +1058,10 @@ class DockBar():
 
     def remove_launcher_id_from_undefined_list(self, id):
         self.launchers_by_id.pop(id)
-        for l in (self.launchers_by_name, self.launchers_by_exec,
-                     self.launchers_by_longname):
+        for l in (self.launcher_ids_by_name, 
+                  self.launcher_ids_by_exec,
+                  self.launcher_ids_by_longname, 
+                  self.launcher_ids_by_wine_program):
             for key, value in l.items():
                 if value == id:
                     l.pop(key)

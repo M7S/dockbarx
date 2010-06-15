@@ -52,8 +52,9 @@ def get_most_used_for_app(name):
 
 
 if __name__ == "__main__":
-    print "Testing with gedit.desktop"
-    results = get_recent_for_app("gedit.desktop")
+    app = "gedit.desktop"
+    print "Testing with %s"%app
+    results = get_recent_for_app(app)
     for event in results:
         timestamp = int(event.timestamp) / 1000 # Zeitgeist timestamps are in msec
         print date.fromtimestamp(timestamp).strftime("%d %B %Y")
