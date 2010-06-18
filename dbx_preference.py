@@ -201,33 +201,34 @@ class PrefDialog():
     def __init__ (self):
 
         self.globals = Globals()
+        self.load_theme()
         self.globals.connect('theme-changed', self.on_theme_changed)
         self.globals.connect('preference-update', self.update)
-        self.load_theme()
 
         self.dialog = gtk.Dialog(_("DockBarX preferences"))
         self.dialog.connect("response", self.dialog_close)
         self.dialog.set_icon_name('dockbarx')
 
+        
         try:
             ca = self.dialog.get_content_area()
         except:
             ca = self.dialog.vbox
         notebook = gtk.Notebook()
-        notebook.set_tab_pos(gtk.POS_TOP)
+        notebook.set_tab_pos(gtk.POS_LEFT)
         appearance_box = gtk.VBox()
         windowbutton_box = gtk.VBox()
         groupbutton_box = gtk.VBox()
         advanced_box = gtk.VBox()
+        popup_box = gtk.VBox()
 
         #--- WindowButton page
-        label = gtk.Label("<b>%s</b>"%_("Windowbutton actions"))
-        label.set_alignment(0,0.5)
-        label.set_use_markup(True)
-        table = gtk.Table(4,4)
-        table.attach(label, 0, 4, 0, 1)
+        hbox = gtk.HBox()
+        frame = gtk.Frame(_("Windowbutton actions"))
+        frame.set_border_width(5)
+        table = gtk.Table(True)
+        table.set_border_width(5)
 
-        # A directory of combobox names and the name of corresponding setting
         self.wb_labels_and_settings = ODict((
                     (_('Left mouse button'), "windowbutton_left_click_action"),
                     (_('Shift + left mouse button'), "windowbutton_shift_and_left_click_action"),
@@ -259,79 +260,16 @@ class PrefDialog():
                 self.wb_combos[text].append_text(action)
             self.wb_combos[text].connect('changed', self.cb_changed)
 
-            i = self.wb_labels_and_settings.get_index(text)
-            # Every second label + combobox on a new row
-            row = i // 2 + 1
-            # Pack odd numbered comboboxes from 3rd column
-            column = (i % 2) * 2
-            table.attach(label, column, column + 1, row, row + 1 )
-            table.attach(self.wb_combos[text], column + 1, column + 2, row, row + 1 )
+            row = self.wb_labels_and_settings.get_index(text)
+            table.attach(label, 0, 1, row, row + 1, xpadding = 5)
+            table.attach(self.wb_combos[text], 1, 2, row, row + 1 )
 
-        windowbutton_box.pack_start(table, False, padding=5)
+        hbox.pack_start(table, False)
+        frame.add(hbox)
+        windowbutton_box.pack_start(frame, False, padding=5)
+
 
         #--- Appearance page
-        hbox = gtk.HBox()
-        vbox = gtk.VBox()
-        label1 = gtk.Label("<b><big>%s</big></b>"%_("Needs attention effect"))
-        label1.set_alignment(0,0.5)
-        label1.set_use_markup(True)
-        vbox.pack_start(label1,False)
-        self.rb1_1 = gtk.RadioButton(None, _("Compiz water"))
-        self.rb1_1.connect("toggled", self.rb_toggled, "rb1_compwater")
-        self.rb1_2 = gtk.RadioButton(self.rb1_1, _("Blinking"))
-        self.rb1_2.connect("toggled", self.rb_toggled, "rb1_blink")
-        self.rb1_3 = gtk.RadioButton(self.rb1_1, _("Static"))
-        self.rb1_3.connect("toggled", self.rb_toggled, "rb1_red")
-        self.rb1_4 = gtk.RadioButton(self.rb1_1, _("No effect"))
-        self.rb1_4.connect("toggled", self.rb_toggled, "rb1_nothing")
-        vbox.pack_start(self.rb1_1, False)
-        vbox.pack_start(self.rb1_2, False)
-        vbox.pack_start(self.rb1_3, False)
-        vbox.pack_start(self.rb1_4, False)
-        hbox.pack_start(vbox, True, padding=5)
-
-        vbox = gtk.VBox()
-        label1 = gtk.Label("<b><big>%s</big></b>"%_("Popup Settings"))
-        label1.set_alignment(0,0.5)
-        label1.set_use_markup(True)
-        vbox.pack_start(label1,False)
-        self.rb3_1 = gtk.RadioButton(None, _("Align left"))
-        self.rb3_1.connect("toggled", self.rb_toggled, "rb3_left")
-        self.rb3_2 = gtk.RadioButton(self.rb3_1, _("Align center"))
-        self.rb3_2.connect("toggled", self.rb_toggled, "rb3_center")
-        self.rb3_3 = gtk.RadioButton(self.rb3_1, _("Align right"))
-        self.rb3_3.connect("toggled", self.rb_toggled, "rb3_right")
-        vbox.pack_start(self.rb3_1, False)
-        vbox.pack_start(self.rb3_2, False)
-        vbox.pack_start(self.rb3_3, False)
-        hbox.pack_start(vbox, True, padding=5)
-
-        vbox = gtk.VBox()
-        label1 = gtk.Label("<b><big>%s</big></b>"%_("Opacify"))
-        label1.set_alignment(0,0.5)
-        label1.set_use_markup(True)
-        vbox.pack_start(label1,False)
-        self.opacify_cb = gtk.CheckButton(_('Opacify'))
-        self.opacify_cb.connect('toggled', self.checkbutton_toggled, 'opacify')
-        vbox.pack_start(self.opacify_cb, False)
-        self.opacify_group_cb = gtk.CheckButton(_('Opacify group'))
-        self.opacify_group_cb.connect('toggled', self.checkbutton_toggled, 'opacify_group')
-        vbox.pack_start(self.opacify_group_cb, False)
-        scalebox = gtk.HBox()
-        scalelabel = gtk.Label(_("Opacity:"))
-        scalelabel.set_alignment(0,0.5)
-        adj = gtk.Adjustment(0, 0, 100, 1, 10, 0)
-        self.opacify_scale = gtk.HScale(adj)
-        self.opacify_scale.set_digits(0)
-        self.opacify_scale.set_value_pos(gtk.POS_RIGHT)
-        adj.connect("value_changed", self.adjustment_changed, 'opacify_alpha')
-        scalebox.pack_start(scalelabel, False)
-        scalebox.pack_start(self.opacify_scale, True)
-        vbox.pack_start(scalebox, False)
-        hbox.pack_start(vbox, True, padding=5)
-
-        appearance_box.pack_start(hbox, False, padding=5)
-
         hbox = gtk.HBox()
         label = gtk.Label(_('Theme:'))
         label.set_alignment(1,0.5)
@@ -344,12 +282,12 @@ class PrefDialog():
         image = gtk.image_new_from_stock(gtk.STOCK_REFRESH,gtk.ICON_SIZE_SMALL_TOOLBAR)
         button.add(image)
         button.connect("clicked", self.set_theme)
-        hbox.pack_start(label, False)
+        hbox.pack_start(label, False, padding=5)
         hbox.pack_start(self.theme_combo, False)
         hbox.pack_start(button, False)
-
         appearance_box.pack_start(hbox, False, padding=5)
 
+        # Colors frame
         frame = gtk.Frame(_('Colors'))
         frame.set_border_width(5)
         table = gtk.Table(True)
@@ -378,7 +316,7 @@ class PrefDialog():
                 text = color_names[c].capitalize()
             else:
                 text = self.default_color_names[c]
-            # Translate
+            # Translate color name
             text = dockbarx.i18n.theme.gettext(text)
             self.color_labels[c] = gtk.Label(text)
             self.color_labels[c].set_alignment(1,0.5)
@@ -396,19 +334,102 @@ class PrefDialog():
             table.attach(self.color_labels[c], column, column + 1, row, row + 1, xoptions = gtk.FILL, xpadding = 5)
             table.attach(self.color_buttons[c], column+1, column+2, row, row + 1)
             table.attach(self.clear_buttons[c], column+2, column+3, row, row + 1, xoptions = gtk.FILL)
-
         table.set_border_width(5)
         frame.add(table)
         appearance_box.pack_start(frame, False, padding=5)
+        
+        
+        # Needs attention effect frame
+        hbox = gtk.HBox()
+        frame = gtk.Frame(_("Needs attention effect"))
+        frame.set_border_width(5)
+        vbox = gtk.VBox()
+        vbox.set_border_width(10)
+        self.rb1_1 = gtk.RadioButton(None, _("Compiz water"))
+        self.rb1_1.connect("toggled", self.rb_toggled, "rb1_compwater")
+        self.rb1_2 = gtk.RadioButton(self.rb1_1, _("Blinking"))
+        self.rb1_2.connect("toggled", self.rb_toggled, "rb1_blink")
+        self.rb1_3 = gtk.RadioButton(self.rb1_1, _("Static"))
+        self.rb1_3.connect("toggled", self.rb_toggled, "rb1_red")
+        self.rb1_4 = gtk.RadioButton(self.rb1_1, _("No effect"))
+        self.rb1_4.connect("toggled", self.rb_toggled, "rb1_nothing")
+        vbox.pack_start(self.rb1_1, False)
+        vbox.pack_start(self.rb1_2, False)
+        vbox.pack_start(self.rb1_3, False)
+        vbox.pack_start(self.rb1_4, False)
+        frame.add(vbox)
+        hbox.pack_start(frame, True)
+        appearance_box.pack_start(hbox, False, padding=5)
+        
 
-        #--- Groupbutton page
-        table = gtk.Table(6,4)
-        label = gtk.Label("<b>%s</b>"%_("Groupbutton actions"))
-        label.set_alignment(0,0.5)
-        label.set_use_markup(True)
-        table.attach(label, 0, 6, 0, 1)
+        #--- Popup page
+        popup_box.set_border_width(5)
+        self.no_popup_cb = gtk.CheckButton(_('Show popup only if more than one window is open'))
+        self.no_popup_cb.connect('toggled', self.checkbutton_toggled, 'no_popup_for_one_window')
+        popup_box.pack_start(self.no_popup_cb, False, padding=5)
+        
+        # Alignment
+        vbox = gtk.VBox()
+        label1 = gtk.Label("<b><big>%s</big></b>"%_("Alignment"))
+        label1.set_alignment(0,0.5)
+        label1.set_use_markup(True)
+        vbox.pack_start(label1,False)
+        self.rb3_1 = gtk.RadioButton(None, _("Align left"))
+        self.rb3_1.connect("toggled", self.rb_toggled, "rb3_left")
+        self.rb3_2 = gtk.RadioButton(self.rb3_1, _("Align center"))
+        self.rb3_2.connect("toggled", self.rb_toggled, "rb3_center")
+        self.rb3_3 = gtk.RadioButton(self.rb3_1, _("Align right"))
+        self.rb3_3.connect("toggled", self.rb_toggled, "rb3_right")
+        vbox.pack_start(self.rb3_1, False)
+        vbox.pack_start(self.rb3_2, False)
+        vbox.pack_start(self.rb3_3, False)
+        popup_box.pack_start(vbox, False, padding=5)
+        
+        # Delay
+        vbox = gtk.VBox()
+        label1 = gtk.Label("<b><big>%s</big></b>"%_("Delay"))
+        label1.set_alignment(0,0.5)
+        label1.set_use_markup(True)
+        vbox.pack_start(label1,False)
+        spinbox = gtk.HBox()
+        spinlabel = gtk.Label(_("Delay:"))
+        spinlabel.set_alignment(0,0.5)
+        adj = gtk.Adjustment(0, 0, 2000, 1, 50)
+        self.delay_spin = gtk.SpinButton(adj, 0.5, 0)
+        adj.connect("value_changed", self.adjustment_changed, 'popup_delay')
+        spinbox.pack_start(spinlabel, False)
+        spinbox.pack_start(self.delay_spin, False, padding=5)
+        vbox.pack_start(spinbox, False)
+        popup_box.pack_start(vbox, False, padding=5)
+        
+        # Previews
+        vbox = gtk.VBox()
+        label1 = gtk.Label("<b><big>%s</big></b>"%_("Previews"))
+        label1.set_alignment(0,0.5)
+        label1.set_use_markup(True)
+        vbox.pack_start(label1,False)
+        self.preview_cb = gtk.CheckButton(_('Show previews'))
+        self.preview_cb.connect('toggled', self.checkbutton_toggled, 'preview')
+        vbox.pack_start(self.preview_cb, False)
 
-        # A directory of combobox names and the name of corresponding setting
+        spinbox = gtk.HBox()
+        spinlabel = gtk.Label(_("Preview size:"))
+        spinlabel.set_alignment(0,0.5)
+        adj = gtk.Adjustment(200, 50, 800, 1, 50)
+        self.preview_size_spin = gtk.SpinButton(adj, 0.5, 0)
+        adj.connect("value_changed", self.adjustment_changed, 'preview_size')
+        spinbox.pack_start(spinlabel, False)
+        spinbox.pack_start(self.preview_size_spin, False, padding=5)
+        vbox.pack_start(spinbox, False)
+        popup_box.pack_start(vbox, False, padding=5)
+        
+        
+        #--- Groupbutton page        
+        frame = gtk.Frame(_("Groupbutton actions"))
+        frame.set_border_width(5)
+        table = gtk.Table(True)
+        table.set_border_width(5)
+
         self.gb_labels_and_settings = ODict((
                                              (_('Left mouse button'), "groupbutton_left_click_action"),
                                              (_('Shift + left mouse button'), "groupbutton_shift_and_left_click_action"),
@@ -447,13 +468,9 @@ class PrefDialog():
                 self.gb_combos[text].append_text(action)
             self.gb_combos[text].connect('changed', self.cb_changed)
 
-            i = self.gb_labels_and_settings.get_index(text)
-            # Every second label + combobox on a new row
-            row = i // 2 + 1
-            # Pack odd numbered comboboxes from 3rd column
-            column = (i % 2) * 3
-            table.attach(label, column, column + 1, row, row + 1, xpadding = 5 )
-            table.attach(self.gb_combos[text],column + 1, column + 2, row, row + 1 )
+            row = self.gb_labels_and_settings.get_index(text)
+            table.attach(label, 0, 1, row, row + 1, xpadding = 5 )
+            table.attach(self.gb_combos[text], 1,  2, row, row + 1 )
 
         self.gb_doubleclick_checkbutton_names = ['groupbutton_left_click_double',
                             'groupbutton_shift_and_left_click_double',
@@ -467,20 +484,17 @@ class PrefDialog():
             self.gb_doubleclick_checkbutton[name] = gtk.CheckButton(_('Double click'))
 
             self.gb_doubleclick_checkbutton[name].connect('toggled', self.checkbutton_toggled, name)
-            # Every second label + combobox on a new row
-            row = i // 2 + 1
-            # Pack odd numbered comboboxes from 3rd column
-            column = (i % 2) * 3
-            table.attach(self.gb_doubleclick_checkbutton[name], column + 2, column + 3, row, row + 1, xpadding = 5 )
+            table.attach(self.gb_doubleclick_checkbutton[name], 2, 3, i, i + 1, xpadding = 5 )
 
-        groupbutton_box.pack_start(table, False, padding=5)
+        frame.add(table)
+        groupbutton_box.pack_start(frame, False, padding=5)
 
+        # "Select" action options frame
         hbox = gtk.HBox()
-        table = gtk.Table(2,4)
-        label = gtk.Label("<b>%s</b>"%_('"Select" action options'))
-        label.set_alignment(0,0.5)
-        label.set_use_markup(True)
-        table.attach(label,0,2,0,1)
+        frame = gtk.Frame(_('"Select" action options'))
+        frame.set_border_width(5)
+        table = gtk.Table(True)
+        table.set_border_width(5)
 
 
         label = gtk.Label(_("One window open:"))
@@ -489,8 +503,8 @@ class PrefDialog():
         self.select_one_cg.append_text(_("select window"))
         self.select_one_cg.append_text(_("select or minimize window"))
         self.select_one_cg.connect('changed', self.cb_changed)
-        table.attach(label,0,1,1,2)
-        table.attach(self.select_one_cg,1,2,1,2)
+        table.attach(label,0,1,0,1, xpadding = 5 )
+        table.attach(self.select_one_cg,1,2,0,1)
 
         label = gtk.Label(_("Multiple windows open:"))
         label.set_alignment(1,0.5)
@@ -501,8 +515,8 @@ class PrefDialog():
         self.select_multiple_cg.append_text(_("cycle through windows"))
         self.select_multiple_cg.append_text(_("show popup"))
         self.select_multiple_cg.connect('changed', self.cb_changed)
-        table.attach(label,0,1,2,3)
-        table.attach(self.select_multiple_cg,1,2,2,3)
+        table.attach(label,0,1,1,2, xpadding = 5 )
+        table.attach(self.select_multiple_cg,1,2,1,2)
 
         label = gtk.Label(_("Workspace behavior:"))
         label.set_alignment(1,0.5)
@@ -511,60 +525,55 @@ class PrefDialog():
         self.select_workspace_cg.append_text(_("Switch workspace when needed"))
         self.select_workspace_cg.append_text(_("Move windows from other workspaces"))
         self.select_workspace_cg.connect('changed', self.cb_changed)
-        table.attach(label,0,1,3,4)
-        table.attach(self.select_workspace_cg,1,2,3,4)
+        table.attach(label,0,1,2,3, xpadding = 5 )
+        table.attach(self.select_workspace_cg,1,2,2,3)
 
         hbox.pack_start(table, False, padding=5)
-
-
-        vbox = gtk.VBox()
-        label1 = gtk.Label("<b>%s</b>"%_("Popup"))
-        label1.set_alignment(0,0.5)
-        label1.set_use_markup(True)
-        vbox.pack_start(label1,False)
-        spinbox = gtk.HBox()
-        spinlabel = gtk.Label(_("Delay:"))
-        spinlabel.set_alignment(0,0.5)
-        adj = gtk.Adjustment(0, 0, 2000, 1, 50)
-        self.delay_spin = gtk.SpinButton(adj, 0.5, 0)
-        adj.connect("value_changed", self.adjustment_changed, 'popup_delay')
-        spinbox.pack_start(spinlabel, False)
-        spinbox.pack_start(self.delay_spin, False)
-        vbox.pack_start(spinbox, False)
-
-        self.no_popup_cb = gtk.CheckButton(_('Show popup only if more than one window is open'))
-        self.no_popup_cb.connect('toggled', self.checkbutton_toggled, 'no_popup_for_one_window')
-        vbox.pack_start(self.no_popup_cb, False)
-        hbox.pack_start(vbox, False, padding=20)
-        groupbutton_box.pack_start(hbox, False, padding=10)
+        frame.add(hbox)
+        groupbutton_box.pack_start(frame, False)
 
         #--- Advanced page
-        self.preview_cb = gtk.CheckButton(_('Show previews'))
-        self.preview_cb.connect('toggled', self.checkbutton_toggled, 'preview')
-        advanced_box.pack_start(self.preview_cb, False)
-
-        spinbox = gtk.HBox()
-        spinlabel = gtk.Label(_("Preview size:"))
-        spinlabel.set_alignment(0,0.5)
-        adj = gtk.Adjustment(200, 50, 800, 1, 50)
-        self.preview_size_spin = gtk.SpinButton(adj, 0.5, 0)
-        adj.connect("value_changed", self.adjustment_changed, 'preview_size')
-        spinbox.pack_start(spinlabel, False)
-        spinbox.pack_start(self.preview_size_spin, False)
-        advanced_box.pack_start(spinbox, False)
-
         self.ignore_workspace_cb = gtk.CheckButton(_('Ignore windows on other viewports/workspaces'))
         self.ignore_workspace_cb.connect('toggled', self.checkbutton_toggled, 'show_only_current_desktop')
+        self.ignore_workspace_cb.set_border_width(5)
         advanced_box.pack_start(self.ignore_workspace_cb, False)
 
         self.wine_apps_cb = gtk.CheckButton(_('Give each wine application its own group button'))
         self.wine_apps_cb.connect('toggled', self.checkbutton_toggled, 'separate_wine_apps')
+        self.wine_apps_cb.set_border_width(5)
         advanced_box.pack_start(self.wine_apps_cb, False)
 
         self.ooo_apps_cb = gtk.CheckButton(_('Keep open office application (Writer, Calc, etc.) separated'))
         self.ooo_apps_cb.connect('toggled', self.checkbutton_toggled, 'separate_ooo_apps')
+        self.ooo_apps_cb.set_border_width(5)
         advanced_box.pack_start(self.ooo_apps_cb, False)
+        
+        # Opacify frame
+        frame = gtk.Frame(_("Opacify"))
+        frame.set_border_width(5)
+        vbox = gtk.VBox()
+        vbox.set_border_width(10)
+        self.opacify_cb = gtk.CheckButton(_('Opacify'))
+        self.opacify_cb.connect('toggled', self.checkbutton_toggled, 'opacify')
+        vbox.pack_start(self.opacify_cb, False)
+        self.opacify_group_cb = gtk.CheckButton(_('Opacify group'))
+        self.opacify_group_cb.connect('toggled', self.checkbutton_toggled, 'opacify_group')
+        vbox.pack_start(self.opacify_group_cb, False)
+        scalebox = gtk.HBox()
+        scalelabel = gtk.Label(_("Opacity:"))
+        scalelabel.set_alignment(0,0.5)
+        adj = gtk.Adjustment(0, 0, 100, 1, 10, 0)
+        self.opacify_scale = gtk.HScale(adj)
+        self.opacify_scale.set_digits(0)
+        self.opacify_scale.set_value_pos(gtk.POS_RIGHT)
+        adj.connect("value_changed", self.adjustment_changed, 'opacify_alpha')
+        scalebox.pack_start(scalelabel, False)
+        scalebox.pack_start(self.opacify_scale, True)
+        vbox.pack_start(scalebox, False)
+        frame.add(vbox)
+        advanced_box.pack_start(frame, False, False, padding=5)
 
+        # Global keyboard shortcuts frame
         frame = gtk.Frame(_('Global Keyboard Shortcuts'))
         frame.set_border_width(5)
         table = gtk.Table(True)
@@ -608,18 +617,13 @@ class PrefDialog():
         advanced_box.pack_start(frame, False, False, padding=5)
 
 
-        label = gtk.Label(_("Appearance"))
-        notebook.append_page(appearance_box, label)
+        notebook.append_page(appearance_box, gtk.Label(_("Appearance")))
+        notebook.append_page(popup_box, gtk.Label(_("Popup Window")))
+        notebook.append_page(groupbutton_box, gtk.Label(_("Group Button")))
+        notebook.append_page(windowbutton_box, gtk.Label(_("Window Button")))
+        notebook.append_page(advanced_box, gtk.Label(_("Advanced")))
         ca.pack_start(notebook)
-        label = gtk.Label(_("Group Button"))
-        notebook.append_page(groupbutton_box, label)
-        label = gtk.Label(_("Window Button"))
-        notebook.append_page(windowbutton_box, label)
-        label = gtk.Label(_("Advanced"))
-        notebook.append_page(advanced_box, label)
-
         self.update()
-
         self.dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.dialog.show_all()
 
