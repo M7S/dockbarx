@@ -49,13 +49,16 @@ class ODict():
     Has only the most needed functions of a dict, not all."""
     def __init__(self, d=[]):
         if not type(d) in (list, tuple):
-            raise TypeError('The argument has to be a list or a tuple or nothing.')
+            raise TypeError(
+                        'The argument has to be a list or a tuple or nothing.')
         self.list = []
         for t in d:
             if not type(d) in (list, tuple):
-                raise ValueError('Every item of the list has to be a list or a tuple.')
+                raise ValueError(
+                        'Every item of the list has to be a list or a tuple.')
             if not len(t) == 2:
-                raise ValueError('Every tuple in the list needs to be two items long.')
+                raise ValueError(
+                        'Every tuple in the list needs to be two items long.')
             self.list.append(t)
 
     def __getitem__(self, key):
@@ -144,7 +147,8 @@ class Globals(gobject.GObject):
 
     __gsignals__ = {
         'color2-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'show-only-current-desktop-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        'show-only-current-desktop-changed': (gobject.SIGNAL_RUN_FIRST, 
+                                              gobject.TYPE_NONE,()),
         'theme-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'color-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'preference-update': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
@@ -172,12 +176,17 @@ class Globals(gobject.GObject):
                           "separate_wine_apps": True,
                           "separate_ooo_apps": True,
 
-                          "groupbutton_left_click_action":"select or minimize group",
-                          "groupbutton_shift_and_left_click_action":"launch application",
-                          "groupbutton_middle_click_action":"close all windows",
-                          "groupbutton_shift_and_middle_click_action": "no action",
+                          "groupbutton_left_click_action": \
+                                                "select or minimize group",
+                          "groupbutton_shift_and_left_click_action": \
+                                                "launch application",
+                          "groupbutton_middle_click_action": \
+                                                "close all windows",
+                          "groupbutton_shift_and_middle_click_action": \
+                                                "no action",
                           "groupbutton_right_click_action": "show menu",
-                          "groupbutton_shift_and_right_click_action": "no action",
+                          "groupbutton_shift_and_right_click_action": \
+                                                "no action",
                           "groupbutton_scroll_up": "select next window",
                           "groupbutton_scroll_down": "select previous window",
                           "groupbutton_left_click_double": False,
@@ -186,23 +195,31 @@ class Globals(gobject.GObject):
                           "groupbutton_shift_and_middle_click_double": False,
                           "groupbutton_right_click_double": False,
                           "groupbutton_shift_and_right_click_double": False,
-                          "windowbutton_left_click_action":"select or minimize window",
-                          "windowbutton_shift_and_left_click_action":"no action",
-                          "windowbutton_middle_click_action":"close window",
-                          "windowbutton_shift_and_middle_click_action": "no action",
+                          "windowbutton_left_click_action": \
+                                                "select or minimize window",
+                          "windowbutton_shift_and_left_click_action": \
+                                                "no action",
+                          "windowbutton_middle_click_action": \
+                                                "close window",
+                          "windowbutton_shift_and_middle_click_action": \
+                                                "no action",
                           "windowbutton_right_click_action": "show menu",
-                          "windowbutton_shift_and_right_click_action": "no action",
+                          "windowbutton_shift_and_right_click_action": \
+                                                "no action",
                           "windowbutton_scroll_up": "shade window",
                           "windowbutton_scroll_down": "unshade window",
 
                           "gkeys_select_next_group": False,
                           "gkeys_select_next_group_keystr": '<super>Tab',
                           "gkeys_select_previous_group": False,
-                          "gkeys_select_previous_group_keystr": '<super><shift>Tab',
+                          "gkeys_select_previous_group_keystr": \
+                                                '<super><shift>Tab',
                           "gkeys_select_next_window": False,
-                          "gkeys_select_next_window_keystr": '<super><control>Tab',
+                          "gkeys_select_next_window_keystr": \
+                                                '<super><control>Tab',
                           "gkeys_select_previous_window": False,
-                          "gkeys_select_previous_window_keystr": '<super><control><shift>Tab'
+                          "gkeys_select_previous_window_keystr": \
+                                                '<super><control><shift>Tab'
                        }
 
     DEFAULT_COLORS={
@@ -266,10 +283,12 @@ class Globals(gobject.GObject):
                                       "select group": "select",
                                       "select or compiz scale group": "select"}
             for name, value in self.settings.items():
-                if ("groupbutton" in name) and ("click" in name or "scroll" in name) \
+                if ("groupbutton" in name) \
+                and ("click" in name or "scroll" in name) \
                 and value in group_button_actions_d:
                     self.settings[name] = group_button_actions_d[value]
-                    GCONF_CLIENT.set_string(GCONF_DIR + '/' + name , self.settings[name])
+                    GCONF_CLIENT.set_string(GCONF_DIR + '/' + name, 
+                                            self.settings[name])
 
             self.colors = {}
 
@@ -299,7 +318,8 @@ class Globals(gobject.GObject):
                 c = 'color%s'%i
                 a = 'color%s_alpha'%i
                 for k in (c, a):
-                    if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR, theme_name, k):
+                    if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR, 
+                                                             theme_name, k):
                         value = self.colors[k]
                         if entry_get[type(value)]() != value:
                             changed_settings.append(key)
@@ -370,10 +390,13 @@ class Globals(gobject.GObject):
         # Get list of launchers
         gconf_launchers = []
         try:
-            gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING)
+            gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers', 
+                                                    gconf.VALUE_STRING)
         except:
-            GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, gconf_launchers)
+            GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING,
+                                  gconf_launchers)
         return gconf_launchers
 
     def set_launchers_list(self, launchers):
-        GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, launchers)
+        GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, 
+                             launchers)

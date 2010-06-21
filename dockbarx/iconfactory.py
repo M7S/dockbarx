@@ -61,7 +61,8 @@ class IconFactory():
                  'active':ACTIVE,
                  'launching':LAUNCH_EFFECT}
 
-    def __init__(self, class_group=None, launcher=None, app=None, identifier=None):
+    def __init__(self, class_group=None, 
+                 launcher=None, app=None, identifier=None):
         self.theme = Theme()
         self.globals = Globals()
         self.globals.connect('color-changed', self.reset_surfaces)
@@ -119,7 +120,8 @@ class IconFactory():
 
 
     def surface_update(self, type = 0):
-        # Checks if the requested pixbuf is already drawn and returns it if it is.
+        # Checks if the requested pixbuf is already 
+        # drawn and returns it if it is.
         # Othervice the surface is drawn, saved and returned.
         self.win_nr = type & 15
         if self.win_nr > self.max_win_nr:
@@ -203,8 +205,9 @@ class IconFactory():
                     raise ValueError('The string has the wrong lenght')
                 t = int(color[1:], 16)
             except:
-                print "Theme error: the color attribute for a theme command should be a six" + \
-                      " digit hex string eg. \"#FFFFFF\" or the a dockbarx color (\"color1\"-\"color8\")."
+                print "Theme error: the color attribute for a theme command"+ \
+                      " should be a six digit hex string eg. \"#FFFFFF\" or"+ \
+                      " the a dockbarx color (\"color1\"-\"color8\")."
                 color = "#000000"
         return color
 
@@ -219,7 +222,8 @@ class IconFactory():
                 if self.globals.colors.has_key('color%s_alpha'%i):
                     a = float(self.globals.colors['color%s_alpha'%i])/255
                 else:
-                    print "Theme error: The theme has no opacity option for color%s."%i
+                    print "Theme error: The theme has no" + \
+                          " opacity option for color%s."%i
                     a = 1.0
                 break
         else:
@@ -228,8 +232,9 @@ class IconFactory():
                 if a > 1.0 or a < 0:
                     raise
             except:
-                print "Theme error: The opacity attribute of a theme command should be a number" + \
-                      " between \"0\" and \"100\" or \"color1\" to \"color8\"."
+                print 'Theme error: The opacity attribute of a theme ' + \
+                      'command should be a number between "0" ' + \
+                      ' and "100" or "color1" to "color8".'
                 a = 1.0
         return a
 
@@ -261,7 +266,8 @@ class IconFactory():
 
 
     #### Flow commands
-    def command_if(self, surface, type=None, windows=None, size=None, content=None):
+    def command_if(self, surface, type=None, windows=None, 
+                   size=None, content=None):
         if content == None:
             return surface
         # TODO: complete this
@@ -439,7 +445,8 @@ class IconFactory():
     def find_icon_pixbuf(self, size):
         # Returns the icon pixbuf for the program. Uses the following metods:
 
-        # 1) If it is a launcher, return the icon from the launcher's desktopfile
+        # 1) If it is a launcher, return the icon from the 
+        #    launcher's desktopfile
         # 2) Get the icon from the gio app
         # 3) Check if the res_class fits an themed icon.
         # 4) Search in path after a icon matching reclass.
@@ -457,7 +464,8 @@ class IconFactory():
             icon = self.app.get_icon()
             if icon.__class__ == gio.FileIcon:
                 if icon.get_file().query_exists(None):
-                    pixbuf = self.icon_from_file_name(icon.get_file().get_path(), size)
+                    pixbuf = self.icon_from_file_name(
+                                            icon.get_file().get_path(), size)
                     if pixbuf != None:
                         return pixbuf
             elif icon.__class__ == gio.ThemedIcon:
@@ -496,7 +504,8 @@ class IconFactory():
         # If no pixbuf has been found (can only happen for an unlaunched
         # launcher), make an empty pixbuf and show a warning.
         if self.icon_theme.has_icon('application-default-icon'):
-            pixbuf = self.icon_theme.load_icon('application-default-icon',size,0)
+            pixbuf = self.icon_theme.load_icon('application-default-icon',
+                                                size, 0)
         else:
             pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
             pixbuf.fill(0x00000000)
@@ -509,7 +518,8 @@ class IconFactory():
                     flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                     type=gtk.MESSAGE_WARNING,
                     buttons=gtk.BUTTONS_OK,
-                    message_format='%s %s.'%(_("Cannot load icon for launcher"), name)
+                    message_format= \
+                            '%s %s.'%(_("Cannot load icon for launcher"), name)
                                   )
         dialog.set_title('DockBarX')
         dialog.run()
@@ -519,7 +529,8 @@ class IconFactory():
     def icon_from_file_name(self, icon_name, icon_size = -1):
         if os.path.isfile(icon_name):
             try:
-                return gtk.gdk.pixbuf_new_from_file_at_size(icon_name, -1, icon_size)
+                return gtk.gdk.pixbuf_new_from_file_at_size(icon_name, -1, 
+                                                            icon_size)
             except:
                 pass
         return None
@@ -559,7 +570,8 @@ class IconFactory():
             width = surface.get_width()
             height = surface.get_height()
         if self.theme.has_surface(name):
-            surface = self.resize_surface(self.theme.get_surface(name), width, height)
+            surface = self.resize_surface(self.theme.get_surface(name), 
+                                          width, height)
         else:
             print "theme error: pixmap %s not found"%name
         return surface
@@ -610,7 +622,8 @@ class IconFactory():
             print "theme error: pixmap %s not found"%pix2
 
         #TODO: Add degrees
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, p1.get_width(), p1.get_height())
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 
+                                     p1.get_width(), p1.get_height())
         ctx = cairo.Context(surface)
 
         linear = cairo.LinearGradient(0, 0, p1.get_width(), 0)
@@ -662,7 +675,8 @@ class IconFactory():
             ctx.paint_with_alpha(alpha)
         return new
 
-    def command_composite(self, surface, bg, fg, opacity=100, xoffset=0, yoffset=0):
+    def command_composite(self, surface, bg, fg, 
+                          opacity=100, xoffset=0, yoffset=0):
         if fg=="self":
             foreground = surface
         elif fg in self.temp:
@@ -813,7 +827,8 @@ class IconFactory():
             mask = self.temp[mask]
         elif self.theme.has_surface(mask):
             m = self.surface2pixbuf(self.theme.get_surface(mask))
-            m = m.scale_simple(surface.get_width(), surface.get_height(), gtk.gdk.INTERP_BILINEAR)
+            m = m.scale_simple(surface.get_width(), surface.get_height(), 
+                               gtk.gdk.INTERP_BILINEAR)
             mask = self.pixbuf2surface(m)
         w = surface.get_width()
         h = surface.get_height()
@@ -852,7 +867,8 @@ class IconFactory():
     def surface2pil(self, surface):
         w = surface.get_width()
         h = surface.get_height()
-        return Image.frombuffer("RGBA", (w, h), surface.get_data(), "raw", "RGBA", 0,1)
+        return Image.frombuffer("RGBA", (w, h), surface.get_data(), 
+                                "raw", "RGBA", 0,1)
 
 
     def pil2surface(self, im):

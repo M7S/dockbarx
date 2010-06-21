@@ -35,14 +35,19 @@ _ = i18n.language.gettext
 
 class WindowButton(gobject.GObject):
     __gsignals__ = {
-                    "minimized": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-                    "unminimized": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-                    "needs-attention-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-                    "popup-hide": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
-                    "popup-hide-request": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-                    "popup-expose-request": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
+                    "minimized": (gobject.SIGNAL_RUN_FIRST, 
+                                  gobject.TYPE_NONE,()),
+                    "unminimized": (gobject.SIGNAL_RUN_FIRST, 
+                                    gobject.TYPE_NONE,()),
+                    "needs-attention-changed": (gobject.SIGNAL_RUN_FIRST, 
+                                                gobject.TYPE_NONE,()),
+                    "popup-hide": (gobject.SIGNAL_RUN_FIRST, 
+                                   gobject.TYPE_NONE,(str, )),
+                    "popup-hide-request": (gobject.SIGNAL_RUN_FIRST, 
+                                           gobject.TYPE_NONE,()),
+                    "popup-expose-request": (gobject.SIGNAL_RUN_FIRST, 
+                                             gobject.TYPE_NONE,())
                    }
-    """WindowButton takes care of a window, shows up an icon and name in popup window."""
     def __init__(self, window):
         gobject.GObject.__init__(self)
         self.globals = Globals()
@@ -86,14 +91,22 @@ class WindowButton(gobject.GObject):
 
 
         #--- Events
-        self.window_button.connect("enter-notify-event",self.on_button_mouse_enter)
-        self.window_button.connect("leave-notify-event",self.on_button_mouse_leave)
-        self.window_button.connect("button-press-event",self.on_window_button_press_event)
-        self.window_button.connect("button-release-event",self.on_window_button_release_event)
-        self.window_button.connect("scroll-event",self.on_window_button_scroll_event)
-        self.state_changed_event = self.window.connect("state-changed",self.on_window_state_changed)
-        self.icon_changed_event = self.window.connect("icon-changed",self.on_window_icon_changed)
-        self.name_changed_event = self.window.connect("name-changed",self.on_window_name_changed)
+        self.window_button.connect("enter-notify-event",
+                                   self.on_button_mouse_enter)
+        self.window_button.connect("leave-notify-event",
+                                   self.on_button_mouse_leave)
+        self.window_button.connect("button-press-event",
+                                   self.on_window_button_press_event)
+        self.window_button.connect("button-release-event",
+                                   self.on_window_button_release_event)
+        self.window_button.connect("scroll-event",
+                                   self.on_window_button_scroll_event)
+        self.state_changed_event = self.window.connect("state-changed",
+                                                self.on_window_state_changed)
+        self.icon_changed_event = self.window.connect("icon-changed",
+                                                self.on_window_icon_changed)
+        self.name_changed_event = self.window.connect("name-changed",
+                                                self.on_window_name_changed)
 
         #--- D'n'D
         self.window_button.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT, [], 0)
@@ -104,7 +117,6 @@ class WindowButton(gobject.GObject):
 
 
     def set_button_active(self, mode):
-        """Use set_button_active to tell WindowButton that it's window is the active one."""
         self.is_active_window = mode
         self.update_label_state()
 
@@ -211,9 +223,13 @@ class WindowButton(gobject.GObject):
         # be used as window_button_icon according to window state.
         self.icon = window.get_mini_icon()
         pixbuf = self.icon.copy()
-        self.icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, pixbuf.get_width(), pixbuf.get_height())
+        self.icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 
+                                          8, pixbuf.get_width(), 
+                                          pixbuf.get_height())
         self.icon_transp.fill(0x00000000)
-        pixbuf.composite(self.icon_transp, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 190)
+        pixbuf.composite(self.icon_transp, 0, 0, pixbuf.get_width(), 
+                         pixbuf.get_height(), 0, 0, 1, 1, 
+                         gtk.gdk.INTERP_BILINEAR, 190)
         self.icon_transp.saturate_and_pixelate(self.icon_transp, 0.12, False)
 
         if window.is_minimized():
@@ -246,27 +262,33 @@ class WindowButton(gobject.GObject):
 
     #### Opacify
     def opacify(self):
-        # Makes all windows but the one connected to this windowbutton transparent
+        # Makes all windows but the one connected 
+        # to this windowbutton transparent.
         if self.globals.opacity_values == None:
             try:
-                self.globals.opacity_values = compiz_call('obs/screen0/opacity_values','get')
+                self.globals.opacity_values = compiz_call(
+                                        'obs/screen0/opacity_values','get')
             except:
                 try:
-                    self.globals.opacity_values = compiz_call('core/screen0/opacity_values','get')
+                    self.globals.opacity_values = compiz_call(
+                                        'core/screen0/opacity_values','get')
                 except:
                     return
         if self.globals.opacity_matches == None:
             try:
-                self.globals.opacity_matches = compiz_call('obs/screen0/opacity_matches','get')
+                self.globals.opacity_matches = compiz_call(
+                                        'obs/screen0/opacity_matches','get')
             except:
                 try:
-                    self.globals.opacity_matches = compiz_call('core/screen0/opacity_matches','get')
+                    self.globals.opacity_matches = compiz_call(
+                                        'core/screen0/opacity_matches','get')
                 except:
                     return
         self.globals.opacified = True
         self.opacified = True
         ov = [self.globals.settings['opacify_alpha']]
-        om = ["!(xid=%s) & !(class=Dockbarx_factory.py)  & (type=Normal | type=Dialog)"%self.window.get_xid()]
+        om = ["!(xid=%s)"%self.window.get_xid() + \
+              " & !(class=Dockbarx_factory.py) & (type=Normal | type=Dialog)"]
         try:
             compiz_call('obs/screen0/opacity_values','set', ov)
             compiz_call('obs/screen0/opacity_matches','set', om)
@@ -289,7 +311,8 @@ class WindowButton(gobject.GObject):
         # Check if mouse cursor still is over the window button.
         b_m_x,b_m_y = self.window_button.get_pointer()
         b_r = self.window_button.get_allocation()
-        if (b_m_x>=0 and b_m_x<b_r.width) and (b_m_y >= 0 and b_m_y < b_r.height):
+        if b_m_x >= 0 and b_m_x < b_r.width \
+        and b_m_y >= 0 and b_m_y < b_r.height:
             self.opacify()
         return False
 
@@ -302,12 +325,16 @@ class WindowButton(gobject.GObject):
         if self.globals.opacity_values == None:
             return False
         try:
-            compiz_call('obs/screen0/opacity_values','set', self.globals.opacity_values)
-            compiz_call('obs/screen0/opacity_matches','set', self.globals.opacity_matches)
+            compiz_call('obs/screen0/opacity_values','set', 
+                        self.globals.opacity_values)
+            compiz_call('obs/screen0/opacity_matches','set', 
+                        self.globals.opacity_matches)
         except:
             try:
-                compiz_call('core/screen0/opacity_values','set', self.globals.opacity_values)
-                compiz_call('core/screen0/opacity_matches','set', self.globals.opacity_matches)
+                compiz_call('core/screen0/opacity_values','set', 
+                            self.globals.opacity_values)
+                compiz_call('core/screen0/opacity_matches','set', 
+                            self.globals.opacity_matches)
             except:
                 print "Error: Couldn't set opacity back to normal."
         self.globals.opacity_values = None
@@ -320,7 +347,8 @@ class WindowButton(gobject.GObject):
         # Make sure that mouse cursor really has left the window button.
         b_m_x,b_m_y = self.window_button.get_pointer()
         b_r = self.window_button.get_allocation()
-        if (b_m_x>=0 and b_m_x<b_r.width) and (b_m_y >= 0 and b_m_y < b_r.height):
+        if b_m_x >= 0 and b_m_x < b_r.width \
+        and b_m_y >= 0 and b_m_y < b_r.height:
             return True
         self.globals.opacified = False
         self.opacified = False
@@ -348,7 +376,8 @@ class WindowButton(gobject.GObject):
 
     #### Events
     def on_button_mouse_enter(self, widget, event):
-        # In compiz there is a enter and a leave event before a button_press event.
+        # In compiz there is a enter and 
+        # a leave event before a button_press event.
         # Keep that in mind when coding this def!
         if self.button_pressed :
             return
@@ -359,7 +388,8 @@ class WindowButton(gobject.GObject):
             gobject.timeout_add(500, self.deopacify_request)
 
     def on_button_mouse_leave(self, widget, event):
-        # In compiz there is a enter and a leave event before a button_press event.
+        # In compiz there is a enter and a leave 
+        # event before a button_press event.
         # Keep that in mind when coding this def!
         self.button_pressed = False
         self.update_label_state(False)
@@ -367,9 +397,11 @@ class WindowButton(gobject.GObject):
             self.deopacify_request()
 
     def on_window_button_press_event(self, widget,event):
-        # In compiz there is a enter and a leave event before a button_press event.
+        # In compiz there is a enter and a leave event before
+        # a button_press event.
         # self.button_pressed is used to stop functions started with
-        # gobject.timeout_add from self.on_button_mouse_enter or self.on_button_mouse_leave.
+        # gobject.timeout_add from self.on_button_mouse_enter 
+        # or self.on_button_mouse_leave.
         self.button_pressed = True
         gobject.timeout_add(600, self.set_button_pressed_false)
 
@@ -396,19 +428,22 @@ class WindowButton(gobject.GObject):
             self.opacified = False
             self.deopacify()
         if event.button == 1 and event.state & gtk.gdk.SHIFT_MASK :
-            action = self.globals.settings['windowbutton_shift_and_left_click_action']
+            action = self.globals.settings[
+                                    'windowbutton_shift_and_left_click_action']
             self.action_function_dict[action](self, widget, event)
         elif event.button == 1:
             action = self.globals.settings['windowbutton_left_click_action']
             self.action_function_dict[action](self, widget, event)
         elif event.button == 2 and event.state & gtk.gdk.SHIFT_MASK:
-            action = self.globals.settings['windowbutton_shift_and_middle_click_action']
+            action = self.globals.settings[
+                                'windowbutton_shift_and_middle_click_action']
             self.action_function_dict[action](self, widget,event)
         elif event.button == 2:
             action = self.globals.settings['windowbutton_middle_click_action']
             self.action_function_dict[action](self, widget,event)
         elif event.button == 3 and event.state & gtk.gdk.SHIFT_MASK:
-            action = self.globals.settings['windowbutton_shift_and_right_click_action']
+            action = self.globals.settings[
+                                'windowbutton_shift_and_right_click_action']
             self.action_function_dict[action](self, widget, event)
         elif event.button == 3:
             action = self.globals.settings['windowbutton_right_click_action']
@@ -426,7 +461,8 @@ class WindowButton(gobject.GObject):
             self.window.minimize()
 
     #### Actions
-    def action_select_or_minimize_window(self, widget=None, event=None, minimize=True):
+    def action_select_or_minimize_window(self, widget=None, 
+                                         event=None, minimize=True):
         # The window is activated, unless it is already
         # activated, then it's minimized. Minimized
         # windows are unminimized. The workspace
@@ -441,7 +477,8 @@ class WindowButton(gobject.GObject):
             self.window.get_workspace().activate(t)
         if not self.window.is_in_viewport(self.screen.get_active_workspace()):
             win_x,win_y,win_w,win_h = self.window.get_geometry()
-            self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),win_y-(win_y%self.screen.get_height()))
+            self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),
+                                      win_y-(win_y%self.screen.get_height()))
             # Hide popup since mouse movment won't
             # be tracked during compiz move effect
             # which means popup list can be left open.
@@ -519,7 +556,8 @@ class WindowButton(gobject.GObject):
         pass
 
     action_function_dict = ODict((
-                                  ('select or minimize window', action_select_or_minimize_window),
+                                  ('select or minimize window', 
+                                            action_select_or_minimize_window),
                                   ('select window', action_select_window),
                                   ('maximize window', action_maximize_window),
                                   ('close window', action_close_window),

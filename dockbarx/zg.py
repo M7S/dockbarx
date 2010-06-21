@@ -2,11 +2,11 @@
 
 
 # This code is based on a python snipet.
-# [SNIPPET_NAME: Recently used items]
-# [SNIPPET_CATEGORIES: Zeitgeist]
-# [SNIPPET_DESCRIPTION: Find recently used items from Zeitgeist (synchronously)]
-# [SNIPPET_AUTHOR: Siegfried-Angel Gevatter Pujals <siegfried@gevatter.com>]
-# [SNIPPET_LICENSE: GPL]
+# SNIPPET_NAME: Recently used items
+# SNIPPET_CATEGORIES: Zeitgeist
+# SNIPPET_DESCRIPTION: Find recently used items from Zeitgeist (synchronously)
+# SNIPPET_AUTHOR: Siegfried-Angel Gevatter Pujals <siegfried@gevatter.com>
+# SNIPPET_LICENSE: GPL
 
 from datetime import date
 try:
@@ -56,7 +56,8 @@ if __name__ == "__main__":
     print "Testing with %s"%app
     results = get_recent_for_app(app)
     for event in results:
-        timestamp = int(event.timestamp) / 1000 # Zeitgeist timestamps are in msec
+        # Zeitgeist timestamps are in msec
+        timestamp = int(event.timestamp) / 1000 
         print date.fromtimestamp(timestamp).strftime("%d %B %Y")
         for subject in event.get_subjects():
             print " -", subject.text, ":", subject.uri

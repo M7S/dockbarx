@@ -95,7 +95,8 @@ class Theme(gobject.GObject):
 
     def __init__(self):
         if 'theme' in self.__dict__:
-            # This is not the first instance of Theme, no need to initiate anything
+            # This is not the first instance of Theme, 
+            #no need to initiate anything
             return
         gobject.GObject.__init__(self)
         self.globals = Globals()
@@ -124,9 +125,9 @@ class Theme(gobject.GObject):
         self.reload()
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
-        # and returns a dict of the theme names and paths so that
-        # a theme can be loaded
+        # Reads the themes from /usr/share/dockbarx/themes and 
+        # ~/.dockbarx/themes and returns a dict
+        # of the theme names and paths so that a theme can be loaded
         themes = {}
         theme_paths = []
         homeFolder = os.path.expanduser("~")
@@ -154,7 +155,8 @@ class Theme(gobject.GObject):
                 _('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes'))
             md.run()
             md.destroy()
-            raise NoThemesError('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes')
+            raise NoThemesError('No working themes found in ' + \
+                        '/usr/share/dockbarx/themes or ~/.dockbarx/themes')
         return themes
 
     def reload(self):
@@ -198,22 +200,27 @@ class Theme(gobject.GObject):
                         self.default_colors[c] = d['default']
                     else:
                         print 'Theme error: %s\'s default for theme %s cannot be read.'%(c, self.name)
-                        print 'A default color should start with an "#" and be followed by six hex-digits, ' + \
+                        print 'A default color should start with an "#" ' + \
+                              'and be followed by six hex-digits,' + \
                               'for example "#FF13A2".'
                 if d.has_key('opacity'):
                     alpha = d['opacity']
                     if self.test_alpha(alpha):
                         self.default_alphas[c] = alpha
                     else:
-                        print 'Theme error: %s\'s opacity for theme %s cannot be read.'%(c, self.name)
-                        print 'The opacity should be a number ("0"-"100") or the words "not used".'
+                        print 'Theme error: ' + \
+                              '%s\'s opacity for theme %s'%(c, self.name) + \
+                              ' cannot be read.'
+                        print 'The opacity should be a number ("0"-"100") ' + \
+                              'or the words "not used".'
 
         config.close()
         tar.close()
 
         # Inform rest of dockbar about the reload.
         self.globals.theme_name = self.name
-        self.globals.update_colors(self.name, self.default_colors, self.default_alphas)
+        self.globals.update_colors(self.name, 
+                                   self.default_colors, self.default_alphas)
         self.emit('theme_reloaded')
 
     def check(self, path_to_tar):

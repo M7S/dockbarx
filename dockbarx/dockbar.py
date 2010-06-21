@@ -58,7 +58,8 @@ class AboutDialog():
         self.about.set_name("DockbarX Applet")
         self.about.set_logo_icon_name("dockbarx")
         self.about.set_version(VERSION)
-        self.about.set_copyright("Copyright (c) 2008-2009 Aleksey Shaferov and Matias S\xc3\xa4rs")
+        self.about.set_copyright(
+            "Copyright (c) 2008-2009 Aleksey Shaferov and Matias S\xc3\xa4rs")
         self.about.connect("response",self.about_close)
         self.about.show()
 
@@ -68,7 +69,6 @@ class AboutDialog():
 
 
 class GroupList():
-    """GroupList contains a list with touples containing identifier, group button and launcherpath."""
     def __init__(self):
         self.list = []
 
@@ -95,7 +95,8 @@ class GroupList():
     def __len__(self):
         return self.list.__len__()
 
-    def add_group(self, identifier, group_button, path_to_launcher=None, index=None):
+    def add_group(self, identifier, group_button, 
+                  path_to_launcher=None, index=None):
         t = (identifier, group_button, path_to_launcher)
         if index:
             self.list.insert(index, t)
@@ -270,8 +271,10 @@ class DockBar():
 
         #--- Applet / Window container
         if self.applet != None:
-            self.applet.set_applet_flags(gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
-            if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN or applet.get_orient() == gnomeapplet.ORIENT_UP:
+            self.applet.set_applet_flags(
+                            gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
+            if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
+            or applet.get_orient() == gnomeapplet.ORIENT_UP:
                 self.globals.orient = "h"
                 self.container = gtk.HBox()
             else:
@@ -279,20 +282,21 @@ class DockBar():
                 self.container = gtk.VBox()
             self.applet.add(self.container)
             self.pp_menu_xml = """
-            <popup name="button3">
-                <menuitem name="About Item" verb="About" stockid="gtk-about" />
-                <menuitem name="Preferences" verb="Pref" stockid="gtk-properties" />
-                <menuitem name="Reload" verb="Reload" stockid="gtk-refresh" />
-            </popup>
+           <popup name="button3">
+           <menuitem name="About Item" verb="About" stockid="gtk-about" />
+           <menuitem name="Preferences" verb="Pref" stockid="gtk-properties" />
+           <menuitem name="Reload" verb="Reload" stockid="gtk-refresh" />
+           </popup>
             """
 
             self.pp_menu_verbs = [("About", self.on_ppm_about),
                                   ("Pref", self.on_ppm_pref),
                                   ("Reload", self.reload)]
             self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
-            self.applet_origin_x = -1000 # off screen. there is no 'window' prop
-            self.applet_origin_y = -1000 # at this step
-            self.applet.set_background_widget(applet) # background bug workaround
+            self.applet_origin_x = -1000 
+            self.applet_origin_y = -1000 
+            # background bug workaround
+            self.applet.set_background_widget(applet) 
             self.applet.show_all()
         else:
             self.container = gtk.HBox()
@@ -354,7 +358,8 @@ class DockBar():
                 if id[:5] == 'wine-':
                     cmd = u""+app.get_commandline()
                     if cmd.find('.exe')>0:
-                        program = cmd[cmd.rfind('\\')+1:cmd.rfind('.')+4].lower()
+                        program = \
+                                cmd[cmd.rfind('\\')+1:cmd.rfind('.')+4].lower()
                         self.wine_app_ids_by_program[program] = id
                 if name.find(' ')>-1:
                     self.app_ids_by_longname[name] = id
@@ -402,9 +407,9 @@ class DockBar():
                 self.add_launcher(identifier, path)
             except LauncherPathError:
                 message = "%s %s %s"%(
-                                        _("The launcher at path"),
-                                        path,
-                                        _("cant be found. Did you perhaps delete the file?")
+                        _("The launcher at path"),
+                        path,
+                        _("cant be found. Did you perhaps delete the file?")
                                       )
                 print message
                 md = gtk.MessageDialog(None,
@@ -414,7 +419,8 @@ class DockBar():
                 md.run()
                 md.destroy()
             except NoGioAppExistError:
-                print "The Gio app for pinned app %s doesn't exist. The launcher will be removed."%identifier
+                print "The Gio app for pinned app %s"%identifier + \
+                      " doesn't exist. The launcher will be removed."
         # Update launchers list to remove any launchers that are faulty.
         self.update_launchers_list()
 
@@ -425,16 +431,20 @@ class DockBar():
 
         self.screen.connect("window-opened", self.on_window_opened)
         self.screen.connect("window-closed", self.on_window_closed)
-        self.screen.connect("active-window-changed", self.on_active_window_changed)
-        self.screen.connect("viewports-changed", self.on_desktop_changed)
-        self.screen.connect("active-workspace-changed", self.on_desktop_changed)
+        self.screen.connect("active-window-changed", 
+                            self.on_active_window_changed)
+        self.screen.connect("viewports-changed", 
+                            self.on_desktop_changed)
+        self.screen.connect("active-workspace-changed", 
+                            self.on_desktop_changed)
 
         self.on_active_window_changed(self.screen, None)
 
 
     def reset_all_surfaces(self):
-        # Removes all saved pixbufs with active glow in groupbuttons iconfactories.
-        # Use this def when the looks of active glow has been changed.
+        # Removes all saved pixbufs with active glow in groupbuttons 
+        # iconfactories. Use this def when the looks of active glow 
+        # has been changed.
         for group in self.groups.get_groups():
             group.icon_factory.reset_surfaces()
 
@@ -541,7 +551,8 @@ class DockBar():
 
     def on_window_opened(self,screen,window):
         if window.is_skip_tasklist() \
-        or not (window.get_window_type() in [wnck.WINDOW_NORMAL, wnck.WINDOW_DIALOG]):
+        or not (window.get_window_type() in [wnck.WINDOW_NORMAL, 
+                                             wnck.WINDOW_DIALOG]):
             return
 
         gdkw = gtk.gdk.window_foreign_new(window.get_xid())
@@ -618,10 +629,12 @@ class DockBar():
                     if pos>-1: # Check that it is not part of word
                         if rc == lname \
                         or (pos==0 and lname[len(rc)] == ' ') \
-                        or (pos+len(rc) == len(lname) and lname[pos-1] == ' ') \
+                        or (pos+len(rc) == len(lname) \
+                        and lname[pos-1] == ' ') \
                         or (lname[pos-1] == ' ' and lname[pos+len(rc)] == ' '):
                             id = self.launcher_ids_by_longname[lname]
-                            print "Opened window matched with launcher on long name:", rc
+                            print "Opened window matched with" + \
+                                  " launcher on long name:", rc
                             break
 
             if id == None and rc.find(' ')>-1:
@@ -630,13 +643,16 @@ class DockBar():
                     # with identifier like this 'App 1.2.3' (name with ver)
                     if rc in self.launchers_by_id:
                         id = rc
-                        print "Partial name for open window matched with id:", rc
+                        print "Partial name for open window" + \
+                              " matched with id:", rc
                     elif rc in self.launcher_ids_by_name:
                         id = self.launcher_ids_by_name[rc]
-                        print "Partial name for open window matched with name:", rc
+                        print "Partial name for open " + \
+                              "window matched with name:", rc
                     elif rc in self.launcher_ids_by_exec:
                         id = self.launcher_ids_by_exec[rc]
-                        print "Partial name for open window matched with executable:", rc
+                        print "Partial name for open window" + \
+                              " matched with executable:", rc
         return id
 
     def find_gio_app(self, identifier):
@@ -659,10 +675,12 @@ class DockBar():
                     if pos>-1: # Check that it is not part of word
                         if rc == lname \
                         or (pos==0 and lname[len(rc)] == ' ') \
-                        or (pos+len(rc) == len(lname) and lname[pos-1] == ' ') \
+                        or (pos+len(rc) == len(lname) \
+                        and lname[pos-1] == ' ') \
                         or (lname[pos-1] == ' ' and lname[pos+len(rc)] == ' '):
                             app_id = self.app_ids_by_longname[lname]
-                            print "Opened window matched with gio app on longname:", rc
+                            print "Opened window matched with" + \
+                                  " gio app on longname:", rc
                             break
             if not app_id:
                 if rc.find(' ')>-1:
@@ -767,7 +785,8 @@ class DockBar():
                     gb.app = self.globals.apps_by_id[app_id]
                 else:
                     gb.app = self.find_gio_app(identifier)
-                gb.icon_factory.remove_launcher(class_group=gb.class_group, app = gb.app)
+                gb.icon_factory.remove_launcher(class_group=gb.class_group, 
+                                                app = gb.app)
                 gb.update_name()
         self.update_launchers_list()
 
@@ -1015,7 +1034,8 @@ class DockBar():
         if calling_button:
             index = self.groups.get_index(calling_button) + 1
         else:
-            print "Error: cant move button without either a index or the calling button's name"
+            print "Error: cant move button without" + \
+                  " either a index or the calling button's name"
             return
         # Insterts the button on it's index by removing
         # and repacking the buttons that should come after it
@@ -1074,16 +1094,19 @@ class DockBar():
     #### Keyboard actions
     def on_gkeys_changed(self, arg=None, dialog=True):
         functions = {
-                    "gkeys_select_next_group": self.gkey_select_next_group,
-                    "gkeys_select_previous_group": self.gkey_select_previous_group,
-                    "gkeys_select_next_window": self.gkey_select_next_window_in_group,
-                    "gkeys_select_previous_window": self.gkey_select_previous_window_in_group,
+                     "gkeys_select_next_group": self.gkey_select_next_group,
+                     "gkeys_select_previous_group": \
+                                self.gkey_select_previous_group,
+                     "gkeys_select_next_window": \
+                                self.gkey_select_next_window_in_group,
+                     "gkeys_select_previous_window": \
+                                self.gkey_select_previous_window_in_group,
                    }
         translations = {
-                        'gkeys_select_next_group': _('Select next group'),
-                        'gkeys_select_previous_group': _('Select previous group'),
-                        'gkeys_select_next_window': _('Select next window in group'),
-                        'gkeys_select_previous_window': _('Select previous window in group')
+           'gkeys_select_next_group': _('Select next group'),
+           'gkeys_select_previous_group': _('Select previous group'),
+           'gkeys_select_next_window': _('Select next window in group'),
+           'gkeys_select_previous_window': _('Select previous window in group')
                        }
         for (s, f) in functions.items():
             if self.gkeys[s] != None:
@@ -1116,10 +1139,10 @@ class DockBar():
                 print text
                 if dialog:
                     md = gtk.MessageDialog(
-                                            None,
-                                            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                                            gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                                            text
+                            None,
+                            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                            gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                            text
                                           )
                     md.run()
                     md.destroy()
@@ -1158,8 +1181,10 @@ class DockBar():
             if win in self.windows:
                 if not self.globals.settings['show_only_current_desktop'] \
                 or (self.window.get_workspace() == None \
-                or self.screen.get_active_workspace() == self.window.get_workspace()) \
-                and self.window.is_in_viewport(self.screen.get_active_workspace()):
+                or self.screen.get_active_workspace() == \
+                                                self.window.get_workspace()) \
+                and self.window.is_in_viewport(
+                                        self.screen.get_active_workspace()):
                     t = gtk.get_current_event_time()
                     win.activate(t)
                     break

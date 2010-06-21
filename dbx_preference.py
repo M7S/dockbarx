@@ -136,16 +136,20 @@ class Theme():
                     if self.test_color(d['default']):
                         self.default_colors[c] = d['default']
                     else:
-                        print 'Theme error: %s\'s default for theme %s cannot be read.'%(c, self.name)
-                        print 'A default color should start with an "#" and be followed by six hex-digits, ' + \
+                        print 'Theme error: %s\'s default' % c + \
+                              ' for theme %s cannot be read.' % self.name
+                        print 'A default color should start with an "#"' + \
+                              ' and be followed by six hex-digits, ' + \
                               'for example "#FF13A2".'
                 if d.has_key('opacity'):
                     alpha = d['opacity']
                     if self.test_alpha(alpha):
                         self.default_alphas[c] = alpha
                     else:
-                        print 'Theme error: %s\'s opacity for theme %s cannot be read.'%(c, self.name)
-                        print 'The opacity should be a number ("0"-"100") or the words "not used".'
+                        print 'Theme error: %s\'s opacity' % c + \
+                              ' for theme %s cannot be read.' % self.name
+                        print 'The opacity should be a number ("0"-"100")' + \
+                              ' or the words "not used".'
 
         tar.close()
 
@@ -231,17 +235,23 @@ class PrefDialog():
 
         self.wb_labels_and_settings = ODict((
                     (_('Left mouse button'), "windowbutton_left_click_action"),
-                    (_('Shift + left mouse button'), "windowbutton_shift_and_left_click_action"),
-                    (_('Middle mouse button'), "windowbutton_middle_click_action"),
-                    (_('Shift + middle mouse button'), "windowbutton_shift_and_middle_click_action"),
-                    (_('Right mouse button'), "windowbutton_right_click_action"),
-                    (_('Shift + right mouse button'), "windowbutton_shift_and_right_click_action"),
+                    (_('Shift + left mouse button'), 
+                                "windowbutton_shift_and_left_click_action"),
+                    (_('Middle mouse button'), 
+                                "windowbutton_middle_click_action"),
+                    (_('Shift + middle mouse button'), 
+                                "windowbutton_shift_and_middle_click_action"),
+                    (_('Right mouse button'), 
+                                "windowbutton_right_click_action"),
+                    (_('Shift + right mouse button'), 
+                                "windowbutton_shift_and_right_click_action"),
                     (_('Scroll up'), "windowbutton_scroll_up"),
                     (_('Scroll down'), "windowbutton_scroll_down")
                                            ))
 
         self.wb_actions = ODict((
-                      ('select or minimize window', _('select or minimize window')),
+                      ('select or minimize window', 
+                                            _('select or minimize window')),
                       ('select window', _('select window')),
                       ('maximize window', _('maximize window')),
                       ('close window', _('close window')),
@@ -279,7 +289,8 @@ class PrefDialog():
         for theme in theme_names:
                 self.theme_combo.append_text(theme)
         button = gtk.Button()
-        image = gtk.image_new_from_stock(gtk.STOCK_REFRESH,gtk.ICON_SIZE_SMALL_TOOLBAR)
+        image = gtk.image_new_from_stock(gtk.STOCK_REFRESH,
+                                         gtk.ICON_SIZE_SMALL_TOOLBAR)
         button.add(image)
         button.connect("clicked", self.set_theme)
         hbox.pack_start(label, False, padding=5)
@@ -324,16 +335,20 @@ class PrefDialog():
             self.color_buttons[c].set_title(text)
             self.color_buttons[c].connect("color-set",  self.color_set, c)
             self.clear_buttons[c] = gtk.Button()
-            image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,gtk.ICON_SIZE_SMALL_TOOLBAR)
+            image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,
+                                             gtk.ICON_SIZE_SMALL_TOOLBAR)
             self.clear_buttons[c].add(image)
             self.clear_buttons[c].connect("clicked", self.color_reset, c)
             # Every second label + combobox on a new row
             row = i // 2
             # Pack odd numbered comboboxes from 3rd column
             column = (i % 2)*3
-            table.attach(self.color_labels[c], column, column + 1, row, row + 1, xoptions = gtk.FILL, xpadding = 5)
-            table.attach(self.color_buttons[c], column+1, column+2, row, row + 1)
-            table.attach(self.clear_buttons[c], column+2, column+3, row, row + 1, xoptions = gtk.FILL)
+            table.attach(self.color_labels[c], column, column + 1, row, 
+                         row + 1, xoptions = gtk.FILL, xpadding = 5)
+            table.attach(self.color_buttons[c], column+1, 
+                         column+2, row, row + 1)
+            table.attach(self.clear_buttons[c], column+2, column+3, 
+                         row, row + 1, xoptions = gtk.FILL)
         table.set_border_width(5)
         frame.add(table)
         appearance_box.pack_start(frame, False, padding=5)
@@ -364,8 +379,10 @@ class PrefDialog():
 
         #--- Popup page
         popup_box.set_border_width(5)
-        self.no_popup_cb = gtk.CheckButton(_('Show popup only if more than one window is open'))
-        self.no_popup_cb.connect('toggled', self.checkbutton_toggled, 'no_popup_for_one_window')
+        self.no_popup_cb = gtk.CheckButton(
+                          _('Show popup only if more than one window is open'))
+        self.no_popup_cb.connect('toggled', self.checkbutton_toggled, 
+                                 'no_popup_for_one_window')
         popup_box.pack_start(self.no_popup_cb, False, padding=5)
         
         # Alignment
@@ -431,32 +448,35 @@ class PrefDialog():
         table.set_border_width(5)
 
         self.gb_labels_and_settings = ODict((
-                                             (_('Left mouse button'), "groupbutton_left_click_action"),
-                                             (_('Shift + left mouse button'), "groupbutton_shift_and_left_click_action"),
-                                             (_('Middle mouse button'), "groupbutton_middle_click_action"),
-                                             (_('Shift + middle mouse button'), "groupbutton_shift_and_middle_click_action"),
-                                             (_('Right mouse button'), "groupbutton_right_click_action"),
-                                             (_('Shift + right mouse button'), "groupbutton_shift_and_right_click_action"),
-                                             (_('Scroll up'), "groupbutton_scroll_up"),
-                                             (_('Scroll down'), "groupbutton_scroll_down")
+             (_('Left mouse button'), "groupbutton_left_click_action"),
+             (_('Shift + left mouse button'), 
+                                "groupbutton_shift_and_left_click_action"),
+             (_('Middle mouse button'), "groupbutton_middle_click_action"),
+             (_('Shift + middle mouse button'), 
+                                "groupbutton_shift_and_middle_click_action"),
+             (_('Right mouse button'), "groupbutton_right_click_action"),
+             (_('Shift + right mouse button'), 
+                                "groupbutton_shift_and_right_click_action"),
+             (_('Scroll up'), "groupbutton_scroll_up"),
+             (_('Scroll down'), "groupbutton_scroll_down")
                                            ))
 
         self.gb_actions = ODict((
-                      ("select", _("select")),
-                      ("close all windows", _("close all windows")),
-                      ("minimize all windows", _("minimize all windows")),
-                      ("maximize all windows", _("maximize all windows")),
-                      ("launch application", _("launch application")),
-                      ("show menu", _("show menu")),
-                      ("remove launcher", _("remove launcher")),
-                      ("select next window", _("select next window")),
-                      ("select previous window", _("select previous window")),
-                      ("minimize all other groups", _("minimize all other groups")),
-                      ("compiz scale windows", _("compiz scale windows")),
-                      ("compiz shift windows", _("compiz shift windows")),
-                      ("compiz scale all", _("compiz scale all")),
-                      ("show preference dialog", _("show preference dialog")),
-                      ("no action", _("no action"))
+              ("select", _("select")),
+              ("close all windows", _("close all windows")),
+              ("minimize all windows", _("minimize all windows")),
+              ("maximize all windows", _("maximize all windows")),
+              ("launch application", _("launch application")),
+              ("show menu", _("show menu")),
+              ("remove launcher", _("remove launcher")),
+              ("select next window", _("select next window")),
+              ("select previous window", _("select previous window")),
+              ("minimize all other groups", _("minimize all other groups")),
+              ("compiz scale windows", _("compiz scale windows")),
+              ("compiz shift windows", _("compiz shift windows")),
+              ("compiz scale all", _("compiz scale all")),
+              ("show preference dialog", _("show preference dialog")),
+              ("no action", _("no action"))
                           ))
 
         self.gb_combos = {}
@@ -472,7 +492,8 @@ class PrefDialog():
             table.attach(label, 0, 1, row, row + 1, xpadding = 5 )
             table.attach(self.gb_combos[text], 1,  2, row, row + 1 )
 
-        self.gb_doubleclick_checkbutton_names = ['groupbutton_left_click_double',
+        self.gb_doubleclick_checkbutton_names = [
+                            'groupbutton_left_click_double',
                             'groupbutton_shift_and_left_click_double',
                             'groupbutton_middle_click_double',
                             'groupbutton_shift_and_middle_click_double',
@@ -481,10 +502,12 @@ class PrefDialog():
         self.gb_doubleclick_checkbutton = {}
         for i in range(len(self.gb_doubleclick_checkbutton_names)):
             name = self.gb_doubleclick_checkbutton_names[i]
-            self.gb_doubleclick_checkbutton[name] = gtk.CheckButton(_('Double click'))
-
-            self.gb_doubleclick_checkbutton[name].connect('toggled', self.checkbutton_toggled, name)
-            table.attach(self.gb_doubleclick_checkbutton[name], 2, 3, i, i + 1, xpadding = 5 )
+            self.gb_doubleclick_checkbutton[name] = \
+                                        gtk.CheckButton(_('Double click'))
+            self.gb_doubleclick_checkbutton[name].connect('toggled', 
+                                                self.checkbutton_toggled, name)
+            table.attach(self.gb_doubleclick_checkbutton[name], 
+                         2, 3, i, i + 1, xpadding = 5 )
 
         frame.add(table)
         groupbutton_box.pack_start(frame, False, padding=5)
@@ -521,9 +544,11 @@ class PrefDialog():
         label = gtk.Label(_("Workspace behavior:"))
         label.set_alignment(1,0.5)
         self.select_workspace_cg = gtk.combo_box_new_text()
-        self.select_workspace_cg.append_text(_("Ignore windows on other workspaces"))
+        self.select_workspace_cg.append_text(
+                                    _("Ignore windows on other workspaces"))
         self.select_workspace_cg.append_text(_("Switch workspace when needed"))
-        self.select_workspace_cg.append_text(_("Move windows from other workspaces"))
+        self.select_workspace_cg.append_text(
+                                    _("Move windows from other workspaces"))
         self.select_workspace_cg.connect('changed', self.cb_changed)
         table.attach(label,0,1,2,3, xpadding = 5 )
         table.attach(self.select_workspace_cg,1,2,2,3)
@@ -533,18 +558,24 @@ class PrefDialog():
         groupbutton_box.pack_start(frame, False)
 
         #--- Advanced page
-        self.ignore_workspace_cb = gtk.CheckButton(_('Ignore windows on other viewports/workspaces'))
-        self.ignore_workspace_cb.connect('toggled', self.checkbutton_toggled, 'show_only_current_desktop')
+        self.ignore_workspace_cb = gtk.CheckButton(
+                            _('Ignore windows on other viewports/workspaces'))
+        self.ignore_workspace_cb.connect('toggled', self.checkbutton_toggled, 
+                                         'show_only_current_desktop')
         self.ignore_workspace_cb.set_border_width(5)
         advanced_box.pack_start(self.ignore_workspace_cb, False)
 
-        self.wine_apps_cb = gtk.CheckButton(_('Give each wine application its own group button'))
-        self.wine_apps_cb.connect('toggled', self.checkbutton_toggled, 'separate_wine_apps')
+        self.wine_apps_cb = gtk.CheckButton(
+                        _('Give each wine application its own group button'))
+        self.wine_apps_cb.connect('toggled', self.checkbutton_toggled, 
+                                  'separate_wine_apps')
         self.wine_apps_cb.set_border_width(5)
         advanced_box.pack_start(self.wine_apps_cb, False)
 
-        self.ooo_apps_cb = gtk.CheckButton(_('Keep open office application (Writer, Calc, etc.) separated'))
-        self.ooo_apps_cb.connect('toggled', self.checkbutton_toggled, 'separate_ooo_apps')
+        self.ooo_apps_cb = gtk.CheckButton(
+             _('Keep open office application (Writer, Calc, etc.) separated'))
+        self.ooo_apps_cb.connect('toggled', self.checkbutton_toggled, 
+                                 'separate_ooo_apps')
         self.ooo_apps_cb.set_border_width(5)
         advanced_box.pack_start(self.ooo_apps_cb, False)
         
@@ -557,7 +588,8 @@ class PrefDialog():
         self.opacify_cb.connect('toggled', self.checkbutton_toggled, 'opacify')
         vbox.pack_start(self.opacify_cb, False)
         self.opacify_group_cb = gtk.CheckButton(_('Opacify group'))
-        self.opacify_group_cb.connect('toggled', self.checkbutton_toggled, 'opacify_group')
+        self.opacify_group_cb.connect('toggled', self.checkbutton_toggled, 
+                                      'opacify_group')
         vbox.pack_start(self.opacify_group_cb, False)
         scalebox = gtk.HBox()
         scalelabel = gtk.Label(_("Opacity:"))
@@ -580,9 +612,12 @@ class PrefDialog():
 
         self.gkeys = ODict((
                        ('gkeys_select_next_group', _('Select next group')),
-                       ('gkeys_select_previous_group', _('Select previous group')),
-                       ('gkeys_select_next_window', _('Select next window in group')),
-                       ('gkeys_select_previous_window', _('Select previous window in group'))
+                       ('gkeys_select_previous_group', 
+                                        _('Select previous group')),
+                       ('gkeys_select_next_window', 
+                                        _('Select next window in group')),
+                       ('gkeys_select_previous_window', 
+                                        _('Select previous window in group'))
                      ))
         self.gkeys_checkbuttons = {}
         self.gkeys_entries = {}
@@ -592,25 +627,33 @@ class PrefDialog():
             s = self.gkeys.keys()[i]
             t = self.gkeys[s]
             self.gkeys_checkbuttons[s] = gtk.CheckButton(t)
-            self.gkeys_checkbuttons[s].connect('toggled', self.checkbutton_toggled, s)
+            self.gkeys_checkbuttons[s].connect('toggled', 
+                                               self.checkbutton_toggled, s)
 
             self.gkeys_entries[s] = gtk.Entry()
 
             self.gkeys_apply_buttons[s] = gtk.Button()
-            image = gtk.image_new_from_stock(gtk.STOCK_APPLY,gtk.ICON_SIZE_SMALL_TOOLBAR)
+            image = gtk.image_new_from_stock(gtk.STOCK_APPLY,
+                                             gtk.ICON_SIZE_SMALL_TOOLBAR)
             self.gkeys_apply_buttons[s].add(image)
             self.gkeys_apply_buttons[s].connect("clicked", self.apply_gkey, s)
 
             self.gkeys_clear_buttons[s] = gtk.Button()
-            image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,gtk.ICON_SIZE_SMALL_TOOLBAR)
+            image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,
+                                             gtk.ICON_SIZE_SMALL_TOOLBAR)
             self.gkeys_clear_buttons[s].add(image)
             self.gkeys_clear_buttons[s].connect("clicked", self.reset_gkey, s)
 
-            table.attach(self.gkeys_checkbuttons[s], 0, 1, i, i + 1, xoptions = gtk.FILL, xpadding = 5)
-            table.attach(self.gkeys_entries[s], 1, 2, i, i + 1, xoptions = gtk.FILL)
-            table.attach(self.gkeys_apply_buttons[s], 2, 3, i, i + 1, xoptions = gtk.FILL)
-            table.attach(self.gkeys_clear_buttons[s], 3, 4, i, i + 1, xoptions = gtk.FILL)
-        label = gtk.Label('Note! Compiz keyboard shortcuts will override these.')
+            table.attach(self.gkeys_checkbuttons[s], 0, 1, i, i + 1, 
+                         xoptions = gtk.FILL, xpadding = 5)
+            table.attach(self.gkeys_entries[s], 1, 2, i, i + 1, 
+                         xoptions = gtk.FILL)
+            table.attach(self.gkeys_apply_buttons[s], 2, 3, i, i + 1, 
+                         xoptions = gtk.FILL)
+            table.attach(self.gkeys_clear_buttons[s], 3, 4, i, i + 1, 
+                         xoptions = gtk.FILL)
+        label = gtk.Label(
+                        'Note! Compiz keyboard shortcuts will override these.')
         table.attach(label,0,4,i+1, i+2, xoptions = gtk.FILL)
         table.set_border_width(5)
         frame.add(table)
@@ -657,9 +700,9 @@ class PrefDialog():
             self.globals.update_colors(None)
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
-        # and returns a dict of the theme names and paths so that
-        # a theme can be loaded
+        # Reads the themes from /usr/share/dockbarx/themes and 
+        # ~/.dockbarx/themes and returns a dict of the theme names 
+        # and paths so that a theme can be loaded.
         themes = {}
         theme_paths = []
         homeFolder = os.path.expanduser("~")
@@ -694,7 +737,8 @@ class PrefDialog():
         """Set widgets according to settings."""
 
         # Attention notification
-        settings_attention = self.globals.settings["groupbutton_attention_notification_type"]
+        settings_attention = self.globals.settings[
+                                    "groupbutton_attention_notification_type"]
         if settings_attention == 'compwater':
             self.rb1_1.set_active(True)
         elif settings_attention == 'blink':
@@ -715,7 +759,8 @@ class PrefDialog():
 
         # Popup
         self.delay_spin.set_value(self.globals.settings['popup_delay'])
-        self.no_popup_cb.set_active(self.globals.settings['no_popup_for_one_window'])
+        self.no_popup_cb.set_active(
+                            self.globals.settings['no_popup_for_one_window'])
 
         # Group button keys
         for cb_name, setting_name in self.gb_labels_and_settings.items():
@@ -738,11 +783,13 @@ class PrefDialog():
                     break
 
         for name in self.gb_doubleclick_checkbutton_names:
-            self.gb_doubleclick_checkbutton[name].set_active(self.globals.settings[name])
+            self.gb_doubleclick_checkbutton[name].set_active(
+                                                self.globals.settings[name])
 
         # Opacify
         self.opacify_cb.set_active(self.globals.settings['opacify'])
-        self.opacify_group_cb.set_active(self.globals.settings['opacify_group'])
+        self.opacify_group_cb.set_active(
+                                        self.globals.settings['opacify_group'])
         self.opacify_scale.set_value(self.globals.settings['opacify_alpha'])
 
         self.opacify_group_cb.set_sensitive(self.globals.settings['opacify'])
@@ -773,36 +820,36 @@ class PrefDialog():
 
         #Select action
         model = self.select_one_cg.get_model()
-        sod = {
+        sow = {
                "select window": _("select window"),
                "select or minimize window": _("select or minimize window")
-              }
+              }[self.globals.settings['select_one_window'].lower()]
         for i in range(len(self.select_one_cg.get_model())):
-                if model[i][0] == sod[self.globals.settings['select_one_window'].lower()]:
+                if model[i][0] == sow:
                     self.select_one_cg.set_active(i)
                     break
 
         model = self.select_multiple_cg.get_model()
-        smd = {
+        smw = {
                 "select all": _("select all"),
                 "select or minimize all": _("select or minimize all"),
                 "compiz scale": _("compiz scale"),
                 "cycle through windows": _("cycle through windows"),
                 "show popup": _("show popup")
-              }
+              }[self.globals.settings['select_multiple_windows'].lower()]
         for i in range(len(self.select_multiple_cg.get_model())):
-                if model[i][0] == smd[self.globals.settings['select_multiple_windows'].lower()]:
+                if model[i][0] == smw:
                     self.select_multiple_cg.set_active(i)
                     break
 
         model = self.select_workspace_cg.get_model()
-        wso={
-             "ignore":_("Ignore windows on other workspace"),
-             "switch":_("Switch workspace when needed"),
-             "move":_("Move windows from other workspaces")
-            }
+        wso = {
+               "ignore":_("Ignore windows on other workspace"),
+               "switch":_("Switch workspace when needed"),
+               "move":_("Move windows from other workspaces")
+              }[self.globals.settings['workspace_behavior'].lower()]
         for i in range(len(self.select_workspace_cg.get_model())):
-                if model[i][0] == wso[self.globals.settings['workspace_behavior'].lower()]:
+                if model[i][0] == wso:
                     self.select_workspace_cg.set_active(i)
                     break
 
@@ -817,13 +864,16 @@ class PrefDialog():
         self.preview_cb.set_active(self.globals.settings["preview"])
         self.preview_size_spin.set_value(self.globals.settings["preview_size"])
         self.preview_size_spin.set_sensitive(self.globals.settings["preview"])
-        self.ignore_workspace_cb.set_active(self.globals.settings["show_only_current_desktop"])
-        self.wine_apps_cb.set_active(self.globals.settings["separate_wine_apps"])
+        self.ignore_workspace_cb.set_active(
+                            self.globals.settings["show_only_current_desktop"])
+        self.wine_apps_cb.set_active(
+                            self.globals.settings["separate_wine_apps"])
         self.ooo_apps_cb.set_active(self.globals.settings["separate_ooo_apps"])
 
         for s in self.gkeys:
             self.gkeys_checkbuttons[s].set_active(self.globals.settings[s])
-            self.gkeys_entries[s].set_text(self.globals.settings['%s_keystr'%s])
+            self.gkeys_entries[s].set_text(
+                                    self.globals.settings['%s_keystr'%s])
 
 
 
@@ -850,8 +900,10 @@ class PrefDialog():
             value = 'nothing'
             rb1_toggled = True
 
-        if rb1_toggled and value != self.globals.settings["groupbutton_attention_notification_type"]:
-            GCONF_CLIENT.set_string(GCONF_DIR+'/groupbutton_attention_notification_type', value)
+        if rb1_toggled and value != \
+              self.globals.settings["groupbutton_attention_notification_type"]:
+            GCONF_CLIENT.set_string(
+                   GCONF_DIR+'/groupbutton_attention_notification_type', value)
 
         if par1 == 'rb3_left' and button.get_active():
             value = 'left'
@@ -890,11 +942,13 @@ class PrefDialog():
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
                     plugins.append('kdecompat')
-                    compiz_call("core/allscreens/active_plugins", "set", plugins)
+                    compiz_call("core/allscreens/active_plugins", "set", 
+                                plugins)
 
             # Check if Support Plasma thumbnails is activated.
             try:
-                plasmat = compiz_call("kdecompat/screen0/plasma_thumbnails", "get")
+                plasmat = compiz_call("kdecompat/screen0/plasma_thumbnails", 
+                                      "get")
             except dbus.exceptions.DBusException:
                 return
             if not plasmat:
@@ -907,7 +961,8 @@ class PrefDialog():
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
                     plugins.append('kdecompat')
-                    compiz_call("kdecompat/screen0/plasma_thumbnails", "set", True)
+                    compiz_call("kdecompat/screen0/plasma_thumbnails", "set", 
+                                True)
 
         if name == "opacify" and button.get_active():
             # Check if the needed compiz plugin is activated
@@ -927,7 +982,8 @@ class PrefDialog():
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
                     plugins.append('obs')
-                    compiz_call("core/allscreens/active_plugins", "set", plugins)
+                    compiz_call("core/allscreens/active_plugins", "set", 
+                                plugins)
 
 
     def cb_changed(self, combobox):
@@ -942,7 +998,8 @@ class PrefDialog():
                 for (action, translation) in self.gb_actions.items():
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
-                            GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, action)
+                            GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, 
+                                                    action)
                         break
                 break
 
@@ -956,7 +1013,8 @@ class PrefDialog():
                 for (action, translation) in self.wb_actions.items():
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
-                            GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, action)
+                            GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name,
+                                                    action)
                         break
                 break
 
@@ -976,7 +1034,8 @@ class PrefDialog():
             if value == None:
                 return
             if sod[value] != self.globals.settings['select_one_window']:
-                GCONF_CLIENT.set_string(GCONF_DIR+'/select_one_window', sod[value])
+                GCONF_CLIENT.set_string(GCONF_DIR+'/select_one_window', 
+                                        sod[value])
 
 
         if combobox == self.select_multiple_cg:
@@ -991,7 +1050,8 @@ class PrefDialog():
             if value == None:
                 return
             if smd[value] != self.globals.settings['select_multiple_windows']:
-                    GCONF_CLIENT.set_string(GCONF_DIR+'/select_multiple_windows', smd[value])
+                    GCONF_CLIENT.set_string(
+                            GCONF_DIR+'/select_multiple_windows', smd[value])
 
         if combobox == self.select_workspace_cg:
             value = combobox.get_active_text()
@@ -1003,7 +1063,8 @@ class PrefDialog():
             if value == None:
                 return
             if wso[value] != self.globals.settings['workspace_behavior']:
-                GCONF_CLIENT.set_string(GCONF_DIR+'/workspace_behavior', wso[value])
+                GCONF_CLIENT.set_string(GCONF_DIR+'/workspace_behavior', 
+                                        wso[value])
 
     def adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf
