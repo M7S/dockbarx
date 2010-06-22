@@ -171,6 +171,8 @@ class GroupButton (gobject.GObject):
         self.globals.connect('show-only-current-desktop-changed', 
                              self.on_show_only_current_desktop_changed)
         self.globals.connect('color2-changed', self.update_popup_label)
+        self.globals.connect('show-previews-changed', 
+                             self.on_show_previews_changed)
         self.launcher = launcher
         self.class_group = class_group
         self.app = app
@@ -230,30 +232,25 @@ class GroupButton (gobject.GObject):
 
         #--- Popup window
         cairo_popup = CairoPopup()
-
-        if self.globals.settings["preview"]:
-            self.winlist = gtk.HBox()
-            self.winlist.set_spacing(4)
-        else:
-            self.winlist = gtk.VBox()
-            self.winlist.set_spacing(2)
+        self.popup = cairo_popup.window
+        self.popup_showing = False
+        self.popup.connect("leave-notify-event",self.on_popup_mouse_leave)
+        
         self.popup_box = gtk.VBox()
         self.popup_box.set_border_width(5)
         self.popup_box.set_spacing(2)
         self.popup_label = gtk.Label()
-        self.update_name()
         self.popup_label.set_use_markup(True)
+        self.update_name()
         if self.identifier:
             # Todo: add tooltip when identifier is added.
             self.popup_label.set_tooltip_text(
                                     "%s: %s"%(_("Identifier"),self.identifier))
         self.popup_box.pack_start(self.popup_label, False)
-        self.popup_box.pack_start(self.winlist, False)
+        # Initiate the windowlist
+        self.winlist = None
+        self.on_show_previews_changed()
 
-
-        self.popup = cairo_popup.window
-        self.popup_showing = False
-        self.popup.connect("leave-notify-event",self.on_popup_mouse_leave)
         self.popup.add(self.popup_box)
 
 
@@ -444,6 +441,21 @@ class GroupButton (gobject.GObject):
         self.update_state()
         self.nextlist = None
         self.on_set_icongeo_grp()
+        
+    def on_show_previews_changed(self, arg=None):
+        oldbox = self.winlist
+        if self.globals.settings['preview']:
+            self.winlist = gtk.HBox()
+            self.winlist.set_spacing(4)
+        else:
+            self.winlist = gtk.VBox()
+            self.winlist.set_spacing(2)
+        if oldbox:
+            for c in oldbox.get_children():
+                oldbox.remove(c)
+                self.winlist.pack_start(c, False)
+            self.popup_box.remove(oldbox)
+        self.popup_box.pack_start(self.winlist, False)
 
     #### Window counts
     def get_windows_count(self):

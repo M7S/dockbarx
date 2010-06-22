@@ -52,8 +52,9 @@ class WindowButton(gobject.GObject):
         gobject.GObject.__init__(self)
         self.globals = Globals()
         self.globals.connect('color-changed', self.update_label_state)
+        self.globals.connect('show-previews-changed', 
+                             self.on_show_preview_changed)
         self.screen = wnck.screen_get_default()
-        self.preview = False
         self.name = window.get_name()
         self.window = window
         self.is_active_window = False
@@ -71,22 +72,8 @@ class WindowButton(gobject.GObject):
 
         self.window_button_icon = gtk.Image()
         self.on_window_icon_changed(window)
-        hbox = gtk.HBox()
-        hbox.pack_start(self.window_button_icon, False, padding = 2)
-        hbox.pack_start(self.label, True, True)
-        if self.globals.settings["preview"]:
-            self.preview = True
-            vbox = gtk.VBox()
-            vbox.pack_start(hbox, False)
-            self.preview_image =  gtk.Image()
-            vbox.pack_start(self.preview_image, True, True, padding = 4)
-            self.window_button.add(vbox)
-            # Fixed with of self.label.
-            self.label.set_ellipsize(pango.ELLIPSIZE_END)
-        else:
-            self.window_button.add(hbox)
-
-
+        self.preview_image = None
+        self.on_show_preview_changed()
         self.update_label_state()
 
 
@@ -157,13 +144,12 @@ class WindowButton(gobject.GObject):
         del self.icon_transp
         del self.screen
         del self.window
-        del self.preview
         del self.globals
         gc.collect()
 
     #### Previews
     def prepare_preview(self, size=None):
-        if not self.preview:
+        if not self.globals.settings["preview"]:
             return False
         if size == None:
             size = self.globals.settings["preview_size"]
@@ -191,10 +177,38 @@ class WindowButton(gobject.GObject):
         return (x, y, w, h)
 
     def clear_preview_image(self):
-        if not self.preview:
-            return False
-        self.preview_image.clear()
-        gc.collect()
+        if self.preview_image:
+            self.preview_image.clear()
+            gc.collect()
+        
+    def on_show_preview_changed(self, arg=None):
+        child = self.window_button.get_child()
+        if child:
+            self.window_button.remove(child)
+        oldbox = self.window_button_icon.get_parent()
+        if oldbox:
+            oldbox.remove(self.window_button_icon)
+            oldbox.remove(self.label)
+            
+        self.on_window_name_changed(self.window)
+        hbox = gtk.HBox()
+        hbox.pack_start(self.window_button_icon, False, padding = 2)
+        hbox.pack_start(self.label, True, True)
+        if self.globals.settings["preview"]:
+            vbox = gtk.VBox()
+            vbox.pack_start(hbox, False)
+            self.preview_image =  gtk.Image()
+            vbox.pack_start(self.preview_image, True, True, padding = 4)
+            self.window_button.add(vbox)
+            # Fixed with of self.label.
+            self.label.set_ellipsize(pango.ELLIPSIZE_END)
+        else:
+            self.label.set_ellipsize(pango.ELLIPSIZE_NONE)
+            self.window_button.add(hbox)
+            if self.preview_image:
+                self.preview_image.clear()
+                self.preview_image = None
+                gc.collect()
 
     #### Windows's Events
     def on_window_state_changed(self, window,changed_mask, new_state):
@@ -241,7 +255,7 @@ class WindowButton(gobject.GObject):
     def on_window_name_changed(self, window):
         name = u""+window.get_name()
         # TODO: fix a better way to shorten names.
-        if len(name) > 40 and not self.preview:
+        if len(name) > 40 and not self.globals.settings["preview"]:
             name = name[0:37]+"..."
         self.name = name
         self.label.set_label(name)
