@@ -111,7 +111,7 @@ class WindowButton(gobject.GObject):
         """Updates the style of the label according to window state."""
         attr_list = pango.AttrList()
         if self.needs_attention:
-            attr_list.insert(pango.AttrStyle(pango.STYLE_ITALIC, 0, 50))
+            attr_list.insert(pango.AttrStyle(pango.STYLE_ITALIC, 0, 200))
         if self.is_active_window:
             color = self.globals.colors['color3']
         elif self.window.is_minimized():
@@ -122,7 +122,7 @@ class WindowButton(gobject.GObject):
         r = int(color[1:3], 16)*256
         g = int(color[3:5], 16)*256
         b = int(color[5:7], 16)*256
-        attr_list.insert(pango.AttrForeground(r, g, b, 0, 50))
+        attr_list.insert(pango.AttrForeground(r, g, b, 0, 200))
         self.label.set_attributes(attr_list)
 
 
