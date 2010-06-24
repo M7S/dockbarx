@@ -7,45 +7,89 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-06-09 13:23+0300\n"
-"PO-Revision-Date: 2010-06-07 16:58+0000\n"
-"Last-Translator: Matias Särs <Unknown>\n"
+"POT-Creation-Date: 2010-06-18 20:03+0300\n"
+"PO-Revision-Date: 2010-06-23 12:04+0000\n"
+"Last-Translator: Atbeyi <Unknown>\n"
 "Language-Team: Turkish <tr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-06-10 14:20+0000\n"
+"X-Launchpad-Export-Date: 2010-06-23 12:20+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: dockbarx/iconfactory.py:514
-msgid "Cannot load icon for launcher"
-msgstr "Çalıştırı için simge yüklenemedi"
-
-#: dockbarx/dockbar.py:396
-msgid "The launcher at path"
-msgstr "Hedefteki Çalıştırıcı"
-
-#: dockbarx/dockbar.py:398
-msgid "cant be found. Did you perhaps delete the file?"
-msgstr "bulunamadı. Dosyayı silmiş olabilir misiniz?"
-
-#: dockbarx/dockbar.py:895 dockbarx/groupbutton.py:248
-#: dockbarx/groupbutton.py:295
+#: dockbarx/groupbutton.py:237 dockbarx/groupbutton.py:284
+#: dockbarx/dockbar.py:973
 msgid "Identifier"
 msgstr "Tanımlayıcı"
 
-#: dockbarx/dockbar.py:896
+#: dockbarx/groupbutton.py:1513
+msgid "_Pin application"
+msgstr "_Tuttur"
+
+#: dockbarx/groupbutton.py:1519
+msgid "_Launch application"
+msgstr "_Uygulamayı Çalıştır"
+
+#: dockbarx/groupbutton.py:1525
+msgid "Unpin application"
+msgstr "Tutturma"
+
+#: dockbarx/groupbutton.py:1530
+msgid "Edit Identifier"
+msgstr "Tanımlayıcıyı Düzenle"
+
+#: dockbarx/groupbutton.py:1548
+msgid "Recent"
+msgstr "En Son"
+
+#: dockbarx/groupbutton.py:1548
+msgid "Most used"
+msgstr "Sık kullanılan"
+
+#: dockbarx/groupbutton.py:1579
+msgid " all windows"
+msgstr " tüm pencereler"
+
+#: dockbarx/groupbutton.py:1582 dockbarx/windowbutton.py:493
+msgid "Un_minimize"
+msgstr "_Küçültme"
+
+#: dockbarx/groupbutton.py:1588 dockbarx/windowbutton.py:490
+msgid "_Minimize"
+msgstr "_Küçült"
+
+#: dockbarx/groupbutton.py:1596 dockbarx/windowbutton.py:502
+msgid "Ma_ximize"
+msgstr "_Büyüt"
+
+#: dockbarx/groupbutton.py:1599 dockbarx/windowbutton.py:505
+msgid "Unma_ximize"
+msgstr "Büyüt_meyi geri al"
+
+#: dockbarx/groupbutton.py:1604 dockbarx/windowbutton.py:511
+msgid "_Close"
+msgstr "_Kapat"
+
+#: dockbarx/dockbar.py:405
+msgid "The launcher at path"
+msgstr "Hedefteki Çalıştırıcı"
+
+#: dockbarx/dockbar.py:407
+msgid "cant be found. Did you perhaps delete the file?"
+msgstr "bulunamadı. Dosyayı silmiş olabilir misiniz?"
+
+#: dockbarx/dockbar.py:974
 msgid "Enter the identifier here"
 msgstr "Tanımlayıcıyı buraya girin"
 
-#: dockbarx/dockbar.py:898
+#: dockbarx/dockbar.py:976
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
 "Bunu sadece program pencereleri tanımakta başarısız olursa yapmalısınız. "
 
-#: dockbarx/dockbar.py:899
+#: dockbarx/dockbar.py:977
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
@@ -53,85 +97,41 @@ msgstr ""
 "Eğer program halihazırda çalışıyorsa açılabilir listede programın "
 "tanımlayıcısını bulabilmelisiniz."
 
-#: dockbarx/dockbar.py:914
+#: dockbarx/dockbar.py:994
 msgid "Identifier:"
 msgstr "Tanımlayıcı:"
 
-#: dockbarx/dockbar.py:1001 dbx_preference.py:574
+#: dockbarx/dockbar.py:1083 dbx_preference.py:582
 msgid "Select next group"
-msgstr ""
+msgstr "Sonraki grubu seç"
 
-#: dockbarx/dockbar.py:1002 dbx_preference.py:575
+#: dockbarx/dockbar.py:1084 dbx_preference.py:583
 msgid "Select previous group"
-msgstr ""
+msgstr "Önceki grubu seç"
 
-#: dockbarx/dockbar.py:1003 dbx_preference.py:576
+#: dockbarx/dockbar.py:1085 dbx_preference.py:584
 msgid "Select next window in group"
-msgstr ""
+msgstr "Grupta bir sonraki pencereyi seç"
 
-#: dockbarx/dockbar.py:1004 dbx_preference.py:577
+#: dockbarx/dockbar.py:1086 dbx_preference.py:585
 msgid "Select previous window in group"
-msgstr ""
+msgstr "Grupta bir önceki pencereyi seç"
 
-#: dockbarx/dockbar.py:1030
+#: dockbarx/dockbar.py:1112
 msgid "The key is already bound elsewhere."
-msgstr ""
+msgstr "Tuş halihazırda bir başka yere atanmış."
 
-#: dockbarx/dockbar.py:1032
+#: dockbarx/dockbar.py:1114
 #, python-format
 msgid ""
 "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
 msgstr ""
 
-#: dockbarx/windowbutton.py:490 dockbarx/groupbutton.py:1595
-msgid "_Minimize"
-msgstr "_Küçült"
+#: dockbarx/iconfactory.py:512
+msgid "Cannot load icon for launcher"
+msgstr "Çalıştırı için simge yüklenemedi"
 
-#: dockbarx/windowbutton.py:493 dockbarx/groupbutton.py:1589
-msgid "Un_minimize"
-msgstr "_Küçültme"
-
-#: dockbarx/windowbutton.py:502 dockbarx/groupbutton.py:1603
-msgid "Ma_ximize"
-msgstr "_Büyüt"
-
-#: dockbarx/windowbutton.py:505 dockbarx/groupbutton.py:1606
-msgid "Unma_ximize"
-msgstr "Büyüt_meyi geri al"
-
-#: dockbarx/windowbutton.py:511 dockbarx/groupbutton.py:1611
-msgid "_Close"
-msgstr "_Kapat"
-
-#: dockbarx/groupbutton.py:1520
-msgid "_Pin application"
-msgstr "_Tuttur"
-
-#: dockbarx/groupbutton.py:1526
-msgid "_Launch application"
-msgstr "_Uygulamayı Çalıştır"
-
-#: dockbarx/groupbutton.py:1532
-msgid "Unpin application"
-msgstr "Tutturma"
-
-#: dockbarx/groupbutton.py:1537
-msgid "Edit Identifier"
-msgstr "Tanımlayıcıyı Düzenle"
-
-#: dockbarx/groupbutton.py:1555
-msgid "Recent"
-msgstr "En Son"
-
-#: dockbarx/groupbutton.py:1555
-msgid "Most used"
-msgstr "Sık kullanılan"
-
-#: dockbarx/groupbutton.py:1586
-msgid " all windows"
-msgstr " tüm pencereler"
-
-#: dockbarx/theme.py:154 dbx_preference.py:684
+#: dockbarx/theme.py:154 dbx_preference.py:687
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
@@ -142,316 +142,334 @@ msgstr ""
 msgid "DockBarX preferences"
 msgstr "DockBarX özellikleri"
 
-#: dbx_preference.py:224
+#: dbx_preference.py:227
 msgid "Windowbutton actions"
 msgstr "Pencere düğmeleri eylemleri"
 
-#: dbx_preference.py:232 dbx_preference.py:414
+#: dbx_preference.py:233 dbx_preference.py:434
 msgid "Left mouse button"
 msgstr "Fare sol düğmesi"
 
-#: dbx_preference.py:233 dbx_preference.py:415
+#: dbx_preference.py:234 dbx_preference.py:435
 msgid "Shift + left mouse button"
 msgstr "Shift + fare sol düğmesi"
 
-#: dbx_preference.py:234 dbx_preference.py:416
+#: dbx_preference.py:235 dbx_preference.py:436
 msgid "Middle mouse button"
 msgstr "Fare orta düğmesi"
 
-#: dbx_preference.py:235 dbx_preference.py:417
+#: dbx_preference.py:236 dbx_preference.py:437
 msgid "Shift + middle mouse button"
 msgstr "Shift + fare orta düğmesi"
 
-#: dbx_preference.py:236 dbx_preference.py:418
+#: dbx_preference.py:237 dbx_preference.py:438
 msgid "Right mouse button"
 msgstr "Fare sağ düğmesi"
 
-#: dbx_preference.py:237 dbx_preference.py:419
+#: dbx_preference.py:238 dbx_preference.py:439
 msgid "Shift + right mouse button"
 msgstr "Shift + fare sağ düğmesi"
 
-#: dbx_preference.py:238 dbx_preference.py:420
+#: dbx_preference.py:239 dbx_preference.py:440
 msgid "Scroll up"
 msgstr "Yukarı kaydır"
 
-#: dbx_preference.py:239 dbx_preference.py:421
+#: dbx_preference.py:240 dbx_preference.py:441
 msgid "Scroll down"
 msgstr "Aşağı kaydır"
 
-#: dbx_preference.py:243 dbx_preference.py:491 dbx_preference.py:775
-#: dbx_preference.py:970
+#: dbx_preference.py:244 dbx_preference.py:504 dbx_preference.py:778
+#: dbx_preference.py:973
 msgid "select or minimize window"
 msgstr "seç ya da pencereyi küçült"
 
-#: dbx_preference.py:244 dbx_preference.py:490 dbx_preference.py:774
-#: dbx_preference.py:969
+#: dbx_preference.py:245 dbx_preference.py:503 dbx_preference.py:777
+#: dbx_preference.py:972
 msgid "select window"
 msgstr "pencereyi seç"
 
-#: dbx_preference.py:245
+#: dbx_preference.py:246
 msgid "maximize window"
 msgstr "pencereyi büyüt"
 
-#: dbx_preference.py:246
+#: dbx_preference.py:247
 msgid "close window"
 msgstr "pencereyi kapat"
 
-#: dbx_preference.py:247 dbx_preference.py:430
+#: dbx_preference.py:248 dbx_preference.py:450
 msgid "show menu"
 msgstr "menüyü göster"
 
-#: dbx_preference.py:248
+#: dbx_preference.py:249
 msgid "shade window"
 msgstr "pencereyi topla"
 
-#: dbx_preference.py:249
+#: dbx_preference.py:250
 msgid "unshade window"
 msgstr "pencereyi aç"
 
-#: dbx_preference.py:250 dbx_preference.py:439
+#: dbx_preference.py:251 dbx_preference.py:459
 msgid "no action"
 msgstr "eylem yok"
 
-#: dbx_preference.py:275
-msgid "Needs attention effect"
-msgstr "ilgi efekti istiyor"
-
-#: dbx_preference.py:279
-msgid "Compiz water"
-msgstr "Compiz Su Efekti"
-
-#: dbx_preference.py:281
-msgid "Blinking"
-msgstr "Yanıp Sönme"
-
-#: dbx_preference.py:283
-msgid "Static"
-msgstr "Durağan"
-
-#: dbx_preference.py:285
-msgid "No effect"
-msgstr "Efekt yok"
-
-#: dbx_preference.py:294
-msgid "Popup Settings"
-msgstr "Açılır Pencere Ayarları"
-
-#: dbx_preference.py:298
-msgid "Align left"
-msgstr "Sol yasla"
-
-#: dbx_preference.py:300
-msgid "Align center"
-msgstr "Ortala"
-
-#: dbx_preference.py:302
-msgid "Align right"
-msgstr "Sağa yasla"
-
-#: dbx_preference.py:310 dbx_preference.py:314
-msgid "Opacify"
-msgstr "Matlaştır"
-
-#: dbx_preference.py:317
-msgid "Opacify group"
-msgstr "Grubu matlaştır"
-
-#: dbx_preference.py:321
-msgid "Opacity:"
-msgstr "Saydamlık:"
-
-#: dbx_preference.py:336
+#: dbx_preference.py:274
 msgid "Theme:"
 msgstr "Tema:"
 
-#: dbx_preference.py:353
+#: dbx_preference.py:291
 msgid "Colors"
 msgstr "Renkler"
 
-#: dbx_preference.py:407
-msgid "Groupbutton actions"
-msgstr "Grup düğmesi eylemleri"
+#: dbx_preference.py:344
+msgid "Needs attention effect"
+msgstr "ilgi efekti istiyor"
 
-#: dbx_preference.py:425
-msgid "select"
-msgstr "seç"
+#: dbx_preference.py:348
+msgid "Compiz water"
+msgstr "Compiz Su Efekti"
 
-#: dbx_preference.py:426
-msgid "close all windows"
-msgstr "tüm pencereleri kapat"
+#: dbx_preference.py:350
+msgid "Blinking"
+msgstr "Yanıp Sönme"
 
-#: dbx_preference.py:427
-msgid "minimize all windows"
-msgstr "tüm pencereleri kapat"
+#: dbx_preference.py:352
+msgid "Static"
+msgstr "Durağan"
 
-#: dbx_preference.py:428
-msgid "maximize all windows"
-msgstr "tüm pencereleri büyüt"
+#: dbx_preference.py:354
+msgid "No effect"
+msgstr "Efekt yok"
 
-#: dbx_preference.py:429
-msgid "launch application"
-msgstr "uygulamayı çalıştır"
-
-#: dbx_preference.py:431
-msgid "remove launcher"
-msgstr "çalıştırıcıyı kaldır"
-
-#: dbx_preference.py:432
-msgid "select next window"
-msgstr "sonraki pencereyi seç"
-
-#: dbx_preference.py:433
-msgid "select previous window"
-msgstr "önceki pencereyi seç"
-
-#: dbx_preference.py:434
-msgid "minimize all other groups"
-msgstr "diğer tüm grupları kapat"
-
-#: dbx_preference.py:435
-msgid "compiz scale windows"
-msgstr "compiz pencereleri ölçekle"
-
-#: dbx_preference.py:436
-msgid "compiz shift windows"
-msgstr "compiz pencereleri değiştir"
-
-#: dbx_preference.py:437
-msgid "compiz scale all"
-msgstr "compiz tümünü ölçekle"
-
-#: dbx_preference.py:438
-msgid "show preference dialog"
-msgstr "özellikler diyaloğunu göster"
-
-#: dbx_preference.py:468
-msgid "Double click"
-msgstr "Çift tıklama"
-
-#: dbx_preference.py:481
-msgid "\"Select\" action options"
-msgstr "eylem seçeneklerini belirle"
-
-#: dbx_preference.py:487
-msgid "One window open:"
-msgstr "Bir pencere açık"
-
-#: dbx_preference.py:496
-msgid "Multiple windows open:"
-msgstr "Bir çok pencere açık"
-
-#: dbx_preference.py:499 dbx_preference.py:784 dbx_preference.py:981
-msgid "select all"
-msgstr "tümünü seç"
-
-#: dbx_preference.py:500 dbx_preference.py:785 dbx_preference.py:982
-msgid "select or minimize all"
-msgstr "seç ya da tümünü küçült"
-
-#: dbx_preference.py:501 dbx_preference.py:786 dbx_preference.py:983
-msgid "compiz scale"
-msgstr "compiz ölçekle"
-
-#: dbx_preference.py:502 dbx_preference.py:787 dbx_preference.py:984
-msgid "cycle through windows"
-msgstr "pencereler arasında gezin"
-
-#: dbx_preference.py:503 dbx_preference.py:788 dbx_preference.py:985
-msgid "show popup"
-msgstr "açılır pencereyi göster"
-
-#: dbx_preference.py:508
-msgid "Workspace behavior:"
-msgstr "çalışma alanı tepkisi"
-
-#: dbx_preference.py:511 dbx_preference.py:996
-msgid "Ignore windows on other workspaces"
-msgstr "pencereleri ya da diğer çalışma alanlarını yoksay"
-
-#: dbx_preference.py:512 dbx_preference.py:798 dbx_preference.py:997
-msgid "Switch workspace when needed"
-msgstr "Gerektiğinde çalışma alanını değiştir"
-
-#: dbx_preference.py:513 dbx_preference.py:799 dbx_preference.py:998
-msgid "Move windows from other workspaces"
-msgstr "Pencereleri çalışma alanlarından taşı"
-
-#: dbx_preference.py:522
-msgid "Popup"
-msgstr "Açılır Pencere"
-
-#: dbx_preference.py:527
-msgid "Delay:"
-msgstr "Gecikme:"
-
-#: dbx_preference.py:536
+#: dbx_preference.py:367
 msgid "Show popup only if more than one window is open"
 msgstr "Eğer birden fazla pencere açıksa açılır pencereyi göster"
 
-#: dbx_preference.py:543
+#: dbx_preference.py:373
+msgid "Alignment"
+msgstr "Yerleşim"
+
+#: dbx_preference.py:377
+msgid "Align left"
+msgstr "Sol yasla"
+
+#: dbx_preference.py:379
+msgid "Align center"
+msgstr "Ortala"
+
+#: dbx_preference.py:381
+msgid "Align right"
+msgstr "Sağa yasla"
+
+#: dbx_preference.py:390
+msgid "Delay"
+msgstr "Gecikme"
+
+#: dbx_preference.py:395
+msgid "Delay:"
+msgstr "Gecikme:"
+
+#: dbx_preference.py:407
+msgid "Previews"
+msgstr "Önizlemeler"
+
+#: dbx_preference.py:411
 msgid "Show previews"
 msgstr "Önizlemeleri göster"
 
-#: dbx_preference.py:548
+#: dbx_preference.py:416
 msgid "Preview size:"
 msgstr "Önizleme boyutu"
 
-#: dbx_preference.py:557
+#: dbx_preference.py:428
+msgid "Groupbutton actions"
+msgstr "Grup düğmesi eylemleri"
+
+#: dbx_preference.py:445
+msgid "select"
+msgstr "seç"
+
+#: dbx_preference.py:446
+msgid "close all windows"
+msgstr "tüm pencereleri kapat"
+
+#: dbx_preference.py:447
+msgid "minimize all windows"
+msgstr "tüm pencereleri kapat"
+
+#: dbx_preference.py:448
+msgid "maximize all windows"
+msgstr "tüm pencereleri büyüt"
+
+#: dbx_preference.py:449
+msgid "launch application"
+msgstr "uygulamayı çalıştır"
+
+#: dbx_preference.py:451
+msgid "remove launcher"
+msgstr "çalıştırıcıyı kaldır"
+
+#: dbx_preference.py:452
+msgid "select next window"
+msgstr "sonraki pencereyi seç"
+
+#: dbx_preference.py:453
+msgid "select previous window"
+msgstr "önceki pencereyi seç"
+
+#: dbx_preference.py:454
+msgid "minimize all other groups"
+msgstr "diğer tüm grupları kapat"
+
+#: dbx_preference.py:455
+msgid "compiz scale windows"
+msgstr "compiz pencereleri ölçekle"
+
+#: dbx_preference.py:456
+msgid "compiz shift windows"
+msgstr "compiz pencereleri değiştir"
+
+#: dbx_preference.py:457
+msgid "compiz scale all"
+msgstr "compiz tümünü ölçekle"
+
+#: dbx_preference.py:458
+msgid "show preference dialog"
+msgstr "özellikler diyaloğunu göster"
+
+#: dbx_preference.py:484
+msgid "Double click"
+msgstr "Çift tıklama"
+
+#: dbx_preference.py:494
+msgid "\"Select\" action options"
+msgstr "eylem seçeneklerini belirle"
+
+#: dbx_preference.py:500
+msgid "One window open:"
+msgstr "Bir pencere açık"
+
+#: dbx_preference.py:509
+msgid "Multiple windows open:"
+msgstr "Bir çok pencere açık"
+
+#: dbx_preference.py:512 dbx_preference.py:787 dbx_preference.py:984
+msgid "select all"
+msgstr "tümünü seç"
+
+#: dbx_preference.py:513 dbx_preference.py:788 dbx_preference.py:985
+msgid "select or minimize all"
+msgstr "seç ya da tümünü küçült"
+
+#: dbx_preference.py:514 dbx_preference.py:789 dbx_preference.py:986
+msgid "compiz scale"
+msgstr "compiz ölçekle"
+
+#: dbx_preference.py:515 dbx_preference.py:790 dbx_preference.py:987
+msgid "cycle through windows"
+msgstr "pencereler arasında gezin"
+
+#: dbx_preference.py:516 dbx_preference.py:791 dbx_preference.py:988
+msgid "show popup"
+msgstr "açılır pencereyi göster"
+
+#: dbx_preference.py:521
+msgid "Workspace behavior:"
+msgstr "çalışma alanı tepkisi"
+
+#: dbx_preference.py:524 dbx_preference.py:999
+msgid "Ignore windows on other workspaces"
+msgstr "pencereleri ya da diğer çalışma alanlarını yoksay"
+
+#: dbx_preference.py:525 dbx_preference.py:801 dbx_preference.py:1000
+msgid "Switch workspace when needed"
+msgstr "Gerektiğinde çalışma alanını değiştir"
+
+#: dbx_preference.py:526 dbx_preference.py:802 dbx_preference.py:1001
+msgid "Move windows from other workspaces"
+msgstr "Pencereleri çalışma alanlarından taşı"
+
+#: dbx_preference.py:536
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Diğer çalışma alanlarındaki pencereleri yoksay"
 
-#: dbx_preference.py:561
+#: dbx_preference.py:541
 msgid "Give each wine application its own group button"
 msgstr "Bütün Wine uygulamalarına kendi grup düğmesini ver"
 
-#: dbx_preference.py:565
+#: dbx_preference.py:546
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "Open Office uygulamalarını (Write, Calc, vb) ayrı tut"
 
-#: dbx_preference.py:569
-msgid "Global Keyboard Shortcuts"
-msgstr ""
+#: dbx_preference.py:552 dbx_preference.py:556
+msgid "Opacify"
+msgstr "Matlaştır"
 
-#: dbx_preference.py:612
+#: dbx_preference.py:559
+msgid "Opacify group"
+msgstr "Grubu matlaştır"
+
+#: dbx_preference.py:563
+msgid "Opacity:"
+msgstr "Saydamlık:"
+
+#: dbx_preference.py:577
+msgid "Global Keyboard Shortcuts"
+msgstr "Evrensel Klavye Kısayolları"
+
+#: dbx_preference.py:620
 msgid "Appearance"
 msgstr "Görünüm"
 
-#: dbx_preference.py:615
+#: dbx_preference.py:621
+msgid "Popup Window"
+msgstr "Açılan Pencere"
+
+#: dbx_preference.py:622
 msgid "Group Button"
 msgstr "Grup Düğmesi"
 
-#: dbx_preference.py:617
+#: dbx_preference.py:623
 msgid "Window Button"
 msgstr "Pencere Düğmesi"
 
-#: dbx_preference.py:619
+#: dbx_preference.py:624
 msgid "Advanced"
 msgstr "Gelişmiş"
 
-#: dbx_preference.py:797
+#: dbx_preference.py:800
 msgid "Ignore windows on other workspace"
 msgstr "Diğer çalışma alanlarındaki pencereleri yoksay"
 
-#: dbx_preference.py:881
+#: dbx_preference.py:884
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
+"Önizlemeler KDE uyumluluk kipinin Compiz içerisinden aktif edilmesini "
+"gerektiriyor. DockbarX sizin için bunu yapsın mı?"
 
-#: dbx_preference.py:898
+#: dbx_preference.py:901
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
+"Önizlemeler Support Plasma Thumbnails'in aktif edilmesini gerektiriyor. "
+"DockbarX sizin için bunu yapsın mı?"
 
-#: dbx_preference.py:918
+#: dbx_preference.py:921
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference.py:1071
+#: dbx_preference.py:1074
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr ""
+
+#~ msgid "Popup"
+#~ msgstr "Açılır Pencere"
+
+#~ msgid "Popup Settings"
+#~ msgstr "Açılır Pencere Ayarları"

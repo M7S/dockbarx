@@ -40,7 +40,7 @@ from common import *
 import i18n
 _ = i18n.language.gettext
 
-VERSION = 'x.0.39.3-1+bzr'
+VERSION = 'x.0.39.4'
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -95,7 +95,7 @@ class GroupList():
     def __len__(self):
         return self.list.__len__()
 
-    def add_group(self, identifier, group_button, 
+    def add_group(self, identifier, group_button,
                   path_to_launcher=None, index=None):
         t = (identifier, group_button, path_to_launcher)
         if index:
@@ -293,10 +293,10 @@ class DockBar():
                                   ("Pref", self.on_ppm_pref),
                                   ("Reload", self.reload)]
             self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
-            self.applet_origin_x = -1000 
-            self.applet_origin_y = -1000 
+            self.applet_origin_x = -1000
+            self.applet_origin_y = -1000
             # background bug workaround
-            self.applet.set_background_widget(applet) 
+            self.applet.set_background_widget(applet)
             self.applet.show_all()
         else:
             self.container = gtk.HBox()
@@ -373,7 +373,7 @@ class DockBar():
                         self.app_ids_by_exec[exe] = id
                     else:
                         self.app_ids_by_exec[exe] = id
-        
+
 
 
         try:
@@ -401,6 +401,8 @@ class DockBar():
         # Initiate launcher group buttons
         for launcher in gconf_launchers:
             identifier, path = launcher.split(';')
+            # Fix for launchers made in previous version of dockbarx
+            identifier = identifier.lower()
             if identifier == '':
                 identifier = None
             try:
@@ -431,19 +433,19 @@ class DockBar():
 
         self.screen.connect("window-opened", self.on_window_opened)
         self.screen.connect("window-closed", self.on_window_closed)
-        self.screen.connect("active-window-changed", 
+        self.screen.connect("active-window-changed",
                             self.on_active_window_changed)
-        self.screen.connect("viewports-changed", 
+        self.screen.connect("viewports-changed",
                             self.on_desktop_changed)
-        self.screen.connect("active-workspace-changed", 
+        self.screen.connect("active-workspace-changed",
                             self.on_desktop_changed)
 
         self.on_active_window_changed(self.screen, None)
 
 
     def reset_all_surfaces(self):
-        # Removes all saved pixbufs with active glow in groupbuttons 
-        # iconfactories. Use this def when the looks of active glow 
+        # Removes all saved pixbufs with active glow in groupbuttons
+        # iconfactories. Use this def when the looks of active glow
         # has been changed.
         for group in self.groups.get_groups():
             group.icon_factory.reset_surfaces()
@@ -551,7 +553,7 @@ class DockBar():
 
     def on_window_opened(self,screen,window):
         if window.is_skip_tasklist() \
-        or not (window.get_window_type() in [wnck.WINDOW_NORMAL, 
+        or not (window.get_window_type() in [wnck.WINDOW_NORMAL,
                                              wnck.WINDOW_DIALOG]):
             return
 
@@ -605,7 +607,7 @@ class DockBar():
                     app = None
             else:
                 app = self.find_gio_app(identifier)
-            self.make_groupbutton(class_group, 
+            self.make_groupbutton(class_group,
                                   identifier=identifier,
                                   app=app)
             self.groups[identifier].add_window(window)
@@ -740,7 +742,7 @@ class DockBar():
 
 
     #### Groupbuttons
-    def make_groupbutton(self, class_group=None, identifier=None, 
+    def make_groupbutton(self, class_group=None, identifier=None,
                          launcher=None, app=None, path=None, index=None):
         gb = GroupButton(class_group, identifier, launcher, app)
         if index == None:
@@ -785,7 +787,7 @@ class DockBar():
                     gb.app = self.globals.apps_by_id[app_id]
                 else:
                     gb.app = self.find_gio_app(identifier)
-                gb.icon_factory.remove_launcher(class_group=gb.class_group, 
+                gb.icon_factory.remove_launcher(class_group=gb.class_group,
                                                 app = gb.app)
                 gb.update_name()
         self.update_launchers_list()
@@ -801,17 +803,17 @@ class DockBar():
 
     #### Launchers
     def add_launcher(self, identifier, path):
-        # Path either points to the path where the launcher.desktop can be 
+        # Path either points to the path where the launcher.desktop can be
         # found or tells which gio app the launcher will use (eg. "gio:gedit").
         launcher = Launcher(identifier, path)
-        self.make_groupbutton(identifier=identifier, 
+        self.make_groupbutton(identifier=identifier,
                               launcher=launcher, path = path)
         if identifier == None:
             # identifier should only be None if the launcher is dropped,
             # in other words: not of gio-app type.
             id = path[path.rfind('/')+1:path.rfind('.')].lower()
             self.launchers_by_id[id] = launcher
-            
+
             exe = launcher.get_executable()
             if self.globals.settings["separate_wine_apps"] \
             and "wine" in exe and ".exe" in exe:
@@ -829,7 +831,7 @@ class DockBar():
             if exe.find('.')>-1:
                 exe = exe[:exe.rfind('.')]
             self.launcher_ids_by_exec[exe] = id
-            
+
             name = u""+launcher.get_entry_name().lower()
             if name.find(' ')>-1:
                 self.launcher_ids_by_longname[name] = id
@@ -924,7 +926,7 @@ class DockBar():
             # with the new launcher. Id, name and exe will be stored
             # so that it can be checked against new windows later.
             identifier = None
-            
+
             self.launchers_by_id[id] = launcher
             if wine:
                 self.launcher_ids_by_wine_program[exe] = id
@@ -973,8 +975,8 @@ class DockBar():
             # Insert the new button after (to the
             # right of or under) the calling button
             index = self.groups.get_index(calling_button) + 1
-        self.make_groupbutton(class_group=class_group, 
-                              identifier=identifier, launcher=launcher, 
+        self.make_groupbutton(class_group=class_group,
+                              identifier=identifier, launcher=launcher,
                               index=index, path=path)
         self.update_launchers_list()
         for window in winlist:
@@ -1007,7 +1009,7 @@ class DockBar():
         entry = combobox.get_child()
         #entry.set_text('')
         #allow the user to press enter to do ok
-        entry.connect("activate", 
+        entry.connect("activate",
                       lambda widget: dialog.response(gtk.RESPONSE_OK))
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label(_('Identifier:')), False, 5, 5)
@@ -1079,9 +1081,9 @@ class DockBar():
 
     def remove_launcher_id_from_undefined_list(self, id):
         self.launchers_by_id.pop(id)
-        for l in (self.launcher_ids_by_name, 
+        for l in (self.launcher_ids_by_name,
                   self.launcher_ids_by_exec,
-                  self.launcher_ids_by_longname, 
+                  self.launcher_ids_by_longname,
                   self.launcher_ids_by_wine_program):
             for key, value in l.items():
                 if value == id:

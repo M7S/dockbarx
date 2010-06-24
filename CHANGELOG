@@ -1,5 +1,16 @@
 Changelog:
 
+x.0.39.4
+End user features:
+- DockbarX can now pin wine applications and is better at recognizing wine application launchers automatically.
+- The preference dialog is redeisgned to take less space (should even fit a eeepc 700 screen now) and to have the options in more intuitive places.  
+- Changing between showing and not showing previews doesn't require reloading DockbarX anymore.
+- New translations added.
+
+Bug fixes:
+- Drag and drop for multiple files works now.
+- Titles in Asian languages should use the correct font attributes for the whole window titles, instead getting the right attribute only for the first 50 letters.
+
 x.0.39.3
 End user features:
 - Global shortcuts added. You can now cykel through groups or through windows within a group. See Advanced tab of preference window. New dependency: python-keybinder.

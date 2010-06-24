@@ -116,12 +116,17 @@ setup(name='Dockbarx',
      )
 
 
-# Remove old dockbarx.py so that it isn't imported instead of the package dockbarx when dockbarx is run.
-if os.path.exists('/usr/bin/dockbarx.py') and len(sys.argv) == 2 and sys.argv[1] == 'install':
-    print
-    print 'There is a dockbarx.py in /usr/bin. This has to be removed to make DockbarX run correctly.'
-    remove = raw_input('Remove /usr/bin/dockbarx.py? (Y/n)')
-    if remove == ""or remove[0].lower() == 'y':
-        os.remove('/usr/bin/dockbarx.py')
-    else:
-        print '/usr/bin/dockbarx.py is not removed. Please remove it or rename it manually.'
+
+if len(sys.argv) == 2 and sys.argv[1] == 'install':
+    if os.path.exists('/usr/bin/dockbarx.py'):
+        # Remove old dockbarx.py so that it isn't imported
+        # instead of the package dockbarx when dockbarx is run.
+        print
+        print 'There is a dockbarx.py in /usr/bin. ' + \
+              'This has to be removed to make DockbarX run correctly.'
+        remove = raw_input('Remove /usr/bin/dockbarx.py? (Y/n)')
+        if remove == "" or remove[0].lower() == 'y':
+            os.remove('/usr/bin/dockbarx.py')
+        else:
+            print '/usr/bin/dockbarx.py is not removed. ' + \
+                  'Please remove it or rename it manually.'
