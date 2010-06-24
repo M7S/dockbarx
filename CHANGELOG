@@ -3,13 +3,14 @@ Changelog:
 x.0.39.4
 End user features:
 - DockbarX can now pin wine applications and is better at recognizing wine application launchers automatically.
-- The preference dialog is redeisgned to take less space (should even fit a eeepc 700 screen now) and to have the options in more intuitive places.  
+- The preference dialog is redesigned to take less space (should even fit a eeepc 700 screen now) and to have the options in more intuitive places.  
 - Changing between showing and not showing previews doesn't require reloading DockbarX anymore.
 - New translations added.
 
 Bug fixes:
 - Drag and drop for multiple files works now.
 - Titles in Asian languages should use the correct font attributes for the whole window titles, instead getting the right attribute only for the first 50 letters.
+- Possible bug fix for a situation where DockbarX couldn't open detect open windows. (Bug #592304)
 
 x.0.39.3
 End user features:
