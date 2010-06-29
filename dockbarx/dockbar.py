@@ -40,7 +40,7 @@ from common import *
 import i18n
 _ = i18n.language.gettext
 
-VERSION = 'x.0.39.4'
+VERSION = 'x.0.39.4+bzr'
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -709,7 +709,7 @@ class DockBar():
         # The names are chosen to match the gio app ids.
         if not self.globals.settings['separate_ooo_apps']:
             return "openoffice.org-writer"
-        name = window.get_name()
+        name = window.get_name().lower()
         for app in ['calc', 'impress', 'draw', 'math']:
             if name.endswith(app):
                 return "openoffice.org-" + app.lower()

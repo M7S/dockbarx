@@ -61,7 +61,7 @@ class IconFactory():
                  'active':ACTIVE,
                  'launching':LAUNCH_EFFECT}
 
-    def __init__(self, class_group=None, 
+    def __init__(self, class_group=None,
                  launcher=None, app=None, identifier=None):
         self.theme = Theme()
         self.globals = Globals()
@@ -120,7 +120,7 @@ class IconFactory():
 
 
     def surface_update(self, type = 0):
-        # Checks if the requested pixbuf is already 
+        # Checks if the requested pixbuf is already
         # drawn and returns it if it is.
         # Othervice the surface is drawn, saved and returned.
         self.win_nr = type & 15
@@ -266,7 +266,7 @@ class IconFactory():
 
 
     #### Flow commands
-    def command_if(self, surface, type=None, windows=None, 
+    def command_if(self, surface, type=None, windows=None,
                    size=None, content=None):
         if content == None:
             return surface
@@ -445,7 +445,7 @@ class IconFactory():
     def find_icon_pixbuf(self, size):
         # Returns the icon pixbuf for the program. Uses the following metods:
 
-        # 1) If it is a launcher, return the icon from the 
+        # 1) If it is a launcher, return the icon from the
         #    launcher's desktopfile
         # 2) Get the icon from the gio app
         # 3) Check if the res_class fits an themed icon.
@@ -529,7 +529,7 @@ class IconFactory():
     def icon_from_file_name(self, icon_name, icon_size = -1):
         if os.path.isfile(icon_name):
             try:
-                return gtk.gdk.pixbuf_new_from_file_at_size(icon_name, -1, 
+                return gtk.gdk.pixbuf_new_from_file_at_size(icon_name, -1,
                                                             icon_size)
             except:
                 pass
@@ -570,7 +570,7 @@ class IconFactory():
             width = surface.get_width()
             height = surface.get_height()
         if self.theme.has_surface(name):
-            surface = self.resize_surface(self.theme.get_surface(name), 
+            surface = self.resize_surface(self.theme.get_surface(name),
                                           width, height)
         else:
             print "theme error: pixmap %s not found"%name
@@ -622,7 +622,7 @@ class IconFactory():
             print "theme error: pixmap %s not found"%pix2
 
         #TODO: Add degrees
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                      p1.get_width(), p1.get_height())
         ctx = cairo.Context(surface)
 
@@ -675,7 +675,7 @@ class IconFactory():
             ctx.paint_with_alpha(alpha)
         return new
 
-    def command_composite(self, surface, bg, fg, 
+    def command_composite(self, surface, bg, fg,
                           opacity=100, xoffset=0, yoffset=0):
         if fg=="self":
             foreground = surface
@@ -827,7 +827,7 @@ class IconFactory():
             mask = self.temp[mask]
         elif self.theme.has_surface(mask):
             m = self.surface2pixbuf(self.theme.get_surface(mask))
-            m = m.scale_simple(surface.get_width(), surface.get_height(), 
+            m = m.scale_simple(surface.get_width(), surface.get_height(),
                                gtk.gdk.INTERP_BILINEAR)
             mask = self.pixbuf2surface(m)
         w = surface.get_width()
@@ -867,7 +867,7 @@ class IconFactory():
     def surface2pil(self, surface):
         w = surface.get_width()
         h = surface.get_height()
-        return Image.frombuffer("RGBA", (w, h), surface.get_data(), 
+        return Image.frombuffer("RGBA", (w, h), surface.get_data(),
                                 "raw", "RGBA", 0,1)
 
 

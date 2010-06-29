@@ -147,7 +147,7 @@ class Globals(gobject.GObject):
 
     __gsignals__ = {
         'color2-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'show-only-current-desktop-changed': (gobject.SIGNAL_RUN_FIRST, 
+        'show-only-current-desktop-changed': (gobject.SIGNAL_RUN_FIRST,
                                               gobject.TYPE_NONE,()),
         'theme-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'color-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
@@ -288,7 +288,7 @@ class Globals(gobject.GObject):
                 and ("click" in name or "scroll" in name) \
                 and value in group_button_actions_d:
                     self.settings[name] = group_button_actions_d[value]
-                    GCONF_CLIENT.set_string(GCONF_DIR + '/' + name, 
+                    GCONF_CLIENT.set_string(GCONF_DIR + '/' + name,
                                             self.settings[name])
 
             self.colors = {}
@@ -319,7 +319,7 @@ class Globals(gobject.GObject):
                 c = 'color%s'%i
                 a = 'color%s_alpha'%i
                 for k in (c, a):
-                    if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR, 
+                    if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR,
                                                              theme_name, k):
                         value = self.colors[k]
                         if entry_get[type(value)]() != value:
@@ -392,7 +392,7 @@ class Globals(gobject.GObject):
         # Get list of launchers
         gconf_launchers = []
         try:
-            gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers', 
+            gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers',
                                                     gconf.VALUE_STRING)
         except:
             GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING,
@@ -400,5 +400,5 @@ class Globals(gobject.GObject):
         return gconf_launchers
 
     def set_launchers_list(self, launchers):
-        GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING, 
+        GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING,
                              launchers)
