@@ -356,7 +356,11 @@ class DockBar():
             if exe:
                 self.globals.apps_by_id[id] = app
                 if id[:5] == 'wine-':
-                    cmd = u""+app.get_commandline()
+                    try:
+                        cmd = u""+app.get_commandline()
+                    except AttributeError:
+                        # Older versions of gio doesn't have get_comandline.
+                        cmd = u""
                     if cmd.find('.exe')>0:
                         program = \
                                 cmd[cmd.rfind('\\')+1:cmd.rfind('.')+4].lower()
