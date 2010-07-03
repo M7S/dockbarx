@@ -45,6 +45,11 @@ VERSION = 'x.0.39.4+bzr'
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
 
+SPECIAL_RES_CLASSES = {
+                        'thunderbird-bin':'thunderbird',
+                        'amarokapp':'amarok'
+                      }
+
 class AboutDialog():
     __instance = None
 
@@ -570,6 +575,8 @@ class DockBar():
         if identifier == "":
             identifier = res_name
         # Special cases
+        if identifier in SPECIAL_RES_CLASSES:
+            identifier = SPECIAL_RES_CLASSES[identifier]
         if identifier == "wine" \
         and self.globals.settings['separate_wine_apps']:
             identifier = res_name
