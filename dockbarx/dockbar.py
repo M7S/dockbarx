@@ -46,8 +46,13 @@ VERSION = 'x.0.39.4+bzr'
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
 
 SPECIAL_RES_CLASSES = {
-                        'thunderbird-bin':'thunderbird',
-                        'amarokapp':'amarok'
+                        'thunderbird-bin': 'thunderbird',
+                        'amarokapp': 'amarok',
+                        'lives-exe': 'lives',
+                        'exaile.py': 'exaile',
+                        'eric4.py': 'eric',
+                        'geogebra-geogebra': 'geogebra',
+                        'tuxpaint.tuxpaint': 'tuxpaint'
                       }
 
 class AboutDialog():
