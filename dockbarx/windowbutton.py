@@ -35,24 +35,24 @@ _ = i18n.language.gettext
 
 class WindowButton(gobject.GObject):
     __gsignals__ = {
-                    "minimized": (gobject.SIGNAL_RUN_FIRST, 
+                    "minimized": (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,()),
-                    "unminimized": (gobject.SIGNAL_RUN_FIRST, 
+                    "unminimized": (gobject.SIGNAL_RUN_FIRST,
                                     gobject.TYPE_NONE,()),
-                    "needs-attention-changed": (gobject.SIGNAL_RUN_FIRST, 
+                    "needs-attention-changed": (gobject.SIGNAL_RUN_FIRST,
                                                 gobject.TYPE_NONE,()),
-                    "popup-hide": (gobject.SIGNAL_RUN_FIRST, 
+                    "popup-hide": (gobject.SIGNAL_RUN_FIRST,
                                    gobject.TYPE_NONE,(str, )),
-                    "popup-hide-request": (gobject.SIGNAL_RUN_FIRST, 
+                    "popup-hide-request": (gobject.SIGNAL_RUN_FIRST,
                                            gobject.TYPE_NONE,()),
-                    "popup-expose-request": (gobject.SIGNAL_RUN_FIRST, 
+                    "popup-expose-request": (gobject.SIGNAL_RUN_FIRST,
                                              gobject.TYPE_NONE,())
                    }
     def __init__(self, window):
         gobject.GObject.__init__(self)
         self.globals = Globals()
         self.globals.connect('color-changed', self.update_label_state)
-        self.globals.connect('show-previews-changed', 
+        self.globals.connect('show-previews-changed',
                              self.on_show_preview_changed)
         self.screen = wnck.screen_get_default()
         self.name = window.get_name()
@@ -128,7 +128,7 @@ class WindowButton(gobject.GObject):
 
 
     def is_on_current_desktop(self):
-        if (self.window.get_workspace() == None \
+        if (self.window.get_workspace() is None \
         or self.screen.get_active_workspace() == self.window.get_workspace()) \
         and self.window.is_in_viewport(self.screen.get_active_workspace()):
             return True
@@ -151,7 +151,7 @@ class WindowButton(gobject.GObject):
     def prepare_preview(self, size=None):
         if not self.globals.settings["preview"]:
             return False
-        if size == None:
+        if size is None:
             size = self.globals.settings["preview_size"]
         pixbuf = self.window.get_icon()
         self.preview_image.set_from_pixbuf(pixbuf)
@@ -180,7 +180,7 @@ class WindowButton(gobject.GObject):
         if self.preview_image:
             self.preview_image.clear()
             gc.collect()
-        
+
     def on_show_preview_changed(self, arg=None):
         child = self.window_button.get_child()
         if child:
@@ -189,7 +189,7 @@ class WindowButton(gobject.GObject):
         if oldbox:
             oldbox.remove(self.window_button_icon)
             oldbox.remove(self.label)
-            
+
         self.on_window_name_changed(self.window)
         hbox = gtk.HBox()
         hbox.pack_start(self.window_button_icon, False, padding = 2)
@@ -237,12 +237,12 @@ class WindowButton(gobject.GObject):
         # be used as window_button_icon according to window state.
         self.icon = window.get_mini_icon()
         pixbuf = self.icon.copy()
-        self.icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 
-                                          8, pixbuf.get_width(), 
+        self.icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True,
+                                          8, pixbuf.get_width(),
                                           pixbuf.get_height())
         self.icon_transp.fill(0x00000000)
-        pixbuf.composite(self.icon_transp, 0, 0, pixbuf.get_width(), 
-                         pixbuf.get_height(), 0, 0, 1, 1, 
+        pixbuf.composite(self.icon_transp, 0, 0, pixbuf.get_width(),
+                         pixbuf.get_height(), 0, 0, 1, 1,
                          gtk.gdk.INTERP_BILINEAR, 190)
         self.icon_transp.saturate_and_pixelate(self.icon_transp, 0.12, False)
 
@@ -276,9 +276,9 @@ class WindowButton(gobject.GObject):
 
     #### Opacify
     def opacify(self):
-        # Makes all windows but the one connected 
+        # Makes all windows but the one connected
         # to this windowbutton transparent.
-        if self.globals.opacity_values == None:
+        if self.globals.opacity_values is None:
             try:
                 self.globals.opacity_values = compiz_call(
                                         'obs/screen0/opacity_values','get')
@@ -288,7 +288,7 @@ class WindowButton(gobject.GObject):
                                         'core/screen0/opacity_values','get')
                 except:
                     return
-        if self.globals.opacity_matches == None:
+        if self.globals.opacity_matches is None:
             try:
                 self.globals.opacity_matches = compiz_call(
                                         'obs/screen0/opacity_matches','get')
@@ -336,18 +336,18 @@ class WindowButton(gobject.GObject):
         # If another window button has called opacify, don't deopacify.
         if self.globals.opacified and not self.opacified:
             return False
-        if self.globals.opacity_values == None:
+        if self.globals.opacity_values is None:
             return False
         try:
-            compiz_call('obs/screen0/opacity_values','set', 
+            compiz_call('obs/screen0/opacity_values','set',
                         self.globals.opacity_values)
-            compiz_call('obs/screen0/opacity_matches','set', 
+            compiz_call('obs/screen0/opacity_matches','set',
                         self.globals.opacity_matches)
         except:
             try:
-                compiz_call('core/screen0/opacity_values','set', 
+                compiz_call('core/screen0/opacity_values','set',
                             self.globals.opacity_values)
-                compiz_call('core/screen0/opacity_matches','set', 
+                compiz_call('core/screen0/opacity_matches','set',
                             self.globals.opacity_matches)
             except:
                 print "Error: Couldn't set opacity back to normal."
@@ -390,7 +390,7 @@ class WindowButton(gobject.GObject):
 
     #### Events
     def on_button_mouse_enter(self, widget, event):
-        # In compiz there is a enter and 
+        # In compiz there is a enter and
         # a leave event before a button_press event.
         # Keep that in mind when coding this def!
         if self.button_pressed :
@@ -402,7 +402,7 @@ class WindowButton(gobject.GObject):
             gobject.timeout_add(500, self.deopacify_request)
 
     def on_button_mouse_leave(self, widget, event):
-        # In compiz there is a enter and a leave 
+        # In compiz there is a enter and a leave
         # event before a button_press event.
         # Keep that in mind when coding this def!
         self.button_pressed = False
@@ -414,7 +414,7 @@ class WindowButton(gobject.GObject):
         # In compiz there is a enter and a leave event before
         # a button_press event.
         # self.button_pressed is used to stop functions started with
-        # gobject.timeout_add from self.on_button_mouse_enter 
+        # gobject.timeout_add from self.on_button_mouse_enter
         # or self.on_button_mouse_leave.
         self.button_pressed = True
         gobject.timeout_add(600, self.set_button_pressed_false)
@@ -475,7 +475,7 @@ class WindowButton(gobject.GObject):
             self.window.minimize()
 
     #### Actions
-    def action_select_or_minimize_window(self, widget=None, 
+    def action_select_or_minimize_window(self, widget=None,
                                          event=None, minimize=True):
         # The window is activated, unless it is already
         # activated, then it's minimized. Minimized
@@ -486,7 +486,7 @@ class WindowButton(gobject.GObject):
             t = event.time
         else:
             t = gtk.get_current_event_time()
-        if self.window.get_workspace() != None \
+        if self.window.get_workspace() is not None \
         and self.screen.get_active_workspace() != self.window.get_workspace():
             self.window.get_workspace().activate(t)
         if not self.window.is_in_viewport(self.screen.get_active_workspace()):
@@ -570,7 +570,7 @@ class WindowButton(gobject.GObject):
         pass
 
     action_function_dict = ODict((
-                                  ('select or minimize window', 
+                                  ('select or minimize window',
                                             action_select_or_minimize_window),
                                   ('select window', action_select_window),
                                   ('maximize window', action_maximize_window),

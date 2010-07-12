@@ -54,7 +54,7 @@ class AboutDialog():
     __instance = None
 
     def __init__ (self):
-        if AboutDialog.__instance == None:
+        if AboutDialog.__instance is None:
             AboutDialog.__instance = self
         else:
             AboutDialog.__instance.about.present()
@@ -73,118 +73,18 @@ class AboutDialog():
         AboutDialog.__instance = None
 
 
-class GroupList():
+class GroupList(ODict):
     def __init__(self):
-        self.list = []
+        ODict.__init__(self)
 
-    def __getitem__(self, name):
-        return self.get_group(name)
-
-    def __setitem__(self, identifier, group_button):
-        self.add_group(identifier, group_button)
-
-    def __contains__(self, name):
-        if not name:
-            return
+    def set_identifier(self, old, new):
         for t in self.list:
-            if t[0] == name:
-                return True
-        for t in self.list:
-            if t[2] == name:
-                return True
-        return False
-
-    def __iter__(self):
-        return self.get_identifiers().__iter__()
-
-    def __len__(self):
-        return self.list.__len__()
-
-    def add_group(self, identifier, group_button,
-                  path_to_launcher=None, index=None):
-        t = (identifier, group_button, path_to_launcher)
-        if index:
-            self.list.insert(index, t)
-        else:
-            self.list.append(t)
-
-    def get_group(self, name=None, index=None):
-        if name:
-            for t in self.list:
-                if t[0] == name:
-                    return t[1]
-            for t in self.list:
-                if t[2] == name:
-                    return t[1]
-        elif index:
-            return self.list[index][1]
-
-    def get_launcher_path(self, name):
-        if not name:
-            return
-        for t in self.list:
-            if t[0] == name:
-                return t[2]
-            if t[2] == name:
-                return t[2]
-
-    def set_launcher_path(self, identifier, path):
-        if not identifier:
-            return
-        for t in self.list:
-            if t[0] == identifier:
-                n = [t[0], t[1], path]
+            if t[0] == old:
+                n = (new, t[1])
                 index = self.list.index(t)
                 self.list.remove(t)
                 self.list.insert(index, n)
                 return True
-
-    def set_identifier(self, path, identifier):
-        for t in self.list:
-            if t[2] == path:
-                n = (identifier, t[1], t[2])
-                index = self.list.index(t)
-                self.list.remove(t)
-                self.list.insert(index, n)
-                n[1].identifier_changed(identifier)
-                return True
-
-    def get_groups(self):
-        grouplist = []
-        for t in self.list:
-            grouplist.append(t[1])
-        return grouplist
-
-    def get_identifiers(self):
-        namelist = []
-        for t in self.list:
-            if t[0]:
-                namelist.append(t[0])
-        return namelist
-
-    def get_undefined_launchers(self):
-        namelist = []
-        for t in self.list:
-            if t[0] == None:
-                namelist.append(t[2])
-        return namelist
-
-    def get_identifiers_or_paths(self):
-        namelist = []
-        for t in self.list:
-            if t[0] == None:
-                namelist.append(t[2])
-            else:
-                namelist.append(t[0])
-        return namelist
-
-    def get_non_launcher_names(self):
-        #Get a list of names of all buttons without launchers
-        namelist = []
-        for t in self.list:
-            if not t[2]:
-                namelist.append(t[0])
-        return namelist
 
     def get_index(self, gr):
         if not gr:
@@ -197,56 +97,6 @@ class GroupList():
             for t in self.list:
                 if t[0]==gr:
                     return self.list.index(t)
-            for t in self.list:
-                if t[2]==gr:
-                    return self.list.index(t)
-
-    def move(self, name, index):
-        if not name:
-            return
-        for t in self.list:
-            if name == t[0]:
-                self.list.remove(t)
-                self.list.insert(index, t)
-                return True
-        for t in self.list:
-            if name == t[2]:
-                self.list.remove(t)
-                self.list.insert(index, t)
-                return True
-
-    def remove_launcher(self, identifier):
-        if not identifier:
-            return
-        for t in self.list:
-            if identifier == t[0]:
-                n = (t[0], t[1], None)
-                index = self.list.index(t)
-                self.list.remove(t)
-                self.list.insert(index, n)
-                return True
-
-    def remove(self, name):
-        if not name:
-            return
-        for t in self.list:
-            if name == t[0]:
-                self.list.remove(t)
-                return True
-        for t in self.list:
-            if name == t[2] and not t[0]:
-                self.list.remove(t)
-                return True
-
-    def get_launchers_list(self):
-        #Returns a list of name and launcher paths tuples
-        launcherslist = []
-        for t in self.list:
-            #if launcher exist
-            if t[2]:
-                launchertuple = (t[0],t[2])
-                launcherslist.append(launchertuple)
-        return launcherslist
 
 
 class DockBar():
@@ -275,7 +125,7 @@ class DockBar():
 
 
         #--- Applet / Window container
-        if self.applet != None:
+        if self.applet is not None:
             self.applet.set_applet_flags(
                             gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
             if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
@@ -313,7 +163,7 @@ class DockBar():
             gtk.main_iteration(False)
 
         self.reload()
-        if self.applet != None:
+        if self.applet is not None:
             self.applet.connect("size-allocate",self.on_applet_size_alloc)
             self.applet.connect("change_background", self.on_change_background)
             self.applet.connect("change-orient",self.on_change_orient)
@@ -328,15 +178,15 @@ class DockBar():
         for child in self.container.get_children():
             self.container.remove(child)
         if self.windows:
-            # Removes windows and non-launcher group buttons
+            # Removes windows and unpinned group buttons
             for win in self.screen.get_windows():
                 self.on_window_closed(None, win)
-        if self.groups != None:
-            # Removes launcher group buttons
-            for name in self.groups.get_identifiers_or_paths():
-                self.groups[name].hide_list()
-                self.groups[name].icon_factory.remove()
-                self.groups.remove(name)
+        if self.groups is not None:
+            # Removes pinned group buttons
+            for key in self.groups.keys():
+                self.groups[key].hide_list()
+                self.groups[key].icon_factory.remove()
+                self.groups.remove(key)
 
         del self.groups
         del self.windows
@@ -346,9 +196,8 @@ class DockBar():
         print "Dockbarx reload"
         self.groups = GroupList()
         self.windows = {}
-        self.globals.apps_by_id = {}
         #--- Generate Gio apps
-        self.globals.apps_by_id = {}
+        self.apps_by_id = {}
         self.app_ids_by_exec = {}
         self.app_ids_by_name = {}
         self.app_ids_by_longname = {}
@@ -359,7 +208,7 @@ class DockBar():
             name = u""+app.get_name().lower()
             exe = app.get_executable()
             if exe:
-                self.globals.apps_by_id[id] = app
+                self.apps_by_id[id] = app
                 if id[:5] == 'wine-':
                     try:
                         cmd = u""+app.get_commandline()
@@ -386,7 +235,7 @@ class DockBar():
 
 
         try:
-            if self.theme == None:
+            if self.theme is None:
                 self.theme = Theme()
             else:
                 self.theme.on_theme_changed()
@@ -398,17 +247,17 @@ class DockBar():
         self.container.show()
 
         #--- Initiate launchers
-        self.launchers_by_id = {}
-        self.launcher_ids_by_exec = {}
-        self.launcher_ids_by_name = {}
-        self.launcher_ids_by_longname = {}
-        self.launcher_ids_by_wine_program = {}
+        self.desktop_entry_by_id = {}
+        self.d_e_ids_by_exec = {}
+        self.d_e_ids_by_name = {}
+        self.d_e_ids_by_longname = {}
+        self.d_e_ids_by_wine_program = {}
 
-        gconf_launchers = self.globals.get_launchers_from_gconf()
+        gconf_pinned_apps = self.globals.get_pinned_apps_from_gconf()
 
 
         # Initiate launcher group buttons
-        for launcher in gconf_launchers:
+        for launcher in gconf_pinned_apps:
             identifier, path = launcher.split(';')
             # Fix for launchers made in previous version of dockbarx
             identifier = identifier.lower()
@@ -416,7 +265,7 @@ class DockBar():
                 identifier = None
             try:
                 self.add_launcher(identifier, path)
-            except LauncherPathError:
+            except AttributeError:
                 message = "%s %s %s"%(
                         _("The launcher at path"),
                         path,
@@ -429,11 +278,8 @@ class DockBar():
                     message)
                 md.run()
                 md.destroy()
-            except NoGioAppExistError:
-                print "The Gio app for pinned app %s"%identifier + \
-                      " doesn't exist. The launcher will be removed."
-        # Update launchers list to remove any launchers that are faulty.
-        self.update_launchers_list()
+        # Update pinned_apps list to remove any pinned_app that are faulty.
+        self.update_pinned_apps_list()
 
         #--- Initiate windows
         # Initiate group buttons with windows
@@ -456,20 +302,20 @@ class DockBar():
         # Removes all saved pixbufs with active glow in groupbuttons
         # iconfactories. Use this def when the looks of active glow
         # has been changed.
-        for group in self.groups.get_groups():
+        for group in self.groups.values():
             group.icon_factory.reset_surfaces()
 
     def all_windowbuttons_update_label_state(self):
         # Updates all window button labels. To be used when
         # settings has been changed for the labels.
-        for group in self.groups.get_groups():
+        for group in self.groups.values():
             for winb in group.windows.values():
                 winb.update_label_state()
 
     def update_all_popup_labels(self):
         # Updates all popup windows' titles. To be used when
         # settings has been changed for the labels.
-        for group in self.groups.get_groups():
+        for group in self.groups.values():
             group.update_popup_label()
 
 
@@ -489,7 +335,7 @@ class DockBar():
                 # Applet and/or panel moved
                 self.applet_origin_x = x
                 self.applet_origin_y = y
-                for group in self.groups.get_groups():
+                for group in self.groups.values():
                     group.on_db_move()
 
     def on_change_orient(self,arg1,data):
@@ -500,7 +346,7 @@ class DockBar():
             self.set_orient('v')
 
     def set_orient(self, orient):
-        for group in self.groups.get_groups():
+        for group in self.groups.values():
             self.container.remove(group.button)
         if self.applet:
             self.applet.remove(self.container)
@@ -513,7 +359,7 @@ class DockBar():
             self.container = gtk.VBox()
         if self.applet:
             self.applet.add(self.container)
-        for group in self.groups.get_groups():
+        for group in self.groups.values():
             self.container.pack_start(group.button,False)
         self.container.set_spacing(self.theme.get_gap())
         if self.globals.settings["show_only_current_desktop"]:
@@ -538,13 +384,13 @@ class DockBar():
     #### Wnck events
     def on_active_window_changed(self, screen, previous_active_window):
         # Sets the right window button and group button active.
-        for group in self.groups.get_groups():
+        for group in self.groups.values():
             group.set_has_active_window(False)
         # Activate new windowbutton
         active_window = screen.get_active_window()
         if active_window in self.windows:
             active_group_name = self.windows[active_window]
-            active_group = self.groups.get_group(active_group_name)
+            active_group = self.groups[active_group_name]
             if active_group:
                 active_group.set_has_active_window(True)
                 window_button = active_group.windows[active_window]
@@ -556,7 +402,7 @@ class DockBar():
             group = self.groups[identifier]
             if group:
                 group.del_window(window)
-                if not group.windows and not group.launcher:
+                if not group.windows and not group.pinned:
                     self.groups.remove(identifier)
             del self.windows[window]
 
@@ -570,7 +416,6 @@ class DockBar():
         wm_class_property = gdkw.property_get(ATOM_WM_CLASS)[2].split('\0')
         res_class = u"" + wm_class_property[1].lower()
         res_name  = u"" + wm_class_property[0].lower()
-        class_group = window.get_class_group()
         identifier = res_class
         if identifier == "":
             identifier = res_name
@@ -588,56 +433,59 @@ class DockBar():
             if self.globals.settings['separate_ooo_apps']:
                 window.connect("name-changed", self.on_ooo_window_name_changed)
         self.windows[window] = identifier
-        if identifier in self.groups.get_identifiers():
+        if identifier in self.groups:
             # This isn't the first open window of this group.
             self.groups[identifier].add_window(window)
             return
 
         if wine:
-            if identifier in self.launcher_ids_by_wine_program:
-                launcher_id = self.launcher_ids_by_wine_program[identifier]
+            if identifier in self.d_e_ids_by_wine_program:
+                desktop_entry_id = self.d_e_ids_by_wine_program[identifier]
             else:
-                launcher_id = None
+                desktop_entry_id = None
         else:
-            launcher_id = self.find_launcher_id(identifier)
-        if launcher_id:
+            desktop_entry_id = self.find_desktop_entry_id(identifier)
+        if desktop_entry_id:
             # The window is matching a launcher without open windows.
-            launcher = self.launchers_by_id[launcher_id]
-            path = launcher.get_path()
+            desktop_entry = self.desktop_entry_by_id[desktop_entry_id]
+            path = desktop_entry.getFileName()
             self.groups.set_identifier(path, identifier)
+            self.groups[identifier].identifier_changed(identifier)
             self.groups[identifier].add_window(window)
-            self.update_launchers_list()
-            self.remove_launcher_id_from_undefined_list(launcher_id)
+            self.update_pinned_apps_list()
+            self.remove_desktop_entry_id_from_undefined_list(desktop_entry_id)
         else:
             # First window of a new group.
+            app = None
             if wine:
                 if res_name in self.wine_app_ids_by_program:
                     app_id = self.wine_app_ids_by_program[res_name]
-                    app = self.globals.apps_by_id[app_id]
-                else:
-                    app = None
+                    app = self.apps_by_id[app_id]
             else:
                 app = self.find_gio_app(identifier)
-            self.make_groupbutton(class_group,
-                                  identifier=identifier,
-                                  app=app)
+            if app:
+                desktop_entry = self.get_desktop_entry_for_id(app.get_id())
+            else:
+                dekstop_entry = None
+            self.make_groupbutton(identifier=identifier,
+                                  desktop_entry=desktop_entry)
             self.groups[identifier].add_window(window)
 
-    def find_launcher_id(self, identifier):
+    def find_desktop_entry_id(self, identifier):
         id = None
         rc = u""+identifier.lower()
         if rc != "":
-            if rc in self.launchers_by_id:
+            if rc in self.desktop_entry_by_id:
                 id = rc
-                print "Opened window matched with launcher on id:", rc
-            elif rc in self.launcher_ids_by_name:
-                id = self.launcher_ids_by_name[rc]
-                print "Opened window matched with launcher on name:", rc
-            elif rc in self.launcher_ids_by_exec:
-                id = self.launcher_ids_by_exec[rc]
-                print "Opened window matched with launcher on executable:", rc
+                print "Opened window matched with desktop entry on id:", rc
+            elif rc in self.d_e_ids_by_name:
+                id = self.d_e_ids_by_name[rc]
+                print "Opened window matched with desktop entry on name:", rc
+            elif rc in self.d_e_ids_by_exec:
+                id = self.d_e_ids_by_exec[rc]
+                print "Opened window matched with desktop entry on executable:", rc
             else:
-                for lname in self.launcher_ids_by_longname:
+                for lname in self.d_e_ids_by_longname:
                     pos = lname.find(rc)
                     if pos>-1: # Check that it is not part of word
                         if rc == lname \
@@ -645,25 +493,25 @@ class DockBar():
                         or (pos+len(rc) == len(lname) \
                         and lname[pos-1] == ' ') \
                         or (lname[pos-1] == ' ' and lname[pos+len(rc)] == ' '):
-                            id = self.launcher_ids_by_longname[lname]
+                            id = self.d_e_ids_by_longname[lname]
                             print "Opened window matched with" + \
-                                  " launcher on long name:", rc
+                                  " desktop entry on long name:", rc
                             break
 
-            if id == None and rc.find(' ')>-1:
+            if id is None and rc.find(' ')>-1:
                     rc = rc.partition(' ')[0] # Cut all before space
                     # Workaround for apps
                     # with identifier like this 'App 1.2.3' (name with ver)
-                    if rc in self.launchers_by_id:
+                    if rc in self.desktop_entry_by_id:
                         id = rc
                         print "Partial name for open window" + \
                               " matched with id:", rc
-                    elif rc in self.launcher_ids_by_name:
-                        id = self.launcher_ids_by_name[rc]
+                    elif rc in self.d_e_ids_by_name:
+                        id = self.d_e_ids_by_name[rc]
                         print "Partial name for open " + \
                               "window matched with name:", rc
-                    elif rc in self.launcher_ids_by_exec:
-                        id = self.launcher_ids_by_exec[rc]
+                    elif rc in self.d_e_ids_by_exec:
+                        id = self.d_e_ids_by_exec[rc]
                         print "Partial name for open window" + \
                               " matched with executable:", rc
         return id
@@ -673,7 +521,7 @@ class DockBar():
         app_id = None
         rc = u""+identifier.lower()
         if rc != "":
-            if rc in self.globals.apps_by_id:
+            if rc in self.apps_by_id:
                 app_id = rc
                 print "Opened window matched with gio app on id:", rc
             elif rc in self.app_ids_by_name:
@@ -702,7 +550,7 @@ class DockBar():
                     # Workaround for apps
                     # with identifier like this 'App 1.2.3' (name with ver)
                     ### keys()
-                    if rc in self.globals.apps_by_id.keys():
+                    if rc in self.apps_by_id.keys():
                         app_id = rc
                         print " found in apps id list as",rc
                     elif rc in self.app_ids_by_name.keys():
@@ -712,7 +560,7 @@ class DockBar():
                         app_id = self.app_ids_by_exec[rc]
                         print " found in apps exec list as",rc
             if app_id:
-                app = self.globals.apps_by_id[app_id]
+                app = self.apps_by_id[app_id]
         return app
 
     def get_ooo_app_name(self, window):
@@ -729,7 +577,7 @@ class DockBar():
 
     def on_ooo_window_name_changed(self, window):
         identifier = None
-        for group in self.groups.get_groups():
+        for group in self.groups.values():
             if window in group.windows:
                 identifier = group.identifier
                 break
@@ -746,62 +594,66 @@ class DockBar():
     def on_desktop_changed(self, screen=None, workspace=None):
         if not self.globals.settings['show_only_current_desktop']:
             return
-        for group in self.groups.get_groups():
+        for group in self.groups.values():
             group.update_state()
             group.on_set_icongeo_grp()
             group.nextlist = None
 
 
     #### Groupbuttons
-    def make_groupbutton(self, class_group=None, identifier=None,
-                         launcher=None, app=None, path=None, index=None):
-        gb = GroupButton(class_group, identifier, launcher, app)
-        if index == None:
+    def make_groupbutton(self, identifier=None, desktop_entry=None,
+                         pinned=False, index=None, path=None):
+        gb = GroupButton(identifier, desktop_entry, pinned)
+        if index is None:
             self.container.pack_start(gb.button, False)
         else:
             # Insterts the button on it's index by removing
             # and repacking the buttons that should come after it
-            repack_list = self.groups.get_groups()[index:]
+            repack_list = self.groups.values()[index:]
             for group in repack_list:
                 self.container.remove(group.button)
             self.container.pack_start(gb.button, False)
             for group in repack_list:
                 self.container.pack_start(group.button, False)
-        self.groups.add_group(identifier, gb, path, index)
+
+        if identifier is None:
+            name = path
+        else:
+            name = identifier
+        if index:
+            self.groups.add_at_index(index, name, gb)
+        else:
+            self.groups[name] = gb
+
 
         gb.connect('delete', self.remove_groupbutton)
         gb.connect('identifier-change', self.change_identifier)
+        gb.connect('pinned', self.update_pinned_apps_list)
         gb.connect('groupbutton-moved', self.on_groupbutton_moved)
         gb.connect('launcher-dropped', self.on_launcher_dropped)
-        gb.connect('pinned', self.on_pinned)
         gb.connect('unpinned', self.on_unpinned)
         gb.connect('minimize-others', self.on_minimize_others)
         gb.connect('launch-preference', self.on_ppm_pref)
 
     def remove_groupbutton(self, arg, name):
         self.groups.remove(name)
-        self.update_launchers_list()
-
-    def on_pinned(self, arg, identifier, path):
-        self.groups.set_launcher_path(identifier, path)
-        self.update_launchers_list()
+        self.update_pinned_apps_list()
 
     def on_unpinned(self, arg, identifier):
-        self.groups.remove_launcher(identifier)
         gb = self.groups[identifier]
-        if gb.app == None:
-                # The launcher is not of gio-app type.
-                # The group button will be reset with its
-                # non-launcher name and icon.
-                if identifier in self.wine_app_ids_by_program:
-                    app_id = self.wine_app_ids_by_program[identifier]
-                    gb.app = self.globals.apps_by_id[app_id]
-                else:
-                    gb.app = self.find_gio_app(identifier)
-                gb.icon_factory.remove_launcher(class_group=gb.class_group,
-                                                app = gb.app)
-                gb.update_name()
-        self.update_launchers_list()
+        # Reset the desktop_entry in case this was
+        # an custom launcher.
+        if identifier in self.wine_app_ids_by_program:
+            app_id = self.wine_app_ids_by_program[identifier]
+            app = self.apps_by_id[app_id]
+        else:
+            app = self.find_gio_app(identifier)
+        if app:
+            desktop_entry = self.get_desktop_entry_for_id(app.get_id())
+            gb.desktop_entry = desktop_entry
+            gb.icon_factory.set_desktop_entry(desktop_entry)
+        gb.update_name()
+        self.update_pinned_apps_list()
 
     def on_minimize_others(self, arg, gb):
         for g in self.dockbar.groups.get_groups():
@@ -814,59 +666,67 @@ class DockBar():
 
     #### Launchers
     def add_launcher(self, identifier, path):
-        # Path either points to the path where the launcher.desktop can be
-        # found or tells which gio app the launcher will use (eg. "gio:gedit").
-        launcher = Launcher(identifier, path)
-        self.make_groupbutton(identifier=identifier,
-                              launcher=launcher, path = path)
-        if identifier == None:
-            # identifier should only be None if the launcher is dropped,
-            # in other words: not of gio-app type.
+        if path[:4] == "gio:":
+            # This launcher is from an older version of dockbarx.
+            # It will be updated to new form automatically.
+            if path[4:] in self.apps_by_id:
+                app = self.apps_by_id[path[4:]]
+                desktop_entry = self.get_desktop_entry_for_id(app.get_id())
+                print "%s: %s"%(identifier, desktop_entry)
+            else:
+                print "Couldn't find gio app for launcher %s"%path
+                return
+        else:
+            desktop_entry = DesktopEntry(path)
+        self.make_groupbutton(identifier=identifier, \
+                              desktop_entry=desktop_entry, \
+                              pinned=True, path=path)
+        if identifier is None:
             id = path[path.rfind('/')+1:path.rfind('.')].lower()
-            self.launchers_by_id[id] = launcher
-
-            exe = launcher.get_executable()
+            self.desktop_entry_by_id[id] = desktop_entry
+            exe = desktop_entry.getExec()
             if self.globals.settings["separate_wine_apps"] \
             and "wine" in exe and ".exe" in exe:
-                exe = exe[exe.rfind('\\')+1:exe.rfind('.')+4].lower()
-                self.launcher_ids_by_wine_program[exe] = id
+                # We are interested int the nameoftheprogram.exe part of the
+                # executable.
+                exe = exe[:exe.rfind('.exe')+4][exe.rfind('\\')+1:].lower()
+                self.d_e_ids_by_wine_program[exe] = id
                 return
-            l= exe.split()
+            l = exe.split()
             if l[0] in ('sudo','gksudo', 'gksu',
                         'java','mono',
                         'ruby','python'):
                 exe = l[1]
             else:
                 exe = l[0]
-            exe = exe[exe.rfind('/')+1:]
-            if exe.find('.')>-1:
-                exe = exe[:exe.rfind('.')]
-            self.launcher_ids_by_exec[exe] = id
+            exe = exe.rpartition('/')[-1]
+            exe = exe.partition('.')[0]
+            self.d_e_ids_by_exec[exe] = id
 
-            name = u""+launcher.get_entry_name().lower()
+            name = u"" + desktop_entry.getName().lower()
             if name.find(' ')>-1:
-                self.launcher_ids_by_longname[name] = id
+                self.d_e_ids_by_longname[name] = id
             else:
-                self.launcher_ids_by_name[name] = id
+                self.d_e_ids_by_name[name] = id
 
     def on_launcher_dropped(self, arg, path, calling_button):
-        # Creates a new launcher with a desktop file located at path
-        # and lets the user enter the proper res class name in a
-        # dialog. The new laucnher is inserted at the right (or under)
+        # Creates a new launcher with a desktop file located at path.
+        # The new laucnher is inserted at the right (or under)
         # the group button that the launcher was dropped on.
         try:
-            launcher = Launcher(None, path)
+            desktop_entry = DesktopEntry(path)
         except Exception, detail:
             print "ERROR: Couldn't read dropped file. Was it a desktop entry?"
             print "Error message:", detail
             return False
 
+        # Try to match the launcher against the groups that aren't pinned.
         id = path[path.rfind('/')+1:path.rfind('.')].lower()
-        name = u""+launcher.get_entry_name().lower()
-        exe = launcher.get_executable()
+        name = u"" + desktop_entry.getName()
+        exe = desktop_entry.getExec()
         if self.globals.settings["separate_wine_apps"] \
         and "wine" in exe and ".exe" in exe:
-                exe = exe[exe.rfind('\\')+1:exe.rfind('.')+4].lower()
+                exe = exe[:exe.rfind('.exe')+4][exe.rfind('\\')+1:].lower()
                 wine = True
         else:
             wine = False
@@ -886,7 +746,6 @@ class DockBar():
         else:
             lname = None
 
-        # Todo: Does this do anything?
         if exe[0] == '/':
             exe = exe[exe.rfind('/')+1:]
 
@@ -898,8 +757,11 @@ class DockBar():
             print "name: ", name
         print "executable: ", exe
         print
-        for identifier in self.groups.get_non_launcher_names():
-            rc = u""+identifier.lower()
+        for gb in self.groups.values():
+            if gb.pinned:
+                continue
+            identifier = gb.identifier
+            rc = u"" + identifier.lower()
             if not rc:
                 continue
             if wine:
@@ -933,63 +795,47 @@ class DockBar():
                     elif rc == exe:
                         break
         else:
-            # No open windows where found that could be connected
+            # No unpinned group could be connected
             # with the new launcher. Id, name and exe will be stored
             # so that it can be checked against new windows later.
             identifier = None
 
-            self.launchers_by_id[id] = launcher
+            self.desktop_entry_by_id[id] = desktop_entry
             if wine:
-                self.launcher_ids_by_wine_program[exe] = id
+                self.d_e_ids_by_wine_program[exe] = id
             else:
                 if lname:
-                    self.launcher_ids_by_longname[name] = id
+                    self.d_e_ids_by_longname[name] = id
                 else:
-                    self.launcher_ids_by_name[name] = id
-                self.launcher_ids_by_exec[exe] = id
+                    self.d_e_ids_by_name[name] = id
+                self.d_e_ids_by_exec[exe] = id
 
-        class_group = None
-        if identifier:
-            launcher.set_identifier(identifier)
         # Remove existing groupbutton for the same program
         winlist = []
+        index = None
         if calling_button in (identifier, path):
             index = self.groups.get_index(calling_button)
-            group = self.groups[calling_button]
-            class_group = group.get_class_group()
+        group_name = None
+        if identifier in self.groups:
+            group_name = identifier
+        elif path in self.groups:
+            group_name = path
+        if group_name:
+            group = self.groups[group_name]
             # Get the windows for repopulation of the new button
             winlist = group.windows.keys()
             # Destroy the group button
             group.popup.destroy()
             group.button.destroy()
             group.winlist.destroy()
-            self.groups.remove(calling_button)
-        else:
-            if identifier in self.groups.get_identifiers():
-                group = self.groups[identifier]
-                class_group = group.get_class_group()
-                # Get the windows for repopulation of the new button
-                winlist = group.windows.keys()
-                # Destroy the group button
-                group.popup.destroy()
-                group.button.destroy()
-                group.winlist.destroy()
-                self.groups.remove(identifier)
-            elif path in self.groups.get_undefined_launchers():
-                group = self.groups[path]
-                # Destroy the group button
-                group.popup.destroy()
-                group.button.destroy()
-                group.winlist.destroy()
-                self.groups.remove(path)
-
-            # Insert the new button after (to the
-            # right of or under) the calling button
+            self.groups.remove(group_name)
+        if index is None:
             index = self.groups.get_index(calling_button) + 1
-        self.make_groupbutton(class_group=class_group,
-                              identifier=identifier, launcher=launcher,
+        self.make_groupbutton(identifier=identifier,
+                              desktop_entry=desktop_entry,
+                              pinned=True,
                               index=index, path=path)
-        self.update_launchers_list()
+        self.update_pinned_apps_list()
         for window in winlist:
             self.on_window_opened(self.screen, window)
         return True
@@ -1015,8 +861,9 @@ class DockBar():
             entry.set_text(identifier)
         # Fill the popdown list with the names of all class
         # names of buttons that hasn't got a launcher already
-        for name in self.groups.get_non_launcher_names():
-            combobox.append_text(name)
+        for gb in self.groups.values():
+            if not gb.pinned:
+                combobox.append_text(gb.identifier)
         entry = combobox.get_child()
         #entry.set_text('')
         #allow the user to press enter to do ok
@@ -1039,34 +886,32 @@ class DockBar():
         # Moves the button to the right of the calling button.
 
         #Remove the groupbutton that should be moved
-        move_group = self.groups.get_group(name)
-        move_path = self.groups.get_launcher_path(name)
+        move_group = self.groups[name]
         self.container.remove(move_group.button)
         self.groups.remove(name)
 
         if calling_button:
             index = self.groups.get_index(calling_button) + 1
         else:
-            print "Error: cant move button without" + \
-                  " either a index or the calling button's name"
+            print "Error: cant move button without the calling button's name"
             return
         # Insterts the button on it's index by removing
         # and repacking the buttons that should come after it
-        repack_list = self.groups.get_groups()[index:]
+        repack_list = self.groups.values()[index:]
         for group in repack_list:
             self.container.remove(group.button)
         self.container.pack_start(move_group.button, False)
         for group in repack_list:
             self.container.pack_start(group.button, False)
-        self.groups.add_group(name, move_group, move_path, index)
-        self.update_launchers_list()
+        self.groups.add_at_index(index, name, move_group)
+        self.update_pinned_apps_list()
 
-    def change_identifier(self, arg=None, path=None, identifier=None):
-        identifier = self.identifier_dialog(identifier)
+    def change_identifier(self, arg=None, path=None, old_identifier=None):
+        identifier = self.identifier_dialog(old_identifier)
         if not identifier:
             return False
         winlist = []
-        if identifier in self.groups.get_identifiers():
+        if identifier in self.groups:
                 group = self.groups[identifier]
                 # Get the windows for repopulation of the new button
                 winlist = group.windows.keys()
@@ -1075,31 +920,55 @@ class DockBar():
                 group.button.destroy()
                 group.winlist.destroy()
                 self.groups.remove(identifier)
-        self.groups.set_identifier(path, identifier)
+        if old_identifier is not none:
+            self.groups.set_identifier(old_identifier, identifier)
+        else:
+            self.groups.set_identifier(path, identifier)
+        gb.identifier_changed(identifier)
         for window in winlist:
             self.on_window_opened(self.screen, window)
-        self.update_launchers_list()
+        self.update_pinned_apps_list()
 
-    def update_launchers_list(self):
-        # Saves launchers_list to gconf.
-        launchers_list = self.groups.get_launchers_list()
-        gconf_launchers = []
-        for identifier, path in launchers_list:
-            if identifier == None:
+    def update_pinned_apps_list(self, arg=None):
+        # Saves pinned_apps_list to gconf.
+        gconf_pinned_apps = []
+        for gb in self.groups.values():
+            if not gb.pinned:
+                continue
+            identifier = gb.identifier
+            if identifier is None:
                 identifier = ''
-            gconf_launchers.append(identifier + ';' + path)
-        self.globals.set_launchers_list(gconf_launchers)
+            path = gb.desktop_entry.getFileName()
+            gconf_pinned_apps.append(identifier + ';' + path)
+        self.globals.set_pinned_apps_list(gconf_pinned_apps)
 
-    def remove_launcher_id_from_undefined_list(self, id):
-        self.launchers_by_id.pop(id)
-        for l in (self.launcher_ids_by_name,
-                  self.launcher_ids_by_exec,
-                  self.launcher_ids_by_longname,
-                  self.launcher_ids_by_wine_program):
+    def remove_desktop_entry_id_from_undefined_list(self, id):
+        self.desktop_entry_by_id.pop(id)
+        for l in (self.d_e_ids_by_name,
+                  self.d_e_ids_by_exec,
+                  self.d_e_ids_by_longname,
+                  self.d_e_ids_by_wine_program):
             for key, value in l.items():
                 if value == id:
                     l.pop(key)
                     break
+
+    def get_desktop_entry_for_id(self, id):
+        # Search for the desktop id first in ~/.local/share/applications
+        # and then in XDG_DATA_DIRS/applications
+        user_folder = os.environ.get('XDG_DATA_HOME',
+                                     os.path.join(os.path.expanduser('~'),
+                                                  '.local', 'share'))
+        data_folders = os.environ.get("XDG_DATA_DIRS",
+                                      '/usr/local/share/:/usr/share/')
+        folders = "%s:%s"%(user_folder, data_folders)
+        for folder in folders.split(':'):
+            #The line below line used datafolders instead of datafolder.
+            #I changed it because I suspect it was a bug.
+            path = os.path.join(folder, "applications", id)
+            if os.path.isfile(path):
+                return DesktopEntry(path)
+        return None
 
     def cleanup(self,event):
         del self.applet
@@ -1122,7 +991,7 @@ class DockBar():
            'gkeys_select_previous_window': _('Select previous window in group')
                        }
         for (s, f) in functions.items():
-            if self.gkeys[s] != None:
+            if self.gkeys[s] is not None:
                 keybinder.unbind(self.gkeys[s])
                 self.gkeys[s] = None
             if not self.globals.settings[s]:
@@ -1163,14 +1032,14 @@ class DockBar():
 
     def gkey_select_next_group(self, previous=False):
         active_found = False
-        gl = self.groups.get_groups()
+        gl = self.groups.values()
         # Repeat list twice so we can get
         # back to the first group after the last
         gl = gl + gl
         if previous:
             gl.reverse()
         for gr in gl:
-            if gr.list_hide_timeout != None:
+            if gr.list_hide_timeout is not None:
                 # Hide the popup if it's opened
                 # by keyboard shortcut.
                 gr.hide_list()
@@ -1193,7 +1062,7 @@ class DockBar():
         for win in windows_stacked:
             if win in self.windows:
                 if not self.globals.settings['show_only_current_desktop'] \
-                or (self.window.get_workspace() == None \
+                or (self.window.get_workspace() is None \
                 or self.screen.get_active_workspace() == \
                                                 self.window.get_workspace()) \
                 and self.window.is_in_viewport(
@@ -1206,7 +1075,7 @@ class DockBar():
         self.gkey_select_next_group(previous=True)
 
     def gkey_select_next_window_in_group(self, previous=False):
-        for gr in self.groups.get_groups():
+        for gr in self.groups.values():
             if gr.has_active_window:
                 gr.action_select_next_with_popup(previous=previous)
 

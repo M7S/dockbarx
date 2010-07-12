@@ -95,7 +95,7 @@ class Theme(gobject.GObject):
 
     def __init__(self):
         if 'theme' in self.__dict__:
-            # This is not the first instance of Theme, 
+            # This is not the first instance of Theme,
             #no need to initiate anything
             return
         gobject.GObject.__init__(self)
@@ -125,7 +125,7 @@ class Theme(gobject.GObject):
         self.reload()
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and 
+        # Reads the themes from /usr/share/dockbarx/themes and
         # ~/.dockbarx/themes and returns a dict
         # of the theme names and paths so that a theme can be loaded
         themes = {}
@@ -145,7 +145,7 @@ class Theme(gobject.GObject):
                 print "Error loading theme from %s"%theme_path
                 print detail
                 name = None
-            if name != None:
+            if name is not None:
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
@@ -219,7 +219,7 @@ class Theme(gobject.GObject):
 
         # Inform rest of dockbar about the reload.
         self.globals.theme_name = self.name
-        self.globals.update_colors(self.name, 
+        self.globals.update_colors(self.name,
                                    self.default_colors, self.default_alphas)
         self.emit('theme_reloaded')
 

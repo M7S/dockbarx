@@ -57,12 +57,12 @@ def _get(name, result_type):
     return results
 
 def get_recent_for_app(name):
-    if iface == None:
+    if iface is None:
         return []
     return _get(name, datamodel.ResultType.MostRecentSubjects)
 
 def get_most_used_for_app(name):
-    if iface == None:
+    if iface is None:
         return []
     return _get(name, datamodel.ResultType.MostPopularSubjects)
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     results = get_recent_for_app(app)
     for event in results:
         # Zeitgeist timestamps are in msec
-        timestamp = int(event.timestamp) / 1000 
+        timestamp = int(event.timestamp) / 1000
         print date.fromtimestamp(timestamp).strftime("%d %B %Y")
         for subject in event.get_subjects():
             print " -", subject.text, ":", subject.uri
