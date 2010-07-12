@@ -199,7 +199,7 @@ class GroupButton (gobject.GObject):
             # like "Amarok" from "Amarok - [SONGNAME]"
             # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
             # totally screwed up. So far no such program has been reported.
-            self.name = self.windows.keys()[0].get_class_group.get_name()
+            self.name = self.windows.keys()[0].get_class_group().get_name()
             self.name = self.name.split(" - ", 1)[0]
         else:
             self.name = None
@@ -808,7 +808,7 @@ class GroupButton (gobject.GObject):
         self.opacified = True
         ov = [self.globals.settings['opacify_alpha']]
         om = ["!(class=%s" % \
-              self.windows.keys[0].get_class_group.get_res_class() + \
+              self.windows.keys[0].get_class_group().get_res_class() + \
               " | class=Dockbarx_factory.py) & (type=Normal | type=Dialog)"]
         try:
             compiz_call('obs/screen0/opacity_values','set', ov)
@@ -1637,7 +1637,6 @@ class GroupButton (gobject.GObject):
         wins = self.get_unminimized_windows()
         if not wins:
             return
-        print len(wins)
         if len(wins) == 1:
             self.windows[wins[0]].action_select_window(widget, event)
             return
@@ -1647,7 +1646,7 @@ class GroupButton (gobject.GObject):
             path = 'scale/allscreens/initiate_all_key'
         try:
             compiz_call(path, 'activate','root', self.root_xid,'match', \
-                        'iclass=%s'%wins[0].get_class_group.get_res_class())
+                        'iclass=%s'%wins[0].get_class_group().get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
@@ -1669,7 +1668,7 @@ class GroupButton (gobject.GObject):
             path = 'shift/allscreens/initiate_all_key'
         try:
             compiz_call(path, 'activate','root', self.root_xid,'match', \
-                   'iclass=%s'%wins[0].get_class_group.get_res_class())
+                   'iclass=%s'%wins[0].get_class_group().get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
