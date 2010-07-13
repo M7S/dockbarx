@@ -672,7 +672,6 @@ class DockBar():
             if path[4:] in self.apps_by_id:
                 app = self.apps_by_id[path[4:]]
                 desktop_entry = self.get_desktop_entry_for_id(app.get_id())
-                print "%s: %s"%(identifier, desktop_entry)
             else:
                 print "Couldn't find gio app for launcher %s"%path
                 return

@@ -36,35 +36,62 @@ else:
         print "Error: Could not connect to Zeitgeist."
         iface = None
 
-def _get(name, result_type):
-    min_days_ago = 14
-    time_range = datamodel.TimeRange.from_seconds_ago(min_days_ago * 3600 * 24)
-    max_amount_results = 5
+def _get(name=None,
+         result_type=datamodel.ResultType.MostRecentSubjects,
+         days=14,
+         number_of_results=5,
+         mimetypes=[]):
+    time_range = datamodel.TimeRange.from_seconds_ago(days * 3600 * 24)
 
     event_template = datamodel.Event()
-    event_template.set_actor('application://%s'%name)
+    if name:
+        event_template.set_actor('application://%s'%name)
 
-    results = iface.FindEvents(
-        time_range, # (min_timestamp, max_timestamp) in milliseconds
-        [event_template, ],
-        datamodel.StorageState.Any,
-        max_amount_results,
-        result_type
-    )
+    for mimetype in mimetypes:
+        event_template.append_subject(
+                        datamodel.Subject.new_for_values(mimetype=mimetype))
+
+    results = iface.FindEvents(time_range,
+                               [event_template, ],
+                               datamodel.StorageState.Any,
+                               number_of_results,
+                               result_type)
 
     # Pythonize the result
-    results = [datamodel.Event(result) for result in results]
-    return results
+    return_list = []
+    for result in results:
+        for subject in datamodel.Event(result).get_subjects():
+            return_list.append((str(subject.text), str(subject.uri)))
+    return return_list
 
-def get_recent_for_app(name):
+
+def get_recent_for_app(name, days=14, number_of_results=5):
     if iface is None:
         return []
-    return _get(name, datamodel.ResultType.MostRecentSubjects)
+    return _get(name, datamodel.ResultType.MostRecentSubjects, days)
 
-def get_most_used_for_app(name):
+def get_most_used_for_app(name, days=14, number_of_results=5):
     if iface is None:
         return []
-    return _get(name, datamodel.ResultType.MostPopularSubjects)
+    return _get(name, datamodel.ResultType.MostPopularSubjects,days)
+
+def get_most_used_for_mimetypes(mimetypes, days=1, number_of_results=5):
+    if iface is None:
+        return []
+    return _get(mimetypes=mimetypes,
+                result_type=datamodel.ResultType.MostPopularSubjects,
+                days=days,
+                number_of_results=number_of_results)
+
+def get_recent_for_mimetypes(mimetypes, days=1, number_of_results=5):
+    if iface is None:
+        return []
+    return _get(mimetypes=mimetypes,
+                result_type=datamodel.ResultType.MostRecentSubjects,
+                days=days,
+                number_of_results=number_of_results)
+
+
 
 
 if __name__ == "__main__":

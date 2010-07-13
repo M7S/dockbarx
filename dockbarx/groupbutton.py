@@ -1528,17 +1528,39 @@ class GroupButton (gobject.GObject):
 
         # Recent and most used files
         if self.desktop_entry:
+            # Get information from zeitgeist
             appname = self.desktop_entry.getFileName().split('/')[-1]
-            recent_files = zg.get_recent_for_app(appname)
-            most_used_files = zg.get_most_used_for_app(appname)
+            recent_files = zg.get_recent_for_app(appname,
+                                                 days=30,
+                                                 number_of_results=8)
+            most_used_files = zg.get_most_used_for_app(appname,
+                                                       days=30,
+                                                       number_of_results=8)
+            # Related files contains files that can be used by the program and
+            # has been used by other programs (but not this program) today.
+            related_files = []
+            mimetypes = self.desktop_entry.getMimeTypes()
+            if mimetypes:
+                related_candidates = zg.get_recent_for_mimetypes(mimetypes,
+                                                                 days=1,
+                                                        number_of_results=20)
+                other_recent = zg.get_recent_for_app(appname,
+                                                     days=1,
+                                                     number_of_results=20)
+                related_files = [rf for rf in related_candidates \
+                                 if not (rf in recent_files or \
+                                         rf in other_recent)]
+                related_files = related_files[:3]
+
             #Separator
-            if recent_files or most_used_files:
+            if recent_files or most_used_files or related_files:
                 sep = gtk.SeparatorMenuItem()
                 menu.append(sep)
                 sep.show()
-            for files, menu_name in ((recent_files, _('Recent')),
-                                     (most_used_files, _('Most used'))
-                                    ):
+            # Create and add the submenus.
+            for files,  menu_name in ((recent_files, _('Recent')),
+                                      (most_used_files, _('Most used')),
+                                      (related_files, _('Related'))):
                 if files:
                     submenu = gtk.Menu()
                     menu_item = gtk.MenuItem(menu_name)
@@ -1546,19 +1568,19 @@ class GroupButton (gobject.GObject):
                     menu.append(menu_item)
                     menu_item.show()
 
-                    for ev in files:
-                        for subject in ev.get_subjects():
-                            label = subject.text or subject.uri
-                            if len(label)>40:
-                                label = label[:20]+"..."+label[-17:]
-                            submenu_item = gtk.MenuItem(label,
-                                                        use_underline=False)
-                            submenu.append(submenu_item)
-                            # "activate" doesn't seem to work on sub menus
-                            # so "button-press-event" is used instead.
-                            submenu_item.connect("button-press-event",
-                                                 self.launch_item, subject.uri)
-                            submenu_item.show()
+                    for text, uri in files:
+                        label = text or uri
+                        if len(label)>40:
+                            label = label[:20]+"..."+label[-17:]
+                        submenu_item = gtk.MenuItem(label,
+                                                    use_underline=False)
+                        submenu.append(submenu_item)
+                        # "activate" doesn't seem to work on sub menus
+                        # so "button-press-event" is used instead.
+                        submenu_item.connect("button-press-event",
+                                             self.launch_item, uri)
+                        submenu_item.show()
+
 
         if self.desktop_entry and self.windows:
             #Separator
