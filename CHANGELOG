@@ -11,7 +11,7 @@ End user features:
 Bug fixes:
 - Bug #599829 fixed: Separate OpenOffice apps works again.
 - Bug #600924: DockbarX crashed on upstart when used in AWN.
-- Fixed bug Bug #602960: Dockbarx doesn't save pinned applications. Patch by Tom Klaver.
+- Bug #602960: Dockbarx doesn't save pinned applications. Patch by Tom Klaver.
 - Fixed a bug that stopped DockbarX from working with older distributions (Karmic).
 - If the compiz plugin KDE compability isn't installed, DockbarX will inform the user about this when trying to activate plugins, instead of asking if it should activate the plugin.
 
