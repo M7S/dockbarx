@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-06-18 20:03+0300\n"
-"PO-Revision-Date: 2010-06-11 04:04+0000\n"
-"Last-Translator: martin <Unknown>\n"
+"PO-Revision-Date: 2010-07-06 19:12+0000\n"
+"Last-Translator: Reves <Unknown>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-06-23 12:20+0000\n"
+"X-Launchpad-Export-Date: 2010-07-14 16:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: dockbarx/groupbutton.py:237 dockbarx/groupbutton.py:284
@@ -72,7 +72,7 @@ msgstr "_Cerrar"
 
 #: dockbarx/dockbar.py:405
 msgid "The launcher at path"
-msgstr ""
+msgstr "Lanzador en la ruta:"
 
 #: dockbarx/dockbar.py:407
 msgid "cant be found. Did you perhaps delete the file?"
@@ -86,7 +86,7 @@ msgstr "Introduzca el identificador"
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
-msgstr "Debe hacer esto sólo si el programa no reconoce su ventana. "
+msgstr "Sólo debería hacer esto si la aplicación no detecta la ventana. "
 
 #: dockbarx/dockbar.py:977
 msgid ""
@@ -110,11 +110,11 @@ msgstr "Seleccionar el grupo anterior"
 
 #: dockbarx/dockbar.py:1085 dbx_preference.py:584
 msgid "Select next window in group"
-msgstr "Seleccona la siguiente ventana en el grupo"
+msgstr "Seleccionar la ventana siguiente del grupo"
 
 #: dockbarx/dockbar.py:1086 dbx_preference.py:585
 msgid "Select previous window in group"
-msgstr "Seleccona la ventana anterior en el grupo"
+msgstr "Seleccionar la ventana anterior del grupo"
 
 #: dockbarx/dockbar.py:1112
 msgid "The key is already bound elsewhere."
@@ -247,7 +247,7 @@ msgstr "Mostrar lista sólo si hay más de una ventana abierta"
 
 #: dbx_preference.py:373
 msgid "Alignment"
-msgstr ""
+msgstr "Alineamiento"
 
 #: dbx_preference.py:377
 msgid "Align left"
@@ -263,7 +263,7 @@ msgstr "Alinear a la derecha"
 
 #: dbx_preference.py:390
 msgid "Delay"
-msgstr ""
+msgstr "Retardo"
 
 #: dbx_preference.py:395
 msgid "Delay:"
@@ -271,7 +271,7 @@ msgstr "Retardo:"
 
 #: dbx_preference.py:407
 msgid "Previews"
-msgstr ""
+msgstr "Previsualizaciones"
 
 #: dbx_preference.py:411
 msgid "Show previews"
@@ -424,7 +424,7 @@ msgstr "Apariencia"
 
 #: dbx_preference.py:621
 msgid "Popup Window"
-msgstr ""
+msgstr "Ventana emergente"
 
 #: dbx_preference.py:622
 msgid "Group Button"

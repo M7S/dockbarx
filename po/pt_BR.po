@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-06-18 20:03+0300\n"
-"PO-Revision-Date: 2010-06-14 22:55+0000\n"
+"PO-Revision-Date: 2010-06-24 12:01+0000\n"
 "Last-Translator: Igor Belchior <Unknown>\n"
 "Language-Team: Brazilian Portuguese <pt_BR@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-06-23 12:20+0000\n"
+"X-Launchpad-Export-Date: 2010-07-14 16:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: dockbarx/groupbutton.py:237 dockbarx/groupbutton.py:284
@@ -72,7 +72,7 @@ msgstr "_Fechar"
 
 #: dockbarx/dockbar.py:405
 msgid "The launcher at path"
-msgstr ""
+msgstr "Caminho do aplicativo"
 
 #: dockbarx/dockbar.py:407
 msgid "cant be found. Did you perhaps delete the file?"
@@ -125,6 +125,7 @@ msgstr "A chave já está sendo utilizada em outro lugar"
 msgid ""
 "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
 msgstr ""
+"Erro: DockbarX não pôde definir atalho global '%(keystr)s' para %(function)s."
 
 #: dockbarx/iconfactory.py:512
 msgid "Cannot load icon for launcher"
@@ -245,7 +246,7 @@ msgstr "Apenas exibir popup se houver mais de uma janela aberta"
 
 #: dbx_preference.py:373
 msgid "Alignment"
-msgstr ""
+msgstr "Alinhamento"
 
 #: dbx_preference.py:377
 msgid "Align left"
@@ -261,7 +262,7 @@ msgstr "Alinha à direita"
 
 #: dbx_preference.py:390
 msgid "Delay"
-msgstr ""
+msgstr "Atraso"
 
 #: dbx_preference.py:395
 msgid "Delay:"
@@ -269,7 +270,7 @@ msgstr "Atraso:"
 
 #: dbx_preference.py:407
 msgid "Previews"
-msgstr ""
+msgstr "Pré-visualizações"
 
 #: dbx_preference.py:411
 msgid "Show previews"
@@ -329,7 +330,7 @@ msgstr "Efeito janelas saltadas do compiz"
 
 #: dbx_preference.py:457
 msgid "compiz scale all"
-msgstr ""
+msgstr "Compiz scale all (plugin)"
 
 #: dbx_preference.py:458
 msgid "show preference dialog"
@@ -361,11 +362,11 @@ msgstr "Selecionar ou minimizar tudo"
 
 #: dbx_preference.py:514 dbx_preference.py:789 dbx_preference.py:986
 msgid "compiz scale"
-msgstr ""
+msgstr "Compiz scale (plugin)"
 
 #: dbx_preference.py:515 dbx_preference.py:790 dbx_preference.py:987
 msgid "cycle through windows"
-msgstr ""
+msgstr "Ciclo através das janelas"
 
 #: dbx_preference.py:516 dbx_preference.py:791 dbx_preference.py:988
 msgid "show popup"
@@ -422,7 +423,7 @@ msgstr "Aparência"
 
 #: dbx_preference.py:621
 msgid "Popup Window"
-msgstr ""
+msgstr "Janela popup"
 
 #: dbx_preference.py:622
 msgid "Group Button"
@@ -470,6 +471,8 @@ msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr ""
+"Você precisa ter ao menos uma tecla (<control>, <alt> ou <super>) na "
+"sequência do teclado"
 
 #~ msgid "Popup"
 #~ msgstr "Popup"
