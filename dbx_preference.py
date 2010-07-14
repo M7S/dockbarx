@@ -724,10 +724,13 @@ class PrefDialog():
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            md = gtk.MessageDialog(None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                _('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes'))
+            messag = _('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes')
+            flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+            md = gtk.MessageDialog(self.dialog,
+                                   flags,
+                                   gtk.MESSAGE_ERROR,
+                                   gtk.BUTTONS_CLOSE,
+                                   message)
             md.run()
             md.destroy()
         return themes
@@ -933,17 +936,33 @@ class PrefDialog():
                 # Assume that kwin is used instead and do nothing.
                 return
             if not 'kdecompat' in plugins:
-                message = _("Previews requires the compiz plugin KDE Compability to be activated. Should dockbarx activate it for you?")
-                md = gtk.MessageDialog(None,
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-                    message)
-                response = md.run()
-                md.destroy()
-                if response == gtk.RESPONSE_YES:
-                    plugins.append('kdecompat')
-                    compiz_call("core/allscreens/active_plugins", "set",
-                                plugins)
+                #Check if the plugin is installed.
+                proxy = BUS.get_object('org.freedesktop.compiz',
+                                       '/org/freedesktop/compiz')
+                if 'kdecompat' in str(proxy.Introspect()):
+                    message = _("Previews requires the compiz plugin KDE Compability to be activated. Should dockbarx activate it for you?")
+                    flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+                    md = gtk.MessageDialog(self.dialog,
+                                           flags,
+                                           gtk.MESSAGE_QUESTION,
+                                           gtk.BUTTONS_YES_NO,
+                                           message)
+                    response = md.run()
+                    md.destroy()
+                    if response == gtk.RESPONSE_YES:
+                        plugins.append('kdecompat')
+                        compiz_call("core/allscreens/active_plugins", "set",
+                                    plugins)
+                else:
+                    message = _("The compiz plugin KDE Compability that is needed for previews doesn't seem to be installed. If you use ubuntu, you need to install the package compiz-fusion-plugins-main.")
+                    flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+                    md = gtk.MessageDialog(self.dialog,
+                                           flags,
+                                           gtk.MESSAGE_INFO,
+                                           gtk.BUTTONS_CLOSE,
+                                           message)
+                    md.run()
+                    md.destroy()
 
             # Check if Support Plasma thumbnails is activated.
             try:
@@ -953,18 +972,19 @@ class PrefDialog():
                 return
             if not plasmat:
                 message = _("Previews requires that Support Plasma Thumnails should be activated in KDE Compability plugin. Should dockbarx activate it for you?")
-                md = gtk.MessageDialog(None,
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-                    message)
+                flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+                md = gtk.MessageDialog(self.dialog,
+                                       flags,
+                                       gtk.MESSAGE_QUESTION,
+                                       gtk.BUTTONS_YES_NO,
+                                       message)
                 response = md.run()
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
                     plugins.append('kdecompat')
                     compiz_call("kdecompat/screen0/plasma_thumbnails", "set",
                                 True)
-
-        if name == "opacify" and button.get_active():
+        elif name == "opacify" and button.get_active():
             # Check if the needed compiz plugin is activated
             # and ask if it should be if it isn't.
             try:
@@ -974,10 +994,12 @@ class PrefDialog():
                 return
             if not 'obs' in plugins:
                 message = _("Opacify requires the compiz plugin Opacity, Brightness and Saturation to be activated. Should dockbarx activate it for you?")
-                md = gtk.MessageDialog(None,
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-                    message)
+                flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+                md = gtk.MessageDialog(self.dialog,
+                                       flags,
+                                       gtk.MESSAGE_QUESTION,
+                                       gtk.BUTTONS_YES_NO,
+                                       message)
                 response = md.run()
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
@@ -1133,10 +1155,12 @@ class PrefDialog():
                 break
         else:
             message = _("You need to have at least one mod key (<control>, <alt> or <super>) in the keyboard string.")
+            flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
             md = gtk.MessageDialog(self.dialog,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_WARNING, gtk.BUTTONS_OK,
-                message)
+                                   flags,
+                                   gtk.MESSAGE_INFO,
+                                   gtk.BUTTONS_OK,
+                                   message)
             md.run()
             md.destroy()
             return
