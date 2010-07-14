@@ -1175,12 +1175,14 @@ class GroupButton (gobject.GObject):
             #Edit identifier item
             edit_identifier_item = gtk.MenuItem(_('Edit Identifier'))
             menu.append(edit_identifier_item)
-            edit_identifier_item.connect("activate", self.menu_change_identifier)
+            edit_identifier_item.connect("activate",
+                                         self.menu_change_identifier)
             edit_identifier_item.show()
 
         # Recent and most used files
         if self.desktop_entry:
-            recent_files, most_used_files, related_files = self.menu_get_zg_files()
+            recent_files, most_used_files, related_files = \
+                                                    self.menu_get_zg_files()
             #Separator
             if recent_files or most_used_files or related_files:
                 sep = gtk.SeparatorMenuItem()

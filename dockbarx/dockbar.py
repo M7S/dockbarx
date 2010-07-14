@@ -919,11 +919,11 @@ class DockBar():
                 group.button.destroy()
                 group.winlist.destroy()
                 self.groups.remove(identifier)
-        if old_identifier is not none:
+        if old_identifier is not None:
             self.groups.set_identifier(old_identifier, identifier)
         else:
             self.groups.set_identifier(path, identifier)
-        gb.identifier_changed(identifier)
+        self.groups[identifier].identifier_changed(identifier)
         for window in winlist:
             self.on_window_opened(self.screen, window)
         self.update_pinned_apps_list()
@@ -938,7 +938,8 @@ class DockBar():
             if identifier is None:
                 identifier = ''
             path = gb.desktop_entry.getFileName()
-            gconf_pinned_apps.append(identifier + ';' + path)
+            # Todo: Is there any drawbacks from using encode('utf-8')?
+            gconf_pinned_apps.append(identifier.encode('utf-8') + ';' + path)
         self.globals.set_pinned_apps_list(gconf_pinned_apps)
 
     def remove_desktop_entry_id_from_undefined_list(self, id):
