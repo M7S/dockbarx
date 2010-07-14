@@ -1142,21 +1142,185 @@ class GroupButton (gobject.GObject):
         return False
 
 
-    #### Menu functions
+    #### Menu
+    def menu_show(self, event=None):
+        try:
+            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
+        except:
+            action_maximize = 1 << 14
+        self.hide_list()
+        #Creates a popup menu
+        menu = gtk.Menu()
+        menu.connect('selection-done', self.menu_closed)
+        if self.desktop_entry and not self.pinned:
+            #Add launcher item
+            add_launcher_item = gtk.MenuItem(_('_Pin application'))
+            menu.append(add_launcher_item)
+            add_launcher_item.connect("activate", self.menu_add_launcher)
+            add_launcher_item.show()
+        if self.desktop_entry:
+            #Launch program item
+            launch_program_item = gtk.MenuItem(_('_Launch application'))
+            menu.append(launch_program_item)
+            launch_program_item.connect("activate",
+                                self.action_launch_application)
+            launch_program_item.show()
+        if self.pinned:
+            #Remove launcher item
+            remove_launcher_item = gtk.MenuItem(_('Unpin application'))
+            menu.append(remove_launcher_item)
+            remove_launcher_item.connect("activate",
+                                         self.action_remove_launcher)
+            remove_launcher_item.show()
+            #Edit identifier item
+            edit_identifier_item = gtk.MenuItem(_('Edit Identifier'))
+            menu.append(edit_identifier_item)
+            edit_identifier_item.connect("activate", self.menu_change_identifier)
+            edit_identifier_item.show()
+
+        # Recent and most used files
+        if self.desktop_entry:
+            recent_files, most_used_files, related_files = self.menu_get_zg_files()
+            #Separator
+            if recent_files or most_used_files or related_files:
+                sep = gtk.SeparatorMenuItem()
+                menu.append(sep)
+                sep.show()
+            # Create and add the submenus.
+            for files,  menu_name in ((recent_files, _('Recent')),
+                                      (most_used_files, _('Most used')),
+                                      (related_files, _('Related'))):
+                if files:
+                    submenu = gtk.Menu()
+                    menu_item = gtk.MenuItem(menu_name)
+                    menu_item.set_submenu(submenu)
+                    menu.append(menu_item)
+                    menu_item.show()
+
+                    for text, uri in files:
+                        label = text or uri
+                        if len(label)>40:
+                            label = label[:20]+"..."+label[-17:]
+                        submenu_item = gtk.MenuItem(label,
+                                                    use_underline=False)
+                        submenu.append(submenu_item)
+                        # "activate" doesn't seem to work on sub menus
+                        # so "button-press-event" is used instead.
+                        submenu_item.connect("button-press-event",
+                                             self.launch_item, uri)
+                        submenu_item.show()
+
+
+        if self.desktop_entry and self.windows:
+            #Separator
+            sep = gtk.SeparatorMenuItem()
+            menu.append(sep)
+            sep.show()
+        # Windows stuff
+        win_nr = self.get_windows_count()
+        if win_nr:
+            if win_nr == 1:
+                t = ""
+            else:
+                t = _(" all windows")
+            if self.get_unminimized_windows_count() == 0:
+                # Unminimize all
+                unminimize_all_windows_item = gtk.MenuItem(
+                                                '%s%s'%(_("Un_minimize"), t))
+                menu.append(unminimize_all_windows_item)
+                unminimize_all_windows_item.connect("activate",
+                                              self.menu_unminimize_all_windows)
+                unminimize_all_windows_item.show()
+            else:
+                # Minimize all
+                minimize_all_windows_item = gtk.MenuItem(
+                                                    '%s%s'%(_("_Minimize"), t))
+                menu.append(minimize_all_windows_item)
+                minimize_all_windows_item.connect("activate",
+                                            self.action_minimize_all_windows)
+                minimize_all_windows_item.show()
+            # (Un)Maximize all
+            for window in self.windows:
+                if not window.is_maximized() \
+                and window.get_actions() & action_maximize:
+                    maximize_all_windows_item = gtk.MenuItem(
+                                                    '%s%s'%(_("Ma_ximize"), t))
+                    break
+            else:
+                maximize_all_windows_item = gtk.MenuItem(
+                                                '%s%s'%(_("Unma_ximize"), t))
+            menu.append(maximize_all_windows_item)
+            maximize_all_windows_item.connect("activate",
+                                            self.action_maximize_all_windows)
+            maximize_all_windows_item.show()
+            # Close all
+            close_all_windows_item = gtk.MenuItem('%s%s'%(_("_Close"), t))
+            menu.append(close_all_windows_item)
+            close_all_windows_item.connect("activate",
+                                           self.action_close_all_windows)
+            close_all_windows_item.show()
+        menu.popup(None, None, None, event.button, event.time)
+        self.globals.right_menu_showing = True
+
+    def menu_get_zg_files(self):
+        # Get information from zeitgeist
+        appname = self.desktop_entry.getFileName().split('/')[-1]
+        recent_files = zg.get_recent_for_app(appname,
+                                             days=30,
+                                             number_of_results=8)
+        most_used_files = zg.get_most_used_for_app(appname,
+                                                   days=30,
+                                                   number_of_results=8)
+        # For programs that work badly with zeitgeist (openoffice for now),
+        # mimetypes should be used to identify recent and most used as well.
+        if self.identifier in zg.workrounds:
+            if self.identifier == 'openoffice-writer' and \
+               not self.globals.settings['separate_ooo_apps']:
+                mimetypes = zg.workrounds['openoffice-writer'] + \
+                            zg.workrounds['openoffice-calc'] + \
+                            zg.workrounds['openoffice-presentation'] + \
+                            zg.workrounds['openoffice-draw']
+            elif zg.workrounds[self.identifier] == 'all':
+                mimetypes = self.desktop_entry.getMimeTypes()
+            else:
+                mimetypes = zg.workrounds[self.identifier]
+            recent_files += zg.get_recent_for_mimetypes(mimetypes,
+                                                        days=30,
+                                                        number_of_results=8)
+            most_used_files += zg.get_most_used_for_mimetypes(mimetypes,
+                                                              days=30,
+                                                           number_of_results=8)
+        # Related files contains files that can be used by the program and
+        # has been used by other programs (but not this program) today.
+        related_files = []
+        mimetypes = self.desktop_entry.getMimeTypes()
+        if mimetypes:
+            related_candidates = zg.get_recent_for_mimetypes(mimetypes,
+                                                             days=1,
+                                                        number_of_results=20)
+            other_recent = zg.get_recent_for_app(appname,
+                                                 days=1,
+                                                 number_of_results=20)
+            related_files = [rf for rf in related_candidates \
+                             if not (rf in recent_files or \
+                                     rf in other_recent)]
+            related_files = related_files[:3]
+        return recent_files, most_used_files, related_files
+
     def menu_closed(self, menushell):
         self.globals.right_menu_showing = False
 
-    def unminimize_all_windows(self, widget=None, event=None):
+    def menu_unminimize_all_windows(self, widget=None, event=None):
         t = gtk.get_current_event_time()
         for window in self.get_windows():
             if window.is_minimized():
                 window.unminimize(t)
 
-    def change_identifier(self, widget=None, event=None):
+    def menu_change_identifier(self, widget=None, event=None):
         self.emit('identifier-change',
                   self.desktop_entry.getFileName(), self.identifier)
 
-    def add_launcher(self, widget=None, event=None):
+    def menu_add_launcher(self, widget=None, event=None):
         self.pinned = True
         self.emit('pinned')
 
@@ -1492,146 +1656,7 @@ class GroupButton (gobject.GObject):
 
 
     def action_show_menu(self, widget, event):
-        try:
-            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
-        except:
-            action_maximize = 1 << 14
-        self.hide_list()
-        #Creates a popup menu
-        menu = gtk.Menu()
-        menu.connect('selection-done', self.menu_closed)
-        if self.desktop_entry and not self.pinned:
-            #Add launcher item
-            add_launcher_item = gtk.MenuItem(_('_Pin application'))
-            menu.append(add_launcher_item)
-            add_launcher_item.connect("activate", self.add_launcher)
-            add_launcher_item.show()
-        if self.desktop_entry:
-            #Launch program item
-            launch_program_item = gtk.MenuItem(_('_Launch application'))
-            menu.append(launch_program_item)
-            launch_program_item.connect("activate",
-                                self.action_launch_application)
-            launch_program_item.show()
-        if self.pinned:
-            #Remove launcher item
-            remove_launcher_item = gtk.MenuItem(_('Unpin application'))
-            menu.append(remove_launcher_item)
-            remove_launcher_item.connect("activate",
-                                         self.action_remove_launcher)
-            remove_launcher_item.show()
-            #Edit identifier item
-            edit_identifier_item = gtk.MenuItem(_('Edit Identifier'))
-            menu.append(edit_identifier_item)
-            edit_identifier_item.connect("activate", self.change_identifier)
-            edit_identifier_item.show()
-
-        # Recent and most used files
-        if self.desktop_entry:
-            # Get information from zeitgeist
-            appname = self.desktop_entry.getFileName().split('/')[-1]
-            recent_files = zg.get_recent_for_app(appname,
-                                                 days=30,
-                                                 number_of_results=8)
-            most_used_files = zg.get_most_used_for_app(appname,
-                                                       days=30,
-                                                       number_of_results=8)
-            # Related files contains files that can be used by the program and
-            # has been used by other programs (but not this program) today.
-            related_files = []
-            mimetypes = self.desktop_entry.getMimeTypes()
-            if mimetypes:
-                related_candidates = zg.get_recent_for_mimetypes(mimetypes,
-                                                                 days=1,
-                                                        number_of_results=20)
-                other_recent = zg.get_recent_for_app(appname,
-                                                     days=1,
-                                                     number_of_results=20)
-                related_files = [rf for rf in related_candidates \
-                                 if not (rf in recent_files or \
-                                         rf in other_recent)]
-                related_files = related_files[:3]
-
-            #Separator
-            if recent_files or most_used_files or related_files:
-                sep = gtk.SeparatorMenuItem()
-                menu.append(sep)
-                sep.show()
-            # Create and add the submenus.
-            for files,  menu_name in ((recent_files, _('Recent')),
-                                      (most_used_files, _('Most used')),
-                                      (related_files, _('Related'))):
-                if files:
-                    submenu = gtk.Menu()
-                    menu_item = gtk.MenuItem(menu_name)
-                    menu_item.set_submenu(submenu)
-                    menu.append(menu_item)
-                    menu_item.show()
-
-                    for text, uri in files:
-                        label = text or uri
-                        if len(label)>40:
-                            label = label[:20]+"..."+label[-17:]
-                        submenu_item = gtk.MenuItem(label,
-                                                    use_underline=False)
-                        submenu.append(submenu_item)
-                        # "activate" doesn't seem to work on sub menus
-                        # so "button-press-event" is used instead.
-                        submenu_item.connect("button-press-event",
-                                             self.launch_item, uri)
-                        submenu_item.show()
-
-
-        if self.desktop_entry and self.windows:
-            #Separator
-            sep = gtk.SeparatorMenuItem()
-            menu.append(sep)
-            sep.show()
-        # Windows stuff
-        win_nr = self.get_windows_count()
-        if win_nr:
-            if win_nr == 1:
-                t = ""
-            else:
-                t = _(" all windows")
-            if self.get_unminimized_windows_count() == 0:
-                # Unminimize all
-                unminimize_all_windows_item = gtk.MenuItem(
-                                                '%s%s'%(_("Un_minimize"), t))
-                menu.append(unminimize_all_windows_item)
-                unminimize_all_windows_item.connect("activate",
-                                                   self.unminimize_all_windows)
-                unminimize_all_windows_item.show()
-            else:
-                # Minimize all
-                minimize_all_windows_item = gtk.MenuItem(
-                                                    '%s%s'%(_("_Minimize"), t))
-                menu.append(minimize_all_windows_item)
-                minimize_all_windows_item.connect("activate",
-                                            self.action_minimize_all_windows)
-                minimize_all_windows_item.show()
-            # (Un)Maximize all
-            for window in self.windows:
-                if not window.is_maximized() \
-                and window.get_actions() & action_maximize:
-                    maximize_all_windows_item = gtk.MenuItem(
-                                                    '%s%s'%(_("Ma_ximize"), t))
-                    break
-            else:
-                maximize_all_windows_item = gtk.MenuItem(
-                                                '%s%s'%(_("Unma_ximize"), t))
-            menu.append(maximize_all_windows_item)
-            maximize_all_windows_item.connect("activate",
-                                            self.action_maximize_all_windows)
-            maximize_all_windows_item.show()
-            # Close all
-            close_all_windows_item = gtk.MenuItem('%s%s'%(_("_Close"), t))
-            menu.append(close_all_windows_item)
-            close_all_windows_item.connect("activate",
-                                           self.action_close_all_windows)
-            close_all_windows_item.show()
-        menu.popup(None, None, None, event.button, event.time)
-        self.globals.right_menu_showing = True
+        self.menu_show(event)
 
     def action_remove_launcher(self, widget=None, event=None):
         print 'Removing launcher ', self.identifier
