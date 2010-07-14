@@ -1,4 +1,19 @@
 Changelog:
+x.0.39.5
+End user features:
+- A new submenu called "Related" has been added to the group button menu. This submenu contains files that has been used recently (within the same day) by programs other than the one the button belongs to, but can be opened by the program. This is pretty much the same functionality as you get from the related plugin in AWN. Example: If you recently opened a picture in eog, you can open it in gimp by right clicking gimp's group button and finding the picture in the "Related" submenu. (Unless, of cource, you've also opened the file in gimp recently, then you'll find it in the recent menu instead).
+- Recent and Most used works for OpenOffice now. It is a bit of a hack (technically, the submenu is populated with recent files that can be opened by OpenOffice instead of files recently opened by OpenOffice), so don't expect it to work perfectly.
+- The number of items in "Recent" and "Most used" submenus has been increased to eight and the timespan from which the Resent and Most used files are searched are increased from 14 days to 30 days.
+- Rules added for programs that couldn't be pinned automatically, like amarok 1.4 or thunderbird 2. (Information about other programs that can't be pinned with DockbarX are most welcome!)
+- Launching is more compatible with freedesktop standards. This means among other things that launching multiple files should work with most programs now.
+- Launchers should be more stable now, since they no longer use different systems depending on if they were added by dragging an icon from gnome menu or by using "Pin application" option in the group button menu. 
+
+Bug fixes:
+- Bug #599829 fixed: Separate OpenOffice apps works again.
+- Bug #600924: DockbarX crashed on upstart when used in AWN.
+- Fixed bug Bug #602960: Dockbarx doesn't save pinned applications. Patch by Tom Klaver.
+- Fixed a bug that stopped DockbarX from working with older distributions (Karmic).
+- If the compiz plugin KDE compability isn't installed, DockbarX will inform the user about this when trying to activate plugins, instead of asking if it should activate the plugin.
 
 x.0.39.4
 End user features:

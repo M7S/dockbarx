@@ -40,7 +40,7 @@ from common import *
 import i18n
 _ = i18n.language.gettext
 
-VERSION = 'x.0.39.4+bzr'
+VERSION = 'x.0.39.5'
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -943,7 +943,7 @@ class DockBar():
             if identifier is None:
                 identifier = ''
             path = gb.desktop_entry.getFileName()
-            # Todo: Is there any drawbacks from using encode('utf-8')?
+            # Todo: Is there any drawbacks from using encode('utf-8') here?
             gconf_pinned_apps.append(identifier.encode('utf-8') + ';' + path)
         self.globals.set_pinned_apps_list(gconf_pinned_apps)
 
