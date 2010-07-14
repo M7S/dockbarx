@@ -25,11 +25,9 @@ import gobject
 import gconf
 import wnck
 from time import time
-from xdg.DesktopEntry import DesktopEntry
 import os
 import gc
 gc.enable()
-from urllib import unquote
 import pango
 
 from windowbutton import WindowButton
@@ -37,106 +35,13 @@ from iconfactory import IconFactory
 from common import ODict
 from cairowidgets import CairoButton
 from cairowidgets import CairoPopup
-from common import Globals, compiz_call
+from common import Globals, compiz_call, DesktopEntry
 import zg
 
 import i18n
 _ = i18n.language.gettext
 
 ATOM_PREVIEWS = gtk.gdk.atom_intern('_KDE_WINDOW_PREVIEW')
-
-class LauncherPathError(Exception):
-    pass
-
-class NoGioAppExistError(Exception):
-    pass
-
-
-
-class Launcher():
-    def __init__(self, identifier, path):
-        globals = Globals()
-        self.identifier = identifier
-        self.path = path
-        self.app = None
-        if path[:4] == "gio:":
-            if path[4:] in globals.apps_by_id:
-                self.app = globals.apps_by_id[path[4:]]
-            else:
-                raise NoGioAppExistError()
-        elif os.path.exists(path):
-            self.desktop_entry = DesktopEntry(path)
-        else:
-            raise LauncherPathError()
-
-
-    def get_identifier(self):
-        return self.identifier
-
-    def set_identifier(self, identifier):
-        self.identifier = identifier
-
-    def get_path(self):
-        return self.path
-
-    def get_desktop_file_name(self):
-        if self.app:
-            return self.app.get_id().split('/')[-1]
-        else:
-            return self.path.split('/')[-1]
-
-    def get_icon_name(self):
-        if self.app:
-            return self.app.get_icon()
-        else:
-            return self.desktop_entry.getIcon()
-
-    def get_entry_name(self):
-        if self.app:
-            return self.app.get_name()
-        else:
-            return self.desktop_entry.getName()
-
-    def get_executable(self):
-        if self.app:
-            return self.app.get_executable()
-        else:
-            return self.desktop_entry.getExec()
-
-    def launch_with_uri(self, uri):
-        os.chdir(os.path.expanduser('~'))
-        if self.app:
-            uri = unquote(uri)
-            self.app.launch_uris([uri], None)
-        else:
-            uri = uri.replace("%20","\ ")
-            uri = unquote(uri)
-            self.execute("%s %s"%(self.desktop_entry.getExec(), uri))
-
-
-    def launch(self):
-        os.chdir(os.path.expanduser('~'))
-        if self.app:
-            print "Executing", self.app.get_name()
-            return self.app.launch(None, None)
-        else:
-            print 'Executing %s'%self.desktop_entry.getExec()
-            self.execute(self.desktop_entry.getExec())
-
-    def remove_args(self, stringToExecute):
-        specials = ["%f","%F","%u","%U","%d","%D","%n","%N","%i","%c","%k",
-                    "%v","%m","%M", "-caption","--view", "\"%c\""]
-        return [element for element in 
-                stringToExecute.split() if element not in specials]
-
-    def execute(self, command):
-        command = self.remove_args(command)
-        if os.path.isdir(command[0]):
-            command = "xdg-open '%s' &"%(" ".join(command))
-        else:
-            command = "/bin/sh -c '%s' &"%(" ".join(command))
-        os.system(command)
-
 
 class GroupButton (gobject.GObject):
     """Group button takes care of a program's "button" in dockbar.
@@ -145,44 +50,38 @@ class GroupButton (gobject.GObject):
     populates it."""
 
     __gsignals__ = {
-        "delete": 
+        "delete":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
-        "launch-preference": 
+        "launch-preference":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "identifier-change": 
+        "identifier-change":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
-        "groupbutton-moved": 
+        "groupbutton-moved":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
-        "launcher-dropped": 
+        "launcher-dropped":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
-        "pinned": 
-            (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
-        "unpinned": 
+        "pinned":
+            (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "unpinned":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
-        "minimize-others": 
+        "minimize-others":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, ))
                    }
 
-    def __init__(self, class_group=None, 
-                 identifier=None, launcher=None, app=None):
+    def __init__(self, identifier=None, desktop_entry=None,
+                 pinned=False):
         gobject.GObject.__init__(self)
 
         self.globals = Globals()
-        self.globals.connect('show-only-current-desktop-changed', 
+        self.globals.connect('show-only-current-desktop-changed',
                              self.on_show_only_current_desktop_changed)
         self.globals.connect('color2-changed', self.update_popup_label)
-        self.globals.connect('show-previews-changed', 
+        self.globals.connect('show-previews-changed',
                              self.on_show_previews_changed)
-        self.launcher = launcher
-        self.class_group = class_group
-        self.app = app
-        if identifier:
-            self.identifier = identifier
-        elif launcher:
-            self.identifier = launcher.get_identifier()
-            # launcher.get_identifier() returns None
-            # if the identifier is still unknown
-        else:
+        self.pinned = pinned
+        self.desktop_entry = desktop_entry
+        self.identifier = identifier
+        if identifier is None and desktop_entry is None:
             raise Exception, \
                 "Can't initiate Group button without identifier or launcher."
 
@@ -211,8 +110,8 @@ class GroupButton (gobject.GObject):
 
 
         #--- Button
-        self.icon_factory = IconFactory(class_group, 
-                                        launcher, app, self.identifier)
+        self.icon_factory = IconFactory(identifier=self.identifier,
+                                        desktop_entry=self.desktop_entry)
         self.button = CairoButton()
         self.button.show_all()
 
@@ -235,7 +134,7 @@ class GroupButton (gobject.GObject):
         self.popup = cairo_popup.window
         self.popup_showing = False
         self.popup.connect("leave-notify-event",self.on_popup_mouse_leave)
-        
+
         self.popup_box = gtk.VBox()
         self.popup_box.set_border_width(5)
         self.popup_box.set_spacing(2)
@@ -243,7 +142,6 @@ class GroupButton (gobject.GObject):
         self.popup_label.set_use_markup(True)
         self.update_name()
         if self.identifier:
-            # Todo: add tooltip when identifier is added.
             self.popup_label.set_tooltip_text(
                                     "%s: %s"%(_("Identifier"),self.identifier))
         self.popup_box.pack_start(self.popup_label, False)
@@ -290,27 +188,22 @@ class GroupButton (gobject.GObject):
 
     def identifier_changed(self, identifier):
         self.identifier = identifier
-        self.launcher.set_identifier(identifier)
         self.popup_label.set_tooltip_text(
                                     "%s: %s"%(_("Identifier"),self.identifier))
 
-    def update_class_group(self, class_group):
-        self.class_group = class_group
-
-    def get_class_group(self):
-        return self.class_group
-
     def update_name(self):
-        if self.launcher:
-            self.name = self.launcher.get_entry_name()
-        elif self.app:
-            self.name = u"" + self.app.get_name()
-        else:
-            # Uses first half of the name, 
+        if self.desktop_entry:
+            self.name = self.desktop_entry.getName()
+        elif self.windows:
+            # Uses first half of the name,
             # like "Amarok" from "Amarok - [SONGNAME]"
             # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
             # totally screwed up. So far no such program has been reported.
-            self.name = self.class_group.get_name().split(" - ", 1)[0]
+            self.name = self.windows.keys()[0].get_class_group().get_name()
+            self.name = self.name.split(" - ", 1)[0]
+        else:
+            self.name = None
+            return
         self.popup_label.set_label(
                     "<span foreground='%s'>"%self.globals.colors['color2'] + \
                     "<big><b>%s</b></big></span>"%self.name
@@ -323,6 +216,8 @@ class GroupButton (gobject.GObject):
 
     #### State
     def update_popup_label(self, arg=None):
+        if self.name is None:
+            return
         self.popup_label.set_text(
                     "<span foreground='%s'>"%self.globals.colors['color2'] + \
                     "<big><b>%s</b></big></span>"%self.name
@@ -332,14 +227,14 @@ class GroupButton (gobject.GObject):
     def update_state(self):
         # Checks button state and set the icon accordingly.
         win_nr = min(self.get_windows_count(), 15)
-        if win_nr == 0 and not self.launcher:
+        if win_nr == 0 and not self.pinned:
             self.button.hide()
             return
         else:
             self.button.show()
 
         mwc = self.get_minimized_windows_count()
-        if self.launcher and win_nr == 0:
+        if self.pinned and win_nr == 0:
             icon_mode = IconFactory.LAUNCHER
         elif (win_nr - mwc) == 0:
             icon_mode = IconFactory.ALL_MINIMIZED
@@ -441,7 +336,7 @@ class GroupButton (gobject.GObject):
         self.update_state()
         self.nextlist = None
         self.on_set_icongeo_grp()
-        
+
     def on_show_previews_changed(self, arg=None):
         oldbox = self.winlist
         if self.globals.settings['preview']:
@@ -497,8 +392,10 @@ class GroupButton (gobject.GObject):
         self.winlist.pack_start(wb.window_button, False)
         if window.is_minimized():
             self.minimized_windows_count += 1
-        if (self.launcher and len(self.windows)==1):
-            self.class_group = window.get_class_group()
+        if (self.pinned and len(self.windows)==1):
+            if self.name is None:
+                self.update_name()
+            self.icon_factory.set_class_group(window.get_class_group())
         if self.launch_effect:
             self.launch_effect = False
             gobject.source_remove(self.launch_effect_timeout)
@@ -528,7 +425,7 @@ class GroupButton (gobject.GObject):
             gobject.idle_add(self.show_list_request)
 
         # Set minimize animation
-        # (if the eventbox is created already, 
+        # (if the eventbox is created already,
         # otherwice the icon animation is set in sizealloc())
         if self.button.window:
             x, y = self.button.window.get_origin()
@@ -536,9 +433,6 @@ class GroupButton (gobject.GObject):
             x += a.x
             y += a.y
             window.set_icon_geometry(x, y, a.width, a.height)
-
-        if not self.class_group:
-            self.update_classgroup(window.get_class_group())
 
     def del_window(self,window):
         if window.is_minimized():
@@ -555,11 +449,11 @@ class GroupButton (gobject.GObject):
                 self.globals.opacified = False
                 self.opacified = False
                 self.deopacify()
-            if self.popup_showing and self.launcher:
+            if self.popup_showing and self.pinned:
                 # Move the popup.
                 self.popup.resize(10,10)
                 gobject.idle_add(self.show_list_request)
-        if not self.windows and not self.launcher:
+        if not self.windows and not self.pinned:
             # Remove group button.
             self.hide_list()
             self.icon_factory.remove()
@@ -690,7 +584,7 @@ class GroupButton (gobject.GObject):
 
     def on_popup_hide(self, arg=None, reason=None):
         if reason == 'viewport-change' \
-        and self.list_hide_timeout != None:
+        and self.list_hide_timeout is not None:
             # The list brought up by keyboard
             # and will close by itself later
             # no need to close it now.
@@ -699,7 +593,7 @@ class GroupButton (gobject.GObject):
 
     def on_popup_hide_request(self, arg=None):
         self.hide_list_request()
-        
+
 
     #### Show/hide list
     def show_list_request(self):
@@ -804,15 +698,15 @@ class GroupButton (gobject.GObject):
                 previews.append(h)
         else:
             previews = [0,5,0,0,0,0,0]
-        self.popup.window.property_change(ATOM_PREVIEWS, 
-                                          ATOM_PREVIEWS, 
-                                          32, 
+        self.popup.window.property_change(ATOM_PREVIEWS,
+                                          ATOM_PREVIEWS,
+                                          32,
                                           gtk.gdk.PROP_MODE_REPLACE,
                                           previews)
         return False
 
     def hide_list_request(self):
-        if self.popup.window == None:
+        if self.popup.window is None:
             return
         # Checks if mouse cursor really isn't hovering the button
         # or the popup window anymore and hide the popup window
@@ -858,7 +752,7 @@ class GroupButton (gobject.GObject):
                 y = r - p_m_y
             if (p_h - p_m_y) < r:
                 y = p_m_y - (p_h - r)
-            if x == None or y == None \
+            if x is None or y is None \
             or (x**2 + y**2) < (r-1)**2:
                 # It's inside the rounded corners!
                 return
@@ -881,15 +775,16 @@ class GroupButton (gobject.GObject):
             for win in self.get_windows():
                 self.windows[win].clear_preview_image()
             gc.collect()
-        if self.list_hide_timeout != None:
+        if self.list_hide_timeout is not None:
             gobject.source_remove(self.list_hide_timeout)
             self.list_hide_timeout = None
         return False
 
     #### Opacify
     def opacify(self):
-        # Makes all windows but the one connected to this windowbutton transparent
-        if self.globals.opacity_values == None:
+        # Makes all windows but the one connected to this windowbutton
+        # transparent
+        if self.globals.opacity_values is None:
             try:
                 self.globals.opacity_values = \
                             compiz_call('obs/screen0/opacity_values','get')
@@ -899,7 +794,7 @@ class GroupButton (gobject.GObject):
                             compiz_call('core/screen0/opacity_values','get')
                 except:
                     return
-        if self.globals.opacity_matches == None:
+        if self.globals.opacity_matches is None:
             try:
                 self.globals.opacity_matches = \
                             compiz_call('obs/screen0/opacity_matches','get')
@@ -912,7 +807,8 @@ class GroupButton (gobject.GObject):
         self.globals.opacified = True
         self.opacified = True
         ov = [self.globals.settings['opacify_alpha']]
-        om = ["!(class=%s"%self.class_group.get_res_class() + \
+        om = ["!(class=%s" % \
+              self.windows.keys[0].get_class_group().get_res_class() + \
               " | class=Dockbarx_factory.py) & (type=Normal | type=Dialog)"]
         try:
             compiz_call('obs/screen0/opacity_values','set', ov)
@@ -947,18 +843,18 @@ class GroupButton (gobject.GObject):
         # If another window button has called opacify, don't deopacify.
         if self.globals.opacified and not self.opacified:
             return False
-        if self.globals.opacity_values == None:
+        if self.globals.opacity_values is None:
             return False
         try:
-            compiz_call('obs/screen0/opacity_values','set', 
+            compiz_call('obs/screen0/opacity_values','set',
                         self.globals.opacity_values)
-            compiz_call('obs/screen0/opacity_matches','set', 
+            compiz_call('obs/screen0/opacity_matches','set',
                         self.globals.opacity_matches)
         except:
             try:
-                compiz_call('core/screen0/opacity_values','set', 
+                compiz_call('core/screen0/opacity_values','set',
                             self.globals.opacity_values)
-                compiz_call('core/screen0/opacity_matches','set', 
+                compiz_call('core/screen0/opacity_matches','set',
                             self.globals.opacity_matches)
             except:
                 print "Error: Couldn't set opacity back to normal."
@@ -982,18 +878,18 @@ class GroupButton (gobject.GObject):
         gobject.timeout_add(110, self.deopacify)
         return False
 
-    #### DnD
+    #### DnD (source)
     def on_drag_begin(self, widget, drag_context):
         self.is_current_drag_source = True
         self.globals.dragging = True
         self.hide_list()
 
-    def on_drag_data_get(self, widget, context, 
+    def on_drag_data_get(self, widget, context,
                          selection, targetType, eventTime):
         if self.identifier:
             name = self.identifier
         else:
-            name = self.launcher.get_path()
+            name = self.desktop_entry.getFileName()
         selection.set(selection.target, 8, name)
 
 
@@ -1004,6 +900,7 @@ class GroupButton (gobject.GObject):
         # not the other way around.
         gobject.timeout_add(30, self.button.show)
 
+    #### DnD (target)
     def on_drag_drop(self, wid, drag_context, x, y, t):
         if 'text/groupbutton_name' in drag_context.targets:
             self.button.drag_get_data(drag_context, 'text/groupbutton_name', t)
@@ -1015,7 +912,7 @@ class GroupButton (gobject.GObject):
                 if self.identifier:
                     name = self.identifier
                 else:
-                    name = self.launcher.get_path()
+                    name = self.desktop_entry.getFileName()
                 #remove 'file://' and '/n' from the URI
                 path = self.dd_uri[7:-2]
                 path = path.replace("%20"," ")
@@ -1031,12 +928,12 @@ class GroupButton (gobject.GObject):
         self.dd_uri = None
         return True
 
-    def on_drag_data_received(self, wid, context, 
+    def on_drag_data_received(self, wid, context,
                               x, y, selection, targetType, t):
         if self.identifier:
             name = self.identifier
         else:
-            name = self.launcher.get_path()
+            name = self.desktop_entry.getFileName()
         if selection.target == 'text/groupbutton_name':
             if selection.data != name:
                 self.emit('groupbutton-moved', selection.data, name)
@@ -1057,7 +954,7 @@ class GroupButton (gobject.GObject):
             if not 'text/groupbutton_name' in drag_context.targets:
                 win_nr = self.get_windows_count()
                 if win_nr == 1:
-                    self.dnd_select_window = gobject.timeout_add(600, 
+                    self.dnd_select_window = gobject.timeout_add(600,
                                 self.windows.values()[0].action_select_window)
                 elif win_nr > 1:
                     self.dnd_show_popup = gobject.timeout_add(
@@ -1086,10 +983,10 @@ class GroupButton (gobject.GObject):
         self.button_drag_entered = False
         self.update_state()
         self.hide_list_request()
-        if self.dnd_show_popup != None:
+        if self.dnd_show_popup is not None:
             gobject.source_remove(self.dnd_show_popup)
             self.dnd_show_popup = None
-        if self.dnd_select_window != None:
+        if self.dnd_select_window is not None:
             gobject.source_remove(self.dnd_select_window)
             self.dnd_select_window = None
         if self.is_current_drag_source:
@@ -1131,7 +1028,7 @@ class GroupButton (gobject.GObject):
             self.on_set_icongeo_grp()
 
     def on_button_mouse_enter (self, widget, event):
-        # In compiz there is a enter and a leave event 
+        # In compiz there is a enter and a leave event
         # before a button_press event.
         if self.button_pressed :
             return
@@ -1142,7 +1039,7 @@ class GroupButton (gobject.GObject):
             gobject.timeout_add(self.globals.settings['popup_delay'],
                                 self.opacify_request)
             # Just for safty in case no leave-signal is sent
-            gobject.timeout_add(self.globals.settings['popup_delay']+500, 
+            gobject.timeout_add(self.globals.settings['popup_delay']+500,
                                 self.deopacify_request)
 
         if self.get_windows_count() <= 1 \
@@ -1152,17 +1049,17 @@ class GroupButton (gobject.GObject):
         if self.globals.settings["popup_delay"]>0:
             self.on_set_icongeo_delay()
         if not self.globals.right_menu_showing and not self.globals.dragging:
-            gobject.timeout_add(self.globals.settings['popup_delay'], 
+            gobject.timeout_add(self.globals.settings['popup_delay'],
                                 self.show_list_request)
 
     def on_button_mouse_leave (self, widget, event):
-        # In compiz there is a enter and 
+        # In compiz there is a enter and
         # a leave event before a button_press event.
         self.button_pressed = False
         self.mouse_over = False
         self.update_state()
         self.hide_list_request()
-        if self.popup.window == None:
+        if self.popup.window is None:
             # self.hide_list takes care of 'set-icongeo-grp' normally
             # but if no popup window exist its taken care of here.
             self.on_set_icongeo_grp()
@@ -1210,10 +1107,10 @@ class GroupButton (gobject.GObject):
 
 
     def on_group_button_press_event(self,widget,event):
-        # In compiz there is a enter and a leave 
+        # In compiz there is a enter and a leave
         # event before a button_press event.
         # self.button_pressed is used to stop functions started with
-        # gobject.timeout_add from self.button_mouse_enter 
+        # gobject.timeout_add from self.button_mouse_enter
         # or self.on_button_mouse_leave.
         self.button_pressed = True
         gobject.timeout_add(600, self.set_button_pressed_false)
@@ -1228,7 +1125,7 @@ class GroupButton (gobject.GObject):
         if event.type == gtk.gdk._2BUTTON_PRESS:
             if self.globals.settings[
                                 'groupbutton_%s%s_click_double'%(mod, button)]:
-                # This is a double click and the 
+                # This is a double click and the
                 # action requires a double click.
                 # Go ahead and do the action.
                 action = self.globals.settings[
@@ -1244,50 +1141,204 @@ class GroupButton (gobject.GObject):
         self.button_pressed = False
         return False
 
-    #### Menu functions
+
+    #### Menu
+    def menu_show(self, event=None):
+        try:
+            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
+        except:
+            action_maximize = 1 << 14
+        self.hide_list()
+        #Creates a popup menu
+        menu = gtk.Menu()
+        menu.connect('selection-done', self.menu_closed)
+        if self.desktop_entry and not self.pinned:
+            #Add launcher item
+            add_launcher_item = gtk.MenuItem(_('_Pin application'))
+            menu.append(add_launcher_item)
+            add_launcher_item.connect("activate", self.menu_add_launcher)
+            add_launcher_item.show()
+        if self.desktop_entry:
+            #Launch program item
+            launch_program_item = gtk.MenuItem(_('_Launch application'))
+            menu.append(launch_program_item)
+            launch_program_item.connect("activate",
+                                self.action_launch_application)
+            launch_program_item.show()
+        if self.pinned:
+            #Remove launcher item
+            remove_launcher_item = gtk.MenuItem(_('Unpin application'))
+            menu.append(remove_launcher_item)
+            remove_launcher_item.connect("activate",
+                                         self.action_remove_launcher)
+            remove_launcher_item.show()
+            #Edit identifier item
+            edit_identifier_item = gtk.MenuItem(_('Edit Identifier'))
+            menu.append(edit_identifier_item)
+            edit_identifier_item.connect("activate",
+                                         self.menu_change_identifier)
+            edit_identifier_item.show()
+
+        # Recent and most used files
+        if self.desktop_entry:
+            recent_files, most_used_files, related_files = \
+                                                    self.menu_get_zg_files()
+            #Separator
+            if recent_files or most_used_files or related_files:
+                sep = gtk.SeparatorMenuItem()
+                menu.append(sep)
+                sep.show()
+            # Create and add the submenus.
+            for files,  menu_name in ((recent_files, _('Recent')),
+                                      (most_used_files, _('Most used')),
+                                      (related_files, _('Related'))):
+                if files:
+                    submenu = gtk.Menu()
+                    menu_item = gtk.MenuItem(menu_name)
+                    menu_item.set_submenu(submenu)
+                    menu.append(menu_item)
+                    menu_item.show()
+
+                    for text, uri in files:
+                        label = text or uri
+                        if len(label)>40:
+                            label = label[:20]+"..."+label[-17:]
+                        submenu_item = gtk.MenuItem(label,
+                                                    use_underline=False)
+                        submenu.append(submenu_item)
+                        # "activate" doesn't seem to work on sub menus
+                        # so "button-press-event" is used instead.
+                        submenu_item.connect("button-press-event",
+                                             self.launch_item, uri)
+                        submenu_item.show()
+
+
+        if self.desktop_entry and self.windows:
+            #Separator
+            sep = gtk.SeparatorMenuItem()
+            menu.append(sep)
+            sep.show()
+        # Windows stuff
+        win_nr = self.get_windows_count()
+        if win_nr:
+            if win_nr == 1:
+                t = ""
+            else:
+                t = _(" all windows")
+            if self.get_unminimized_windows_count() == 0:
+                # Unminimize all
+                unminimize_all_windows_item = gtk.MenuItem(
+                                                '%s%s'%(_("Un_minimize"), t))
+                menu.append(unminimize_all_windows_item)
+                unminimize_all_windows_item.connect("activate",
+                                              self.menu_unminimize_all_windows)
+                unminimize_all_windows_item.show()
+            else:
+                # Minimize all
+                minimize_all_windows_item = gtk.MenuItem(
+                                                    '%s%s'%(_("_Minimize"), t))
+                menu.append(minimize_all_windows_item)
+                minimize_all_windows_item.connect("activate",
+                                            self.action_minimize_all_windows)
+                minimize_all_windows_item.show()
+            # (Un)Maximize all
+            for window in self.windows:
+                if not window.is_maximized() \
+                and window.get_actions() & action_maximize:
+                    maximize_all_windows_item = gtk.MenuItem(
+                                                    '%s%s'%(_("Ma_ximize"), t))
+                    break
+            else:
+                maximize_all_windows_item = gtk.MenuItem(
+                                                '%s%s'%(_("Unma_ximize"), t))
+            menu.append(maximize_all_windows_item)
+            maximize_all_windows_item.connect("activate",
+                                            self.action_maximize_all_windows)
+            maximize_all_windows_item.show()
+            # Close all
+            close_all_windows_item = gtk.MenuItem('%s%s'%(_("_Close"), t))
+            menu.append(close_all_windows_item)
+            close_all_windows_item.connect("activate",
+                                           self.action_close_all_windows)
+            close_all_windows_item.show()
+        menu.popup(None, None, None, event.button, event.time)
+        self.globals.right_menu_showing = True
+
+    def menu_get_zg_files(self):
+        # Get information from zeitgeist
+        appname = self.desktop_entry.getFileName().split('/')[-1]
+        recent_files = zg.get_recent_for_app(appname,
+                                             days=30,
+                                             number_of_results=8)
+        most_used_files = zg.get_most_used_for_app(appname,
+                                                   days=30,
+                                                   number_of_results=8)
+        # For programs that work badly with zeitgeist (openoffice for now),
+        # mimetypes should be used to identify recent and most used as well.
+        if self.identifier in zg.workrounds:
+            if self.identifier == 'openoffice-writer' and \
+               not self.globals.settings['separate_ooo_apps']:
+                mimetypes = zg.workrounds['openoffice-writer'] + \
+                            zg.workrounds['openoffice-calc'] + \
+                            zg.workrounds['openoffice-presentation'] + \
+                            zg.workrounds['openoffice-draw']
+            elif zg.workrounds[self.identifier] == 'all':
+                mimetypes = self.desktop_entry.getMimeTypes()
+            else:
+                mimetypes = zg.workrounds[self.identifier]
+            recent_files += zg.get_recent_for_mimetypes(mimetypes,
+                                                        days=30,
+                                                        number_of_results=8)
+            most_used_files += zg.get_most_used_for_mimetypes(mimetypes,
+                                                              days=30,
+                                                           number_of_results=8)
+        # Related files contains files that can be used by the program and
+        # has been used by other programs (but not this program) today.
+        related_files = []
+        mimetypes = self.desktop_entry.getMimeTypes()
+        if mimetypes:
+            related_candidates = zg.get_recent_for_mimetypes(mimetypes,
+                                                             days=1,
+                                                        number_of_results=20)
+            other_recent = zg.get_recent_for_app(appname,
+                                                 days=1,
+                                                 number_of_results=20)
+            related_files = [rf for rf in related_candidates \
+                             if not (rf in recent_files or \
+                                     rf in other_recent)]
+            related_files = related_files[:3]
+        return recent_files, most_used_files, related_files
+
     def menu_closed(self, menushell):
         self.globals.right_menu_showing = False
 
-    def unminimize_all_windows(self, widget=None, event=None):
+    def menu_unminimize_all_windows(self, widget=None, event=None):
         t = gtk.get_current_event_time()
         for window in self.get_windows():
             if window.is_minimized():
                 window.unminimize(t)
 
-    def change_identifier(self, widget=None, event=None):
-        self.emit('identifier-change', 
-                  self.launcher.get_path(), self.identifier)
+    def menu_change_identifier(self, widget=None, event=None):
+        self.emit('identifier-change',
+                  self.desktop_entry.getFileName(), self.identifier)
 
-    def add_launcher(self, widget=None, event=None):
-        path = "gio:" + self.app.get_id().rpartition(".")[0].lower()
-        self.launcher = Launcher(self.identifier, path)
-        self.emit('pinned', self.identifier, path)
+    def menu_add_launcher(self, widget=None, event=None):
+        self.pinned = True
+        self.emit('pinned')
 
-    def launch_item(self, button, event, uris):
-        uris = str(uris)
-        # Multiple uris are separated with newlines
-        uri_list = uris.split('\n')
-        for uri in uri_list:
-            uri = uri.rstrip()
-            if uri.startswith('file://'):
-                uri = uri[7:]
-
-            if self.app:
-                uri = uri.replace("%20"," ")
-                self.app.launch_uris([uri], None)
-            else:
-                self.launcher.launch_with_uri(uri)
+    def launch_item(self, button, event, uri):
+        self.desktop_entry.launch(uri)
         if self.windows:
-            self.launch_effect_timeout = gobject.timeout_add(2000, 
+            self.launch_effect_timeout = gobject.timeout_add(2000,
                                                     self.remove_launch_effect)
         else:
-            self.launch_effect_timeout = gobject.timeout_add(10000, 
+            self.launch_effect_timeout = gobject.timeout_add(10000,
                                                     self.remove_launch_effect)
 
     #### Actions
     def action_select(self, widget, event):
         wins = self.get_windows()
-        if (self.launcher and not wins):
+        if (self.pinned and not wins):
             self.action_launch_application()
         # One window
         elif len(wins) == 1:
@@ -1295,23 +1346,23 @@ class GroupButton (gobject.GObject):
             if sow == "select window":
                 self.windows[wins[0]].action_select_window(widget, event)
             elif sow == "select or minimize window":
-                self.windows[wins[0]].action_select_or_minimize_window(widget, 
+                self.windows[wins[0]].action_select_or_minimize_window(widget,
                                                                        event)
         # Multiple windows
         elif len(wins) > 1:
             smw = self.globals.settings["select_multiple_windows"]
             if smw == "select all":
-                self.action_select_or_minimize_group(widget, event, 
+                self.action_select_or_minimize_group(widget, event,
                                                      minimize=False)
             elif smw == "select or minimize all":
-                self.action_select_or_minimize_group(widget, event, 
+                self.action_select_or_minimize_group(widget, event,
                                                      minimize=True)
             elif smw == "compiz scale":
                 umw = self.get_unminimized_windows()
                 if len(umw) == 1:
                     sow = self.globals.settings["select_one_window"]
                     if sow == "select window":
-                        self.windows[umw[0]].action_select_window(widget, 
+                        self.windows[umw[0]].action_select_window(widget,
                                                                   event)
                     elif sow == "select or minimize window":
                         self.windows[umw[0]].action_select_or_minimize_window(
@@ -1357,7 +1408,8 @@ class GroupButton (gobject.GObject):
             for win in self.windows:
                 if win.is_minimized():
                     ignored = False
-                    if not win.is_pinned() and win.get_workspace() != None \
+                    if not win.is_pinned() \
+                    and win.get_workspace() is not None \
                     and screen.get_active_workspace() != win.get_workspace():
                         if mode == 'move':
                             ws = screen.get_active_workspace()
@@ -1390,8 +1442,9 @@ class GroupButton (gobject.GObject):
                                            wnck.WINDOW_DIALOG]):
                 if win in self.windows:
                     ignored = False
-                    if not win.is_pinned() and win.get_workspace() != None \
-                       and active_workspace != win.get_workspace():
+                    if not win.is_pinned() \
+                    and win.get_workspace() is not None \
+                    and active_workspace != win.get_workspace():
                         if mode == 'move':
                             ws = screen.get_active_workspace()
                             win.move_to_workspace(ws)
@@ -1420,12 +1473,12 @@ class GroupButton (gobject.GObject):
                         grtop = False
 
         if not grp_win_stacked and mode == 'switch':
-            # Put the windows in dictionaries according to workspace and 
-            # viewport so we can compare which workspace and viewport that 
+            # Put the windows in dictionaries according to workspace and
+            # viewport so we can compare which workspace and viewport that
             # has most windows.
             workspaces ={}
             for win in self.windows:
-                if win.get_workspace() == None:
+                if win.get_workspace() is None:
                     continue
                 workspace = win.get_workspace()
                 win_x,win_y,win_w,win_h = win.get_geometry()
@@ -1457,7 +1510,7 @@ class GroupButton (gobject.GObject):
                             grp_win_stacked = vp
                         elif nr == max:
                             # Check wether this workspace or previous workspace
-                            # with the same amount of windows has been 
+                            # with the same amount of windows has been
                             # activated later.
                             for win in ignorelist:
                                 if win in grp_win_stacked:
@@ -1527,8 +1580,8 @@ class GroupButton (gobject.GObject):
     def action_select_next(self, widget=None, event=None, previous=False):
         if not self.get_windows():
             return
-        if self.nextlist_time == None or time() - self.nextlist_time > 2 \
-        or self.nextlist == None:
+        if self.nextlist_time is None or time() - self.nextlist_time > 2 \
+        or self.nextlist is None:
             self.nextlist = []
             minimized_list = []
             screen = self.screen
@@ -1568,13 +1621,13 @@ class GroupButton (gobject.GObject):
     def action_select_previous(self, widget=None, event=None):
         self.action_select_next(widget, event, previous=True)
 
-    def action_select_next_with_popup(self, widget=None, 
+    def action_select_next_with_popup(self, widget=None,
                                       event=None, previous=False):
         self.show_list()
         self.action_select_next(widget, event, previous)
-        if self.list_hide_timeout != None:
+        if self.list_hide_timeout is not None:
             gobject.source_remove(self.list_hide_timeout)
-        self.list_hide_timeout = gobject.timeout_add(2000, 
+        self.list_hide_timeout = gobject.timeout_add(2000,
                                                      self.hide_list_request)
 
     def action_close_all_windows(self, widget=None, event=None):
@@ -1586,156 +1639,34 @@ class GroupButton (gobject.GObject):
             window.close(t)
 
     def action_launch_application(self, widget=None, event=None):
-        if self.lastlaunch != None \
+        if self.lastlaunch is not None \
         and time() - self.lastlaunch < 2:
                 return
-        if self.launcher:
-            self.launcher.launch()
-        elif self.app:
-            self.app.launch(None, None)
+        if self.desktop_entry:
+            self.desktop_entry.launch()
         else:
             return
         self.lastlaunch = time()
         self.launch_effect = True
         self.update_state()
         if self.windows:
-            self.launch_effect_timeout = gobject.timeout_add(2000, 
+            self.launch_effect_timeout = gobject.timeout_add(2000,
                                                     self.remove_launch_effect)
         else:
-            self.launch_effect_timeout = gobject.timeout_add(10000, 
+            self.launch_effect_timeout = gobject.timeout_add(10000,
                                                     self.remove_launch_effect)
 
 
     def action_show_menu(self, widget, event):
-        try:
-            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
-        except:
-            action_maximize = 1 << 14
-        self.hide_list()
-        #Creates a popup menu
-        menu = gtk.Menu()
-        menu.connect('selection-done', self.menu_closed)
-        if self.app and not self.launcher:
-            #Add launcher item
-            add_launcher_item = gtk.MenuItem(_('_Pin application'))
-            menu.append(add_launcher_item)
-            add_launcher_item.connect("activate", self.add_launcher)
-            add_launcher_item.show()
-        if self.launcher or self.app:
-            #Launch program item
-            launch_program_item = gtk.MenuItem(_('_Launch application'))
-            menu.append(launch_program_item)
-            launch_program_item.connect("activate", 
-                                self.action_launch_application)
-            launch_program_item.show()
-        if self.launcher:
-            #Remove launcher item
-            remove_launcher_item = gtk.MenuItem(_('Unpin application'))
-            menu.append(remove_launcher_item)
-            remove_launcher_item.connect("activate", 
-                                         self.action_remove_launcher)
-            remove_launcher_item.show()
-            #Edit identifier item
-            edit_identifier_item = gtk.MenuItem(_('Edit Identifier'))
-            menu.append(edit_identifier_item)
-            edit_identifier_item.connect("activate", self.change_identifier)
-            edit_identifier_item.show()
-
-        # Recent and most used files
-        if self.app or self.launcher:
-            if self.app:
-                appname = self.app.get_id().split('/')[-1]
-            else:
-                appname = self.launcher.get_desktop_file_name()
-            recent_files = zg.get_recent_for_app(appname)
-            most_used_files = zg.get_most_used_for_app(appname)
-            #Separator
-            if recent_files or most_used_files:
-                sep = gtk.SeparatorMenuItem()
-                menu.append(sep)
-                sep.show()
-            for files, menu_name in ((recent_files, _('Recent')), 
-                                     (most_used_files, _('Most used'))
-                                    ):
-                if files:
-                    submenu = gtk.Menu()
-                    menu_item = gtk.MenuItem(menu_name)
-                    menu_item.set_submenu(submenu)
-                    menu.append(menu_item)
-                    menu_item.show()
-
-                    for ev in files:
-                        for subject in ev.get_subjects():
-                            label = subject.text or subject.uri
-                            if len(label)>40:
-                                label = label[:20]+"..."+label[-17:]
-                            submenu_item = gtk.MenuItem(label, 
-                                                        use_underline=False)
-                            submenu.append(submenu_item)
-                            # "activate" doesn't seem to work on sub menus
-                            # so "button-press-event" is used instead.
-                            submenu_item.connect("button-press-event", 
-                                                 self.launch_item, subject.uri)
-                            submenu_item.show()
-
-        if (self.launcher or self.app) and self.windows:
-            #Separator
-            sep = gtk.SeparatorMenuItem()
-            menu.append(sep)
-            sep.show()
-        # Windows stuff
-        win_nr = self.get_windows_count()
-        if win_nr:
-            if win_nr == 1:
-                t = ""
-            else:
-                t = _(" all windows")
-            if self.get_unminimized_windows_count() == 0:
-                # Unminimize all
-                unminimize_all_windows_item = gtk.MenuItem(
-                                                '%s%s'%(_("Un_minimize"), t))
-                menu.append(unminimize_all_windows_item)
-                unminimize_all_windows_item.connect("activate", 
-                                                    self.unminimize_all_windows)
-                unminimize_all_windows_item.show()
-            else:
-                # Minimize all
-                minimize_all_windows_item = gtk.MenuItem(
-                                                    '%s%s'%(_("_Minimize"), t))
-                menu.append(minimize_all_windows_item)
-                minimize_all_windows_item.connect("activate", 
-                                            self.action_minimize_all_windows)
-                minimize_all_windows_item.show()
-            # (Un)Maximize all
-            for window in self.windows:
-                if not window.is_maximized() \
-                and window.get_actions() & action_maximize:
-                    maximize_all_windows_item = gtk.MenuItem(
-                                                    '%s%s'%(_("Ma_ximize"), t))
-                    break
-            else:
-                maximize_all_windows_item = gtk.MenuItem(
-                                                '%s%s'%(_("Unma_ximize"), t))
-            menu.append(maximize_all_windows_item)
-            maximize_all_windows_item.connect("activate", 
-                                            self.action_maximize_all_windows)
-            maximize_all_windows_item.show()
-            # Close all
-            close_all_windows_item = gtk.MenuItem('%s%s'%(_("_Close"), t))
-            menu.append(close_all_windows_item)
-            close_all_windows_item.connect("activate", 
-                                           self.action_close_all_windows)
-            close_all_windows_item.show()
-        menu.popup(None, None, None, event.button, event.time)
-        self.globals.right_menu_showing = True
+        self.menu_show(event)
 
     def action_remove_launcher(self, widget=None, event=None):
         print 'Removing launcher ', self.identifier
         if self.identifier:
             name = self.identifier
         else:
-            name = self.launcher.get_path()
-        self.launcher = None
+            name = self.desktop_entry.getFileName()
+        self.pinned = False
         if not self.windows:
             self.hide_list()
             self.icon_factory.remove()
@@ -1753,7 +1684,7 @@ class GroupButton (gobject.GObject):
 
     def action_compiz_scale_windows(self, widget, event):
         wins = self.get_unminimized_windows()
-        if not self.class_group or not wins:
+        if not wins:
             return
         if len(wins) == 1:
             self.windows[wins[0]].action_select_window(widget, event)
@@ -1764,17 +1695,17 @@ class GroupButton (gobject.GObject):
             path = 'scale/allscreens/initiate_all_key'
         try:
             compiz_call(path, 'activate','root', self.root_xid,'match', \
-                        'iclass=%s'%self.class_group.get_res_class())
+                        'iclass=%s'%wins[0].get_class_group().get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
-        gobject.timeout_add(self.globals.settings['popup_delay'] + 200, 
+        gobject.timeout_add(self.globals.settings['popup_delay'] + 200,
                             self.hide_list)
 
     def action_compiz_shift_windows(self, widget, event):
         wins = self.get_unminimized_windows()
-        if not self.class_group or not wins:
+        if not wins:
             return
         if len(wins) == 1:
             self.windows[wins[0]].action_select_window(widget, event)
@@ -1786,12 +1717,12 @@ class GroupButton (gobject.GObject):
             path = 'shift/allscreens/initiate_all_key'
         try:
             compiz_call(path, 'activate','root', self.root_xid,'match', \
-                        'iclass=%s'%self.class_group.get_res_class())
+                   'iclass=%s'%wins[0].get_class_group().get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
-        gobject.timeout_add(self.globals.settings['popup_delay']+ 200, 
+        gobject.timeout_add(self.globals.settings['popup_delay']+ 200,
                             self.hide_list)
 
     def action_compiz_scale_all(self, widget, event):
@@ -1802,7 +1733,7 @@ class GroupButton (gobject.GObject):
             return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
-        gobject.timeout_add(self.globals.settings['popup_delay']+ 200, 
+        gobject.timeout_add(self.globals.settings['popup_delay']+ 200,
                             self.hide_list)
 
     def action_dbpref (self,widget=None, event=None):

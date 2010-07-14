@@ -213,7 +213,7 @@ class PrefDialog():
         self.dialog.connect("response", self.dialog_close)
         self.dialog.set_icon_name('dockbarx')
 
-        
+
         try:
             ca = self.dialog.get_content_area()
         except:
@@ -235,22 +235,22 @@ class PrefDialog():
 
         self.wb_labels_and_settings = ODict((
                     (_('Left mouse button'), "windowbutton_left_click_action"),
-                    (_('Shift + left mouse button'), 
+                    (_('Shift + left mouse button'),
                                 "windowbutton_shift_and_left_click_action"),
-                    (_('Middle mouse button'), 
+                    (_('Middle mouse button'),
                                 "windowbutton_middle_click_action"),
-                    (_('Shift + middle mouse button'), 
+                    (_('Shift + middle mouse button'),
                                 "windowbutton_shift_and_middle_click_action"),
-                    (_('Right mouse button'), 
+                    (_('Right mouse button'),
                                 "windowbutton_right_click_action"),
-                    (_('Shift + right mouse button'), 
+                    (_('Shift + right mouse button'),
                                 "windowbutton_shift_and_right_click_action"),
                     (_('Scroll up'), "windowbutton_scroll_up"),
                     (_('Scroll down'), "windowbutton_scroll_down")
                                            ))
 
         self.wb_actions = ODict((
-                      ('select or minimize window', 
+                      ('select or minimize window',
                                             _('select or minimize window')),
                       ('select window', _('select window')),
                       ('maximize window', _('maximize window')),
@@ -343,17 +343,17 @@ class PrefDialog():
             row = i // 2
             # Pack odd numbered comboboxes from 3rd column
             column = (i % 2)*3
-            table.attach(self.color_labels[c], column, column + 1, row, 
+            table.attach(self.color_labels[c], column, column + 1, row,
                          row + 1, xoptions = gtk.FILL, xpadding = 5)
-            table.attach(self.color_buttons[c], column+1, 
+            table.attach(self.color_buttons[c], column+1,
                          column+2, row, row + 1)
-            table.attach(self.clear_buttons[c], column+2, column+3, 
+            table.attach(self.clear_buttons[c], column+2, column+3,
                          row, row + 1, xoptions = gtk.FILL)
         table.set_border_width(5)
         frame.add(table)
         appearance_box.pack_start(frame, False, padding=5)
-        
-        
+
+
         # Needs attention effect frame
         hbox = gtk.HBox()
         frame = gtk.Frame(_("Needs attention effect"))
@@ -375,16 +375,16 @@ class PrefDialog():
         frame.add(vbox)
         hbox.pack_start(frame, True)
         appearance_box.pack_start(hbox, False, padding=5)
-        
+
 
         #--- Popup page
         popup_box.set_border_width(5)
         self.no_popup_cb = gtk.CheckButton(
                           _('Show popup only if more than one window is open'))
-        self.no_popup_cb.connect('toggled', self.checkbutton_toggled, 
+        self.no_popup_cb.connect('toggled', self.checkbutton_toggled,
                                  'no_popup_for_one_window')
         popup_box.pack_start(self.no_popup_cb, False, padding=5)
-        
+
         # Alignment
         vbox = gtk.VBox()
         label1 = gtk.Label("<b><big>%s</big></b>"%_("Alignment"))
@@ -401,7 +401,7 @@ class PrefDialog():
         vbox.pack_start(self.rb3_2, False)
         vbox.pack_start(self.rb3_3, False)
         popup_box.pack_start(vbox, False, padding=5)
-        
+
         # Delay
         vbox = gtk.VBox()
         label1 = gtk.Label("<b><big>%s</big></b>"%_("Delay"))
@@ -418,7 +418,7 @@ class PrefDialog():
         spinbox.pack_start(self.delay_spin, False, padding=5)
         vbox.pack_start(spinbox, False)
         popup_box.pack_start(vbox, False, padding=5)
-        
+
         # Previews
         vbox = gtk.VBox()
         label1 = gtk.Label("<b><big>%s</big></b>"%_("Previews"))
@@ -439,9 +439,9 @@ class PrefDialog():
         spinbox.pack_start(self.preview_size_spin, False, padding=5)
         vbox.pack_start(spinbox, False)
         popup_box.pack_start(vbox, False, padding=5)
-        
-        
-        #--- Groupbutton page        
+
+
+        #--- Groupbutton page
         frame = gtk.Frame(_("Groupbutton actions"))
         frame.set_border_width(5)
         table = gtk.Table(True)
@@ -449,13 +449,13 @@ class PrefDialog():
 
         self.gb_labels_and_settings = ODict((
              (_('Left mouse button'), "groupbutton_left_click_action"),
-             (_('Shift + left mouse button'), 
+             (_('Shift + left mouse button'),
                                 "groupbutton_shift_and_left_click_action"),
              (_('Middle mouse button'), "groupbutton_middle_click_action"),
-             (_('Shift + middle mouse button'), 
+             (_('Shift + middle mouse button'),
                                 "groupbutton_shift_and_middle_click_action"),
              (_('Right mouse button'), "groupbutton_right_click_action"),
-             (_('Shift + right mouse button'), 
+             (_('Shift + right mouse button'),
                                 "groupbutton_shift_and_right_click_action"),
              (_('Scroll up'), "groupbutton_scroll_up"),
              (_('Scroll down'), "groupbutton_scroll_down")
@@ -504,9 +504,9 @@ class PrefDialog():
             name = self.gb_doubleclick_checkbutton_names[i]
             self.gb_doubleclick_checkbutton[name] = \
                                         gtk.CheckButton(_('Double click'))
-            self.gb_doubleclick_checkbutton[name].connect('toggled', 
+            self.gb_doubleclick_checkbutton[name].connect('toggled',
                                                 self.checkbutton_toggled, name)
-            table.attach(self.gb_doubleclick_checkbutton[name], 
+            table.attach(self.gb_doubleclick_checkbutton[name],
                          2, 3, i, i + 1, xpadding = 5 )
 
         frame.add(table)
@@ -560,25 +560,25 @@ class PrefDialog():
         #--- Advanced page
         self.ignore_workspace_cb = gtk.CheckButton(
                             _('Ignore windows on other viewports/workspaces'))
-        self.ignore_workspace_cb.connect('toggled', self.checkbutton_toggled, 
+        self.ignore_workspace_cb.connect('toggled', self.checkbutton_toggled,
                                          'show_only_current_desktop')
         self.ignore_workspace_cb.set_border_width(5)
         advanced_box.pack_start(self.ignore_workspace_cb, False)
 
         self.wine_apps_cb = gtk.CheckButton(
                         _('Give each wine application its own group button'))
-        self.wine_apps_cb.connect('toggled', self.checkbutton_toggled, 
+        self.wine_apps_cb.connect('toggled', self.checkbutton_toggled,
                                   'separate_wine_apps')
         self.wine_apps_cb.set_border_width(5)
         advanced_box.pack_start(self.wine_apps_cb, False)
 
         self.ooo_apps_cb = gtk.CheckButton(
              _('Keep open office application (Writer, Calc, etc.) separated'))
-        self.ooo_apps_cb.connect('toggled', self.checkbutton_toggled, 
+        self.ooo_apps_cb.connect('toggled', self.checkbutton_toggled,
                                  'separate_ooo_apps')
         self.ooo_apps_cb.set_border_width(5)
         advanced_box.pack_start(self.ooo_apps_cb, False)
-        
+
         # Opacify frame
         frame = gtk.Frame(_("Opacify"))
         frame.set_border_width(5)
@@ -588,7 +588,7 @@ class PrefDialog():
         self.opacify_cb.connect('toggled', self.checkbutton_toggled, 'opacify')
         vbox.pack_start(self.opacify_cb, False)
         self.opacify_group_cb = gtk.CheckButton(_('Opacify group'))
-        self.opacify_group_cb.connect('toggled', self.checkbutton_toggled, 
+        self.opacify_group_cb.connect('toggled', self.checkbutton_toggled,
                                       'opacify_group')
         vbox.pack_start(self.opacify_group_cb, False)
         scalebox = gtk.HBox()
@@ -612,11 +612,11 @@ class PrefDialog():
 
         self.gkeys = ODict((
                        ('gkeys_select_next_group', _('Select next group')),
-                       ('gkeys_select_previous_group', 
+                       ('gkeys_select_previous_group',
                                         _('Select previous group')),
-                       ('gkeys_select_next_window', 
+                       ('gkeys_select_next_window',
                                         _('Select next window in group')),
-                       ('gkeys_select_previous_window', 
+                       ('gkeys_select_previous_window',
                                         _('Select previous window in group'))
                      ))
         self.gkeys_checkbuttons = {}
@@ -627,7 +627,7 @@ class PrefDialog():
             s = self.gkeys.keys()[i]
             t = self.gkeys[s]
             self.gkeys_checkbuttons[s] = gtk.CheckButton(t)
-            self.gkeys_checkbuttons[s].connect('toggled', 
+            self.gkeys_checkbuttons[s].connect('toggled',
                                                self.checkbutton_toggled, s)
 
             self.gkeys_entries[s] = gtk.Entry()
@@ -644,13 +644,13 @@ class PrefDialog():
             self.gkeys_clear_buttons[s].add(image)
             self.gkeys_clear_buttons[s].connect("clicked", self.reset_gkey, s)
 
-            table.attach(self.gkeys_checkbuttons[s], 0, 1, i, i + 1, 
+            table.attach(self.gkeys_checkbuttons[s], 0, 1, i, i + 1,
                          xoptions = gtk.FILL, xpadding = 5)
-            table.attach(self.gkeys_entries[s], 1, 2, i, i + 1, 
+            table.attach(self.gkeys_entries[s], 1, 2, i, i + 1,
                          xoptions = gtk.FILL)
-            table.attach(self.gkeys_apply_buttons[s], 2, 3, i, i + 1, 
+            table.attach(self.gkeys_apply_buttons[s], 2, 3, i, i + 1,
                          xoptions = gtk.FILL)
-            table.attach(self.gkeys_clear_buttons[s], 3, 4, i, i + 1, 
+            table.attach(self.gkeys_clear_buttons[s], 3, 4, i, i + 1,
                          xoptions = gtk.FILL)
         label = gtk.Label(
                         'Note! Compiz keyboard shortcuts will override these.')
@@ -687,7 +687,7 @@ class PrefDialog():
             else:
                 self.theme = None
 
-        if self.theme != None:
+        if self.theme is not None:
             self.theme_colors = self.theme.get_default_colors()
             self.theme_alphas = self.theme.get_default_alphas()
             self.globals.theme_name = self.theme.get_name()
@@ -700,8 +700,8 @@ class PrefDialog():
             self.globals.update_colors(None)
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and 
-        # ~/.dockbarx/themes and returns a dict of the theme names 
+        # Reads the themes from /usr/share/dockbarx/themes and
+        # ~/.dockbarx/themes and returns a dict of the theme names
         # and paths so that a theme can be loaded.
         themes = {}
         theme_paths = []
@@ -720,14 +720,17 @@ class PrefDialog():
                 print "Error loading theme from %s"%theme_path
                 print detail
                 name = None
-            if name != None:
+            if name is not None:
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            md = gtk.MessageDialog(None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                _('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes'))
+            messag = _('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes')
+            flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+            md = gtk.MessageDialog(self.dialog,
+                                   flags,
+                                   gtk.MESSAGE_ERROR,
+                                   gtk.BUTTONS_CLOSE,
+                                   message)
             md.run()
             md.destroy()
         return themes
@@ -933,38 +936,55 @@ class PrefDialog():
                 # Assume that kwin is used instead and do nothing.
                 return
             if not 'kdecompat' in plugins:
-                message = _("Previews requires the compiz plugin KDE Compability to be activated. Should dockbarx activate it for you?")
-                md = gtk.MessageDialog(None,
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-                    message)
-                response = md.run()
-                md.destroy()
-                if response == gtk.RESPONSE_YES:
-                    plugins.append('kdecompat')
-                    compiz_call("core/allscreens/active_plugins", "set", 
-                                plugins)
+                #Check if the plugin is installed.
+                proxy = BUS.get_object('org.freedesktop.compiz',
+                                       '/org/freedesktop/compiz')
+                if 'kdecompat' in str(proxy.Introspect()):
+                    message = _("Previews requires the compiz plugin KDE Compability to be activated. Should dockbarx activate it for you?")
+                    flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+                    md = gtk.MessageDialog(self.dialog,
+                                           flags,
+                                           gtk.MESSAGE_QUESTION,
+                                           gtk.BUTTONS_YES_NO,
+                                           message)
+                    response = md.run()
+                    md.destroy()
+                    if response == gtk.RESPONSE_YES:
+                        plugins.append('kdecompat')
+                        compiz_call("core/allscreens/active_plugins", "set",
+                                    plugins)
+                else:
+                    message = _("The compiz plugin KDE Compability that is needed for previews doesn't seem to be installed. If you use ubuntu, you need to install the package compiz-fusion-plugins-main.")
+                    flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+                    md = gtk.MessageDialog(self.dialog,
+                                           flags,
+                                           gtk.MESSAGE_INFO,
+                                           gtk.BUTTONS_CLOSE,
+                                           message)
+                    md.run()
+                    md.destroy()
 
             # Check if Support Plasma thumbnails is activated.
             try:
-                plasmat = compiz_call("kdecompat/screen0/plasma_thumbnails", 
+                plasmat = compiz_call("kdecompat/screen0/plasma_thumbnails",
                                       "get")
             except dbus.exceptions.DBusException:
                 return
             if not plasmat:
                 message = _("Previews requires that Support Plasma Thumnails should be activated in KDE Compability plugin. Should dockbarx activate it for you?")
-                md = gtk.MessageDialog(None,
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-                    message)
+                flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+                md = gtk.MessageDialog(self.dialog,
+                                       flags,
+                                       gtk.MESSAGE_QUESTION,
+                                       gtk.BUTTONS_YES_NO,
+                                       message)
                 response = md.run()
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
                     plugins.append('kdecompat')
-                    compiz_call("kdecompat/screen0/plasma_thumbnails", "set", 
+                    compiz_call("kdecompat/screen0/plasma_thumbnails", "set",
                                 True)
-
-        if name == "opacify" and button.get_active():
+        elif name == "opacify" and button.get_active():
             # Check if the needed compiz plugin is activated
             # and ask if it should be if it isn't.
             try:
@@ -974,15 +994,17 @@ class PrefDialog():
                 return
             if not 'obs' in plugins:
                 message = _("Opacify requires the compiz plugin Opacity, Brightness and Saturation to be activated. Should dockbarx activate it for you?")
-                md = gtk.MessageDialog(None,
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-                    message)
+                flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+                md = gtk.MessageDialog(self.dialog,
+                                       flags,
+                                       gtk.MESSAGE_QUESTION,
+                                       gtk.BUTTONS_YES_NO,
+                                       message)
                 response = md.run()
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
                     plugins.append('obs')
-                    compiz_call("core/allscreens/active_plugins", "set", 
+                    compiz_call("core/allscreens/active_plugins", "set",
                                 plugins)
 
 
@@ -993,12 +1015,12 @@ class PrefDialog():
             if cb == combobox:
                 setting_name = self.gb_labels_and_settings[name]
                 value = combobox.get_active_text()
-                if value == None:
+                if value is None:
                     return
                 for (action, translation) in self.gb_actions.items():
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
-                            GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name, 
+                            GCONF_CLIENT.set_string(GCONF_DIR+'/'+setting_name,
                                                     action)
                         break
                 break
@@ -1008,7 +1030,7 @@ class PrefDialog():
             if cb == combobox:
                 setting_name = self.wb_labels_and_settings[name]
                 value = combobox.get_active_text()
-                if value == None:
+                if value is None:
                     return
                 for (action, translation) in self.wb_actions.items():
                     if value == translation:
@@ -1020,7 +1042,7 @@ class PrefDialog():
 
         if combobox == self.theme_combo:
             value = combobox.get_active_text()
-            if value == None:
+            if value is None:
                 return
             if value != self.globals.settings['theme']:
                 GCONF_CLIENT.set_string(GCONF_DIR+'/theme', value)
@@ -1031,10 +1053,10 @@ class PrefDialog():
                _("select or minimize window"): "select or minimize window"
               }
             value = combobox.get_active_text()
-            if value == None:
+            if value is None:
                 return
             if sod[value] != self.globals.settings['select_one_window']:
-                GCONF_CLIENT.set_string(GCONF_DIR+'/select_one_window', 
+                GCONF_CLIENT.set_string(GCONF_DIR+'/select_one_window',
                                         sod[value])
 
 
@@ -1047,7 +1069,7 @@ class PrefDialog():
                 _("show popup"): "show popup"
               }
             value = combobox.get_active_text()
-            if value == None:
+            if value is None:
                 return
             if smd[value] != self.globals.settings['select_multiple_windows']:
                     GCONF_CLIENT.set_string(
@@ -1060,10 +1082,10 @@ class PrefDialog():
                  _("Switch workspace when needed"):"switch",
                  _("Move windows from other workspaces"):"move"
                 }
-            if value == None:
+            if value is None:
                 return
             if wso[value] != self.globals.settings['workspace_behavior']:
-                GCONF_CLIENT.set_string(GCONF_DIR+'/workspace_behavior', 
+                GCONF_CLIENT.set_string(GCONF_DIR+'/workspace_behavior',
                                         wso[value])
 
     def adjustment_changed(self, widget, setting):
@@ -1133,10 +1155,12 @@ class PrefDialog():
                 break
         else:
             message = _("You need to have at least one mod key (<control>, <alt> or <super>) in the keyboard string.")
+            flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
             md = gtk.MessageDialog(self.dialog,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_WARNING, gtk.BUTTONS_OK,
-                message)
+                                   flags,
+                                   gtk.MESSAGE_INFO,
+                                   gtk.BUTTONS_OK,
+                                   message)
             md.run()
             md.destroy()
             return
@@ -1149,7 +1173,7 @@ class PrefDialog():
 
     def set_theme(self, button=None):
         value = self.theme_combo.get_active_text()
-        if value == None:
+        if value is None:
             return
         if value != self.globals.settings['theme']:
             GCONF_CLIENT.set_string(GCONF_DIR+'/theme', value)

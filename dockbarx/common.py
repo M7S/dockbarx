@@ -22,6 +22,8 @@ import os
 import gconf
 import dbus
 import gobject
+import xdg.DesktopEntry
+from urllib import unquote
 
 
 GCONF_CLIENT = gconf.client_get_default()
@@ -139,6 +141,83 @@ class ODict():
         else:
             return False
 
+class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
+    def __init__(self, file_name):
+        xdg.DesktopEntry.DesktopEntry.__init__(self, file_name)
+
+    def launch(self, uri=None):
+        os.chdir(os.path.expanduser('~'))
+        command = self.getExec()
+        # Replace arguments
+        if "%i" in command:
+            icon = self.getIcon()
+            if icon:
+                command = command.replace("%i","--icon %s"%icon)
+            else:
+                command = command.replace("%i", "")
+        command = command.replace("%c", self.getName())
+        command = command.replace("%k", self.getFileName())
+        command = command.replace("%%", "%")
+        for arg in ("%d", "%D", "%n", "%N", "%v", "%m", "%M","--view"):
+            command = command.replace(arg, "")
+        # TODO: check if more unescaping is needed.
+
+        # Parse the uri
+        uris = []
+        files = []
+        if uri:
+            uri = str(uri)
+            # Multiple uris are separated with newlines
+            uri_list = uri.split('\n')
+            for uri in uri_list:
+                uri = uri.rstrip()
+                uris.append(uri)
+
+                file = uri
+                if file.startswith('file://'):
+                    file = file[7:]
+                file = file.replace("%20","\ ")
+                file = unquote(file)
+                files.append(file)
+
+        # Replace file/uri arguments
+        if "%f" in command or "%u" in command:
+            # Launch once for every file (or uri).
+            iterlist = range(max(1, len(files)))
+        else:
+            # Launch only one time.
+            iterlist = [0]
+        for i in iterlist:
+            cmd = command
+            # It's an assumption that no desktop entry has more than one
+            # of "%f", "%F", "%u" or "%U" in it's command. Othervice some
+            # files might be launched multiple times with this code.
+            if "%f" in cmd:
+                try:
+                    f = files[i]
+                except IndexError:
+                    f = ""
+                cmd = cmd.replace("%f", f)
+            elif "%u" in cmd:
+                try:
+                    u = uris[i]
+                except IndexError:
+                    u = ""
+                cmd = cmd.replace("%u", u)
+            elif "%F" in cmd:
+                cmd = cmd.replace("%F", " ".join(files))
+            elif "%U" in cmd:
+                cmd = cmd.replace("%U", " ".join(uris))
+            # Append the files last if there is no rule for how to append them.
+            elif files:
+                cmd = "%s %s"%(cmd, " ".join(files))
+
+            print "Executing: %s"%cmd
+            if os.path.isdir(cmd.split()[0]):
+                os.system("xdg-open '%s' &"%cmd)
+            else:
+                os.system("/bin/sh -c '%s' &"%cmd)
+
 
 class Globals(gobject.GObject):
     """ Globals is a signletron containing all the "global" variables of dockbarx.
@@ -255,7 +334,6 @@ class Globals(gobject.GObject):
             self.opacity_matches = None
             self.dragging = False
             self.orient = 'h'
-            self.apps_by_id = {}
             self.theme_name = None
 
             # Get gconf settings
@@ -294,7 +372,7 @@ class Globals(gobject.GObject):
             self.colors = {}
 
     def on_gconf_changed(self, client, par2, entry, par4):
-        if entry.get_value() == None:
+        if entry.get_value() is None:
             return
         pref_update = False
         changed_settings = []
@@ -348,7 +426,7 @@ class Globals(gobject.GObject):
 
     def update_colors(self, theme_name, theme_colors=None, theme_alphas=None):
         # Updates the colors when the theme calls for an update.
-        if theme_name == None:
+        if theme_name is None:
             self.colors.clear()
             # If there are no theme name, preference window wants empty colors.
             for i in range(1, 9):
@@ -356,11 +434,8 @@ class Globals(gobject.GObject):
             return
 
         theme_name = theme_name.replace(' ', '_').encode()
-        try:
-            theme_name = theme_name.translate(None, '!?*()/#"@')
-        except:
-            # Todo: better error handling here.
-            pass
+        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
+            theme_name = theme_name.replace(sign, "")
         color_dir = GCONF_DIR + '/themes/' + theme_name
         self.colors.clear()
         for i in range(1, 9):
@@ -388,17 +463,17 @@ class Globals(gobject.GObject):
                     continue
                 GCONF_CLIENT.set_int(color_dir + '/' + a , self.colors[a])
 
-    def get_launchers_from_gconf(self):
-        # Get list of launchers
-        gconf_launchers = []
+    def get_pinned_apps_from_gconf(self):
+        # Get list of pinned_apps
+        gconf_pinned_apps = []
         try:
-            gconf_launchers = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers',
+            gconf_pinned_apps = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers',
                                                     gconf.VALUE_STRING)
         except:
             GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING,
-                                  gconf_launchers)
-        return gconf_launchers
+                                  gconf_pinned_apps)
+        return gconf_pinned_apps
 
-    def set_launchers_list(self, launchers):
+    def set_pinned_apps_list(self, pinned_apps):
         GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING,
-                             launchers)
+                             pinned_apps)

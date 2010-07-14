@@ -36,8 +36,8 @@ class CairoButton(gtk.Button):
     def update(self, surface):
         a = self.get_allocation()
         self.surface = surface
-        if self.window == None:
-            # Find out why is window == None sometimes?
+        if self.window is None:
+            # TODO: Find out why is window is None sometimes?
             return
         self.window.clear_area(a.x, a.y, a.width, a.height)
         ctx = self.window.cairo_create()
@@ -47,7 +47,7 @@ class CairoButton(gtk.Button):
         ctx.paint()
 
     def do_expose_event(self, event):
-        if self.surface != None:
+        if self.surface is not None:
             ctx = self.window.cairo_create()
             ctx.rectangle(event.area.x, event.area.y,
                            event.area.width, event.area.height)
@@ -67,7 +67,7 @@ class CairoPopup():
         self.window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         gtk_screen = gtk.gdk.screen_get_default()
         colormap = gtk_screen.get_rgba_colormap()
-        if colormap == None:
+        if colormap is None:
             colormap = gtk_screen.get_rgb_colormap()
         self.window.set_colormap(colormap)
         self.window.set_app_paintable(1)

@@ -62,16 +62,12 @@ class IconFactory():
                  'launching':LAUNCH_EFFECT}
 
     def __init__(self, class_group=None,
-                 launcher=None, app=None, identifier=None):
+                 desktop_entry=None, identifier=None):
         self.theme = Theme()
         self.globals = Globals()
         self.globals.connect('color-changed', self.reset_surfaces)
-        self.app = app
-        self.launcher = launcher
+        self.desktop_entry = desktop_entry
         self.identifier = identifier
-        if self.launcher and self.launcher.app:
-            self.app = self.launcher.app
-            self.launcher = None
         self.class_group = class_group
 
         # Setting size to something other than zero to
@@ -87,21 +83,24 @@ class IconFactory():
         self.max_win_nr = self.theme.get_windows_cnt()
 
     def remove(self):
-        del self.app
-        del self.launcher
+        del self.desktop_entry
         del self.class_group
         del self.icon
         del self.surfaces
         del self.theme
 
-    def remove_launcher(self, class_group = None, app = None):
-        self.launcher = None
-        self.class_group = class_group
-        self.app = app
+    def set_desktop_entry(self, desktop_entry):
+        self.desktop_entry = desktop_entry
         self.surfaces = {}
         del self.icon
         self.icon = None
 
+    def set_class_group(self, class_group):
+        if not self.desktop_entry and not self.class_group:
+            self.surfaces = {}
+            del self.icon
+            self.icon = None
+        self.class_group = class_group
 
     def set_size(self, size):
         if size <= 0:
@@ -239,7 +238,7 @@ class IconFactory():
         return a
 
     def get_average_color(self):
-        if self.average_color != None:
+        if self.average_color is not None:
             return self.average_color
         r = 0
         b = 0
@@ -268,7 +267,7 @@ class IconFactory():
     #### Flow commands
     def command_if(self, surface, type=None, windows=None,
                    size=None, content=None):
-        if content == None:
+        if content is None:
             return surface
         # TODO: complete this
 ##        l = []
@@ -283,7 +282,7 @@ class IconFactory():
 ##            else:
 ##                l[-1] += c
         # Check if the type condition is satisfied
-        if type != None:
+        if type is not None:
             negation = False
             if type[0] == "!" :
                 type = type[1:]
@@ -294,7 +293,7 @@ class IconFactory():
                 return surface
 
         #Check if the window number condition is satisfied
-        if windows != None:
+        if windows is not None:
             arg = windows
             negation = False
             if arg[0] == "!" :
@@ -320,7 +319,7 @@ class IconFactory():
                     return surface
 
         #Check if the icon size condition is satisfied
-        if size != None:
+        if size is not None:
             arg = size
             negation = False
             if arg[0] == "!" :
@@ -365,7 +364,7 @@ class IconFactory():
         ctx = cairo.Context(self.temp[name])
         ctx.set_source_surface(surface)
         ctx.paint()
-        if content == None:
+        if content is None:
             return surface
         for command,args in content.items():
             try:
@@ -377,16 +376,16 @@ class IconFactory():
         return surface
 
     def command_pixmap(self, surface, name, content=None, size=None):
-        if size != None:
+        if size is not None:
             # TODO: Fix for different height and width
             w = h = self.size + int(size)
-        elif surface == None:
+        elif surface is None:
             w = h = self.size
         else:
             w = surface.get_width()
             h = surface.get_height()
         self.temp[name] = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        if content == None:
+        if content is None:
             return surface
         for command,args in content.items():
             try:
@@ -454,22 +453,12 @@ class IconFactory():
 
         pixbuf = None
         icon_name = None
-        if self.launcher:
-            icon_name = self.launcher.get_icon_name()
+        if self.desktop_entry:
+            icon_name = self.desktop_entry.getIcon()
             if os.path.isfile(icon_name):
                 pixbuf = self.icon_from_file_name(icon_name, size)
-                if pixbuf != None:
+                if pixbuf is not None:
                     return pixbuf
-        elif self.app:
-            icon = self.app.get_icon()
-            if icon.__class__ == gio.FileIcon:
-                if icon.get_file().query_exists(None):
-                    pixbuf = self.icon_from_file_name(
-                                            icon.get_file().get_path(), size)
-                    if pixbuf != None:
-                        return pixbuf
-            elif icon.__class__ == gio.ThemedIcon:
-                icon_name = icon.get_names()[0]
 
         if not icon_name:
             if self.identifier:
@@ -490,11 +479,11 @@ class IconFactory():
         if icon_name[-4:] in (".svg", ".png", ".xpm"):
             if self.icon_theme.has_icon(icon_name[:-4]):
                 pixbuf = self.icon_theme.load_icon(icon_name[:-4],size,0)
-                if pixbuf != None:
+                if pixbuf is not None:
                     return pixbuf
 
         pixbuf = self.icon_search_in_data_path(icon_name, size)
-        if pixbuf != None:
+        if pixbuf is not None:
             return pixbuf
 
         if self.class_group:
@@ -509,21 +498,19 @@ class IconFactory():
         else:
             pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
             pixbuf.fill(0x00000000)
-        if self.launcher:
-            name = self.launcher.get_entry_name()
-        elif self.app:
-            name = self.app.get_name()
-        dialog = gtk.MessageDialog(
-                    parent=None,
-                    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                    type=gtk.MESSAGE_WARNING,
-                    buttons=gtk.BUTTONS_OK,
-                    message_format= \
-                            '%s %s.'%(_("Cannot load icon for launcher"), name)
-                                  )
-        dialog.set_title('DockBarX')
-        dialog.run()
-        dialog.destroy()
+        if self.desktop_entry:
+            name = self.desktop_entry.getName()
+        else:
+            name = None
+##        dialog = gtk.MessageDialog(
+##                    parent=None,
+##                    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+##                    type=gtk.MESSAGE_WARNING,
+##                    buttons=gtk.BUTTONS_OK,
+##                    message_format= (_("Cannot load icon for %s")%name))
+##        dialog.set_title('DockBarX')
+##        dialog.run()
+##        dialog.destroy()
         return pixbuf
 
     def icon_from_file_name(self, icon_name, icon_size = -1):
@@ -559,7 +546,7 @@ class IconFactory():
 
     #### Other commands
     def command_get_pixmap(self, surface, name, size=0):
-        if surface == None:
+        if surface is None:
             if self.globals.orient == 'h':
                 width = int(self.size * ar)
                 height = self.size
@@ -621,7 +608,6 @@ class IconFactory():
         else:
             print "theme error: pixmap %s not found"%pix2
 
-        #TODO: Add degrees
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                      p1.get_width(), p1.get_height())
         ctx = cairo.Context(surface)
@@ -731,7 +717,7 @@ class IconFactory():
         return new
 
     def command_correct_size(self, surface):
-        if surface == None:
+        if surface is None:
             return
         if self.globals.orient == 'v':
             width = self.size
@@ -801,7 +787,7 @@ class IconFactory():
 
 
     def command_bright(self, surface, strength = None, strenght = None):
-        if strength == None and strenght != None:
+        if strength is None and strenght is not None:
             # For compability with older themes.
             strength = strenght
         alpha = self.get_alpha(strength)
@@ -840,7 +826,7 @@ class IconFactory():
 
 #### Format conversions
     def pixbuf2surface(self, pixbuf):
-        if pixbuf == None:
+        if pixbuf is None:
             return None
         w = pixbuf.get_width()
         h = pixbuf.get_height()
@@ -852,7 +838,7 @@ class IconFactory():
         return surface
 
     def surface2pixbuf(self, surface):
-        if surface == None:
+        if surface is None:
             return None
         sio = StringIO()
         surface.write_to_png(sio)
