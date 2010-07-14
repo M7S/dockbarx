@@ -30,6 +30,7 @@ import dbus
 import gio
 import keybinder
 import gc
+from time import time
 gc.enable()
 
 from groupbutton import *
@@ -40,7 +41,7 @@ from common import *
 import i18n
 _ = i18n.language.gettext
 
-VERSION = 'x.0.39.5'
+VERSION = 'x.0.39.5+bzr'
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -1066,13 +1067,18 @@ class DockBar():
         windows_stacked = self.screen.get_windows_stacked()
         for win in windows_stacked:
             if win in self.windows:
-                if not self.globals.settings['show_only_current_desktop'] \
-                or (self.window.get_workspace() is None \
-                or self.screen.get_active_workspace() == \
-                                                self.window.get_workspace()) \
-                and self.window.is_in_viewport(
-                                        self.screen.get_active_workspace()):
-                    t = gtk.get_current_event_time()
+                aws = self.screen.get_active_workspace()
+                wws = win.get_workspace()
+                if not self.globals.settings['show_only_current_desktop'] or \
+                   (wws is None or aws == wws) and win.is_in_viewport(aws):
+                    t = int(time())
+                    if wws is not None and aws != wws:
+                        win.get_workspace().activate(t)
+                    if not win.is_in_viewport(aws):
+                        wx,wy,ww,wh = self.window.get_geometry()
+                        sw = self.screen.get_width()
+                        sh = self.screen.get_height()
+                        self.screen.move_viewport(wx - (wx%sw), wy - (wy%sh))
                     win.activate(t)
                     break
 
