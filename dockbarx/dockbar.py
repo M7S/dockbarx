@@ -472,7 +472,7 @@ class DockBar():
             if app:
                 desktop_entry = self.get_desktop_entry_for_id(app.get_id())
             else:
-                dekstop_entry = None
+                desktop_entry = None
             self.make_groupbutton(identifier=identifier,
                                   desktop_entry=desktop_entry)
             self.groups[identifier].add_window(window)
