@@ -30,6 +30,7 @@ import dbus
 import gio
 import keybinder
 import gc
+import subprocess
 from time import time
 gc.enable()
 
@@ -41,7 +42,7 @@ from common import *
 import i18n
 _ = i18n.language.gettext
 
-VERSION = 'x.0.39.5-1'
+VERSION = 'x.0.39.5-1+bzr'
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -637,6 +638,7 @@ class DockBar():
         gb.connect('pinned', self.update_pinned_apps_list)
         gb.connect('groupbutton-moved', self.on_groupbutton_moved)
         gb.connect('launcher-dropped', self.on_launcher_dropped)
+        gb.connect('edit-launcher-properties', self.edit_launcher)
         gb.connect('unpinned', self.on_unpinned)
         gb.connect('minimize-others', self.on_minimize_others)
         gb.connect('launch-preference', self.on_ppm_pref)
@@ -976,6 +978,44 @@ class DockBar():
                 return DesktopEntry(path)
         return None
 
+    def edit_launcher(self, arg, path, identifier):
+        launcher_dir = os.path.join(os.path.expanduser('~'),
+                                    '.dockbarx', 'launchers')
+        if path:
+            if not os.path.exists(path):
+                print "Error: file %s doesn't exist."%path
+            if not os.path.exists(launcher_dir):
+                os.makedirs(laucnher_dir)
+            new_path = os.path.join(launcher_dir, os.path.basename(path))
+            if new_path != path:
+                os.system('cp %s %s'%(path, new_path))
+        else:
+            new_path = os.path.join(launcher_dir, "%s.desktop"%identifier)
+        process = subprocess.Popen(['gnome-desktop-item-edit', new_path],
+                                   env=os.environ)
+        gobject.timeout_add(100, self.wait_for_launcher_editor,
+                            process, path, new_path, identifier)
+
+    def wait_for_launcher_editor(self, process, old_path, new_path, identifier):
+        if process.poll() != None:
+            # Launcher editor closed.
+            if os.path.isfile(new_path):
+                # Update desktop_entry.
+                desktop_entry = DesktopEntry(new_path)
+                if identifier:
+                    gb = self.groups[identifier]
+                else:
+                    gb = self.groups[old_path]
+                    gb.set_identifier(old_path, new_path)
+                gb.desktop_entry = desktop_entry
+                gb.update_name()
+                gb.icon_factory.set_desktop_entry(desktop_entry)
+                gb.icon_factory.reset_surfaces()
+                gb.update_state()
+                gb.pinned = True
+                self.update_pinned_apps_list()
+            return False
+        return True
     def cleanup(self,event):
         del self.applet
 

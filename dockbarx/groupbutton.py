@@ -58,6 +58,8 @@ class GroupButton (gobject.GObject):
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
         "groupbutton-moved":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
+        "edit-launcher-properties":
+            (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
         "launcher-dropped":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, str)),
         "pinned":
@@ -1152,12 +1154,6 @@ class GroupButton (gobject.GObject):
         #Creates a popup menu
         menu = gtk.Menu()
         menu.connect('selection-done', self.menu_closed)
-        if self.desktop_entry and not self.pinned:
-            #Add launcher item
-            add_launcher_item = gtk.MenuItem(_('_Pin application'))
-            menu.append(add_launcher_item)
-            add_launcher_item.connect("activate", self.menu_add_launcher)
-            add_launcher_item.show()
         if self.desktop_entry:
             #Launch program item
             launch_program_item = gtk.MenuItem(_('_Launch application'))
@@ -1165,6 +1161,19 @@ class GroupButton (gobject.GObject):
             launch_program_item.connect("activate",
                                 self.action_launch_application)
             launch_program_item.show()
+        if self.desktop_entry and not self.pinned:
+            #Add launcher item
+            pin_item = gtk.MenuItem(_('_Pin application'))
+            menu.append(pin_item)
+            pin_item.connect("activate", self.menu_pin)
+            pin_item.show()
+        if not self.pinned:
+            #Make Custom Launcher item
+            make_launcher_item = gtk.MenuItem(_('Make custom launcher'))
+            menu.append(make_launcher_item)
+            make_launcher_item.connect("activate",
+                                         self.menu_properties)
+            make_launcher_item.show()
         if self.pinned:
             #Remove launcher item
             remove_launcher_item = gtk.MenuItem(_('Unpin application'))
@@ -1178,6 +1187,12 @@ class GroupButton (gobject.GObject):
             edit_identifier_item.connect("activate",
                                          self.menu_change_identifier)
             edit_identifier_item.show()
+            #Properties item
+            properties_item = gtk.MenuItem(_('Properties'))
+            menu.append(properties_item)
+            properties_item.connect("activate",
+                                         self.menu_properties)
+            properties_item.show()
 
         # Recent and most used files
         if self.desktop_entry:
@@ -1213,14 +1228,13 @@ class GroupButton (gobject.GObject):
                         submenu_item.show()
 
 
-        if self.desktop_entry and self.windows:
+        # Windows stuff
+        win_nr = self.get_windows_count()
+        if win_nr:
             #Separator
             sep = gtk.SeparatorMenuItem()
             menu.append(sep)
             sep.show()
-        # Windows stuff
-        win_nr = self.get_windows_count()
-        if win_nr:
             if win_nr == 1:
                 t = ""
             else:
@@ -1322,7 +1336,15 @@ class GroupButton (gobject.GObject):
         self.emit('identifier-change',
                   self.desktop_entry.getFileName(), self.identifier)
 
-    def menu_add_launcher(self, widget=None, event=None):
+    def menu_properties(self, widget=None, event=None):
+        if self.desktop_entry:
+            path = self.desktop_entry.getFileName()
+        else:
+            path = ""
+        self.emit('edit-launcher-properties',
+                  path, self.identifier)
+
+    def menu_pin(self, widget=None, event=None):
         self.pinned = True
         self.emit('pinned')
 
