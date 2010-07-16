@@ -1,4 +1,10 @@
 Changelog:
+x.0.39.5-1
+Bug fixes:
+- Bug #603742: Keyboard shortcuts didn't work when swapping between different workspaces (metacity).
+- Stupid bug that could cause crashes fixed.
+- Fix for launching files with uris that contains ' or ".
+
 x.0.39.5
 End user features:
 - A new submenu called "Related" has been added to the group button menu. This submenu contains files that has been used recently (within the same day) by programs other than the one the button belongs to, but can be opened by the program. This is pretty much the same functionality as you get from the related plugin in AWN. Example: If you recently opened a picture in eog, you can open it in gimp by right clicking gimp's group button and finding the picture in the "Related" submenu. (Unless, of course, you've also opened the file in gimp recently, then you'll find it in the recent menu instead).

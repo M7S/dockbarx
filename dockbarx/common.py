@@ -171,16 +171,14 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
             uri_list = uri.split('\n')
             for uri in uri_list:
                 uri = uri.rstrip()
-                
                 file = uri
-                
-                
+
                 # Nautilus and zeitgeist don't encode ' and " in uris and
                 # that's needed if we should launch with /bin/sh -c
                 uri = uri.replace("'", "%27")
                 uri = uri.replace('"', "%22")
                 uris.append(uri)
-                
+
                 if file.startswith('file://'):
                     file = file[7:]
                 file = file.replace("%20","\ ")
