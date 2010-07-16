@@ -394,7 +394,7 @@ class GroupButton (gobject.GObject):
         self.winlist.pack_start(wb.window_button, False)
         if window.is_minimized():
             self.minimized_windows_count += 1
-        if (self.pinned and len(self.windows)==1):
+        if len(self.windows)==1:
             if self.name is None:
                 self.update_name()
             self.icon_factory.set_class_group(window.get_class_group())
