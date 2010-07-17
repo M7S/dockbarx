@@ -80,30 +80,31 @@ class AboutDialog():
         AboutDialog.__instance = None
 
 
-class GroupList(ODict):
+class GroupList(list):
     def __init__(self):
-        ODict.__init__(self)
+        list.__init__(self)
 
-    def set_identifier(self, old, new):
-        for t in self.list:
-            if t[0] == old:
-                n = (new, t[1])
-                index = self.list.index(t)
-                self.list.remove(t)
-                self.list.insert(index, n)
-                return True
+    def __getitem__(self, item):
+        # Item can be a identifier, path or index
+        if item is None:
+            raise KeyError, item
+        if isinstance(item, (str, unicode)):
+            for group in self:
+                if group.identifier == item or \
+                   (group.desktop_entry is not None and
+                    group.desktop_entry.getFileName() == item):
+                    return group
+            raise KeyError, item
+        return list.__getitem__(self, item)
 
-    def get_index(self, gr):
-        if not gr:
-            return
-        if isinstance(gr, GroupButton):
-            for t in self.list:
-                if t[1]==gr:
-                    return self.list.index(t)
-        else:
-            for t in self.list:
-                if t[0]==gr:
-                    return self.list.index(t)
+    def get_identifiers(self):
+        identifiers = []
+        for group in self:
+            if group.identifier:
+                identifiers.append(group.identifier)
+            else:
+                identifiers.append(group.desktop_entry.getFileName())
+        return identifiers
 
 
 class DockBar():
@@ -190,10 +191,9 @@ class DockBar():
                 self.on_window_closed(None, win)
         if self.groups is not None:
             # Removes pinned group buttons
-            for key in self.groups.keys():
-                self.groups[key].hide_list()
-                self.groups[key].icon_factory.remove()
-                self.groups.remove(key)
+            for group in self.groups:
+                group.hide_list()
+                group.icon_factory.remove()
 
         del self.groups
         del self.windows
@@ -309,20 +309,20 @@ class DockBar():
         # Removes all saved pixbufs with active glow in groupbuttons
         # iconfactories. Use this def when the looks of active glow
         # has been changed.
-        for group in self.groups.values():
+        for group in self.groups:
             group.icon_factory.reset_surfaces()
 
     def all_windowbuttons_update_label_state(self):
         # Updates all window button labels. To be used when
         # settings has been changed for the labels.
-        for group in self.groups.values():
+        for group in self.groups:
             for winb in group.windows.values():
                 winb.update_label_state()
 
     def update_all_popup_labels(self):
         # Updates all popup windows' titles. To be used when
         # settings has been changed for the labels.
-        for group in self.groups.values():
+        for group in self.groups:
             group.update_popup_label()
 
 
@@ -342,7 +342,7 @@ class DockBar():
                 # Applet and/or panel moved
                 self.applet_origin_x = x
                 self.applet_origin_y = y
-                for group in self.groups.values():
+                for group in self.groups:
                     group.on_db_move()
 
     def on_change_orient(self,arg1,data):
@@ -353,7 +353,7 @@ class DockBar():
             self.set_orient('v')
 
     def set_orient(self, orient):
-        for group in self.groups.values():
+        for group in self.groups:
             self.container.remove(group.button)
         if self.applet:
             self.applet.remove(self.container)
@@ -366,8 +366,8 @@ class DockBar():
             self.container = gtk.VBox()
         if self.applet:
             self.applet.add(self.container)
-        for group in self.groups.values():
-            self.container.pack_start(group.button,False)
+        for group in self.groups:
+            self.container.pack_start(group.button, False)
         self.container.set_spacing(self.theme.get_gap())
         if self.globals.settings["show_only_current_desktop"]:
             self.container.show()
@@ -391,26 +391,24 @@ class DockBar():
     #### Wnck events
     def on_active_window_changed(self, screen, previous_active_window):
         # Sets the right window button and group button active.
-        for group in self.groups.values():
+        for group in self.groups:
             group.set_has_active_window(False)
         # Activate new windowbutton
         active_window = screen.get_active_window()
         if active_window in self.windows:
             active_group_name = self.windows[active_window]
             active_group = self.groups[active_group_name]
-            if active_group:
-                active_group.set_has_active_window(True)
-                window_button = active_group.windows[active_window]
-                window_button.set_button_active(True)
+            active_group.set_has_active_window(True)
+            window_button = active_group.windows[active_window]
+            window_button.set_button_active(True)
 
     def on_window_closed(self,screen,window):
         if window in self.windows:
             identifier = self.windows[window]
             group = self.groups[identifier]
-            if group:
-                group.del_window(window)
-                if not group.windows and not group.pinned:
-                    self.groups.remove(identifier)
+            group.del_window(window)
+            if not group.windows and not group.pinned:
+                self.groups.remove(group)
             del self.windows[window]
 
     def on_window_opened(self,screen,window):
@@ -440,7 +438,7 @@ class DockBar():
             if self.globals.settings['separate_ooo_apps']:
                 window.connect("name-changed", self.on_ooo_window_name_changed)
         self.windows[window] = identifier
-        if identifier in self.groups:
+        if identifier in self.groups.get_identifiers():
             # This isn't the first open window of this group.
             self.groups[identifier].add_window(window)
             return
@@ -456,9 +454,9 @@ class DockBar():
             # The window is matching a launcher without open windows.
             desktop_entry = self.desktop_entry_by_id[desktop_entry_id]
             path = desktop_entry.getFileName()
-            self.groups.set_identifier(path, identifier)
-            self.groups[identifier].identifier_changed(identifier)
-            self.groups[identifier].add_window(window)
+            group = self.groups[path]
+            group.identifier_changed(identifier)
+            group.add_window(window)
             self.update_pinned_apps_list()
             self.remove_desktop_entry_id_from_undefined_list(desktop_entry_id)
         else:
@@ -474,9 +472,9 @@ class DockBar():
                 desktop_entry = self.get_desktop_entry_for_id(app.get_id())
             else:
                 desktop_entry = None
-            self.make_groupbutton(identifier=identifier,
-                                  desktop_entry=desktop_entry)
-            self.groups[identifier].add_window(window)
+            group = self.make_groupbutton(identifier=identifier,
+                                          desktop_entry=desktop_entry)
+            group.add_window(window)
 
     def find_desktop_entry_id(self, identifier):
         id = None
@@ -584,7 +582,7 @@ class DockBar():
 
     def on_ooo_window_name_changed(self, window):
         identifier = None
-        for group in self.groups.values():
+        for group in self.groups:
             if window in group.windows:
                 identifier = group.identifier
                 break
@@ -601,7 +599,7 @@ class DockBar():
     def on_desktop_changed(self, screen=None, workspace=None):
         if not self.globals.settings['show_only_current_desktop']:
             return
-        for group in self.groups.values():
+        for group in self.groups:
             group.update_state()
             group.on_set_icongeo_grp()
             group.nextlist = None
@@ -616,7 +614,7 @@ class DockBar():
         else:
             # Insterts the button on it's index by removing
             # and repacking the buttons that should come after it
-            repack_list = self.groups.values()[index:]
+            repack_list = self.groups[index:]
             for group in repack_list:
                 self.container.remove(group.button)
             self.container.pack_start(gb.button, False)
@@ -628,9 +626,9 @@ class DockBar():
         else:
             name = identifier
         if index:
-            self.groups.add_at_index(index, name, gb)
+            self.groups.insert(index, gb)
         else:
-            self.groups[name] = gb
+            self.groups.append(gb)
 
 
         gb.connect('delete', self.remove_groupbutton)
@@ -642,9 +640,11 @@ class DockBar():
         gb.connect('unpinned', self.on_unpinned)
         gb.connect('minimize-others', self.on_minimize_others)
         gb.connect('launch-preference', self.on_ppm_pref)
+        return gb
 
     def remove_groupbutton(self, arg, name):
-        self.groups.remove(name)
+        group = self.groups[name]
+        self.groups.remove(group)
         self.update_pinned_apps_list()
 
     def on_unpinned(self, arg, identifier):
@@ -764,7 +764,7 @@ class DockBar():
             print "name: ", name
         print "executable: ", exe
         print
-        for gb in self.groups.values():
+        for gb in self.groups:
             if gb.pinned:
                 continue
             identifier = gb.identifier
@@ -821,23 +821,24 @@ class DockBar():
         winlist = []
         index = None
         if calling_button in (identifier, path):
-            index = self.groups.get_index(calling_button)
-        group_name = None
-        if identifier in self.groups:
-            group_name = identifier
-        elif path in self.groups:
-            group_name = path
-        if group_name:
-            group = self.groups[group_name]
+            index = self.groups.index(self.groups[calling_button])
+        try:
+            group = self.groups[identifier]
+        except KeyError:
+            try:
+                group = self.groups[path]
+            except KeyError:
+                group = None
+        if group is not None:
             # Get the windows for repopulation of the new button
             winlist = group.windows.keys()
             # Destroy the group button
             group.popup.destroy()
             group.button.destroy()
             group.winlist.destroy()
-            self.groups.remove(group_name)
+            self.groups.remove(group)
         if index is None:
-            index = self.groups.get_index(calling_button) + 1
+            index = self.groups.index(self.groups[calling_button]) + 1
         self.make_groupbutton(identifier=identifier,
                               desktop_entry=desktop_entry,
                               pinned=True,
@@ -849,12 +850,12 @@ class DockBar():
 
     def identifier_dialog(self, identifier=None):
         # Input dialog for inputting the identifier.
-        dialog = gtk.MessageDialog(
-            None,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_QUESTION,
-            gtk.BUTTONS_OK_CANCEL,
-            None)
+        flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+        dialog = gtk.MessageDialog(None,
+                                   flags,
+                                   gtk.MESSAGE_QUESTION,
+                                   gtk.BUTTONS_OK_CANCEL,
+                                   None)
         dialog.set_title(_('Identifier'))
         dialog.set_markup('<b>%s</b>'%_("Enter the identifier here"))
         dialog.format_secondary_markup(
@@ -868,7 +869,7 @@ class DockBar():
             entry.set_text(identifier)
         # Fill the popdown list with the names of all class
         # names of buttons that hasn't got a launcher already
-        for gb in self.groups.values():
+        for gb in self.groups:
             if not gb.pinned:
                 combobox.append_text(gb.identifier)
         entry = combobox.get_child()
@@ -895,22 +896,22 @@ class DockBar():
         #Remove the groupbutton that should be moved
         move_group = self.groups[name]
         self.container.remove(move_group.button)
-        self.groups.remove(name)
+        self.groups.remove(move_group)
 
         if calling_button:
-            index = self.groups.get_index(calling_button) + 1
+            index = self.groups.index(self.groups[calling_button]) + 1
         else:
             print "Error: cant move button without the calling button's name"
             return
         # Insterts the button on it's index by removing
         # and repacking the buttons that should come after it
-        repack_list = self.groups.values()[index:]
+        repack_list = self.groups[index:]
         for group in repack_list:
             self.container.remove(group.button)
         self.container.pack_start(move_group.button, False)
         for group in repack_list:
             self.container.pack_start(group.button, False)
-        self.groups.add_at_index(index, name, move_group)
+        self.groups.insert(index, move_group)
         self.update_pinned_apps_list()
 
     def change_identifier(self, arg=None, path=None, old_identifier=None):
@@ -918,7 +919,7 @@ class DockBar():
         if not identifier:
             return False
         winlist = []
-        if identifier in self.groups:
+        if identifier in self.groups.get_identifiers():
                 group = self.groups[identifier]
                 # Get the windows for repopulation of the new button
                 winlist = group.windows.keys()
@@ -926,12 +927,12 @@ class DockBar():
                 group.popup.destroy()
                 group.button.destroy()
                 group.winlist.destroy()
-                self.groups.remove(identifier)
-        if old_identifier is not None:
-            self.groups.set_identifier(old_identifier, identifier)
-        else:
-            self.groups.set_identifier(path, identifier)
-        self.groups[identifier].identifier_changed(identifier)
+                self.groups.remove(group)
+        try:
+            group = self.groups[old_identifier]
+        except KeyError:
+            group = self.groups[path]
+        group.identifier_changed(identifier)
         for window in winlist:
             self.on_window_opened(self.screen, window)
         self.update_pinned_apps_list()
@@ -939,7 +940,7 @@ class DockBar():
     def update_pinned_apps_list(self, arg=None):
         # Saves pinned_apps_list to gconf.
         gconf_pinned_apps = []
-        for gb in self.groups.values():
+        for gb in self.groups:
             if not gb.pinned:
                 continue
             identifier = gb.identifier
@@ -1078,7 +1079,7 @@ class DockBar():
 
     def gkey_select_next_group(self, previous=False):
         active_found = False
-        gl = self.groups.values()
+        gl = self.groups
         # Repeat list twice so we can get
         # back to the first group after the last
         gl = gl + gl
@@ -1126,7 +1127,7 @@ class DockBar():
         self.gkey_select_next_group(previous=True)
 
     def gkey_select_next_window_in_group(self, previous=False):
-        for gr in self.groups.values():
+        for gr in self.groups:
             if gr.has_active_window:
                 gr.action_select_next_with_popup(previous=previous)
 
