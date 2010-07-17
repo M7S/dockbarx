@@ -43,7 +43,63 @@ _ = i18n.language.gettext
 
 ATOM_PREVIEWS = gtk.gdk.atom_intern('_KDE_WINDOW_PREVIEW')
 
-class GroupButton (gobject.GObject):
+class WindowDict(dict):
+    def __init__(self):
+        dict.__init__(self)
+        self.globals = Globals()
+
+    def get_list(self):
+        # Returns a list of windows that are in current use
+        if self.globals.settings["show_only_current_desktop"]:
+            wins = []
+            for win in self:
+                if self[win].is_on_current_desktop():
+                    wins.append(win)
+            return wins
+        else:
+            return self.keys()
+
+    def get_unminimized(self):
+        wins = []
+        for win in self:
+            if self.globals.settings["show_only_current_desktop"] \
+            and not self[win].is_on_current_desktop():
+                continue
+            if not win.is_minimized():
+                wins.append(win)
+        return wins
+
+    def get_count(self):
+        if not self.globals.settings["show_only_current_desktop"]:
+            return len(self)
+        nr = 0
+        for win in self:
+            if not self[win].is_on_current_desktop():
+                continue
+            nr += 1
+        return nr
+
+    def get_minimized_count(self):
+        nr = 0
+        for win in self:
+            if self.globals.settings["show_only_current_desktop"] \
+            and not self[win].is_on_current_desktop():
+                continue
+            if win.is_minimized():
+                nr += 1
+        return nr
+
+    def get_unminimized_count(self):
+        nr = 0
+        for win in self:
+            if self.globals.settings["show_only_current_desktop"] \
+            and not self[win].is_on_current_desktop():
+                continue
+            if not win.is_minimized():
+                nr += 1
+        return nr
+
+class GroupButton(gobject.GObject):
     """Group button takes care of a program's "button" in dockbar.
 
     It also takes care of the popup window and all the window buttons that
@@ -90,7 +146,7 @@ class GroupButton (gobject.GObject):
 
 
         # Variables
-        self.windows = {}
+        self.windows = WindowDict()
         self.minimized_windows_count = 0
         self.minimized_state = 0
         self.has_active_window = False
@@ -188,7 +244,7 @@ class GroupButton (gobject.GObject):
         self.is_current_drag_source = False
 
 
-    def identifier_changed(self, identifier):
+    def set_identifier(self, identifier):
         self.identifier = identifier
         self.popup_label.set_tooltip_text(
                                     "%s: %s"%(_("Identifier"),self.identifier))
@@ -228,14 +284,14 @@ class GroupButton (gobject.GObject):
 
     def update_state(self):
         # Checks button state and set the icon accordingly.
-        win_nr = min(self.get_windows_count(), 15)
+        win_nr = min(self.windows.get_count(), 15)
         if win_nr == 0 and not self.pinned:
             self.button.hide()
             return
         else:
             self.button.show()
 
-        mwc = self.get_minimized_windows_count()
+        mwc = self.windows.get_minimized_count()
         if self.pinned and win_nr == 0:
             icon_mode = IconFactory.LAUNCHER
         elif (win_nr - mwc) == 0:
@@ -354,37 +410,6 @@ class GroupButton (gobject.GObject):
             self.popup_box.remove(oldbox)
         self.popup_box.pack_start(self.winlist, False)
 
-    #### Window counts
-    def get_windows_count(self):
-        if not self.globals.settings["show_only_current_desktop"]:
-            return len(self.windows)
-        nr = 0
-        for win in self.windows:
-            if not self.windows[win].is_on_current_desktop():
-                continue
-            nr += 1
-        return nr
-
-    def get_minimized_windows_count(self):
-        nr = 0
-        for win in self.windows:
-            if self.globals.settings["show_only_current_desktop"] \
-            and not self.windows[win].is_on_current_desktop():
-                continue
-            if win.is_minimized():
-                nr += 1
-        return nr
-
-    def get_unminimized_windows_count(self):
-        nr = 0
-        for win in self.windows:
-            if self.globals.settings["show_only_current_desktop"] \
-            and not self.windows[win].is_on_current_desktop():
-                continue
-            if not win.is_minimized():
-                nr += 1
-        return nr
-
     #### Window handling
     def add_window(self,window):
         if window in self.windows:
@@ -446,7 +471,7 @@ class GroupButton (gobject.GObject):
         if self.needs_attention:
             self.on_needs_attention_changed()
         self.update_state_request()
-        if self.get_unminimized_windows_count() == 0:
+        if self.windows.get_unminimized_count() == 0:
             if self.opacified:
                 self.globals.opacified = False
                 self.opacified = False
@@ -479,26 +504,6 @@ class GroupButton (gobject.GObject):
     def on_window_unminimized(self, arg, wb):
         self.minimized_windows_count-=1
         self.update_state()
-
-    def get_windows(self):
-        if self.globals.settings["show_only_current_desktop"]:
-            wins = []
-            for win in self.windows:
-                if self.windows[win].is_on_current_desktop():
-                    wins.append(win)
-            return wins
-        else:
-            return self.windows.keys()
-
-    def get_unminimized_windows(self):
-        wins = []
-        for win in self.windows:
-            if self.globals.settings["show_only_current_desktop"] \
-            and not self.windows[win].is_on_current_desktop():
-                continue
-            if not win.is_minimized():
-                wins.append(win)
-        return wins
 
     def on_needs_attention_changed(self, arg=None):
         # Checks if there are any urgent windows and changes
@@ -614,14 +619,14 @@ class GroupButton (gobject.GObject):
         # Move popup to it's right spot and show it.
         offset = 3
 
-        win_cnt = self.get_windows_count()
+        win_cnt = self.windows.get_count()
         if self.globals.settings["preview"] and win_cnt > 0:
             # Set hint type so that previews can be used.
             if not self.popup.get_property('visible'):
                 self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
             # Make space in where the previews can be placed.
             ps = self.globals.settings['preview_size']
-            for win in self.get_windows():
+            for win in self.windows.get_list():
                 self.windows[win].prepare_preview(ps)
 
             # Set the width of popup window title.
@@ -685,10 +690,10 @@ class GroupButton (gobject.GObject):
                 gtk.main_iteration(False)
         # Tell the compiz/kwin where to put the previews.
         if self.globals.settings["preview"] \
-        and self.get_windows_count() > 0:
+        and self.windows.get_count() > 0:
             previews = []
             previews.append(win_cnt)
-            for win in self.get_windows():
+            for win in self.windows.get_list():
                 wb = self.windows[win]
                 previews.append(5)
                 previews.append(win.get_xid())
@@ -774,7 +779,7 @@ class GroupButton (gobject.GObject):
         self.on_set_icongeo_grp()
         if self.globals.settings["preview"]:
             # Remove preview icon to save memory
-            for win in self.get_windows():
+            for win in self.windows.get_list():
                 self.windows[win].clear_preview_image()
             gc.collect()
         if self.list_hide_timeout is not None:
@@ -823,7 +828,7 @@ class GroupButton (gobject.GObject):
                 return
 
     def opacify_request(self):
-        if self.get_unminimized_windows_count() == 0:
+        if self.windows.get_unminimized_count() == 0:
             return False
         # if self.button_pressed is true, opacity_request is called by an
         # wrongly sent out enter_notification_event sent after a
@@ -954,7 +959,7 @@ class GroupButton (gobject.GObject):
         if not self.button_drag_entered:
             self.button_drag_entered = True
             if not 'text/groupbutton_name' in drag_context.targets:
-                win_nr = self.get_windows_count()
+                win_nr = self.windows.get_count()
                 if win_nr == 1:
                     self.dnd_select_window = gobject.timeout_add(600,
                                 self.windows.values()[0].action_select_window)
@@ -1044,7 +1049,7 @@ class GroupButton (gobject.GObject):
             gobject.timeout_add(self.globals.settings['popup_delay']+500,
                                 self.deopacify_request)
 
-        if self.get_windows_count() <= 1 \
+        if self.windows.get_count() <= 1 \
         and self.globals.settings['no_popup_for_one_window']:
             return
         # Prepare for popup window
@@ -1229,7 +1234,7 @@ class GroupButton (gobject.GObject):
 
 
         # Windows stuff
-        win_nr = self.get_windows_count()
+        win_nr = self.windows.get_count()
         if win_nr:
             #Separator
             sep = gtk.SeparatorMenuItem()
@@ -1239,7 +1244,7 @@ class GroupButton (gobject.GObject):
                 t = ""
             else:
                 t = _(" all windows")
-            if self.get_unminimized_windows_count() == 0:
+            if self.windows.get_unminimized_count() == 0:
                 # Unminimize all
                 unminimize_all_windows_item = gtk.MenuItem(
                                                 '%s%s'%(_("Un_minimize"), t))
@@ -1328,7 +1333,7 @@ class GroupButton (gobject.GObject):
 
     def menu_unminimize_all_windows(self, widget=None, event=None):
         t = gtk.get_current_event_time()
-        for window in self.get_windows():
+        for window in self.windows.get_list():
             if window.is_minimized():
                 window.unminimize(t)
 
@@ -1359,7 +1364,7 @@ class GroupButton (gobject.GObject):
 
     #### Actions
     def action_select(self, widget, event):
-        wins = self.get_windows()
+        wins = self.windows.get_list()
         if (self.pinned and not wins):
             self.action_launch_application()
         # One window
@@ -1380,7 +1385,7 @@ class GroupButton (gobject.GObject):
                 self.action_select_or_minimize_group(widget, event,
                                                      minimize=True)
             elif smw == "compiz scale":
-                umw = self.get_unminimized_windows()
+                umw = self.windows.get_unminimized()
                 if len(umw) == 1:
                     sow = self.globals.settings["select_one_window"]
                     if sow == "select window":
@@ -1574,14 +1579,14 @@ class GroupButton (gobject.GObject):
         self.action_select_or_minimize_group(widget, event, False)
 
     def action_select_or_compiz_scale(self, widget, event):
-        wins = self.get_unminimized_windows()
+        wins = self.windows.get_unminimized()
         if  len(wins) > 1:
             self.action_compiz_scale_windows(widget, event)
         elif len(wins) == 1:
             self.windows[wins[0]].action_select_window(widget, event)
 
     def action_minimize_all_windows(self,widget=None, event=None):
-        for window in self.get_windows():
+        for window in self.windows.get_list():
             window.minimize()
 
     def action_maximize_all_windows(self,widget=None, event=None):
@@ -1590,7 +1595,7 @@ class GroupButton (gobject.GObject):
         except:
             action_maximize = 1 << 14
         maximized = False
-        for window in self.get_windows():
+        for window in self.windows.get_list():
             if not window.is_maximized() \
             and window.get_actions() & action_maximize:
                 window.maximize()
@@ -1600,7 +1605,7 @@ class GroupButton (gobject.GObject):
                 window.unmaximize()
 
     def action_select_next(self, widget=None, event=None, previous=False):
-        if not self.get_windows():
+        if not self.windows.get_list():
             return
         if self.nextlist_time is None or time() - self.nextlist_time > 2 \
         or self.nextlist is None:
@@ -1608,7 +1613,7 @@ class GroupButton (gobject.GObject):
             minimized_list = []
             screen = self.screen
             windows_stacked = screen.get_windows_stacked()
-            wins = self.get_windows()
+            wins = self.windows.get_list()
             for win in windows_stacked:
                     if win in wins:
                         if win.is_minimized():
@@ -1657,7 +1662,7 @@ class GroupButton (gobject.GObject):
             t = event.time
         else:
             t = gtk.get_current_event_time()
-        for window in self.get_windows():
+        for window in self.windows.get_list():
             window.close(t)
 
     def action_launch_application(self, widget=None, event=None):
@@ -1705,7 +1710,7 @@ class GroupButton (gobject.GObject):
         self.emit('minimize-others', self)
 
     def action_compiz_scale_windows(self, widget, event):
-        wins = self.get_unminimized_windows()
+        wins = self.windows.get_unminimized()
         if not wins:
             return
         if len(wins) == 1:
@@ -1726,7 +1731,7 @@ class GroupButton (gobject.GObject):
                             self.hide_list)
 
     def action_compiz_shift_windows(self, widget, event):
-        wins = self.get_unminimized_windows()
+        wins = self.windows.get_unminimized()
         if not wins:
             return
         if len(wins) == 1:

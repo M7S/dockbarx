@@ -455,7 +455,7 @@ class DockBar():
             desktop_entry = self.desktop_entry_by_id[desktop_entry_id]
             path = desktop_entry.getFileName()
             group = self.groups[path]
-            group.identifier_changed(identifier)
+            group.set_identifier(identifier)
             group.add_window(window)
             self.update_pinned_apps_list()
             self.remove_desktop_entry_id_from_undefined_list(desktop_entry_id)
@@ -932,7 +932,7 @@ class DockBar():
             group = self.groups[old_identifier]
         except KeyError:
             group = self.groups[path]
-        group.identifier_changed(identifier)
+        group.set_identifier(identifier)
         for window in winlist:
             self.on_window_opened(self.screen, window)
         self.update_pinned_apps_list()
