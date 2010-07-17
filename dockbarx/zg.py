@@ -37,10 +37,14 @@ else:
         iface = None
 
 def _get(name=None,
-         result_type=datamodel.ResultType.MostRecentSubjects,
+         result_type=None,
          days=14,
          number_of_results=5,
          mimetypes=[]):
+    if iface is None:
+        return
+    if result_type is None:
+        result_type = datamodel.ResultType.MostRecentSubjects
     time_range = datamodel.TimeRange.from_seconds_ago(days * 3600 * 24)
 
     event_template = datamodel.Event()
