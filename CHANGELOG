@@ -1,4 +1,12 @@
 Changelog:
+x.0.39.6
+End user featuers:
+- You can now easily edit and add custom launchers.
+
+Bug fixes:
+- Bug #606568: DockbarX crashed on upstart if zeitgeist were not installed.
+- A small bug that caused missing icons.
+
 x.0.39.5-1
 Bug fixes:
 - Bug #603742: Keyboard shortcuts didn't work when swapping between different workspaces (metacity).
