@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-14 19:12+0300\n"
+"POT-Creation-Date: 2010-07-18 10:34+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -294,19 +294,19 @@ msgstr ""
 msgid "Global Keyboard Shortcuts"
 msgstr ""
 
-#: dbx_preference.py:614 dockbarx/dockbar.py:993
+#: dbx_preference.py:614 dockbarx/dockbar.py:1035
 msgid "Select next group"
 msgstr ""
 
-#: dbx_preference.py:616 dockbarx/dockbar.py:994
+#: dbx_preference.py:616 dockbarx/dockbar.py:1036
 msgid "Select previous group"
 msgstr ""
 
-#: dbx_preference.py:618 dockbarx/dockbar.py:995
+#: dbx_preference.py:618 dockbarx/dockbar.py:1037
 msgid "Select next window in group"
 msgstr ""
 
-#: dbx_preference.py:620 dockbarx/dockbar.py:996
+#: dbx_preference.py:620 dockbarx/dockbar.py:1038
 msgid "Select previous window in group"
 msgstr ""
 
@@ -370,97 +370,109 @@ msgid ""
 "keyboard string."
 msgstr ""
 
-#: dockbarx/dockbar.py:275
+#: dockbarx/dockbar.py:277
 msgid "The launcher at path"
 msgstr ""
 
-#: dockbarx/dockbar.py:277
+#: dockbarx/dockbar.py:279
 msgid "cant be found. Did you perhaps delete the file?"
 msgstr ""
 
-#: dockbarx/dockbar.py:855 dockbarx/groupbutton.py:146
-#: dockbarx/groupbutton.py:192
+#: dockbarx/dockbar.py:859 dockbarx/groupbutton.py:204
+#: dockbarx/groupbutton.py:250
 msgid "Identifier"
 msgstr ""
 
-#: dockbarx/dockbar.py:856
+#: dockbarx/dockbar.py:860
 msgid "Enter the identifier here"
 msgstr ""
 
-#: dockbarx/dockbar.py:858
+#: dockbarx/dockbar.py:862
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
 
-#: dockbarx/dockbar.py:859
+#: dockbarx/dockbar.py:863
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr ""
 
-#: dockbarx/dockbar.py:877
+#: dockbarx/dockbar.py:881
 msgid "Identifier:"
 msgstr ""
 
-#: dockbarx/dockbar.py:1022
+#: dockbarx/dockbar.py:1064
 msgid "The key is already bound elsewhere."
 msgstr ""
 
-#: dockbarx/dockbar.py:1024
+#: dockbarx/dockbar.py:1066
 #, python-format
 msgid ""
 "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
 msgstr ""
 
-#: dockbarx/windowbutton.py:541 dockbarx/groupbutton.py:1239
+#: dockbarx/windowbutton.py:541 dockbarx/groupbutton.py:1264
 msgid "_Minimize"
 msgstr ""
 
-#: dockbarx/windowbutton.py:544 dockbarx/groupbutton.py:1231
+#: dockbarx/windowbutton.py:544 dockbarx/groupbutton.py:1256
 msgid "Un_minimize"
 msgstr ""
 
-#: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1249
+#: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1274
 msgid "Ma_ximize"
 msgstr ""
 
-#: dockbarx/windowbutton.py:556 dockbarx/groupbutton.py:1253
+#: dockbarx/windowbutton.py:556 dockbarx/groupbutton.py:1278
 msgid "Unma_ximize"
 msgstr ""
 
-#: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1259
+#: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1284
 msgid "_Close"
 msgstr ""
 
-#: dockbarx/groupbutton.py:1157
-msgid "_Pin application"
-msgstr ""
-
-#: dockbarx/groupbutton.py:1163
+#: dockbarx/groupbutton.py:1164
 msgid "_Launch application"
 msgstr ""
 
-#: dockbarx/groupbutton.py:1170
+#: dockbarx/groupbutton.py:1171
+msgid "_Pin application"
+msgstr ""
+
+#: dockbarx/groupbutton.py:1177
+msgid "Make custom launcher"
+msgstr ""
+
+#: dockbarx/groupbutton.py:1184
 msgid "Unpin application"
 msgstr ""
 
-#: dockbarx/groupbutton.py:1176
+#: dockbarx/groupbutton.py:1191
+msgid "Properties"
+msgstr ""
+
+#: dockbarx/groupbutton.py:1195
 msgid "Edit Identifier"
 msgstr ""
 
-#: dockbarx/groupbutton.py:1192
+#: dockbarx/groupbutton.py:1201
+msgid "Edit Launcher"
+msgstr ""
+
+#: dockbarx/groupbutton.py:1218
 msgid "Recent"
 msgstr ""
 
-#: dockbarx/groupbutton.py:1193
+#: dockbarx/groupbutton.py:1219
 msgid "Most used"
 msgstr ""
 
-#: dockbarx/groupbutton.py:1194
+#: dockbarx/groupbutton.py:1220
 msgid "Related"
 msgstr ""
 
-#: dockbarx/groupbutton.py:1227
+#: dockbarx/groupbutton.py:1252
 msgid " all windows"
 msgstr ""

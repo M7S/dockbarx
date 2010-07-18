@@ -1177,7 +1177,7 @@ class GroupButton(gobject.GObject):
             make_launcher_item = gtk.MenuItem(_('Make custom launcher'))
             menu.append(make_launcher_item)
             make_launcher_item.connect("activate",
-                                         self.menu_properties)
+                                         self.menu_edit_launcher)
             make_launcher_item.show()
         if self.pinned:
             #Remove launcher item
@@ -1186,17 +1186,23 @@ class GroupButton(gobject.GObject):
             remove_launcher_item.connect("activate",
                                          self.action_remove_launcher)
             remove_launcher_item.show()
+            #Properties submenu
+            properties_menu = gtk.Menu()
+            properties_item = gtk.MenuItem(_('Properties'))
+            properties_item.set_submenu(properties_menu)
+            menu.append(properties_item)
             #Edit identifier item
             edit_identifier_item = gtk.MenuItem(_('Edit Identifier'))
-            menu.append(edit_identifier_item)
-            edit_identifier_item.connect("activate",
+            properties_menu.append(edit_identifier_item)
+            edit_identifier_item.connect("button-press-event",
                                          self.menu_change_identifier)
             edit_identifier_item.show()
-            #Properties item
-            properties_item = gtk.MenuItem(_('Properties'))
-            menu.append(properties_item)
-            properties_item.connect("activate",
-                                         self.menu_properties)
+            #Edit launcher item
+            edit_launcher_item = gtk.MenuItem(_('Edit Launcher'))
+            properties_menu.append(edit_launcher_item)
+            edit_launcher_item.connect("button-press-event",
+                                       self.menu_edit_launcher)
+            edit_launcher_item.show()
             properties_item.show()
 
         # Recent and most used files
@@ -1341,7 +1347,7 @@ class GroupButton(gobject.GObject):
         self.emit('identifier-change',
                   self.desktop_entry.getFileName(), self.identifier)
 
-    def menu_properties(self, widget=None, event=None):
+    def menu_edit_launcher(self, widget=None, event=None):
         if self.desktop_entry:
             path = self.desktop_entry.getFileName()
         else:
