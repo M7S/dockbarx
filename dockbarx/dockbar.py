@@ -718,7 +718,7 @@ class DockBar():
 
     def on_launcher_dropped(self, arg, path, calling_button):
         # Creates a new launcher with a desktop file located at path.
-        # The new laucnher is inserted at the right (or under)
+        # The new launcher is inserted at the right (or under)
         # the group button that the launcher was dropped on.
         try:
             desktop_entry = DesktopEntry(path)
@@ -986,7 +986,7 @@ class DockBar():
             if not os.path.exists(path):
                 print "Error: file %s doesn't exist."%path
             if not os.path.exists(launcher_dir):
-                os.makedirs(laucnher_dir)
+                os.makedirs(launcher_dir)
             new_path = os.path.join(launcher_dir, os.path.basename(path))
             if new_path != path:
                 os.system('cp %s %s'%(path, new_path))
