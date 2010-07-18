@@ -77,23 +77,6 @@ scroll up/down:
 - Select next/previous window of the group
 
 
-
-LAUNCHERS:
-Add launchers:
-You can add launchers in two ways. 
-1) Drag a icon from gnome-menu and drop it on dockbarx (that means on an existing icon in dockbarx, otherwise you just make a normal panel launcher). 
-2) Right click on a group button and choose "pin application". (That option does only exist for applications which are correctly indentified by dockbarx. If it doesn't use the first method instead.)
-
-In versions previous to x.0.24.0 you had to enter the resource class name of the application when you added a launcher. This isn't necessary anymore since dockbarx is now guessing it. Dockbarx fails to guess in some circumstances, though. You notice this when the windows of a program opens a new group button instead of using the launcher button. To fix this you need to manually edit the resource class name by right clicking the launcher and choosing "Edit Resource name".
-
-Remove launcher:
-Right click on the launcher you wish to remove. Choose 'Unpin application' from the menu. 
-
-Move launchers (and other group buttons):
-Drag and drop ;)
-
-
-
 WORKSPACE/VIEWPORT BEHAVIOR OPTIONS:
 You can change how DockBar reacts when you select a group (left click on the group icon if the default is used) from preference window.
 
@@ -126,12 +109,7 @@ Q: I added a new launcher for program X but when I click on the launcher a new g
 A: Dockbarx connects group buttons and windows by using the resource class name of the application. When a launcher is added dockbarx tries to guess the resource class name of that launcher. This works in most cases but not always. Apparently it didn't work for your program X. To fix this, right click on the launcher for program X and choose "Edit Resource name" and enter the correct resource name. If the program is already running you should be able to find it's resource class name in the drop-down list.
 
 Q: There is no menu option to pin program X, but there is one for program Y and Z. WTF?
-A: Dockbarx wasn't able to identify program X correctly then. You can "pin" the program by dragging it's icon from the gnome menu instead. Oh, and you will probably have to enter the resource name manually as well (see previous question).
-
-Q: I want to make a custom launcher. Is it possible?
-A: Yes, it is. There are two ways.
-1) You can change the launcher in gnome-menu (alt+F2 and type "alacarte"). Add the launcher by dragging it or - if it's an old launcher - right click Dockbarx's handle and choose "Update" for the changes to show. 
-2) Drag the launcher from gnome-menu to a folder. Right click it, choose preference and change what you want there. Drag the launcher to dockbarx. Don't delete the launcher from the folder! 
+A: Dockbarx wasn't able to identify program X correctly then. You can "pin" the program by dragging it's icon from the gnome menu instead. Oh, and you will probably have to enter the resource name manually as well (see previous question). 
 
 Q: How do I get to preference dialog?
 A: Right click the handle (the dots or lines to the left of dockbarx) to get a menu where you can choose the preference option. Voila! Sometimes though, you have to double right click the handle to get the menu. Don't ask me why - just do it. You can also find the preference dialog from gnome menu (in Accessories).
