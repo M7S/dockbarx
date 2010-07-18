@@ -1307,8 +1307,6 @@ class GroupButton(gobject.GObject):
                             zg.workrounds['openoffice-calc'] + \
                             zg.workrounds['openoffice-presentation'] + \
                             zg.workrounds['openoffice-draw']
-            elif zg.workrounds[self.identifier] == 'all':
-                mimetypes = self.desktop_entry.getMimeTypes()
             else:
                 mimetypes = zg.workrounds[self.identifier]
             recent_files += zg.get_recent_for_mimetypes(mimetypes,
@@ -1320,7 +1318,10 @@ class GroupButton(gobject.GObject):
         # Related files contains files that can be used by the program and
         # has been used by other programs (but not this program) today.
         related_files = []
-        mimetypes = self.desktop_entry.getMimeTypes()
+        try:
+            mimetypes = self.desktop_entry.getMimeTypes()
+        except AttributeError:
+            mimetypes = None
         if mimetypes:
             related_candidates = zg.get_recent_for_mimetypes(mimetypes,
                                                              days=1,
