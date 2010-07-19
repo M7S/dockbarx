@@ -3,7 +3,7 @@ x.0.39.6-1
 Bug fixes:
 - Bug #607132: DockBarX fails to start in Ubuntu Karmic.
 - Right clicking on group buttons didn't work in Karmic.
-- Editing launchers wasn't possible if the folder ~/.dockbarx/launchers already existed.
+- Editing launchers wasn't possible if the folder ~/.dockbarx/launchers didn't already exist.
 
 x.0.39.6
 End user featuers:
