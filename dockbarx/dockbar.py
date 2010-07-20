@@ -42,7 +42,7 @@ from common import *
 import i18n
 _ = i18n.language.gettext
 
-VERSION = 'x.0.39.6-1'
+VERSION = 'x.0.39.6-1+bzr'
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -973,7 +973,10 @@ class DockBar():
             #I changed it because I suspect it was a bug.
             path = os.path.join(folder, "applications", id)
             if os.path.isfile(path):
-                return DesktopEntry(path)
+                try:
+                    return DesktopEntry(path)
+                except:
+                    break
         return None
 
     def edit_launcher(self, arg, path, identifier):
