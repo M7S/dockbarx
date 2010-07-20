@@ -270,21 +270,7 @@ class DockBar():
             identifier = identifier.lower()
             if identifier == '':
                 identifier = None
-            try:
-                self.add_launcher(identifier, path)
-            except AttributeError:
-                message = "%s %s %s"%(
-                        _("The launcher at path"),
-                        path,
-                        _("cant be found. Did you perhaps delete the file?")
-                                      )
-                print message
-                md = gtk.MessageDialog(None,
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                    message)
-                md.run()
-                md.destroy()
+            self.add_launcher(identifier, path)
         # Update pinned_apps list to remove any pinned_app that are faulty.
         self.update_pinned_apps_list()
 
@@ -680,11 +666,22 @@ class DockBar():
             if path[4:] in self.apps_by_id:
                 app = self.apps_by_id[path[4:]]
                 desktop_entry = self.get_desktop_entry_for_id(app.get_id())
+                if desktop_entry is None:
+                    return
             else:
                 print "Couldn't find gio app for launcher %s"%path
                 return
         else:
-            desktop_entry = DesktopEntry(path)
+            try:
+                desktop_entry = DesktopEntry(path)
+            except ParsingError:
+                print "Couldn't add launcher: %s is not an desktop file!" % \
+                      path
+                return
+            except UnboundLocalError:
+                print "Couldn't add launcher: path %s doesn't exist" % path
+                return
+
         self.make_groupbutton(identifier=identifier, \
                               desktop_entry=desktop_entry, \
                               pinned=True, path=path)
