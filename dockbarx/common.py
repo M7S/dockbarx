@@ -248,6 +248,7 @@ class Globals(gobject.GObject):
                           "popup_align": "center",
                           "no_popup_for_one_window": False,
                           "show_only_current_desktop": False,
+                          "show_only_current_monitor": False,
                           "preview": False,
                           "preview_size": 230,
 

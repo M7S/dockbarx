@@ -44,60 +44,38 @@ _ = i18n.language.gettext
 ATOM_PREVIEWS = gtk.gdk.atom_intern('_KDE_WINDOW_PREVIEW')
 
 class WindowDict(dict):
-    def __init__(self):
-        dict.__init__(self)
+    def __init__(self, monitor=1, **kvargs):
+        dict.__init__(self, **kvargs)
         self.globals = Globals()
+        self.monitor = monitor
 
     def get_list(self):
         # Returns a list of windows that are in current use
-        if self.globals.settings["show_only_current_desktop"]:
-            wins = []
-            for win in self:
-                if self[win].is_on_current_desktop():
-                    wins.append(win)
-            return wins
-        else:
-            return self.keys()
-
-    def get_unminimized(self):
         wins = []
         for win in self:
-            if self.globals.settings["show_only_current_desktop"] \
-            and not self[win].is_on_current_desktop():
+            if self.globals.settings["show_only_current_desktop"] and \
+               not self[win].is_on_current_desktop():
                 continue
-            if not win.is_minimized():
-                wins.append(win)
+            if self.globals.settings["show_only_current_monitor"] and \
+               self.monitor != self[win].get_monitor():
+                continue
+            wins.append(win)
         return wins
 
+    def get_unminimized(self):
+        return [win for win in self.get_list() if not win.is_minimized()]
+
+    def get_minimized(self):
+        return [win for win in self.get_list() if win.is_minimized()]
+
     def get_count(self):
-        if not self.globals.settings["show_only_current_desktop"]:
-            return len(self)
-        nr = 0
-        for win in self:
-            if not self[win].is_on_current_desktop():
-                continue
-            nr += 1
-        return nr
+        return len(self.get_list())
 
     def get_minimized_count(self):
-        nr = 0
-        for win in self:
-            if self.globals.settings["show_only_current_desktop"] \
-            and not self[win].is_on_current_desktop():
-                continue
-            if win.is_minimized():
-                nr += 1
-        return nr
+        return len(self.get_minimized())
 
     def get_unminimized_count(self):
-        nr = 0
-        for win in self:
-            if self.globals.settings["show_only_current_desktop"] \
-            and not self[win].is_on_current_desktop():
-                continue
-            if not win.is_minimized():
-                nr += 1
-        return nr
+        return len(self.get_unminimized())
 
 class GroupButton(gobject.GObject):
     """Group button takes care of a program's "button" in dockbar.
@@ -127,7 +105,7 @@ class GroupButton(gobject.GObject):
                    }
 
     def __init__(self, identifier=None, desktop_entry=None,
-                 pinned=False):
+                 pinned=False, monitor=1):
         gobject.GObject.__init__(self)
 
         self.globals = Globals()
@@ -138,6 +116,7 @@ class GroupButton(gobject.GObject):
                              self.on_show_previews_changed)
         self.pinned = pinned
         self.desktop_entry = desktop_entry
+        self.monitor = monitor
         self.identifier = identifier
         if identifier is None and desktop_entry is None:
             raise Exception, \
@@ -146,7 +125,7 @@ class GroupButton(gobject.GObject):
 
 
         # Variables
-        self.windows = WindowDict()
+
         self.minimized_windows_count = 0
         self.minimized_state = 0
         self.has_active_window = False
@@ -165,6 +144,7 @@ class GroupButton(gobject.GObject):
 
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
+        self.windows = WindowDict(self.monitor)
 
 
         #--- Button
@@ -439,16 +419,16 @@ class GroupButton(gobject.GObject):
 
         #Update popup-list if it is being shown.
         if self.popup_showing:
-            if self.globals.settings["show_only_current_desktop"]:
-                self.winlist.show()
-                self.popup_label.show()
-                for win in self.windows.values():
-                    if win.is_on_current_desktop():
-                        win.window_button.show_all()
-                    else:
-                        win.window_button.hide_all()
-            else:
-                self.winlist.show_all()
+            self.winlist.show()
+            self.popup_label.show()
+            for win in self.windows.values():
+                if (self.globals.settings["show_only_current_desktop"] and \
+                   not win.is_on_current_desktop()) or \
+                   (self.globals.settings["show_only_current_monitor"] and \
+                   self.monitor != win.get_monitor()):
+                    win.window_button.hide_all()
+                else:
+                    win.window_button.show_all()
             gobject.idle_add(self.show_list_request)
 
         # Set minimize animation
@@ -534,10 +514,13 @@ class GroupButton(gobject.GObject):
 
     def on_set_icongeo_grp(self, arg=None):
         for win in self.windows:
-            if self.globals.settings["show_only_current_desktop"] \
-            and not self.windows[win].is_on_current_desktop():
+            if self.globals.settings["show_only_current_desktop"] and \
+               not self.windows[win].is_on_current_desktop():
                 win.set_icon_geometry(0, 0, 0, 0)
-                return
+                continue
+            if self.globals.settings["show_only_current_desktop"] and \
+               self.windows[win].get_monitor() != self.monitor:
+                continue
             alloc = self.button.get_allocation()
             if self.button.window:
                 x,y = self.button.window.get_origin()
@@ -549,10 +532,13 @@ class GroupButton(gobject.GObject):
         # This one is used during popup delay to aviod
         # thumbnails on group buttons.
         for win in self.windows:
-            if self.globals.settings["show_only_current_desktop"] \
-            and not self.windows[win].is_on_current_desktop():
+            if self.globals.settings["show_only_current_desktop"] and \
+               not self.windows[win].is_on_current_desktop():
                 win.set_icon_geometry(0, 0, 0, 0)
-                return
+                continue
+            if self.globals.settings["show_only_current_desktop"] and \
+               self.windows[win].get_monitor() != self.monitor:
+                continue
             alloc = self.button.get_allocation()
             if self.button.window:
                 x, y = self.button.window.get_origin()
@@ -641,17 +627,17 @@ class GroupButton(gobject.GObject):
             self.popup_label.set_ellipsize(pango.ELLIPSIZE_NONE)
             self.popup_label.set_size_request(-1, -1)
 
-        if self.globals.settings["show_only_current_desktop"]:
-            self.popup_box.show()
-            self.winlist.show()
-            self.popup_label.show()
-            for win in self.windows.values():
-                if win.is_on_current_desktop():
-                    win.window_button.show_all()
-                else:
-                    win.window_button.hide_all()
-        else:
-            self.popup_box.show_all()
+        self.popup_box.show()
+        self.winlist.show()
+        self.popup_label.show()
+        for win in self.windows.values():
+            if (self.globals.settings["show_only_current_desktop"] and \
+               not win.is_on_current_desktop()) or \
+               (self.globals.settings["show_only_current_monitor"] and \
+               self.monitor != win.get_monitor()):
+                win.window_button.hide_all()
+            else:
+                win.window_button.show_all()
         self.popup.resize(10,10)
         x,y = self.button.window.get_origin()
         b_alloc = self.button.get_allocation()

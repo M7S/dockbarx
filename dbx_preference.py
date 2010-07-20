@@ -564,6 +564,12 @@ class PrefDialog():
                                          'show_only_current_desktop')
         self.ignore_workspace_cb.set_border_width(5)
         advanced_box.pack_start(self.ignore_workspace_cb, False)
+        self.ignore_monitor_cb = gtk.CheckButton(
+                            _('Ignore windows on other monitors'))
+        self.ignore_monitor_cb.connect('toggled', self.checkbutton_toggled,
+                                         'show_only_current_monitor')
+        self.ignore_monitor_cb.set_border_width(5)
+        advanced_box.pack_start(self.ignore_monitor_cb, False)
 
         self.wine_apps_cb = gtk.CheckButton(
                         _('Give each wine application its own group button'))
@@ -869,6 +875,10 @@ class PrefDialog():
         self.preview_size_spin.set_sensitive(self.globals.settings["preview"])
         self.ignore_workspace_cb.set_active(
                             self.globals.settings["show_only_current_desktop"])
+        self.ignore_monitor_cb.set_sensitive(
+                            self.globals.settings["show_only_current_desktop"])
+        self.ignore_monitor_cb.set_active(
+                            self.globals.settings["show_only_current_monitor"])
         self.wine_apps_cb.set_active(
                             self.globals.settings["separate_wine_apps"])
         self.ooo_apps_cb.set_active(self.globals.settings["separate_ooo_apps"])

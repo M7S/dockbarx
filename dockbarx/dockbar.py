@@ -165,12 +165,10 @@ class DockBar():
             self.container = gtk.HBox()
             self.globals.orient = "h"
 
-        # Wait until everything is loaded
-        # before adding groupbuttons
-        while gtk.events_pending():
-            gtk.main_iteration(False)
+        # Wait until the container is realized before adding anything to it.
+        self.reload_sid = self.container.connect_after('realize',
+                                                    self.on_container_realized)
 
-        self.reload()
         if self.applet is not None:
             self.applet.connect("size-allocate",self.on_applet_size_alloc)
             self.applet.connect("change_background", self.on_change_background)
@@ -179,6 +177,12 @@ class DockBar():
 
         self.on_gkeys_changed(dialog=False)
         self.globals.connect('gkey-changed', self.on_gkeys_changed)
+
+    def on_container_realized(self, widget):
+        if self.reload_sid is not None:
+            self.container.disconnect(self.reload_sid)
+            self.reload_sid = None
+        self.reload()
 
 
     def reload(self, event=None, data=None):
@@ -200,9 +204,15 @@ class DockBar():
         if self.theme:
             self.theme.remove()
         gc.collect()
+
         print "Dockbarx reload"
         self.groups = GroupList()
         self.windows = {}
+        # Get the monitor on which dockbarx is.
+        gdk_screen = gtk.gdk.screen_get_default()
+        win = self.container.window
+        self.monitor = gdk_screen.get_monitor_at_window(win)
+        print self.monitor
         #--- Generate Gio apps
         self.apps_by_id = {}
         self.app_ids_by_exec = {}
@@ -594,7 +604,7 @@ class DockBar():
     #### Groupbuttons
     def make_groupbutton(self, identifier=None, desktop_entry=None,
                          pinned=False, index=None, path=None):
-        gb = GroupButton(identifier, desktop_entry, pinned)
+        gb = GroupButton(identifier, desktop_entry, pinned, self.monitor)
         if index is None:
             self.container.pack_start(gb.button, False)
         else:
