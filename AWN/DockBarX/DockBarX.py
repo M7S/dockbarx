@@ -36,9 +36,15 @@ class DockBarApp (awn.AppletSimple):
 
     def on_idle(self):
         self.old_child = self.get_child()
+        gdk_screen = gtk.gdk.screen_get_default()
+        window = self.old_child.window
+        monitor = gdk_screen.get_monitor_at_window(window)
         self.icon = self.get_icon()
         self.remove(self.old_child)
         self.db = dockbarx.dockbar.DockBar(None)
+        self.db.monitor = monitor
+        self.db.container.disconnect(self.db.reload_sid)
+        self.db.reload()
         if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_TOP):
             self.box = gtk.VBox()
             self.db.set_orient('h')
@@ -50,9 +56,11 @@ class DockBarApp (awn.AppletSimple):
         else:
             self.box.pack_start(self.db.container, False, False)
         if self.db.globals.orient == 'h':
-            self.db.container.set_size_request(-1, self.get_size()+self.icon.get_offset()+2)
+            self.db.container.set_size_request(-1, self.get_size() + \
+                                               self.icon.get_offset() + 2)
         else:
-            self.db.container.set_size_request(self.get_size()+self.icon.get_offset()+2, -1)
+            self.db.container.set_size_request(self.get_size() + \
+                                               self.icon.get_offset() + 2, -1)
         self.add(self.box)
         self.connect('size-changed',self.on_size_changed)
         self.connect('position-changed', self.on_position_changed)
@@ -62,9 +70,11 @@ class DockBarApp (awn.AppletSimple):
 
     def on_size_changed(self, arg1, new_size):
         if self.db.globals.orient == 'h':
-            self.db.container.set_size_request(-1, new_size+self.icon.get_offset()+2)
+            self.db.container.set_size_request(-1, new_size + \
+                                               self.icon.get_offset() + 2)
         else:
-            self.db.container.set_size_request(new_size+self.icon.get_offset()+2, -1)
+            self.db.container.set_size_request(new_size + \
+                                               self.icon.get_offset() + 2, -1)
 
     def on_position_changed(self, applet, position):
         self.box.remove(self.db.container)
@@ -80,9 +90,11 @@ class DockBarApp (awn.AppletSimple):
         else:
             self.box.pack_start(self.db.container, False, False)
         if self.db.globals.orient == 'h':
-            self.db.container.set_size_request(-1, self.get_size()+self.icon.get_offset()+2)
+            self.db.container.set_size_request(-1, self.get_size() + \
+                                               self.icon.get_offset() + 2)
         else:
-            self.db.container.set_size_request(self.get_size()+self.icon.get_offset()+2, -1)
+            self.db.container.set_size_request(self.get_size() + \
+                                               self.icon.get_offset() + 2, -1)
         self.add(self.box)
         self.box.show()
         self.db.container.show()

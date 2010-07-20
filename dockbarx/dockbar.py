@@ -211,8 +211,8 @@ class DockBar():
         # Get the monitor on which dockbarx is.
         gdk_screen = gtk.gdk.screen_get_default()
         win = self.container.window
-        self.monitor = gdk_screen.get_monitor_at_window(win)
-        print self.monitor
+        if win is not None:
+            self.monitor = gdk_screen.get_monitor_at_window(win)
         #--- Generate Gio apps
         self.apps_by_id = {}
         self.app_ids_by_exec = {}
