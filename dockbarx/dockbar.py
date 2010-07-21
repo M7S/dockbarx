@@ -108,7 +108,7 @@ class GroupList(list):
 
 
 class DockBar():
-    def __init__(self,applet):
+    def __init__(self, applet=None, as_awn_applet=False):
         print "Dockbarx init"
         self.applet = applet
         self.groups = None
@@ -166,8 +166,8 @@ class DockBar():
             self.globals.orient = "h"
 
         # Wait until the container is realized before adding anything to it.
-        self.reload_sid = self.container.connect_after('realize',
-                                                    self.on_container_realized)
+        if not as_awn_applet:
+            gobject.timeout_add(10, self.reload_on_realized)
 
         if self.applet is not None:
             self.applet.connect("size-allocate",self.on_applet_size_alloc)
@@ -178,11 +178,11 @@ class DockBar():
         self.on_gkeys_changed(dialog=False)
         self.globals.connect('gkey-changed', self.on_gkeys_changed)
 
-    def on_container_realized(self, widget):
-        if self.reload_sid is not None:
-            self.container.disconnect(self.reload_sid)
-            self.reload_sid = None
+    def reload_on_realized(self):
+        if self.container.window is None:
+            return True
         self.reload()
+        return False
 
 
     def reload(self, event=None, data=None):

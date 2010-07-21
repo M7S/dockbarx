@@ -41,9 +41,8 @@ class DockBarApp (awn.AppletSimple):
         monitor = gdk_screen.get_monitor_at_window(window)
         self.icon = self.get_icon()
         self.remove(self.old_child)
-        self.db = dockbarx.dockbar.DockBar(None)
+        self.db = dockbarx.dockbar.DockBar(as_awn_applet=True)
         self.db.monitor = monitor
-        self.db.container.disconnect(self.db.reload_sid)
         self.db.reload()
         if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_TOP):
             self.box = gtk.VBox()
