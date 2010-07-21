@@ -57,7 +57,7 @@ class WindowDict(dict):
                not self[win].is_on_current_desktop():
                 continue
             if self.globals.settings["show_only_current_monitor"] and \
-               self.monitor != self[win].get_monitor():
+               self.monitor != self[win].monitor:
                 continue
             wins.append(win)
         return wins
@@ -414,6 +414,7 @@ class GroupButton(gobject.GObject):
         wb.connect('needs-attention-changed', self.on_needs_attention_changed)
         wb.connect('popup-hide', self.on_popup_hide)
         wb.connect('popup-expose-request', self.on_popup_expose_request)
+        wb.connect('monitor-changed', self.on_window_monitor_changed)
         # Update state unless the button hasn't been shown yet.
         self.update_state_request()
 
@@ -425,7 +426,7 @@ class GroupButton(gobject.GObject):
                 if (self.globals.settings["show_only_current_desktop"] and \
                    not win.is_on_current_desktop()) or \
                    (self.globals.settings["show_only_current_monitor"] and \
-                   self.monitor != win.get_monitor()):
+                   self.monitor != win.monitor):
                     win.window_button.hide_all()
                 else:
                     win.window_button.show_all()
@@ -519,7 +520,7 @@ class GroupButton(gobject.GObject):
                 win.set_icon_geometry(0, 0, 0, 0)
                 continue
             if self.globals.settings["show_only_current_desktop"] and \
-               self.windows[win].get_monitor() != self.monitor:
+               self.windows[win].monitor != self.monitor:
                 continue
             alloc = self.button.get_allocation()
             if self.button.window:
@@ -537,7 +538,7 @@ class GroupButton(gobject.GObject):
                 win.set_icon_geometry(0, 0, 0, 0)
                 continue
             if self.globals.settings["show_only_current_desktop"] and \
-               self.windows[win].get_monitor() != self.monitor:
+               self.windows[win].monitor != self.monitor:
                 continue
             alloc = self.button.get_allocation()
             if self.button.window:
@@ -568,6 +569,24 @@ class GroupButton(gobject.GObject):
 
     def on_db_move(self, arg=None):
         self.on_set_icongeo_grp()
+
+    def on_window_monitor_changed(self, arg=None):
+        self.update_state()
+        self.on_set_geo_grp()
+        #Update popup-list if it is being shown.
+        if self.popup_showing:
+            self.winlist.show()
+            self.popup_label.show()
+            for win in self.windows.values():
+                if (self.globals.settings["show_only_current_desktop"] and \
+                   not win.is_on_current_desktop()) or \
+                   (self.globals.settings["show_only_current_monitor"] and \
+                   self.monitor != win.monitor):
+                    win.window_button.hide_all()
+                else:
+                    win.window_button.show_all()
+            gobject.idle_add(self.show_list_request)
+
 
     def on_popup_expose_request(self, arg=None):
         event = gtk.gdk.Event(gtk.gdk.EXPOSE)
@@ -634,7 +653,7 @@ class GroupButton(gobject.GObject):
             if (self.globals.settings["show_only_current_desktop"] and \
                not win.is_on_current_desktop()) or \
                (self.globals.settings["show_only_current_monitor"] and \
-               self.monitor != win.get_monitor()):
+               self.monitor != win.monitor):
                 win.window_button.hide_all()
             else:
                 win.window_button.show_all()

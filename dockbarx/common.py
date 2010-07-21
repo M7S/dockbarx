@@ -233,9 +233,12 @@ class Globals(gobject.GObject):
         'color2-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'show-only-current-desktop-changed': (gobject.SIGNAL_RUN_FIRST,
                                               gobject.TYPE_NONE,()),
+        'show-only-current-monitor-changed': (gobject.SIGNAL_RUN_FIRST,
+                                              gobject.TYPE_NONE,()),
         'theme-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'color-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'show-previews-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        'show-previews-changed': (gobject.SIGNAL_RUN_FIRST,
+                                  gobject.TYPE_NONE,()),
         'preference-update': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'gkey-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
     }
@@ -417,6 +420,8 @@ class Globals(gobject.GObject):
             self.emit('color2-changed')
         if 'show_only_current_desktop' in changed_settings:
             self.emit('show-only-current-desktop-changed')
+        if 'show_only_current_monitor' in changed_settings:
+            self.emit('show-only-current-monitor-changed')
         if 'preview' in changed_settings:
             self.emit('show-previews-changed')
         for key in changed_settings:

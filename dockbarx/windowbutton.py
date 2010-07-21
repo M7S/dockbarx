@@ -34,8 +34,7 @@ _ = i18n.language.gettext
 
 
 class WindowButton(gobject.GObject):
-    __gsignals__ = {
-                    "minimized": (gobject.SIGNAL_RUN_FIRST,
+    __gsignals__ = {"minimized": (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,()),
                     "unminimized": (gobject.SIGNAL_RUN_FIRST,
                                     gobject.TYPE_NONE,()),
@@ -46,12 +45,16 @@ class WindowButton(gobject.GObject):
                     "popup-hide-request": (gobject.SIGNAL_RUN_FIRST,
                                            gobject.TYPE_NONE,()),
                     "popup-expose-request": (gobject.SIGNAL_RUN_FIRST,
-                                             gobject.TYPE_NONE,())
-                   }
+                                             gobject.TYPE_NONE,()),
+                    "monitor-changed": (gobject.SIGNAL_RUN_FIRST,
+                                        gobject.TYPE_NONE,())}
+
     def __init__(self, window):
         gobject.GObject.__init__(self)
         self.globals = Globals()
         self.globals.connect('color-changed', self.update_label_state)
+        self.globals.connect('show-only-current-monitor-changed',
+                             self.on_show_only_current_monitor_changed)
         self.globals.connect('show-previews-changed',
                              self.on_show_preview_changed)
         self.screen = wnck.screen_get_default()
@@ -94,6 +97,8 @@ class WindowButton(gobject.GObject):
                                                 self.on_window_icon_changed)
         self.name_changed_event = self.window.connect("name-changed",
                                                 self.on_window_name_changed)
+        self.geometry_changed_event = None
+        self.on_show_only_current_monitor_changed()
 
         #--- D'n'D
         self.window_button.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT, [], 0)
@@ -101,7 +106,6 @@ class WindowButton(gobject.GObject):
         self.window_button.connect("drag_leave", self.on_button_drag_leave)
         self.button_drag_entered = False
         self.dnd_select_window = None
-
 
     def set_button_active(self, mode):
         self.is_active_window = mode
@@ -125,8 +129,6 @@ class WindowButton(gobject.GObject):
         attr_list.insert(pango.AttrForeground(r, g, b, 0, 200))
         self.label.set_attributes(attr_list)
 
-
-
     def is_on_current_desktop(self):
         if (self.window.get_workspace() is None \
         or self.screen.get_active_workspace() == self.window.get_workspace()) \
@@ -136,10 +138,22 @@ class WindowButton(gobject.GObject):
             return False
 
     def get_monitor(self):
+        if not self.globals.settings['show_only_current_monitor']:
+            return 0
         gdk_screen = gtk.gdk.screen_get_default()
         win = gtk.gdk.window_lookup(self.window.get_xid())
         x, y, w, h, bit_depth = win.get_geometry()
         return gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
+
+    def on_show_only_current_monitor_changed(self, arg=None):
+        if self.globals.settings['show_only_current_monitor']:
+            if self.geometry_changed_event is None:
+                self.geometry_changed_event = self.window.connect(
+                                'geometry-changed', self.on_geometry_changed)
+        else:
+            if self.geometry_changed_event is not None:
+                self.window.disconnect(self.geometry_changed_event)
+        self.monitor = self.get_monitor()
 
     def del_button(self):
         self.window_button.destroy()
@@ -279,6 +293,11 @@ class WindowButton(gobject.GObject):
         y += alloc.y
         self.window.set_icon_geometry(x, y, w, h)
 
+    def on_geometry_changed(self, *args):
+        monitor = self.get_monitor()
+        if monitor != self.monitor:
+            self.monitor = monitor
+            self.emit('monitor-changed')
 
     #### Opacify
     def opacify(self):
