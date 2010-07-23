@@ -218,10 +218,7 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
                 cmd = "%s %s"%(cmd, " ".join(files))
 
             print "Executing: %s"%cmd
-            if os.path.isdir(cmd.split()[0]):
-                os.system("xdg-open '%s' &"%cmd)
-            else:
-                os.system("/bin/sh -c '%s' &"%cmd)
+            os.system("/bin/sh -c '%s' &"%cmd)
 
 
 class Globals(gobject.GObject):
