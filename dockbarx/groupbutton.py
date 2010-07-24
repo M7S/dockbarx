@@ -172,6 +172,7 @@ class GroupButton(gobject.GObject):
         self.popup = cairo_popup.window
         self.popup_showing = False
         self.popup.connect("leave-notify-event",self.on_popup_mouse_leave)
+        self.popup.connect_after("size-allocate", self.on_popup_size_allocate)
 
         self.popup_box = gtk.VBox()
         self.popup_box.set_border_width(5)
@@ -430,7 +431,7 @@ class GroupButton(gobject.GObject):
                     win.window_button.hide_all()
                 else:
                     win.window_button.show_all()
-            gobject.idle_add(self.show_list_request)
+            gobject.idle_add(self.show_list)
 
         # Set minimize animation
         # (if the eventbox is created already,
@@ -621,9 +622,6 @@ class GroupButton(gobject.GObject):
         return False
 
     def show_list(self):
-        # Move popup to it's right spot and show it.
-        offset = 3
-
         win_cnt = self.windows.get_count()
         if self.globals.settings["preview"] and win_cnt > 0:
             # Set hint type so that previews can be used.
@@ -658,34 +656,6 @@ class GroupButton(gobject.GObject):
             else:
                 win.window_button.show_all()
         self.popup.resize(10,10)
-        x,y = self.button.window.get_origin()
-        b_alloc = self.button.get_allocation()
-        w,h = self.popup.get_size()
-        if self.globals.orient == "h":
-            if self.globals.settings['popup_align'] == 'left':
-                x = b_alloc.x + x
-            if self.globals.settings['popup_align'] == 'center':
-                x = b_alloc.x + x + (b_alloc.width/2)-(w/2)
-            if self.globals.settings['popup_align'] == 'right':
-                x = b_alloc.x + x + b_alloc.width - w
-            y = b_alloc.y + y-offset
-            if x+(w)>self.screen.get_width():
-                x=self.screen.get_width()-w
-            if x<0:
-                x = 0
-            if y-h >= 0:
-                self.popup.move(x,y-h)
-            else:
-                self.popup.move(x,y+b_alloc.height+(offset*2))
-        else:
-            x = b_alloc.x + x
-            y = b_alloc.y + y
-            if y+h>self.screen.get_height():
-                y=self.screen.get_height()-h
-            if x+w >= self.screen.get_width():
-                self.popup.move(x - w - offset,y)
-            else:
-                self.popup.move(x + b_alloc.width + offset,y)
         self.popup.show()
         self.popup_showing = True
         self.on_set_icongeo_win()
@@ -791,6 +761,38 @@ class GroupButton(gobject.GObject):
             gobject.source_remove(self.list_hide_timeout)
             self.list_hide_timeout = None
         return False
+
+    def on_popup_size_allocate(self, widget, allocation):
+        # Move popup to it's right spot
+        offset = 3
+        x,y = self.button.window.get_origin()
+        b_alloc = self.button.get_allocation()
+        w,h = self.popup.get_size()
+        if self.globals.orient == "h":
+            if self.globals.settings['popup_align'] == 'left':
+                x = b_alloc.x + x
+            if self.globals.settings['popup_align'] == 'center':
+                x = b_alloc.x + x + (b_alloc.width/2)-(w/2)
+            if self.globals.settings['popup_align'] == 'right':
+                x = b_alloc.x + x + b_alloc.width - w
+            y = b_alloc.y + y-offset
+            if x+(w)>self.screen.get_width():
+                x=self.screen.get_width()-w
+            if x<0:
+                x = 0
+            if y-h >= 0:
+                self.popup.move(x,y-h)
+            else:
+                self.popup.move(x,y+b_alloc.height+(offset*2))
+        else:
+            x = b_alloc.x + x
+            y = b_alloc.y + y
+            if y+h>self.screen.get_height():
+                y=self.screen.get_height()-h
+            if x+w >= self.screen.get_width():
+                self.popup.move(x - w - offset,y)
+            else:
+                self.popup.move(x + b_alloc.width + offset,y)
 
     #### Opacify
     def opacify(self):
