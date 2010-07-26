@@ -168,8 +168,7 @@ class GroupButton(gobject.GObject):
 
 
         #--- Popup window
-        cairo_popup = CairoPopup()
-        self.popup = cairo_popup.window
+        self.popup = CairoPopup()
         self.popup_showing = False
         self.popup.connect("leave-notify-event",self.on_popup_mouse_leave)
         self.popup.connect_after("size-allocate", self.on_popup_size_allocate)
@@ -605,6 +604,7 @@ class GroupButton(gobject.GObject):
         self.hide_list()
 
     def on_popup_hide_request(self, arg=None):
+        self.hide_time = time()
         self.hide_list_request()
 
 
@@ -689,61 +689,24 @@ class GroupButton(gobject.GObject):
 
     def hide_list_request(self):
         if self.popup.window is None:
+            # Popup isn't shown.
             return
-        # Checks if mouse cursor really isn't hovering the button
-        # or the popup window anymore and hide the popup window
-        # if so.
-        p_m_x,p_m_y = self.popup.get_pointer()
-        p_w,p_h = self.popup.get_size()
-        b_m_x,b_m_y = self.button.get_pointer()
-        b_r = self.button.get_allocation()
-        r = 6 #radius for the rounded corner of popup window
-
-        # Make sure that the popup list isn't closed when
-        # howering the gap between button and list.
-        w,h = self.popup.get_size()
-        p_x,p_y = self.popup.window.get_origin()
-        offset = 3
-        b_x,b_y = self.button.window.get_origin()
-        if self.globals.orient == 'h' \
-        and b_m_x >= -8 and b_m_x <= (b_r.width+7):
-            if (p_y < b_y and b_m_y >= -offset and b_m_y <= 0) \
-            or (p_y > b_y and b_m_y >= (b_r.height - 1) \
-            and b_m_y <= (b_r.height - 1 + offset)):
-                gobject.timeout_add(50, self.hide_list_request)
-                return
-        elif self.globals.orient == 'v' \
-        and b_m_y >= -8 and b_m_y <= (b_r.height+7):
-            if (p_x < b_x and b_m_x >= -offset and b_m_x <= 0) \
-            or (p_x > b_x and b_m_x >= (b_r.width - 1) \
-            and b_m_x <= (b_r.width - 1 + offset)):
-                gobject.timeout_add(50, self.hide_list_request)
-                return
-
-        if p_m_x >= 0 and p_m_x < p_w \
-        and p_m_y >= 0 and p_m_y < p_h:
-            # Mouse pointer is inside the "rectangle"
-            # but check if it's still outside the rounded corners
-            x = None
-            y = None
-            if p_m_x < r:
-                x = r - p_m_x
-            if (p_w - p_m_x) < r:
-                x = p_m_x - (p_w - r)
-            if p_m_y < r:
-                y = r - p_m_y
-            if (p_h - p_m_y) < r:
-                y = p_m_y - (p_h - r)
-            if x is None or y is None \
-            or (x**2 + y**2) < (r-1)**2:
-                # It's inside the rounded corners!
-                return
-        if b_m_x >= 0 and b_m_x < b_r.width \
-        and b_m_y >= 0 and b_m_y < b_r.height:
-            # Mouse pointer is over the group button.
-            gobject.timeout_add(50, self.hide_list_request)
-            # This timeout add is needed if mouse cursor leaves the
-            # screen following the screen edge.
+        display = gtk.gdk.display_get_default()
+        pos = display.get_pointer()
+        button_list = gtk.gdk.BUTTON1_MASK | gtk.gdk.BUTTON2_MASK | \
+                      gtk.gdk.BUTTON3_MASK | gtk.gdk.BUTTON4_MASK | \
+                      gtk.gdk.BUTTON5_MASK
+        if not pos[3] & button_list and time() - self.hide_time < 0.6:
+            # No mouse button is pressed and less than 600 ms has passed.
+            # Check again in 10 ms.
+            gobject.timeout_add(10, self.hide_list_request)
+            return
+        if self.popup.pointer_is_inside():
+            return
+        if self.button.pointer_is_inside():
+            # A timeout add is needed if so that the popup gets hidden even
+            # if the pointer leaves the button by following a screen edge.
+            gobject.timeout_add(600, self.hide_list_request)
             return
         self.hide_list()
         return
@@ -996,6 +959,7 @@ class GroupButton(gobject.GObject):
         self.launcher_drag = False
         self.button_drag_entered = False
         self.update_state()
+        self.hide_time = time()
         self.hide_list_request()
         if self.dnd_show_popup is not None:
             gobject.source_remove(self.dnd_show_popup)
@@ -1016,6 +980,7 @@ class GroupButton(gobject.GObject):
         return True
 
     def on_popup_drag_leave(self, widget, drag_context, t):
+        self.hide_time = time()
         self.hide_list_request()
 
 
@@ -1072,6 +1037,7 @@ class GroupButton(gobject.GObject):
         self.button_pressed = False
         self.mouse_over = False
         self.update_state()
+        self.hide_time = time()
         self.hide_list_request()
         if self.popup.window is None:
             # self.hide_list takes care of 'set-icongeo-grp' normally
@@ -1082,6 +1048,7 @@ class GroupButton(gobject.GObject):
             self.deopacify_request()
 
     def on_popup_mouse_leave (self,widget,event):
+        self.hide_time = time()
         self.hide_list_request()
 
     def on_group_button_scroll_event (self,widget,event):
@@ -1668,6 +1635,7 @@ class GroupButton(gobject.GObject):
         self.action_select_next(widget, event, previous)
         if self.list_hide_timeout is not None:
             gobject.source_remove(self.list_hide_timeout)
+        self.hide_time = time()
         self.list_hide_timeout = gobject.timeout_add(2000,
                                                      self.hide_list_request)
 

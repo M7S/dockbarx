@@ -60,28 +60,38 @@ class CairoButton(gtk.Button):
     def cleanup(self, event):
         del self.surface
 
-class CairoPopup():
+    def pointer_is_inside(self):
+        b_m_x,b_m_y = self.get_pointer()
+        b_r = self.get_allocation()
+
+        if b_m_x >= 0 and b_m_x < b_r.width and \
+           b_m_y >= 0 and b_m_y < b_r.height:
+            return True
+        else:
+            return False
+
+class CairoPopup(gtk.Window):
     """CairoPopup is a transparent popup window with rounded corners"""
     def __init__(self):
-        self.window = gtk.Window(gtk.WINDOW_POPUP)
-        self.window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
+        gtk.Window.__init__(self, gtk.WINDOW_POPUP)
+        self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         gtk_screen = gtk.gdk.screen_get_default()
         colormap = gtk_screen.get_rgba_colormap()
         if colormap is None:
             colormap = gtk_screen.get_rgb_colormap()
-        self.window.set_colormap(colormap)
-        self.window.set_app_paintable(1)
-        self.window.connect("expose_event", self.expose)
+        self.set_colormap(colormap)
+        self.set_app_paintable(1)
+        self.connect("expose_event", self.expose)
         self.globals = Globals()
 
 
     def expose(self, widget, event):
         self.set_shape_mask()
-        w,h = self.window.get_size()
-        self.ctx = self.window.window.cairo_create()
+        w,h = self.get_size()
+        self.ctx = self.window.cairo_create()
         # set a clip region for the expose event, XShape stuff
         self.ctx.save()
-        if self.window.is_composited():
+        if self.is_composited():
             self.ctx.set_source_rgba(1, 1, 1,0)
         else:
             self.ctx.set_source_rgb(1, 1, 1)
@@ -95,7 +105,7 @@ class CairoPopup():
 
     def set_shape_mask(self):
         # Set window shape from alpha mask of background image
-        w,h = self.window.get_size()
+        w,h = self.get_size()
         if w==0: w = 800
         if h==0: h = 600
         pixmap = gtk.gdk.Pixmap (None, w, h, 1)
@@ -116,7 +126,7 @@ class CairoPopup():
         ctx.arc(lt + r, dn - r, r, pi/2, pi)
         ctx.close_path()
 
-        if self.window.is_composited():
+        if self.is_composited():
             ctx.set_source_rgba(1, 1, 1, 1)
         else:
             # A grey color makes the "semi transparent"
@@ -124,13 +134,13 @@ class CairoPopup():
             ctx.set_source_rgb(0.5, 0.5, 0.5)
         ctx.fill()
 
-        if self.window.is_composited():
-            self.window.window.shape_combine_mask(None, 0, 0)
+        if self.is_composited():
+            self.window.shape_combine_mask(None, 0, 0)
             ctx.rectangle(0,0,w,h)
             ctx.fill()
-            self.window.input_shape_combine_mask(pixmap,0,0)
+            self.input_shape_combine_mask(pixmap,0,0)
         else:
-            self.window.shape_combine_mask(pixmap, 0, 0)
+            self.shape_combine_mask(pixmap, 0, 0)
         del pixmap
 
     def draw_frame(self, ctx, w, h):
@@ -153,17 +163,42 @@ class CairoPopup():
         ctx.arc(lt + r, dn - r, r, pi/2, pi)
         ctx.close_path()
 
-        if self.window.is_composited():
+        if self.is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:
             ctx.set_source_rgb(red, green, blue)
         ctx.fill_preserve()
-        if self.window.is_composited():
+        if self.is_composited():
             ctx.set_source_rgba(0.0, 0.0, 0.0, alpha)
         else:
             ctx.set_source_rgb(0.0, 0.0, 0.0)
         ctx.set_line_width(1)
         ctx.stroke()
+
+    def pointer_is_inside(self):
+        p_m_x, p_m_y = self.get_pointer()
+        p_w, p_h = self.get_size()
+        r = 6 #radius for the rounded corner of popup window
+
+        if p_m_x >= 0 and p_m_x < p_w \
+        and p_m_y >= 0 and p_m_y < p_h:
+            # Mouse pointer is inside the "rectangle"
+            # but check if it's still outside the rounded corners
+            x = None
+            y = None
+            if p_m_x < r:
+                x = r - p_m_x
+            if (p_w - p_m_x) < r:
+                x = p_m_x - (p_w - r)
+            if p_m_y < r:
+                y = r - p_m_y
+            if (p_h - p_m_y) < r:
+                y = p_m_y - (p_h - r)
+            if x is None or y is None \
+            or (x**2 + y**2) < (r-1)**2:
+                return True
+        else:
+            return False
 
 class CairoWindowButton(gtk.Button):
     """CairoButton is a gtk button with a cairo surface painted over it."""
