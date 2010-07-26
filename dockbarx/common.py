@@ -245,6 +245,7 @@ class Globals(gobject.GObject):
                           "groupbutton_attention_notification_type": "red",
                           "workspace_behavior": "switch",
                           "popup_delay": 250,
+                          "second_popup_delay": 30,
                           "popup_align": "center",
                           "no_popup_for_one_window": False,
                           "show_only_current_desktop": False,
@@ -341,6 +342,8 @@ class Globals(gobject.GObject):
             self.dragging = False
             self.orient = 'h'
             self.theme_name = None
+
+            self.gb_showing_popup = None
 
             # Get gconf settings
             self.settings = self.DEFAULT_SETTINGS.copy()

@@ -685,6 +685,11 @@ class GroupButton(gobject.GObject):
                                           32,
                                           gtk.gdk.PROP_MODE_REPLACE,
                                           previews)
+
+        if self.globals.gb_showing_popup is not None and \
+           self.globals.gb_showing_popup != self:
+            self.globals.gb_showing_popup.hide_list()
+        self.globals.gb_showing_popup = self
         return False
 
     def hide_list_request(self):
@@ -723,6 +728,8 @@ class GroupButton(gobject.GObject):
         if self.list_hide_timeout is not None:
             gobject.source_remove(self.list_hide_timeout)
             self.list_hide_timeout = None
+        if self.globals.gb_showing_popup == self:
+            self.globals.gb_showing_popup = None
         return False
 
     def on_popup_size_allocate(self, widget, allocation):
@@ -785,7 +792,7 @@ class GroupButton(gobject.GObject):
         self.opacified = True
         ov = [self.globals.settings['opacify_alpha']]
         om = ["!(class=%s" % \
-              self.windows.keys[0].get_class_group().get_res_class() + \
+              self.windows.keys()[0].get_class_group().get_res_class() + \
               " | class=Dockbarx_factory.py) & (type=Normal | type=Dialog)"]
         try:
             compiz_call('obs/screen0/opacity_values','set', ov)
@@ -1028,8 +1035,12 @@ class GroupButton(gobject.GObject):
         if self.globals.settings["popup_delay"]>0:
             self.on_set_icongeo_delay()
         if not self.globals.right_menu_showing and not self.globals.dragging:
-            gobject.timeout_add(self.globals.settings['popup_delay'],
-                                self.show_list_request)
+            if self.globals.gb_showing_popup is None:
+                gobject.timeout_add(self.globals.settings['popup_delay'],
+                                    self.show_list_request)
+            else:
+                gobject.timeout_add(self.globals.settings['second_popup_delay'],
+                                    self.show_list_request)
 
     def on_button_mouse_leave (self, widget, event):
         # In compiz there is a enter and
