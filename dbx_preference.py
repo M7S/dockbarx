@@ -417,6 +417,17 @@ class PrefDialog():
         spinbox.pack_start(spinlabel, False)
         spinbox.pack_start(self.delay_spin, False, padding=5)
         vbox.pack_start(spinbox, False)
+
+        spinbox = gtk.HBox()
+        spinlabel = gtk.Label(_("Delay for switching between popups"))
+        spinlabel.set_alignment(0,0.5)
+        adj = gtk.Adjustment(0, 0, 2000, 1, 50)
+        self.second_delay_spin = gtk.SpinButton(adj, 0.5, 0)
+        adj.connect("value_changed", self.adjustment_changed,
+                    'second_popup_delay')
+        spinbox.pack_start(spinlabel, False)
+        spinbox.pack_start(self.second_delay_spin, False, padding=5)
+        vbox.pack_start(spinbox, False)
         popup_box.pack_start(vbox, False, padding=5)
 
         # Previews
@@ -768,6 +779,8 @@ class PrefDialog():
 
         # Popup
         self.delay_spin.set_value(self.globals.settings['popup_delay'])
+        self.second_delay_spin.set_value(
+                                 self.globals.settings['second_popup_delay'])
         self.no_popup_cb.set_active(
                             self.globals.settings['no_popup_for_one_window'])
 
