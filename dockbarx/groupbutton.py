@@ -1330,10 +1330,16 @@ class GroupButton(gobject.GObject):
                 window.unminimize(t)
 
     def menu_change_identifier(self, widget=None, event=None):
+        # Submenus doesn't seem to call the selection done event at all time.
+        self.menu_closed(None)
+
         self.emit('identifier-change',
                   self.desktop_entry.getFileName(), self.identifier)
 
     def menu_edit_launcher(self, widget=None, event=None):
+        # Submenus doesn't seem to call the selection done event at all time.
+        self.menu_closed(None)
+
         if self.desktop_entry:
             path = self.desktop_entry.getFileName()
         else:
@@ -1346,6 +1352,9 @@ class GroupButton(gobject.GObject):
         self.emit('pinned')
 
     def launch_item(self, button, event, uri):
+        # Submenus doesn't seem to call the selection done event at all time.
+        self.menu_closed(None)
+
         self.desktop_entry.launch(uri)
         if self.windows:
             self.launch_effect_timeout = gobject.timeout_add(2000,

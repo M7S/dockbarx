@@ -1017,7 +1017,6 @@ class DockBar():
                     gb = self.groups[identifier]
                 else:
                     gb = self.groups[old_path]
-                    gb.set_identifier(old_path, new_path)
                 gb.desktop_entry = desktop_entry
                 gb.update_name()
                 gb.icon_factory.set_desktop_entry(desktop_entry)
