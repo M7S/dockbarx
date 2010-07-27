@@ -230,17 +230,22 @@ class GroupButton(gobject.GObject):
                                     "%s: %s"%(_("Identifier"),self.identifier))
 
     def update_name(self):
+        self.name = None
         if self.desktop_entry:
-            self.name = self.desktop_entry.getName()
-        elif self.windows:
+            try:
+                self.name = self.desktop_entry.getName()
+            except:
+                pass
+        if self.name is None and self.windows:
             # Uses first half of the name,
             # like "Amarok" from "Amarok - [SONGNAME]"
             # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
             # totally screwed up. So far no such program has been reported.
             self.name = self.windows.keys()[0].get_class_group().get_name()
             self.name = self.name.split(" - ", 1)[0]
-        else:
-            self.name = None
+        if self.name is None and self.identifier:
+            self.name = self.identifier
+        if self.name is None:
             return
         self.popup_label.set_label(
                     "<span foreground='%s'>"%self.globals.colors['color2'] + \
