@@ -1279,7 +1279,7 @@ class GroupButton(gobject.GObject):
             close_all_windows_item.connect("activate",
                                            self.action_close_all_windows)
             close_all_windows_item.show()
-        menu.popup(None, None, None, event.button, event.time)
+        menu.popup(None, None, self.menu_position, event.button, event.time)
         self.globals.right_menu_showing = True
 
     def menu_get_zg_files(self):
@@ -1327,6 +1327,28 @@ class GroupButton(gobject.GObject):
                                      rf in other_recent)]
             related_files = related_files[:3]
         return recent_files, most_used_files, related_files
+
+    def menu_position(self, menu):
+        x, y = self.button.window.get_origin()
+        a = self.button.get_allocation()
+        x += a.x
+        y += a.y
+        w, h = menu.size_request()
+        if self.globals.orient == 'v':
+            if x < (self.screen.get_width() / 2):
+                x += a.width
+            else:
+                x -= w
+            if y + h > self.screen.get_height():
+                y -= h - a.height
+        if self.globals.orient == 'h':
+            if y < (self.screen.get_height() / 2):
+                y += a.height
+            else:
+                y -= h
+            if x + w >= self.screen.get_width():
+                x -= w - a.width
+        return (x, y, False)
 
     def menu_closed(self, menushell):
         self.globals.right_menu_showing = False
