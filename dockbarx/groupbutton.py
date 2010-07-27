@@ -1025,19 +1025,22 @@ class GroupButton(gobject.GObject):
             return
         self.mouse_over = True
         self.update_state()
-        if self.globals.settings["opacify"] \
-        and self.globals.settings["opacify_group"]:
+        if self.globals.settings["opacify"] and \
+           self.globals.settings["opacify_group"]:
             gobject.timeout_add(self.globals.settings['popup_delay'],
                                 self.opacify_request)
             # Just for safty in case no leave-signal is sent
-            gobject.timeout_add(self.globals.settings['popup_delay']+500,
+            gobject.timeout_add(self.globals.settings['popup_delay'] + 500,
                                 self.deopacify_request)
 
-        if self.windows.get_count() <= 1 \
-        and self.globals.settings['no_popup_for_one_window']:
+        win_cnt = self.windows.get_count()
+        if  win_cnt == 0:
+            return
+        if win_cnt == 1 and \
+           self.globals.settings['no_popup_for_one_window']:
             return
         # Prepare for popup window
-        if self.globals.settings["popup_delay"]>0:
+        if self.globals.settings["popup_delay"] > 0:
             self.on_set_icongeo_delay()
         if not self.globals.right_menu_showing and not self.globals.dragging:
             if self.globals.gb_showing_popup is None:
