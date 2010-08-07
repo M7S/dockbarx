@@ -139,9 +139,6 @@ class GroupButton(gobject.GObject):
         self.launch_effect = False
         self.hide_list_sid = None
         self.show_list_sid = None
-        # Compiz sends out false mouse enter messages after button is pressed.
-        # This works around that bug.
-        self.button_pressed = False
 
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
@@ -462,10 +459,12 @@ class GroupButton(gobject.GObject):
                 self.globals.opacified = False
                 self.opacified = False
                 self.deopacify()
-            if self.popup_showing and self.pinned:
-                # Move the popup.
-                self.popup.resize(10,10)
-                gobject.idle_add(self.show_list_request)
+        if self.popup_showing:
+            if self.windows.get_count() > 0:
+                # Move and resize the popup.
+                self.show_list()
+            else:
+                self.hide_list()
         if not self.windows and not self.pinned:
             # Remove group button.
             self.hide_list()
@@ -575,13 +574,10 @@ class GroupButton(gobject.GObject):
     #### Show/hide list
     def show_list_request(self):
         # If mouse cursor is over the button, show popup window.
-        b_m_x,b_m_y = self.button.get_pointer()
-        b_r = self.button.get_allocation()
-        if self.popup_showing \
-        or ((b_m_x>=0 and b_m_x<b_r.width) \
-        and (b_m_y >= 0 and b_m_y < b_r.height) \
-        and not self.globals.right_menu_showing \
-        and not self.globals.dragging):
+        if self.popup_showing or \
+           (self.button.pointer_is_inside() and \
+            not self.globals.right_menu_showing and \
+            not self.globals.dragging):
             self.show_list()
         return False
 
@@ -669,12 +665,7 @@ class GroupButton(gobject.GObject):
             # Check again in 10 ms.
             gobject.timeout_add(10, self.hide_list_request)
             return
-        if self.popup.pointer_is_inside():
-            return
-        if self.button.pointer_is_inside():
-            # A timeout add is needed if so that the popup gets hidden even
-            # if the pointer leaves the button by following a screen edge.
-            gobject.timeout_add(600, self.hide_list_request)
+        if self.popup.pointer_is_inside() or self.button.pointer_is_inside():
             return
         self.hide_list()
         return
@@ -771,12 +762,6 @@ class GroupButton(gobject.GObject):
 
     def opacify_request(self):
         if self.windows.get_unminimized_count() == 0:
-            return False
-        # if self.button_pressed is true, opacity_request is called by an
-        # wrongly sent out enter_notification_event sent after a
-        # button_press (because of a bug in compiz).
-        if self.button_pressed:
-            self.button_pressed = False
             return False
         # Check if mouse cursor still is over the window button.
         b_m_x,b_m_y = self.button.get_pointer()
@@ -979,9 +964,9 @@ class GroupButton(gobject.GObject):
             self.set_icongeo()
 
     def on_button_mouse_enter (self, widget, event):
-        # In compiz there is a enter and a leave event
-        # before a button_press event.
-        if self.button_pressed :
+        if self.mouse_over:
+            # False mouse enter event. Probably because a mouse button has been
+            # pressed (compiz bug).
             return
         self.mouse_over = True
         self.update_state()
@@ -1012,9 +997,12 @@ class GroupButton(gobject.GObject):
                                 self.show_list_request)
 
     def on_button_mouse_leave (self, widget, event):
-        # In compiz there is a enter and
-        # a leave event before a button_press event.
-        self.button_pressed = False
+        if self.button.pointer_is_inside():
+            # False mouse_leave event, the cursor might be on a screen edge
+            # or the mouse has been clicked (compiz bug).
+            # A timeout is set so that the real mouse leave won't be missed.
+            gobject.timeout_add(50, self.on_button_mouse_leave, widget, event)
+            return
         self.mouse_over = False
         self.update_state()
         self.hide_time = time()
@@ -1036,16 +1024,14 @@ class GroupButton(gobject.GObject):
             self.action_function_dict[action](self, widget, event)
 
     def on_group_button_release_event(self, widget, event):
-        # Check that the mouse still is over the group button.
-        b_m_x,b_m_y = self.button.get_pointer()
-        b_r = self.button.get_allocation()
-        if b_m_x < 0 or b_m_x >= b_r.width or b_m_y < 0 or b_m_y >= b_r.height:
-            return
 
         # If a drag and drop just finnished set self.draggin to false
         # so that left clicking works normally again
         if event.button == 1 and self.globals.dragging:
             self.globals.dragging = False
+            return
+
+        if not self.button.pointer_is_inside():
             return
 
         if not event.button in (1, 2, 3):
@@ -1064,13 +1050,6 @@ class GroupButton(gobject.GObject):
 
 
     def on_group_button_press_event(self,widget,event):
-        # In compiz there is a enter and a leave
-        # event before a button_press event.
-        # self.button_pressed is used to stop functions started with
-        # gobject.timeout_add from self.button_mouse_enter
-        # or self.on_button_mouse_leave.
-        self.button_pressed = True
-        gobject.timeout_add(600, self.set_button_pressed_false)
 
         if not event.button in (1, 2, 3):
             return True
@@ -1091,11 +1070,6 @@ class GroupButton(gobject.GObject):
             # Return False so that a drag-and-drop can be initiated if needed.
             return False
         return True
-
-    def set_button_pressed_false(self):
-        # Helper function to group_button_press_event.
-        self.button_pressed = False
-        return False
 
 
     #### Menu
