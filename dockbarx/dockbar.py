@@ -597,7 +597,7 @@ class DockBar():
             return
         for group in self.groups:
             group.update_state()
-            group.on_set_icongeo_grp()
+            group.set_icongeo()
             group.nextlist = None
 
 

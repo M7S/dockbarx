@@ -280,18 +280,6 @@ class WindowButton(gobject.GObject):
         self.name = name
         self.label.set_label(name)
 
-    def on_set_icongeo_win(self, arg=None):
-        if self.globals.settings["show_only_current_desktop"] \
-        and not self.is_on_current_desktop():
-            self.window.set_icon_geometry(0, 0, 0, 0)
-            return
-        alloc = self.window_button.get_allocation()
-        w = alloc.width
-        h = alloc.height
-        x,y = self.window_button.window.get_origin()
-        x += alloc.x
-        y += alloc.y
-        self.window.set_icon_geometry(x, y, w, h)
 
     def on_geometry_changed(self, *args):
         monitor = self.get_monitor()
@@ -481,9 +469,7 @@ class WindowButton(gobject.GObject):
         self.action_function_dict[action](self, widget, event)
 
         popup_close = 'windowbutton_close_popup_on_%s%s_click'%(mod, button)
-        print popup_close
         if self.globals.settings[popup_close]:
-            print 'closing popup'
             self.emit('popup-hide', None)
 
     #### Menu functions

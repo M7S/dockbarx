@@ -137,7 +137,8 @@ class GroupButton(gobject.GObject):
         self.opacified = False
         self.lastlaunch = None
         self.launch_effect = False
-        self.list_hide_timeout = None
+        self.hide_list_sid = None
+        self.show_list_sid = None
         # Compiz sends out false mouse enter messages after button is pressed.
         # This works around that bug.
         self.button_pressed = False
@@ -186,7 +187,6 @@ class GroupButton(gobject.GObject):
         # Initiate the windowlist
         self.winlist = None
         self.on_show_previews_changed()
-
         self.popup.add(self.popup_box)
 
 
@@ -378,7 +378,7 @@ class GroupButton(gobject.GObject):
     def on_show_only_current_desktop_changed(self, arg):
         self.update_state()
         self.nextlist = None
-        self.on_set_icongeo_grp()
+        self.set_icongeo()
 
     def on_show_previews_changed(self, arg=None):
         oldbox = self.winlist
@@ -514,11 +514,7 @@ class GroupButton(gobject.GObject):
                 return False
 
 
-    def on_set_icongeo_win(self, arg=None):
-        for wb in self.windows.values():
-            wb.on_set_icongeo_win()
-
-    def on_set_icongeo_grp(self, arg=None):
+    def set_icongeo(self, arg=None):
         for win in self.windows:
             if self.globals.settings["show_only_current_desktop"] and \
                not self.windows[win].is_on_current_desktop():
@@ -534,46 +530,9 @@ class GroupButton(gobject.GObject):
                 y += alloc.y
                 win.set_icon_geometry(x, y, alloc.width, alloc.height)
 
-    def on_set_icongeo_delay(self, arg=None):
-        # This one is used during popup delay to aviod
-        # thumbnails on group buttons.
-        for win in self.windows:
-            if self.globals.settings["show_only_current_desktop"] and \
-               not self.windows[win].is_on_current_desktop():
-                win.set_icon_geometry(0, 0, 0, 0)
-                continue
-            if self.globals.settings["show_only_current_desktop"] and \
-               self.windows[win].monitor != self.monitor:
-                continue
-            alloc = self.button.get_allocation()
-            if self.button.window:
-                x, y = self.button.window.get_origin()
-                x += alloc.x
-                y += alloc.y
-                if self.globals.orient == "h":
-                    w = alloc.width
-                    h = 2
-                    if y<5:
-                            # dockbar applet is at top of screen
-                            # the area should be below the button
-                            y += alloc.height + 1
-                    else:
-                        # the area should be above the button
-                        y -= 2
-                else:
-                    w = 2
-                    h = alloc.height
-                    if x<5:
-                            # dockbar applet is at the left egde of screen
-                            # the area should be to the right ofthe button
-                            x += alloc.width + 1
-                    else:
-                        # the area should be to the right of the button
-                        x -= 2
-                win.set_icon_geometry(x, y, w, h)
 
     def on_db_move(self, arg=None):
-        self.on_set_icongeo_grp()
+        self.set_icongeo()
 
     def on_window_monitor_changed(self, arg=None):
         self.update_state()
@@ -601,7 +560,7 @@ class GroupButton(gobject.GObject):
 
     def on_popup_hide(self, arg=None, reason=None):
         if reason == 'viewport-change' \
-        and self.list_hide_timeout is not None:
+        and self.hide_list_sid is not None:
             # The list brought up by keyboard
             # and will close by itself later
             # no need to close it now.
@@ -663,7 +622,6 @@ class GroupButton(gobject.GObject):
         self.popup.resize(10,10)
         self.popup.show()
         self.popup_showing = True
-        self.on_set_icongeo_win()
         # The popup must be shown before the
         # preview can be set. Iterate gtk events.
         while gtk.events_pending():
@@ -724,15 +682,17 @@ class GroupButton(gobject.GObject):
     def hide_list(self):
         self.popup.hide()
         self.popup_showing = False
-        self.on_set_icongeo_grp()
         if self.globals.settings["preview"]:
             # Remove preview icon to save memory
             for win in self.windows.get_list():
                 self.windows[win].clear_preview_image()
             gc.collect()
-        if self.list_hide_timeout is not None:
-            gobject.source_remove(self.list_hide_timeout)
-            self.list_hide_timeout = None
+        if self.show_list_sid is not None:
+            gobject.source_remove(self.show_list_sid)
+            self.show_list_sid = None
+        if self.hide_list_sid is not None:
+            gobject.source_remove(self.hide_list_sid)
+            self.hide_list_sid = None
         if self.globals.gb_showing_popup == self:
             self.globals.gb_showing_popup = None
         return False
@@ -1016,7 +976,7 @@ class GroupButton(gobject.GObject):
             self.button_old_alloc = allocation
 
             # Update icon geometry
-            self.on_set_icongeo_grp()
+            self.set_icongeo()
 
     def on_button_mouse_enter (self, widget, event):
         # In compiz there is a enter and a leave event
@@ -1040,15 +1000,16 @@ class GroupButton(gobject.GObject):
            self.globals.settings['no_popup_for_one_window']:
             return
         # Prepare for popup window
-        if self.globals.settings["popup_delay"] > 0:
-            self.on_set_icongeo_delay()
         if not self.globals.right_menu_showing and not self.globals.dragging:
             if self.globals.gb_showing_popup is None:
-                gobject.timeout_add(self.globals.settings['popup_delay'],
-                                    self.show_list_request)
+                self.show_list_sid = \
+                    gobject.timeout_add(self.globals.settings['popup_delay'],
+                                        self.show_list_request)
             else:
-                gobject.timeout_add(self.globals.settings['second_popup_delay'],
-                                    self.show_list_request)
+                self.show_list_sid = \
+                    gobject.timeout_add(
+                                self.globals.settings['second_popup_delay'],
+                                self.show_list_request)
 
     def on_button_mouse_leave (self, widget, event):
         # In compiz there is a enter and
@@ -1058,10 +1019,6 @@ class GroupButton(gobject.GObject):
         self.update_state()
         self.hide_time = time()
         self.hide_list_request()
-        if self.popup.window is None:
-            # self.hide_list takes care of 'set-icongeo-grp' normally
-            # but if no popup window exist its taken care of here.
-            self.on_set_icongeo_grp()
         if self.globals.settings["opacify"] \
         and self.globals.settings["opacify_group"]:
             self.deopacify_request()
@@ -1130,7 +1087,6 @@ class GroupButton(gobject.GObject):
                 # Go ahead and do the action.
                 action = self.globals.settings[
                                 'groupbutton_%s%s_click_action'%(mod, button)]
-                self.action_function_dict[action](self, widget, event)
         elif event.button == 1:
             # Return False so that a drag-and-drop can be initiated if needed.
             return False
@@ -1406,6 +1362,7 @@ class GroupButton(gobject.GObject):
             elif sow == "select or minimize window":
                 self.windows[wins[0]].action_select_or_minimize_window(widget,
                                                                        event)
+            self.hide_list()
         # Multiple windows
         elif len(wins) > 1:
             smw = self.globals.settings["select_multiple_windows"]
@@ -1422,9 +1379,11 @@ class GroupButton(gobject.GObject):
                     if sow == "select window":
                         self.windows[umw[0]].action_select_window(widget,
                                                                   event)
+                        self.hide_list()
                     elif sow == "select or minimize window":
                         self.windows[umw[0]].action_select_or_minimize_window(
                                                                  widget, event)
+                        self.hide_list()
                 elif len(umw) == 0:
                     self.action_select_or_minimize_group(widget, event)
                 else:
@@ -1456,6 +1415,7 @@ class GroupButton(gobject.GObject):
         grtop = False
         wingr = False
         active_workspace = screen.get_active_workspace()
+        self.hide_list()
 
         # Check if there are any uminimized windows, unminimize
         # them (unless they are on another workspace and work-
@@ -1615,10 +1575,12 @@ class GroupButton(gobject.GObject):
             self.action_compiz_scale_windows(widget, event)
         elif len(wins) == 1:
             self.windows[wins[0]].action_select_window(widget, event)
+        self.hide_list()
 
     def action_minimize_all_windows(self,widget=None, event=None):
         for window in self.windows.get_list():
             window.minimize()
+        self.hide_list()
 
     def action_maximize_all_windows(self,widget=None, event=None):
         try:
@@ -1634,6 +1596,8 @@ class GroupButton(gobject.GObject):
         if not maximized:
             for window in self.windows:
                 window.unmaximize()
+        self.hide_list()
+
 
     def action_select_next(self, widget=None, event=None, previous=False):
         if not self.windows.get_list():
@@ -1683,11 +1647,11 @@ class GroupButton(gobject.GObject):
                                       event=None, previous=False):
         self.show_list()
         self.action_select_next(widget, event, previous)
-        if self.list_hide_timeout is not None:
-            gobject.source_remove(self.list_hide_timeout)
+        if self.hide_list_sid is not None:
+            gobject.source_remove(self.hide_list_sid)
         self.hide_time = time()
-        self.list_hide_timeout = gobject.timeout_add(2000,
-                                                     self.hide_list_request)
+        self.hide_list_sid = gobject.timeout_add(2000,
+                                                 self.hide_list_request)
 
     def action_close_all_windows(self, widget=None, event=None):
         if event:
@@ -1696,6 +1660,7 @@ class GroupButton(gobject.GObject):
             t = gtk.get_current_event_time()
         for window in self.windows.get_list():
             window.close(t)
+        self.hide_list()
 
     def action_launch_application(self, widget=None, event=None):
         if self.lastlaunch is not None \
@@ -1714,6 +1679,7 @@ class GroupButton(gobject.GObject):
         else:
             self.launch_effect_timeout = gobject.timeout_add(10000,
                                                     self.remove_launch_effect)
+        self.hide_list()
 
 
     def action_show_menu(self, widget, event):
@@ -1736,15 +1702,18 @@ class GroupButton(gobject.GObject):
             self.emit('delete', name)
         else:
             self.emit('unpinned', name)
+        self.hide_list()
 
     def action_minimize_all_other_groups(self, widget, event):
         self.hide_list()
         self.emit('minimize-others', self)
+        self.hide_list()
 
     def action_compiz_scale_windows(self, widget, event):
         wins = self.windows.get_unminimized()
         if not wins:
             return
+        self.hide_list()
         if len(wins) == 1:
             self.windows[wins[0]].action_select_window(widget, event)
             return
@@ -1761,11 +1730,11 @@ class GroupButton(gobject.GObject):
         # a delay is therefor needed.
         gobject.timeout_add(self.globals.settings['popup_delay'] + 200,
                             self.hide_list)
-
     def action_compiz_shift_windows(self, widget, event):
         wins = self.windows.get_unminimized()
         if not wins:
             return
+        self.hide_list()
         if len(wins) == 1:
             self.windows[wins[0]].action_select_window(widget, event)
             return
@@ -1794,10 +1763,12 @@ class GroupButton(gobject.GObject):
         # a delay is therefor needed.
         gobject.timeout_add(self.globals.settings['popup_delay']+ 200,
                             self.hide_list)
+        self.hide_list()
 
     def action_dbpref (self,widget=None, event=None):
         # Preferences dialog
         self.emit('launch-preference')
+        self.hide_list()
 
     def action_none(self, widget = None, event = None):
         pass
