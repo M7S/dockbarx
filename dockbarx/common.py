@@ -241,73 +241,70 @@ class Globals(gobject.GObject):
     }
 
     DEFAULT_SETTINGS = {
-                          "theme": "default",
-                          "groupbutton_attention_notification_type": "red",
-                          "workspace_behavior": "switch",
-                          "popup_delay": 250,
-                          "second_popup_delay": 30,
-                          "popup_align": "center",
-                          "no_popup_for_one_window": False,
-                          "show_only_current_desktop": False,
-                          "show_only_current_monitor": False,
-                          "preview": False,
-                          "preview_size": 230,
+          "theme": "default",
+          "groupbutton_attention_notification_type": "red",
+          "workspace_behavior": "switch",
+          "popup_delay": 250,
+          "second_popup_delay": 30,
+          "popup_align": "center",
+          "no_popup_for_one_window": False,
+          "show_only_current_desktop": False,
+          "show_only_current_monitor": False,
+          "preview": False,
+          "preview_size": 230,
 
-                          "select_one_window": "select or minimize window",
-                          "select_multiple_windows": "select all",
+          "select_one_window": "select or minimize window",
+          "select_multiple_windows": "select all",
 
-                          "opacify": False,
-                          "opacify_group": False,
-                          "opacify_alpha": 11,
+          "opacify": False,
+          "opacify_group": False,
+          "opacify_alpha": 11,
 
-                          "separate_wine_apps": True,
-                          "separate_ooo_apps": True,
+          "separate_wine_apps": True,
+          "separate_ooo_apps": True,
 
-                          "groupbutton_left_click_action": \
-                                                "select or minimize group",
-                          "groupbutton_shift_and_left_click_action": \
-                                                "launch application",
-                          "groupbutton_middle_click_action": \
-                                                "close all windows",
-                          "groupbutton_shift_and_middle_click_action": \
-                                                "no action",
-                          "groupbutton_right_click_action": "show menu",
-                          "groupbutton_shift_and_right_click_action": \
-                                                "no action",
-                          "groupbutton_scroll_up": "select next window",
-                          "groupbutton_scroll_down": "select previous window",
-                          "groupbutton_left_click_double": False,
-                          "groupbutton_shift_and_left_click_double": False,
-                          "groupbutton_middle_click_double": True,
-                          "groupbutton_shift_and_middle_click_double": False,
-                          "groupbutton_right_click_double": False,
-                          "groupbutton_shift_and_right_click_double": False,
-                          "windowbutton_left_click_action": \
-                                                "select or minimize window",
-                          "windowbutton_shift_and_left_click_action": \
-                                                "no action",
-                          "windowbutton_middle_click_action": \
-                                                "close window",
-                          "windowbutton_shift_and_middle_click_action": \
-                                                "no action",
-                          "windowbutton_right_click_action": "show menu",
-                          "windowbutton_shift_and_right_click_action": \
-                                                "no action",
-                          "windowbutton_scroll_up": "shade window",
-                          "windowbutton_scroll_down": "unshade window",
+          "groupbutton_left_click_action": "select or minimize group",
+          "groupbutton_shift_and_left_click_action": "launch application",
+          "groupbutton_middle_click_action": "close all windows",
+          "groupbutton_shift_and_middle_click_action": "no action",
+          "groupbutton_right_click_action": "show menu",
+          "groupbutton_shift_and_right_click_action": "no action",
+          "groupbutton_scroll_up": "select next window",
+          "groupbutton_scroll_down": "select previous window",
+          "groupbutton_left_click_double": False,
+          "groupbutton_shift_and_left_click_double": False,
+          "groupbutton_middle_click_double": True,
+          "groupbutton_shift_and_middle_click_double": False,
+          "groupbutton_right_click_double": False,
+          "groupbutton_shift_and_right_click_double": False,
 
-                          "gkeys_select_next_group": False,
-                          "gkeys_select_next_group_keystr": '<super>Tab',
-                          "gkeys_select_previous_group": False,
-                          "gkeys_select_previous_group_keystr": \
-                                                '<super><shift>Tab',
-                          "gkeys_select_next_window": False,
-                          "gkeys_select_next_window_keystr": \
-                                                '<super><control>Tab',
-                          "gkeys_select_previous_window": False,
-                          "gkeys_select_previous_window_keystr": \
-                                                '<super><control><shift>Tab'
-                       }
+          "windowbutton_left_click_action": "select or minimize window",
+          "windowbutton_shift_and_left_click_action": \
+                                            "select or minimize window",
+          "windowbutton_middle_click_action": "close window",
+          "windowbutton_shift_and_middle_click_action": "no action",
+          "windowbutton_right_click_action": "show menu",
+          "windowbutton_shift_and_right_click_action": "no action",
+          "windowbutton_scroll_up": "shade window",
+          "windowbutton_scroll_down": "unshade window",
+
+          "windowbutton_close_popup_on_left_click": True,
+          "windowbutton_close_popup_on_shift_and_left_click": False,
+          "windowbutton_close_popup_on_middle_click": False,
+          "windowbutton_close_popup_on_shift_and_middle_click": False,
+          "windowbutton_close_popup_on_right_click": False,
+          "windowbutton_close_popup_on_shift_and_right_click": False,
+          "windowbutton_close_popup_on_scroll_up": False,
+          "windowbutton_close_popup_on_scroll_down": False,
+
+          "gkeys_select_next_group": False,
+          "gkeys_select_next_group_keystr": '<super>Tab',
+          "gkeys_select_previous_group": False,
+          "gkeys_select_previous_group_keystr": '<super><shift>Tab',
+          "gkeys_select_next_window": False,
+          "gkeys_select_next_window_keystr": '<super><control>Tab',
+          "gkeys_select_previous_window": False,
+          "gkeys_select_previous_window_keystr": '<super><control><shift>Tab'}
 
     DEFAULT_COLORS={
                       "color1": "#333333",

@@ -274,6 +274,28 @@ class PrefDialog():
             table.attach(label, 0, 1, row, row + 1, xpadding = 5)
             table.attach(self.wb_combos[text], 1, 2, row, row + 1 )
 
+        self.wb_close_popup_checkbutton_names = [
+                        'windowbutton_close_popup_on_left_click',
+                        'windowbutton_close_popup_on_shift_and_left_click',
+                        'windowbutton_close_popup_on_middle_click',
+                        'windowbutton_close_popup_on_shift_and_middle_click',
+                        'windowbutton_close_popup_on_right_click',
+                        'windowbutton_close_popup_on_shift_and_right_click',
+                        'windowbutton_close_popup_on_scroll_up',
+                        'windowbutton_close_popup_on_scroll_down']
+        self.wb_close_popup_checkbutton = {}
+        for i in range(len(self.wb_close_popup_checkbutton_names)):
+            name = self.wb_close_popup_checkbutton_names[i]
+            self.wb_close_popup_checkbutton[name] = \
+                                        gtk.CheckButton(_('Close popup'))
+
+            self.wb_close_popup_checkbutton[name].connect(
+                                                    'toggled',
+                                                    self.checkbutton_toggled,
+                                                    name)
+            table.attach(self.wb_close_popup_checkbutton[name],
+                         2, 3, i, i + 1, xpadding = 5 )
+
         hbox.pack_start(table, False)
         frame.add(hbox)
         windowbutton_box.pack_start(frame, False, padding=5)
@@ -806,6 +828,10 @@ class PrefDialog():
 
         for name in self.gb_doubleclick_checkbutton_names:
             self.gb_doubleclick_checkbutton[name].set_active(
+                                                self.globals.settings[name])
+
+        for name in self.wb_close_popup_checkbutton_names:
+            self.wb_close_popup_checkbutton[name].set_active(
                                                 self.globals.settings[name])
 
         # Opacify

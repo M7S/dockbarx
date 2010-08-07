@@ -449,44 +449,42 @@ class WindowButton(gobject.GObject):
         self.button_pressed = False
         return False
 
-    def on_window_button_scroll_event(self, widget,event):
-        if self.globals.settings["opacify"]and self.opacified:
+    def on_window_button_scroll_event(self, widget, event):
+        if self.globals.settings["opacify"] and self.opacified:
             self.globals.opacified = False
             self.opacified = False
             self.deopacify()
-        if event.direction == gtk.gdk.SCROLL_UP:
-            action = self.globals.settings['windowbutton_scroll_up']
-            self.action_function_dict[action](self, widget, event)
-        elif event.direction == gtk.gdk.SCROLL_DOWN:
-            action = self.globals.settings['windowbutton_scroll_down']
-            self.action_function_dict[action](self, widget, event)
+        if not event.direction in (gtk.gdk.SCROLL_UP, gtk.gdk.SCROLL_DOWN):
+            return
+        direction = {gtk.gdk.SCROLL_UP: 'scroll_up',
+                     gtk.gdk.SCROLL_DOWN: 'scroll_down'}[event.direction]
+        action = self.globals.settings['windowbutton_%s'%direction]
+        self.action_function_dict[action](self, widget, event)
+        if self.globals.settings['windowbutton_close_popup_on_%s'%direction]:
+            self.emit('popup-hide', None)
 
-    def on_window_button_release_event(self, widget,event):
-        if self.globals.settings["opacify"]and self.opacified:
+    def on_window_button_release_event(self, widget, event):
+        if self.globals.settings["opacify"] and self.opacified:
             self.globals.opacified = False
             self.opacified = False
             self.deopacify()
-        if event.button == 1 and event.state & gtk.gdk.SHIFT_MASK :
-            action = self.globals.settings[
-                                    'windowbutton_shift_and_left_click_action']
-            self.action_function_dict[action](self, widget, event)
-        elif event.button == 1:
-            action = self.globals.settings['windowbutton_left_click_action']
-            self.action_function_dict[action](self, widget, event)
-        elif event.button == 2 and event.state & gtk.gdk.SHIFT_MASK:
-            action = self.globals.settings[
-                                'windowbutton_shift_and_middle_click_action']
-            self.action_function_dict[action](self, widget,event)
-        elif event.button == 2:
-            action = self.globals.settings['windowbutton_middle_click_action']
-            self.action_function_dict[action](self, widget,event)
-        elif event.button == 3 and event.state & gtk.gdk.SHIFT_MASK:
-            action = self.globals.settings[
-                                'windowbutton_shift_and_right_click_action']
-            self.action_function_dict[action](self, widget, event)
-        elif event.button == 3:
-            action = self.globals.settings['windowbutton_right_click_action']
-            self.action_function_dict[action](self, widget, event)
+
+        if not event.button in (1, 2, 3):
+            return
+        button = {1:'left', 2: 'middle', 3: 'right'}[event.button]
+        if event.state & gtk.gdk.SHIFT_MASK:
+            mod = 'shift_and_'
+        else:
+            mod = ''
+        action_str = 'windowbutton_%s%s_click_action'%(mod, button)
+        action = self.globals.settings[action_str]
+        self.action_function_dict[action](self, widget, event)
+
+        popup_close = 'windowbutton_close_popup_on_%s%s_click'%(mod, button)
+        print popup_close
+        if self.globals.settings[popup_close]:
+            print 'closing popup'
+            self.emit('popup-hide', None)
 
     #### Menu functions
     def menu_closed(self, menushell):
