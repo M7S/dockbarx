@@ -1,4 +1,33 @@
 Changelog:
+x.0.39.7
+End user features:
+- Multiple monitor support: Option to only show windows that is on the current monitor (see advanced tab in preference).
+- Popups for group buttons without open windows is not shown anymore, instead there is an option in preference dialog to show tooltips for group buttons without windows.
+- The group button menu pops up next to the group button instead of poping up at the mouse pointer.
+- DockbarX might be slightly faster and use a little bit less memory in certain situations.
+
+Changes to dockbarx behavior - after ideas from a patch by Domen Tabernik (skokec):
+- Popup windows closes when you click outside them or after a delay (600 ms).
+- A shorter delay is used when a popup window is open and you move the mouse to another group button to open a new popup window. The delay can be set from the preference dialog.
+- Popup windows are closed when a group button action is executed (exeptions are 'show popup' and 'select next/previous window').
+- Popup windows can be closed when a window button is clicked. You can set the option from the window button tab in the preference dialog.
+- The minimize target (the area a window minimizes to) is now always the group button.
+
+Theme makers:
+- New if type option: 'mouse_button_down'. The code will be executed when a window button is is pressed with left mouse button.
+
+Bug fixes:
+- Dockbarx crashed on upstart if it couldn't find a launcher.
+- Error handling added to circumvent a bug in gettext caused by some bad translation files in nautilus elementary (or at least that's what I guess). Should stop Nautilus from not showing up in Dockbarx.
+- If a folder in the home with the same name as a launcher executable the folder was opened instead when trying to launch the program (eg. a ~/firefox folder would be opened instead of Firefox, when trying to launch Firefox from dockbarx).
+- the popup window wasn't always moved after it was resized, which caused the popup window to overlap the group button.
+- You couldn't edit a launcher if it didn't have an identifier.
+- The popup stopped working after if you changed an identifier.
+- Some small bugs stopped global keyboard action 'select next group' and 'select previous group' and group button action 'minimize all other groups' from working.
+- Opacify group works again.
+- DockbarX is now better at handling false mouse leave and mouse enter events for group buttons.
+
+
 x.0.39.6-1
 Bug fixes:
 - Bug #607132: DockBarX fails to start in Ubuntu Karmic.
