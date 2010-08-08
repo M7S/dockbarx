@@ -134,6 +134,7 @@ class GroupButton(gobject.GObject):
         self.nextlist = None
         self.nextlist_time = None
         self.mouse_over = False
+        self.pressed = False
         self.opacified = False
         self.lastlaunch = None
         self.launch_effect = False
@@ -273,63 +274,52 @@ class GroupButton(gobject.GObject):
         else:
             self.button.show()
 
+
+        self.state_type = 0
         mwc = self.windows.get_minimized_count()
         if self.pinned and win_nr == 0:
-            icon_mode = IconFactory.LAUNCHER
-        elif (win_nr - mwc) == 0:
-            icon_mode = IconFactory.ALL_MINIMIZED
+            self.state_type = self.state_type | IconFactory.LAUNCHER
+        elif (win_nr - mwc) <= 0:
+            self.state_type = self.state_type | IconFactory.ALL_MINIMIZED
         elif mwc > 0:
-            icon_mode = IconFactory.SOME_MINIMIZED
-        else:
-            icon_mode = 0
+            self.state_type = self.state_type | IconFactory.SOME_MINIMIZED
 
-        if self.has_active_window and win_nr>0:
-            icon_active = IconFactory.ACTIVE
-        else:
-            icon_active = 0
+        if self.has_active_window and win_nr > 0:
+            self.state_type = self.state_type | IconFactory.ACTIVE
 
-        if self.needs_attention and win_nr>0:
+        if self.needs_attention and win_nr > 0:
             gant = self.globals.settings[
                                     "groupbutton_attention_notification_type"]
             if  gant == 'red':
-                icon_effect = IconFactory.NEEDS_ATTENTION
-            elif gant == 'nothing':
-                # Do nothing
-                icon_effect = 0
-            else:
+                self.state_type = self.state_type | IconFactory.NEEDS_ATTENTION
+            elif gant != 'nothing':
                 self.needs_attention_anim_trigger = False
                 if not self.attention_effect_running:
                     gobject.timeout_add(700, self.attention_effect)
-                icon_effect = 0
-        else:
-            icon_effect = 0
+
+        if self.pressed:
+            self.state_type = self.state_type | IconFactory.MOUSE_BUTTON_DOWN
 
         if self.mouse_over:
-            mouse_over = IconFactory.MOUSE_OVER
+            self.state_type = self.state_type | IconFactory.MOUSE_OVER
         elif self.button_drag_entered and not self.launcher_drag:
             # Mouse over effect on other drag and drop
             # than launcher dnd.
-            mouse_over = IconFactory.MOUSE_OVER
-        else:
-            mouse_over = 0
+            self.state_type = self.state_type | IconFactory.MOUSE_OVER
 
         if self.launch_effect:
-            launch_effect = IconFactory.LAUNCH_EFFECT
-        else:
-            launch_effect = 0
+            self.state_type = self.state_type | IconFactory.LAUNCH_EFFECT
 
         if self.launcher_drag:
-            dd_effect = IconFactory.DRAG_DROPP
-        else:
-            dd_effect = 0
+            self.state_type = self.state_type | IconFactory.DRAG_DROPP
 
-
-        self.state_type = icon_mode | icon_effect | icon_active | \
-                          mouse_over | launch_effect | dd_effect | win_nr
+        # Add the number of windows
+        self.state_type = self.state_type | win_nr
         surface = self.icon_factory.surface_update(self.state_type)
+
         # Set the button size to the size of the surface
-        if self.button.allocation.width != surface.get_width() \
-        or self.button.allocation.height != surface.get_height():
+        if self.button.allocation.width != surface.get_width() or \
+           self.button.allocation.height != surface.get_height():
             self.button.set_size_request(
                                     surface.get_width(), surface.get_height())
         self.button.update(surface)
@@ -1004,6 +994,7 @@ class GroupButton(gobject.GObject):
             gobject.timeout_add(50, self.on_button_mouse_leave, widget, event)
             return
         self.mouse_over = False
+        self.pressed = False
         self.update_state()
         self.hide_time = time()
         self.hide_list_request()
@@ -1024,7 +1015,8 @@ class GroupButton(gobject.GObject):
             self.action_function_dict[action](self, widget, event)
 
     def on_group_button_release_event(self, widget, event):
-
+        self.pressed = False
+        self.update_state()
         # If a drag and drop just finnished set self.draggin to false
         # so that left clicking works normally again
         if event.button == 1 and self.globals.dragging:
@@ -1067,6 +1059,8 @@ class GroupButton(gobject.GObject):
                 action = self.globals.settings[
                                 'groupbutton_%s%s_click_action'%(mod, button)]
         elif event.button == 1:
+            self.pressed = True
+            self.update_state()
             # Return False so that a drag-and-drop can be initiated if needed.
             return False
         return True

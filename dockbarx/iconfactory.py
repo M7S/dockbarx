@@ -45,13 +45,14 @@ class IconFactory():
     LAUNCHER = 1<<6
     # Icon effects
     MOUSE_OVER = 1<<7
-    NEEDS_ATTENTION = 1<<8
-    BLINK  = 1<<9
+    MOUSE_BUTTON_DOWN = 1<<8
+    NEEDS_ATTENTION = 1<<9
+    BLINK  = 1<<10
     # ACTIVE_WINDOW
-    ACTIVE = 1<<10
-    LAUNCH_EFFECT = 1<<11
+    ACTIVE = 1<<11
+    LAUNCH_EFFECT = 1<<12
     # Double width/height icons for drag and drop situations.
-    DRAG_DROPP = 1<<12
+    DRAG_DROPP = 1<<13
     TYPE_DICT = {'some_minimized':SOME_MINIMIZED,
                  'all_minimized':ALL_MINIMIZED,
                  'launcher':LAUNCHER,
@@ -59,7 +60,8 @@ class IconFactory():
                  'needs_attention':NEEDS_ATTENTION,
                  'blink':BLINK,
                  'active':ACTIVE,
-                 'launching':LAUNCH_EFFECT}
+                 'launching':LAUNCH_EFFECT,
+                 'mouse_button_down':MOUSE_BUTTON_DOWN}
 
     def __init__(self, class_group=None,
                  desktop_entry=None, identifier=None):
