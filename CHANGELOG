@@ -9,12 +9,12 @@ End user features:
 Changes to dockbarx behavior - after ideas from a patch by Domen Tabernik (skokec):
 - Popup windows closes when you click outside them or after a delay (600 ms).
 - A shorter delay is used when a popup window is open and you move the mouse to another group button to open a new popup window. The delay can be set from the preference dialog.
-- Popup windows are closed when a group button action is executed (exeptions are 'show popup' and 'select next/previous window').
+- Popup windows are closed when a group button action is executed (exceptions are 'show popup' and 'select next/previous window').
 - Popup windows can be closed when a window button is clicked. You can set the option from the window button tab in the preference dialog.
 - The minimize target (the area a window minimizes to) is now always the group button.
 
 Theme makers:
-- New if type option: 'mouse_button_down'. The code will be executed when a window button is is pressed with left mouse button.
+- New if type option: 'mouse_button_down'. The code will be executed when a window button is pressed with left mouse button.
 
 Bug fixes:
 - Dockbarx crashed on upstart if it couldn't find a launcher.
