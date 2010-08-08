@@ -37,6 +37,7 @@ class ThemeHandler(ContentHandler):
     def __init__(self):
         self.dict = ODict()
         self.name = None
+        self.types = []
         self.nested_contents = []
         self.nested_contents.append(self.dict)
         self.nested_attributes = []
@@ -63,6 +64,9 @@ class ThemeHandler(ContentHandler):
 
         self.nested_attributes.append(d)
 
+        if name == "if" and 'type' in d:
+            self.__add_to_types(d['type'])
+
     def endElement(self, name):
         if name == 'theme':
             return
@@ -77,11 +81,20 @@ class ThemeHandler(ContentHandler):
         if d['content'].keys() == []:
                 d.pop('content')
 
+    def __add_to_types(self, type):
+        if type[0] == '!':
+            type == type[1:]
+        if not type in self.types:
+            self.types.append(type)
+
     def get_dict(self):
         return self.dict
 
     def get_name(self):
         return self.name
+
+    def get_types(self):
+        return self.types
 
 class Theme(gobject.GObject):
     __gsignals__ = {
@@ -172,6 +185,8 @@ class Theme(gobject.GObject):
 
         # Name
         self.name = theme_handler.get_name()
+
+        self.types = theme_handler.get_types()
 
         # Pixmaps
         self.surfaces = {}
@@ -279,6 +294,9 @@ class Theme(gobject.GObject):
 
     def get_name(self):
         return self.name
+
+    def get_types(self):
+        return self.types
 
     def get_gap(self):
         return int(self.theme['button_pixmap'].get('gap', 0))

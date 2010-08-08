@@ -83,6 +83,11 @@ class IconFactory():
         self.average_color = None
 
         self.max_win_nr = self.theme.get_windows_cnt()
+        self.types_in_theme = 0
+        for type in self.theme.get_types():
+            if not type in self.TYPE_DICT:
+                continue
+            self.types_in_theme = self.types_in_theme | self.TYPE_DICT[type]
 
     def remove(self):
         del self.desktop_entry
@@ -124,10 +129,12 @@ class IconFactory():
         # Checks if the requested pixbuf is already
         # drawn and returns it if it is.
         # Othervice the surface is drawn, saved and returned.
-        self.win_nr = type & 15
-        if self.win_nr > self.max_win_nr:
-            type = (type - self.win_nr) | self.max_win_nr
-            self.win_nr = self.max_win_nr
+
+        #The first four bits of type is for telling the number of windows
+        self.win_nr = min(type & 15, self.max_win_nr)
+        # Remove all types that are not used by the theme (saves memory)
+        type = type & self.types_in_theme
+        type += self.win_nr
         self.temp = {}
         if type in self.surfaces:
             return self.surfaces[type]
