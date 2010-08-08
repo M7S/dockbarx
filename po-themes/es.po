@@ -1,4 +1,4 @@
-# German translation for dockbar
+# Spanish translation for dockbar
 # Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the dockbar package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-06-09 13:23+0300\n"
-"PO-Revision-Date: 2010-06-10 19:46+0000\n"
-"Last-Translator: Jan-Christoph Borchardt <JanCBorchardt@gmail.com>\n"
-"Language-Team: German <de@li.org>\n"
+"PO-Revision-Date: 2010-06-11 06:40+0000\n"
+"Last-Translator: Shaun Mallette <chicagonpg@gmail.com>\n"
+"Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,43 +18,43 @@ msgstr ""
 "X-Generator: Launchpad (build Unknown)\n"
 
 msgid "Popup background"
-msgstr "Hintergrund des Aufklappmenüs"
+msgstr "Fondo de las notificaciónes"
 
 msgid "Normal text"
-msgstr "Normaler Text"
+msgstr "Texto normal"
 
 msgid "Active window text"
-msgstr "Text eines aktiven Fensters"
+msgstr "Texto para la ventana activa"
 
 msgid "Minimized window text"
-msgstr "Text eines minimierten Fensters"
+msgstr "Texto para minimizar la ventana"
 
 msgid "Active color"
-msgstr "Aktive Farbe"
+msgstr "Color activo"
 
 msgid "Not used"
-msgstr "Nicht verwendet"
+msgstr "No utilizada"
 
 msgid "Active"
-msgstr "Aktiv"
+msgstr "Activo"
 
 msgid "Launching color"
-msgstr "Startfarbe"
+msgstr "Lanzamiento de color"
 
 msgid "Attention color"
-msgstr "Aufmerksamkeitsfarbe"
+msgstr "Color de atención"
 
 msgid "Minimized color"
-msgstr "Farbe eines minimierten Fensters"
+msgstr "Color minimizado"
 
 msgid "Active glow"
-msgstr "Aktives Leuchten"
+msgstr "resplandor de Active"
 
 msgid "Button color"
-msgstr "Knopffarbe"
+msgstr "Color del botón"
 
 msgid "Active + indicator color"
-msgstr "Aktiv- + Anzeigefarbe"
+msgstr "Active + color del indicador"
 
 msgid "Active + dots color"
-msgstr "Aktiv- + Punktefarbe"
+msgstr "Active + puntos de colores"

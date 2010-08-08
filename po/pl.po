@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-07-18 10:34+0300\n"
-"PO-Revision-Date: 2010-06-26 21:53+0000\n"
+"PO-Revision-Date: 2010-07-21 19:46+0000\n"
 "Last-Translator: Solve <solaizen@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-07-18 12:28+0000\n"
+"X-Launchpad-Export-Date: 2010-08-08 08:52+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: dbx_preference.py:212
@@ -356,6 +356,9 @@ msgid ""
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
+"Wtyczka KDE Compability, która jest wymagana do podglądu, nie jest "
+"zainstalowana. Jeśli używasz Ubuntu, zainstaluj pakiet compiz-fusion-plugins-"
+"main."
 
 #: dbx_preference.py:974
 msgid ""
@@ -458,7 +461,7 @@ msgstr "_Przypnij aplikację"
 
 #: dockbarx/groupbutton.py:1177
 msgid "Make custom launcher"
-msgstr ""
+msgstr "Utwórz własny aktywator"
 
 #: dockbarx/groupbutton.py:1184
 msgid "Unpin application"
@@ -466,7 +469,7 @@ msgstr "Odepnij aplikację"
 
 #: dockbarx/groupbutton.py:1191
 msgid "Properties"
-msgstr ""
+msgstr "Właściwości"
 
 #: dockbarx/groupbutton.py:1195
 msgid "Edit Identifier"
@@ -474,7 +477,7 @@ msgstr "Edytuj identyfikator"
 
 #: dockbarx/groupbutton.py:1201
 msgid "Edit Launcher"
-msgstr ""
+msgstr "Edytuj aktywator"
 
 #: dockbarx/groupbutton.py:1218
 msgid "Recent"
@@ -486,7 +489,7 @@ msgstr "Najczęściej używane"
 
 #: dockbarx/groupbutton.py:1220
 msgid "Related"
-msgstr ""
+msgstr "Powiązane"
 
 #: dockbarx/groupbutton.py:1252
 msgid " all windows"

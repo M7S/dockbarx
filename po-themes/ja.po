@@ -1,4 +1,4 @@
-# German translation for dockbar
+# Japanese translation for dockbar
 # Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the dockbar package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-06-09 13:23+0300\n"
-"PO-Revision-Date: 2010-06-10 19:46+0000\n"
-"Last-Translator: Jan-Christoph Borchardt <JanCBorchardt@gmail.com>\n"
-"Language-Team: German <de@li.org>\n"
+"PO-Revision-Date: 2010-08-06 18:01+0000\n"
+"Last-Translator: kawaji <jiro.kawada@gmail.com>\n"
+"Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,43 +18,43 @@ msgstr ""
 "X-Generator: Launchpad (build Unknown)\n"
 
 msgid "Popup background"
-msgstr "Hintergrund des Aufklappmenüs"
+msgstr "ポップアップの背景"
 
 msgid "Normal text"
-msgstr "Normaler Text"
+msgstr "通常時の文字"
 
 msgid "Active window text"
-msgstr "Text eines aktiven Fensters"
+msgstr "アクティブウィンドウの文字"
 
 msgid "Minimized window text"
-msgstr "Text eines minimierten Fensters"
+msgstr "最小化ウィンドウの文字"
 
 msgid "Active color"
-msgstr "Aktive Farbe"
+msgstr "アクティブ時の色"
 
 msgid "Not used"
-msgstr "Nicht verwendet"
+msgstr "不使用"
 
 msgid "Active"
-msgstr "Aktiv"
+msgstr "アクティブ時"
 
 msgid "Launching color"
-msgstr "Startfarbe"
+msgstr "起動途中時の色"
 
 msgid "Attention color"
-msgstr "Aufmerksamkeitsfarbe"
+msgstr "注意要求時の色"
 
 msgid "Minimized color"
-msgstr "Farbe eines minimierten Fensters"
+msgstr "最小化時の色"
 
 msgid "Active glow"
-msgstr "Aktives Leuchten"
+msgstr "アクティブ時の発光"
 
 msgid "Button color"
-msgstr "Knopffarbe"
+msgstr "ボタンの色"
 
 msgid "Active + indicator color"
-msgstr "Aktiv- + Anzeigefarbe"
+msgstr "アクティブ時+インジケータの色"
 
 msgid "Active + dots color"
-msgstr "Aktiv- + Punktefarbe"
+msgstr "アクティブ時+ドットの色"

@@ -1,4 +1,4 @@
-# German translation for dockbar
+# Dutch translation for dockbar
 # Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the dockbar package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-06-09 13:23+0300\n"
-"PO-Revision-Date: 2010-06-10 19:46+0000\n"
-"Last-Translator: Jan-Christoph Borchardt <JanCBorchardt@gmail.com>\n"
-"Language-Team: German <de@li.org>\n"
+"PO-Revision-Date: 2010-07-16 11:33+0000\n"
+"Last-Translator: Adriaan Callaerts <Unknown>\n"
+"Language-Team: Dutch <nl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,43 +18,43 @@ msgstr ""
 "X-Generator: Launchpad (build Unknown)\n"
 
 msgid "Popup background"
-msgstr "Hintergrund des Aufklappmenüs"
+msgstr "Popup achtergrond"
 
 msgid "Normal text"
-msgstr "Normaler Text"
+msgstr "Normale tekst"
 
 msgid "Active window text"
-msgstr "Text eines aktiven Fensters"
+msgstr "Tekst in actief venster"
 
 msgid "Minimized window text"
-msgstr "Text eines minimierten Fensters"
+msgstr "Tekst in geminimaliseerd venster"
 
 msgid "Active color"
-msgstr "Aktive Farbe"
+msgstr "Actieve kleur"
 
 msgid "Not used"
-msgstr "Nicht verwendet"
+msgstr "Niet gebruikt"
 
 msgid "Active"
-msgstr "Aktiv"
+msgstr "Actief"
 
 msgid "Launching color"
-msgstr "Startfarbe"
+msgstr "Opstartkleur"
 
 msgid "Attention color"
-msgstr "Aufmerksamkeitsfarbe"
+msgstr "Opvallende kleur"
 
 msgid "Minimized color"
-msgstr "Farbe eines minimierten Fensters"
+msgstr "Geminimaliseerde kleur"
 
 msgid "Active glow"
-msgstr "Aktives Leuchten"
+msgstr "Actieve gloed"
 
 msgid "Button color"
-msgstr "Knopffarbe"
+msgstr "Knop kleur"
 
 msgid "Active + indicator color"
-msgstr "Aktiv- + Anzeigefarbe"
+msgstr "Actieve + aanwijzer kleur"
 
 msgid "Active + dots color"
-msgstr "Aktiv- + Punktefarbe"
+msgstr "Actief + stippellijn kleur"

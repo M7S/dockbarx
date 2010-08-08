@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-07-18 10:34+0300\n"
-"PO-Revision-Date: 2010-07-14 17:12+0000\n"
-"Last-Translator: Matias Särs <Unknown>\n"
+"PO-Revision-Date: 2010-07-25 04:45+0000\n"
+"Last-Translator: martin <Unknown>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-07-18 12:28+0000\n"
+"X-Launchpad-Export-Date: 2010-08-08 08:52+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: dbx_preference.py:212
@@ -43,7 +43,7 @@ msgstr "Mayús + botón central del ratón"
 
 #: dbx_preference.py:244 dbx_preference.py:457
 msgid "Right mouse button"
-msgstr "Botón secundario del ratón"
+msgstr "Botón derecho del ratón"
 
 #: dbx_preference.py:246 dbx_preference.py:458
 msgid "Shift + right mouse button"
@@ -93,7 +93,7 @@ msgstr "sin acción"
 
 #: dbx_preference.py:284
 msgid "Theme:"
-msgstr "Tema:"
+msgstr "Apariencia:"
 
 #: dbx_preference.py:302
 msgid "Colors"
@@ -348,8 +348,8 @@ msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
-"La vista previa requiere activar el plugin de compatibilidad de Compiz y "
-"KDE. Quieres que dockbarx lo active por ti?"
+"La vista previa requiere activar el plugin de Compiz \"KDE Compability\". "
+"¿Quieres que DockBarX lo active?"
 
 #: dbx_preference.py:957
 msgid ""
@@ -357,6 +357,9 @@ msgid ""
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
+"El plugin para compiz \"KDE Compability\" se necesita para las vistas "
+"previas no parece que esté instalado. Si usa Ubuntu, es necesario instalar "
+"el paquete compiz-fusion-plugins-main."
 
 #: dbx_preference.py:974
 msgid ""
@@ -459,7 +462,7 @@ msgstr "_Retener aplicación"
 
 #: dockbarx/groupbutton.py:1177
 msgid "Make custom launcher"
-msgstr ""
+msgstr "Crear lanzador personalizado"
 
 #: dockbarx/groupbutton.py:1184
 msgid "Unpin application"
@@ -467,7 +470,7 @@ msgstr "Desprender aplicación"
 
 #: dockbarx/groupbutton.py:1191
 msgid "Properties"
-msgstr ""
+msgstr "Propiedades"
 
 #: dockbarx/groupbutton.py:1195
 msgid "Edit Identifier"
@@ -475,7 +478,7 @@ msgstr "Editar identificador"
 
 #: dockbarx/groupbutton.py:1201
 msgid "Edit Launcher"
-msgstr ""
+msgstr "Editar lanzador"
 
 #: dockbarx/groupbutton.py:1218
 msgid "Recent"
@@ -487,7 +490,7 @@ msgstr "Más usados"
 
 #: dockbarx/groupbutton.py:1220
 msgid "Related"
-msgstr ""
+msgstr "Relacionado"
 
 #: dockbarx/groupbutton.py:1252
 msgid " all windows"
