@@ -234,6 +234,8 @@ class Globals(gobject.GObject):
                                               gobject.TYPE_NONE,()),
         'theme-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         'color-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        'show-tooltip-changed': (gobject.SIGNAL_RUN_FIRST,
+                                 gobject.TYPE_NONE,()),
         'show-previews-changed': (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,()),
         'preference-update': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
@@ -262,6 +264,8 @@ class Globals(gobject.GObject):
 
           "separate_wine_apps": True,
           "separate_ooo_apps": True,
+
+          "groupbutton_show_tooltip": False,
 
           "groupbutton_left_click_action": "select or minimize group",
           "groupbutton_shift_and_left_click_action": "launch application",
@@ -421,6 +425,8 @@ class Globals(gobject.GObject):
             self.emit('show-only-current-monitor-changed')
         if 'preview' in changed_settings:
             self.emit('show-previews-changed')
+        if 'groupbutton_show_tooltip' in changed_settings:
+            self.emit('show-tooltip-changed')
         for key in changed_settings:
             if key == 'theme':
                 self.emit('theme-changed')

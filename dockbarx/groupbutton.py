@@ -114,6 +114,8 @@ class GroupButton(gobject.GObject):
         self.globals.connect('color2-changed', self.update_popup_label)
         self.globals.connect('show-previews-changed',
                              self.on_show_previews_changed)
+        self.globals.connect('show-tooltip-changed',
+                             self.update_tooltip)
         self.pinned = pinned
         self.desktop_entry = desktop_entry
         self.monitor = monitor
@@ -249,11 +251,19 @@ class GroupButton(gobject.GObject):
                     "<span foreground='%s'>"%self.globals.colors['color2'] + \
                     "<big><b>%s</b></big></span>"%self.name
                                   )
+        self.update_tooltip()
 
     def remove_launch_effect(self):
         self.launch_effect = False
         self.update_state()
         return False
+
+    def update_tooltip(self, arg=None):
+        if self.globals.settings['groupbutton_show_tooltip'] and \
+           self.windows.get_count() == 0:
+            self.button.set_tooltip_text(self.name)
+        else:
+            self.button.set_has_tooltip(False)
 
     #### State
     def update_popup_label(self, arg=None):
@@ -424,6 +434,8 @@ class GroupButton(gobject.GObject):
                     win.window_button.show_all()
             gobject.idle_add(self.show_list)
 
+        self.update_tooltip()
+
         # Set minimize animation
         # (if the eventbox is created already,
         # otherwice the icon animation is set in sizealloc())
@@ -444,6 +456,7 @@ class GroupButton(gobject.GObject):
         if self.needs_attention:
             self.on_needs_attention_changed()
         self.update_state_request()
+        self.update_tooltip()
         if self.windows.get_unminimized_count() == 0:
             if self.opacified:
                 self.globals.opacified = False

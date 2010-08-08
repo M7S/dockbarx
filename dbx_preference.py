@@ -407,6 +407,12 @@ class PrefDialog():
                                  'no_popup_for_one_window')
         popup_box.pack_start(self.no_popup_cb, False, padding=5)
 
+        self.show_tooltip_cb = gtk.CheckButton(
+                          _('Show tooltip when no window is open'))
+        self.show_tooltip_cb.connect('toggled', self.checkbutton_toggled,
+                                 'groupbutton_show_tooltip')
+        popup_box.pack_start(self.show_tooltip_cb, False, padding=5)
+
         # Alignment
         vbox = gtk.VBox()
         label1 = gtk.Label("<b><big>%s</big></b>"%_("Alignment"))
@@ -805,6 +811,8 @@ class PrefDialog():
                                  self.globals.settings['second_popup_delay'])
         self.no_popup_cb.set_active(
                             self.globals.settings['no_popup_for_one_window'])
+        self.show_tooltip_cb.set_active(
+                            self.globals.settings['groupbutton_show_tooltip'])
 
         # Group button keys
         for cb_name, setting_name in self.gb_labels_and_settings.items():
