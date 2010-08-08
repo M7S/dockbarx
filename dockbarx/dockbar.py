@@ -660,9 +660,9 @@ class DockBar():
         self.update_pinned_apps_list()
 
     def on_minimize_others(self, arg, gb):
-        for g in self.dockbar.groups.get_groups():
-            if gb != g:
-                for win in g.get_windows():
+        for gr in self.dockbar.groups.get_groups():
+            if gb != gr:
+                for win in gr.windows.get_list():
                     win.minimize()
 
 
@@ -1095,7 +1095,7 @@ class DockBar():
         if previous:
             gl.reverse()
         for gr in gl:
-            if gr.list_hide_timeout is not None:
+            if gr.hide_list_sid is not None:
                 # Hide the popup if it's opened
                 # by keyboard shortcut.
                 gr.hide_list()
@@ -1103,7 +1103,7 @@ class DockBar():
                 active_found = True
                 continue
 
-            if active_found and gr.get_windows_count()>0:
+            if active_found and gr.windows.get_count() > 0:
                 # This is the group we will active.
                 # Remove the nextlist just in case
                 # action_select was recently used.
