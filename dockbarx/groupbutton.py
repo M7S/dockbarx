@@ -1055,7 +1055,6 @@ class GroupButton(gobject.GObject):
 
 
     def on_group_button_press_event(self,widget,event):
-
         if not event.button in (1, 2, 3):
             return True
         button = {1:'left', 2: 'middle', 3: 'right'}[event.button]
@@ -1064,13 +1063,15 @@ class GroupButton(gobject.GObject):
         else:
             mod = ''
         if event.type == gtk.gdk._2BUTTON_PRESS:
-            if self.globals.settings[
-                                'groupbutton_%s%s_click_double'%(mod, button)]:
+            if self.globals.settings['groupbutton_%s%s_click_double'%(mod,
+                                                                      button)]:
                 # This is a double click and the
                 # action requires a double click.
                 # Go ahead and do the action.
                 action = self.globals.settings[
                                 'groupbutton_%s%s_click_action'%(mod, button)]
+                self.action_function_dict[action](self, widget, event)
+
         elif event.button == 1:
             self.pressed = True
             self.update_state()
