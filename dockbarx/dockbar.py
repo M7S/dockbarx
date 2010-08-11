@@ -228,13 +228,13 @@ class DockBar():
                 self.apps_by_id[id] = app
                 if id[:5] == 'wine-':
                     try:
-                        cmd = u""+app.get_commandline()
+                        cmd = u""+app.get_commandline().lower()
                     except AttributeError:
                         # Older versions of gio doesn't have get_comandline.
                         cmd = u""
-                    if cmd.find('.exe')>0:
-                        program = \
-                                cmd[cmd.rfind('\\')+1:cmd.rfind('.')+4].lower()
+                    if cmd.find('.exe') > 0:
+                        program = cmd[:cmd.rfind('.exe')+4]
+                        program = program[program.rfind('\\')+1:]
                         self.wine_app_ids_by_program[program] = id
                 if name.find(' ')>-1:
                     self.app_ids_by_longname[name] = id
@@ -739,8 +739,10 @@ class DockBar():
         name = u"" + desktop_entry.getName()
         exe = desktop_entry.getExec()
         if self.globals.settings["separate_wine_apps"] \
-        and "wine" in exe and ".exe" in exe:
-                exe = exe[:exe.rfind('.exe')+4][exe.rfind('\\')+1:].lower()
+        and "wine" in exe and ".exe" in exe.lower():
+                exe = exe.lower()
+                exe = exe[:exe.rfind('.exe')+4]
+                exe = exe[exe.rfind('\\')+1:]
                 wine = True
         else:
             wine = False
@@ -979,14 +981,30 @@ class DockBar():
                                       '/usr/local/share/:/usr/share/')
         folders = "%s:%s"%(user_folder, data_folders)
         for folder in folders.split(':'):
-            #The line below line used datafolders instead of datafolder.
-            #I changed it because I suspect it was a bug.
-            path = os.path.join(folder, "applications", id)
-            if os.path.isfile(path):
-                try:
-                    return DesktopEntry(path)
-                except:
-                    break
+            dirname = os.path.join(folder, "applications")
+            basename = id
+            run = True
+            while run:
+                run = False
+                path = os.path.join(dirname, basename)
+                if os.path.isfile(path):
+                    try:
+                        return DesktopEntry(path)
+                    except:
+                        pass
+                # If the desktop file is in asubfolders, the id is formated
+                # "[subfoldername]-[basename]", but there can of cource be
+                # "-" in basenames or subfoldernames as well.
+                if "-" in basename:
+                    parts = basename.split('-')
+                    for n in range(1, len(parts)):
+                        subfolder = "-".join(parts[:n])
+                        if os.path.isdir(os.path.join(dirname, subfolder)):
+                            dirname = os.path.join(dirname, subfolder)
+                            basename = "-".join(parts[n:])
+                            run = True
+                            break
+
         return None
 
     def edit_launcher(self, arg, path, identifier):
