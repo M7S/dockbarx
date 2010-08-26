@@ -218,7 +218,7 @@ class WindowButton(gobject.GObject):
             vbox = gtk.VBox()
             vbox.pack_start(hbox, False)
             self.preview_image =  gtk.Image()
-            vbox.pack_start(self.preview_image, True, True, padding = 4)
+            vbox.pack_start(self.preview_image, True, True, padding = 2)
             self.window_button.add(vbox)
             # Fixed with of self.label.
             self.label.set_ellipsize(pango.ELLIPSIZE_END)

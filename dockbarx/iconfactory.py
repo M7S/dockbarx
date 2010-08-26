@@ -409,10 +409,7 @@ class IconFactory():
     #### Get icon
     def command_get_icon(self,surface=None, size=0):
         size = int(size)
-        if size < 0:
-            size = self.size + size
-        else:
-            size = self.size
+        size = self.size + size
         if size <= 0:
             # To avoid chrashes.
             size = 15

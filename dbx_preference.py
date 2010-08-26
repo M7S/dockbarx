@@ -624,15 +624,26 @@ class PrefDialog():
         self.ooo_apps_cb.set_border_width(5)
         advanced_box.pack_start(self.ooo_apps_cb, False)
 
+        self.delay_on_select_all_cb = gtk.CheckButton(
+             _('Delay on select all (Workaround for order problems)'))
+        self.delay_on_select_all_cb.set_tooltip_text(_("Compiz can't handle the order of multiple windows that are brought up at once. This problem can be solved by adding short delays between the activation of each window."))
+        self.delay_on_select_all_cb.connect('toggled',
+                                            self.checkbutton_toggled,
+                                            'delay_on_select_all')
+        self.delay_on_select_all_cb.set_border_width(5)
+        advanced_box.pack_start(self.delay_on_select_all_cb, False)
+
         # Opacify frame
         frame = gtk.Frame(_("Opacify"))
         frame.set_border_width(5)
         vbox = gtk.VBox()
         vbox.set_border_width(10)
         self.opacify_cb = gtk.CheckButton(_('Opacify'))
+        self.opacify_cb.set_tooltip_text(_('Opacify will make all other windows transparent when hovering a name or preview of a window in the window list.'))
         self.opacify_cb.connect('toggled', self.checkbutton_toggled, 'opacify')
         vbox.pack_start(self.opacify_cb, False)
         self.opacify_group_cb = gtk.CheckButton(_('Opacify group'))
+        self.opacify_group_cb.set_tooltip_text(_('Opacify group will make all other groups transparent when hovering a group button.'))
         self.opacify_group_cb.connect('toggled', self.checkbutton_toggled,
                                       'opacify_group')
         vbox.pack_start(self.opacify_group_cb, False)
@@ -929,6 +940,8 @@ class PrefDialog():
         self.wine_apps_cb.set_active(
                             self.globals.settings["separate_wine_apps"])
         self.ooo_apps_cb.set_active(self.globals.settings["separate_ooo_apps"])
+        self.delay_on_select_all_cb.set_active(
+                            self.globals.settings["delay_on_select_all"])
 
         for s in self.gkeys:
             self.gkeys_checkbuttons[s].set_active(self.globals.settings[s])

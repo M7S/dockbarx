@@ -257,6 +257,7 @@ class Globals(gobject.GObject):
 
           "select_one_window": "select or minimize window",
           "select_multiple_windows": "select all",
+          "delay_on_select_all": True,
 
           "opacify": False,
           "opacify_group": False,

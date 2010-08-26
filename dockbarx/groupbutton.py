@@ -25,6 +25,7 @@ import gobject
 import gconf
 import wnck
 from time import time
+from time import sleep
 import os
 import gc
 gc.enable()
@@ -175,7 +176,7 @@ class GroupButton(gobject.GObject):
         self.popup.connect_after("size-allocate", self.on_popup_size_allocate)
 
         self.popup_box = gtk.VBox()
-        self.popup_box.set_border_width(5)
+        self.popup_box.set_border_width(3)
         self.popup_box.set_spacing(2)
         self.popup_label = gtk.Label()
         self.popup_label.set_use_markup(True)
@@ -901,7 +902,7 @@ class GroupButton(gobject.GObject):
                 self.launcher_drag = True
                 self.update_state()
             elif 'text/uri-list' in drag_context.targets:
-                # We have to get the data find out if this
+                # We have to get the data to find out if this
                 # is a launcher or something else.
                 self.button.drag_get_data(drag_context, 'text/uri-list', t)
                 # No update_state() here!
@@ -920,7 +921,7 @@ class GroupButton(gobject.GObject):
         self.button_drag_entered = False
         self.update_state()
         self.hide_time = time()
-        self.hide_list_request()
+        gobject.timeout_add(100, self.hide_list_request)
         if self.dnd_show_popup is not None:
             gobject.source_remove(self.dnd_show_popup)
             self.dnd_show_popup = None
@@ -941,7 +942,7 @@ class GroupButton(gobject.GObject):
 
     def on_popup_drag_leave(self, widget, drag_context, t):
         self.hide_time = time()
-        self.hide_list_request()
+        gobject.timeout_add(100, self.hide_list_request)
 
 
     #### Events
@@ -1535,7 +1536,8 @@ class GroupButton(gobject.GObject):
             if unminimized:
                 return
             ordered_list = []
-            ignorelist.reverse() #Bottommost window fist again.
+            #Bottommost window fist again.
+            ignorelist.reverse()
             for win in ignorelist:
                 if win in grp_win_stacked:
                     ordered_list.append(win)
@@ -1544,9 +1546,13 @@ class GroupButton(gobject.GObject):
         if grtop and not moved and minimize:
             for win in grp_win_stacked:
                 self.windows[win].window.minimize()
+        delay = self.globals.settings['delay_on_select_all']
+        win_nr = len(grp_win_stacked)
         if not grtop:
-            for win in grp_win_stacked:
-                self.windows[win].window.activate(event.time)
+            for i in range(win_nr):
+                grp_win_stacked[i].activate(event.time)
+                if delay and i < win_nr - 1:
+                    sleep(0.05)
 
     def action_select_only(self, widget, event):
         self.action_select_or_minimize_group(widget, event, False)
@@ -1712,6 +1718,7 @@ class GroupButton(gobject.GObject):
         # a delay is therefor needed.
         gobject.timeout_add(self.globals.settings['popup_delay'] + 200,
                             self.hide_list)
+
     def action_compiz_shift_windows(self, widget, event):
         wins = self.windows.get_unminimized()
         if not wins:
