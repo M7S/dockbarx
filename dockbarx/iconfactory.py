@@ -133,26 +133,28 @@ class IconFactory():
         #The first four bits of type is for telling the number of windows
         self.win_nr = min(type & 15, self.max_win_nr)
         # Remove all types that are not used by the theme (saves memory)
+        dnd = type & self.DRAG_DROPP
         type = type & self.types_in_theme
         type += self.win_nr
         self.temp = {}
         if type in self.surfaces:
-            return self.surfaces[type]
-        surface = None
-        commands = self.theme.get_icon_dict()
-        self.ar = self.theme.get_aspect_ratio()
-        self.type = type
-        for command, args in commands.items():
-            try:
-                f = getattr(self,"command_%s"%command)
-            except:
-                raise
-            else:
-                surface = f(surface, **args)
-        # Todo: add size correction.
-        if type & self.DRAG_DROPP:
+            surface = self.surfaces[type]
+        else:
+            surface = None
+            commands = self.theme.get_icon_dict()
+            self.ar = self.theme.get_aspect_ratio()
+            self.type = type
+            for command, args in commands.items():
+                try:
+                    f = getattr(self,"command_%s"%command)
+                except:
+                    raise
+                else:
+                    surface = f(surface, **args)
+            # Todo: add size correction.
+            self.surfaces[type] = surface
+        if dnd:
             surface = self.dd_highlight(surface, self.globals.orient)
-        self.surfaces[type] = surface
         del self.temp
         gc.collect()
         return surface
