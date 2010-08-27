@@ -262,7 +262,15 @@ class GroupButton(gobject.GObject):
     def update_tooltip(self, arg=None):
         if self.globals.settings['groupbutton_show_tooltip'] and \
            self.windows.get_count() == 0:
-            self.button.set_tooltip_text(self.name)
+            try:
+                comment = self.desktop_entry.getComment()
+            except:
+                comment = None
+            if comment:
+                text = "\n".join((self.name, comment))
+            else:
+                text = self.name
+            self.button.set_tooltip_text(text)
         else:
             self.button.set_has_tooltip(False)
 
