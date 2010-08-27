@@ -136,10 +136,10 @@ class IconFactory():
         dnd = type & self.DRAG_DROPP
         type = type & self.types_in_theme
         type += self.win_nr
-        self.temp = {}
         if type in self.surfaces:
             surface = self.surfaces[type]
         else:
+            self.temp = {}
             surface = None
             commands = self.theme.get_icon_dict()
             self.ar = self.theme.get_aspect_ratio()
@@ -153,10 +153,11 @@ class IconFactory():
                     surface = f(surface, **args)
             # Todo: add size correction.
             self.surfaces[type] = surface
+            del self.temp
+            gc.collect()
         if dnd:
             surface = self.dd_highlight(surface, self.globals.orient)
-        del self.temp
-        gc.collect()
+            gc.collect()
         return surface
 
 
