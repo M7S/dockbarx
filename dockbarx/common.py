@@ -373,12 +373,16 @@ class Globals(gobject.GObject):
                                       "select group": "select",
                                       "select or compiz scale group": "select"}
             for name, value in self.settings.items():
-                if ("groupbutton" in name) \
-                and ("click" in name or "scroll" in name) \
-                and value in group_button_actions_d:
+                if ("groupbutton" in name) and \
+                   ("click" in name or "scroll" in name) and \
+                   (value in group_button_actions_d):
                     self.settings[name] = group_button_actions_d[value]
                     GCONF_CLIENT.set_string(GCONF_DIR + '/' + name,
                                             self.settings[name])
+            if self.settings.get('workspace_behavior') == 'ingore':
+                self.settings['workspace_behavior'] = 'ignore'
+                GCONF_CLIENT.set_string(GCONF_DIR + '/workspace_behavior',
+                                        'ignore')
 
             self.colors = {}
 
