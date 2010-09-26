@@ -106,7 +106,7 @@ class GroupButton(gobject.GObject):
                    }
 
     def __init__(self, identifier=None, desktop_entry=None,
-                 pinned=False, monitor=1):
+                 pinned=False, monitor=0):
         gobject.GObject.__init__(self)
 
         self.globals = Globals()
@@ -703,34 +703,37 @@ class GroupButton(gobject.GObject):
     def on_popup_size_allocate(self, widget, allocation):
         # Move popup to it's right spot
         offset = 3
-        x,y = self.button.window.get_origin()
+        x, y = self.button.window.get_origin()
         b_alloc = self.button.get_allocation()
-        w,h = self.popup.get_size()
+        w, h = self.popup.get_size()
+        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(self.monitor)
         if self.globals.orient == "h":
             if self.globals.settings['popup_align'] == 'left':
                 x = b_alloc.x + x
             if self.globals.settings['popup_align'] == 'center':
-                x = b_alloc.x + x + (b_alloc.width/2)-(w/2)
+                x = b_alloc.x + x + (b_alloc.width / 2) - (w / 2)
             if self.globals.settings['popup_align'] == 'right':
                 x = b_alloc.x + x + b_alloc.width - w
             y = b_alloc.y + y-offset
-            if x+(w)>self.screen.get_width():
-                x=self.screen.get_width()-w
-            if x<0:
-                x = 0
-            if y-h >= 0:
-                self.popup.move(x,y-h)
+            # Check that the popup is within the monitor
+            if x + w > mgeo.x + mgeo.width:
+                x = mgeo.x + mgeo.width - w
+            if x < mgeo.x:
+                x = mgeo.x
+            if y - h >= mgeo.y:
+                self.popup.move(x, y - h)
             else:
-                self.popup.move(x,y+b_alloc.height+(offset*2))
+                self.popup.move(x, y + b_alloc.height + (offset * 2))
         else:
             x = b_alloc.x + x
             y = b_alloc.y + y
-            if y+h>self.screen.get_height():
-                y=self.screen.get_height()-h
-            if x+w >= self.screen.get_width():
-                self.popup.move(x - w - offset,y)
+            # Check that the popup is within the monitor
+            if y + h > mgeo.y + mgeo.height:
+                y = mgeo.y + mgeo.height - h
+            if x + w >= mgeo.x + mgeo.width:
+                self.popup.move(x - w - offset, y)
             else:
-                self.popup.move(x + b_alloc.width + offset,y)
+                self.popup.move(x + b_alloc.width + offset, y)
 
     #### Opacify
     def opacify(self):
