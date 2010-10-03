@@ -8,12 +8,12 @@ Bug fixes:
 - Workaround for bug #504536: An delay is added so that the order of windows isn't screwed up when multiple windows are selected (You can deactivate the workaround from the advanced tab if you don't need it.)
 - Double click group button actions works again.
 - More programs are pinnable (wine and kde programs specifically).
-- Bugfix (#620771): (Some?) mono applications didn't show in DockbarX.
+- Bug #620771: (Some?) mono applications didn't show in DockbarX.
 - In some cases DockbarX chose the wrong language.
 - The drop point marker didn't show when you added or moved group buttons through drag and drop.
-- DockbarX closed the popup window when you tried to move the mouse to it during drag and drop.
+- DockbarX closed the window list when you tried to move the mouse to it during drag and drop.
 - Bug #642370: Preference Dialog crashed in some situations.
-- Bug #619567: Previews could end up partially on the other screen when dual monitors where used.
+- Bug #619567: Previews could end up partially on the other screen when dual monitors were used.
 - Bug #652382: The terminology 'popup window' and 'window button' is bad, now dockbarx uses 'window list' and 'window item'.
 
 Theme makers:
