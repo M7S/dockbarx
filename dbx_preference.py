@@ -226,9 +226,9 @@ class PrefDialog():
         advanced_box = gtk.VBox()
         popup_box = gtk.VBox()
 
-        #--- WindowButton page
+        #--- Window item page
         hbox = gtk.HBox()
-        frame = gtk.Frame(_("Windowbutton actions"))
+        frame = gtk.Frame(_("Window item actions"))
         frame.set_border_width(5)
         table = gtk.Table(True)
         table.set_border_width(5)
@@ -287,7 +287,7 @@ class PrefDialog():
         for i in range(len(self.wb_close_popup_checkbutton_names)):
             name = self.wb_close_popup_checkbutton_names[i]
             self.wb_close_popup_checkbutton[name] = \
-                                        gtk.CheckButton(_('Close popup'))
+                                        gtk.CheckButton(_('Close window list'))
 
             self.wb_close_popup_checkbutton[name].connect(
                                                     'toggled',
@@ -326,7 +326,7 @@ class PrefDialog():
         table = gtk.Table(True)
 
         self.default_color_names = {
-            "color1": 'Popup background',
+            "color1": 'Window list background',
             "color2": 'Normal text',
             "color3": 'Active window text',
             "color4": 'Minimized window text',
@@ -402,7 +402,7 @@ class PrefDialog():
         #--- Popup page
         popup_box.set_border_width(5)
         self.no_popup_cb = gtk.CheckButton(
-                          _('Show popup only if more than one window is open'))
+                          _('Show window list only if more than one window is open'))
         self.no_popup_cb.connect('toggled', self.checkbutton_toggled,
                                  'no_popup_for_one_window')
         popup_box.pack_start(self.no_popup_cb, False, padding=5)
@@ -447,7 +447,7 @@ class PrefDialog():
         vbox.pack_start(spinbox, False)
 
         spinbox = gtk.HBox()
-        spinlabel = gtk.Label(_("Delay for switching between popups"))
+        spinlabel = gtk.Label(_("Delay for switching between window lists"))
         spinlabel.set_alignment(0,0.5)
         adj = gtk.Adjustment(0, 0, 2000, 1, 50)
         self.second_delay_spin = gtk.SpinButton(adj, 0.5, 0)
@@ -481,7 +481,7 @@ class PrefDialog():
 
 
         #--- Groupbutton page
-        frame = gtk.Frame(_("Groupbutton actions"))
+        frame = gtk.Frame(_("Group button actions"))
         frame.set_border_width(5)
         table = gtk.Table(True)
         table.set_border_width(5)
@@ -575,7 +575,7 @@ class PrefDialog():
         self.select_multiple_cg.append_text(_("select or minimize all"))
         self.select_multiple_cg.append_text(_("compiz scale"))
         self.select_multiple_cg.append_text(_("cycle through windows"))
-        self.select_multiple_cg.append_text(_("show popup"))
+        self.select_multiple_cg.append_text(_("show window list"))
         self.select_multiple_cg.connect('changed', self.cb_changed)
         table.attach(label,0,1,1,2, xpadding = 5 )
         table.attach(self.select_multiple_cg,1,2,1,2)
@@ -717,9 +717,9 @@ class PrefDialog():
 
 
         notebook.append_page(appearance_box, gtk.Label(_("Appearance")))
-        notebook.append_page(popup_box, gtk.Label(_("Popup Window")))
+        notebook.append_page(popup_box, gtk.Label(_("Window List")))
         notebook.append_page(groupbutton_box, gtk.Label(_("Group Button")))
-        notebook.append_page(windowbutton_box, gtk.Label(_("Window Button")))
+        notebook.append_page(windowbutton_box, gtk.Label(_("Window Item")))
         notebook.append_page(advanced_box, gtk.Label(_("Advanced")))
         ca.pack_start(notebook)
         self.update()
@@ -835,7 +835,7 @@ class PrefDialog():
                     combobox.set_active(i)
                     break
 
-        # Window button keys
+        # Window item keys
         for cb_name, setting_name in self.wb_labels_and_settings.items():
             value = self.wb_actions[self.globals.settings[setting_name]]
             combobox = self.wb_combos[cb_name]
@@ -902,7 +902,7 @@ class PrefDialog():
                 "select or minimize all": _("select or minimize all"),
                 "compiz scale": _("compiz scale"),
                 "cycle through windows": _("cycle through windows"),
-                "show popup": _("show popup")
+                "show popup": _("show window list")
               }[self.globals.settings['select_multiple_windows'].lower()]
         for i in range(len(self.select_multiple_cg.get_model())):
                 if model[i][0] == smw:
@@ -1095,7 +1095,7 @@ class PrefDialog():
                         break
                 break
 
-        # Windowbutton settings
+        # Window item settings
         for name, cb in self.wb_combos.items():
             if cb == combobox:
                 setting_name = self.wb_labels_and_settings[name]
@@ -1136,7 +1136,7 @@ class PrefDialog():
                 _("select or minimize all"): "select or minimize all",
                 _("compiz scale"): "compiz scale",
                 _("cycle through windows"): "cycle through windows",
-                _("show popup"): "show popup"
+                _("show window list"): "show popup"
               }
             value = combobox.get_active_text()
             if value is None:
