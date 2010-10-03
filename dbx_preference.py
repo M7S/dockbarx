@@ -469,7 +469,7 @@ class PrefDialog():
         vbox.pack_start(self.preview_cb, False)
 
         spinbox = gtk.HBox()
-        spinlabel = gtk.Label(_("Preview size:"))
+        spinlabel = gtk.Label(_("Preview size"))
         spinlabel.set_alignment(0,0.5)
         adj = gtk.Adjustment(200, 50, 800, 1, 50)
         self.preview_size_spin = gtk.SpinButton(adj, 0.5, 0)
@@ -559,7 +559,7 @@ class PrefDialog():
         table.set_border_width(5)
 
 
-        label = gtk.Label(_("One window open:"))
+        label = gtk.Label(_("One window open"))
         label.set_alignment(1,0.5)
         self.select_one_cg = gtk.combo_box_new_text()
         self.select_one_cg.append_text(_("select window"))
@@ -568,7 +568,7 @@ class PrefDialog():
         table.attach(label,0,1,0,1, xpadding = 5 )
         table.attach(self.select_one_cg,1,2,0,1)
 
-        label = gtk.Label(_("Multiple windows open:"))
+        label = gtk.Label(_("Multiple windows open"))
         label.set_alignment(1,0.5)
         self.select_multiple_cg = gtk.combo_box_new_text()
         self.select_multiple_cg.append_text(_("select all"))
@@ -580,7 +580,7 @@ class PrefDialog():
         table.attach(label,0,1,1,2, xpadding = 5 )
         table.attach(self.select_multiple_cg,1,2,1,2)
 
-        label = gtk.Label(_("Workspace behavior:"))
+        label = gtk.Label(_("Workspace behavior"))
         label.set_alignment(1,0.5)
         self.select_workspace_cg = gtk.combo_box_new_text()
         self.select_workspace_cg.append_text(
@@ -648,7 +648,7 @@ class PrefDialog():
                                       'opacify_group')
         vbox.pack_start(self.opacify_group_cb, False)
         scalebox = gtk.HBox()
-        scalelabel = gtk.Label(_("Opacity:"))
+        scalelabel = gtk.Label(_("Opacity"))
         scalelabel.set_alignment(0,0.5)
         adj = gtk.Adjustment(0, 0, 100, 1, 10, 0)
         self.opacify_scale = gtk.HScale(adj)
