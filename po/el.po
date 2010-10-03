@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-07-18 10:34+0300\n"
-"PO-Revision-Date: 2010-06-24 07:42+0000\n"
-"Last-Translator: Matias Särs <Unknown>\n"
+"POT-Creation-Date: 2010-08-09 00:18+0300\n"
+"PO-Revision-Date: 2010-08-23 22:31+0000\n"
+"Last-Translator: Dimitis Tsiamasiotis <Unknown>\n"
 "Language-Team: Greek <el@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-08-08 08:52+0000\n"
+"X-Launchpad-Export-Date: 2010-10-03 19:32+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: dbx_preference.py:212
@@ -25,45 +25,45 @@ msgstr "DockBarX προτιμήσεις"
 msgid "Windowbutton actions"
 msgstr "Ενέργειες κουμπιού παραθύρου"
 
-#: dbx_preference.py:237 dbx_preference.py:451
+#: dbx_preference.py:237 dbx_preference.py:490
 msgid "Left mouse button"
 msgstr "Αριστερό κουμπί ποντικιού"
 
-#: dbx_preference.py:238 dbx_preference.py:452
+#: dbx_preference.py:238 dbx_preference.py:491
 msgid "Shift + left mouse button"
 msgstr "Shift + αριστερό κουμπί ποντικιού"
 
-#: dbx_preference.py:240 dbx_preference.py:454
+#: dbx_preference.py:240 dbx_preference.py:493
 msgid "Middle mouse button"
 msgstr "Μεσαίο κουμπί ποντικιού"
 
-#: dbx_preference.py:242 dbx_preference.py:455
+#: dbx_preference.py:242 dbx_preference.py:494
 msgid "Shift + middle mouse button"
 msgstr "Shift + μεσαίο κουμπί ποντικιού"
 
-#: dbx_preference.py:244 dbx_preference.py:457
+#: dbx_preference.py:244 dbx_preference.py:496
 msgid "Right mouse button"
 msgstr "Δεξί κουμπί ποντικιού"
 
-#: dbx_preference.py:246 dbx_preference.py:458
+#: dbx_preference.py:246 dbx_preference.py:497
 msgid "Shift + right mouse button"
 msgstr "Shift + δεξί κουμπί ποντικιού"
 
-#: dbx_preference.py:248 dbx_preference.py:460
+#: dbx_preference.py:248 dbx_preference.py:499
 msgid "Scroll up"
 msgstr "Κύλιση πάνω"
 
-#: dbx_preference.py:249 dbx_preference.py:461
+#: dbx_preference.py:249 dbx_preference.py:500
 msgid "Scroll down"
 msgstr "Κύλιση κάτω"
 
-#: dbx_preference.py:254 dbx_preference.py:527 dbx_preference.py:828
-#: dbx_preference.py:1053
+#: dbx_preference.py:254 dbx_preference.py:566 dbx_preference.py:881
+#: dbx_preference.py:1110
 msgid "select or minimize window"
 msgstr "επιλογή ή ελαχιστοποίηση παραθύρου"
 
-#: dbx_preference.py:255 dbx_preference.py:526 dbx_preference.py:827
-#: dbx_preference.py:1052
+#: dbx_preference.py:255 dbx_preference.py:565 dbx_preference.py:880
+#: dbx_preference.py:1109
 msgid "select window"
 msgstr "επιλογή παραθύρου"
 
@@ -75,7 +75,7 @@ msgstr "μεγιστοποίηση παραθύρου"
 msgid "close window"
 msgstr "κλείσιμο παραθύρου"
 
-#: dbx_preference.py:258 dbx_preference.py:470
+#: dbx_preference.py:258 dbx_preference.py:509
 msgid "show menu"
 msgstr "εμφάνιση μενού"
 
@@ -87,262 +87,280 @@ msgstr "σκίαση παραθύρου"
 msgid "unshade window"
 msgstr "αφαίρεση σκίασης παραθύρου"
 
-#: dbx_preference.py:261 dbx_preference.py:479
+#: dbx_preference.py:261 dbx_preference.py:518
 msgid "no action"
 msgstr "καμία ενέργεια"
 
-#: dbx_preference.py:284
+#: dbx_preference.py:290
+msgid "Close popup"
+msgstr "Κλείσιμο αναδυόμενου παραθύρου"
+
+#: dbx_preference.py:306
 msgid "Theme:"
 msgstr "Οπτικό θέμα:"
 
-#: dbx_preference.py:302
+#: dbx_preference.py:324
 msgid "Colors"
 msgstr "Χρώματα"
 
-#: dbx_preference.py:359
+#: dbx_preference.py:381
 msgid "Needs attention effect"
 msgstr ""
 
-#: dbx_preference.py:363
+#: dbx_preference.py:385
 msgid "Compiz water"
 msgstr "Compiz νερό"
 
-#: dbx_preference.py:365
+#: dbx_preference.py:387
 msgid "Blinking"
 msgstr "Αναβόσβημα"
 
-#: dbx_preference.py:367
+#: dbx_preference.py:389
 msgid "Static"
 msgstr "Στατικό"
 
-#: dbx_preference.py:369
+#: dbx_preference.py:391
 msgid "No effect"
 msgstr "Κανένα εφφέ"
 
-#: dbx_preference.py:383
+#: dbx_preference.py:405
 msgid "Show popup only if more than one window is open"
 msgstr ""
+"Εμφάνιση αναδυόμενου παραθύρου μόνο αν είναι ανοικτά περισσότερα από ένα "
+"παράθυρο"
 
-#: dbx_preference.py:390
+#: dbx_preference.py:411
+msgid "Show tooltip when no window is open"
+msgstr "Εμφάνιση βοηθητικής υπόδειξης όταν δεν είναι κανένα παράθυρο ανοικτό"
+
+#: dbx_preference.py:418
 msgid "Alignment"
-msgstr ""
+msgstr "Στοίχιση"
 
-#: dbx_preference.py:394
+#: dbx_preference.py:422
 msgid "Align left"
 msgstr "Στοίχιση αριστερά"
 
-#: dbx_preference.py:396
+#: dbx_preference.py:424
 msgid "Align center"
 msgstr "Στοίχιση στο κέντρο"
 
-#: dbx_preference.py:398
+#: dbx_preference.py:426
 msgid "Align right"
 msgstr "Στοίχιση δεξιά"
 
-#: dbx_preference.py:407
+#: dbx_preference.py:435
 msgid "Delay"
-msgstr ""
+msgstr "Καθυστέρηση"
 
-#: dbx_preference.py:412
+#: dbx_preference.py:440
 msgid "Delay:"
 msgstr "Καθυστέρηση:"
 
-#: dbx_preference.py:424
-msgid "Previews"
-msgstr ""
+#: dbx_preference.py:450
+msgid "Delay for switching between popups"
+msgstr "Καθυστέρηση εναλλαγής αναδυόμενων παραθύρων"
 
-#: dbx_preference.py:428
+#: dbx_preference.py:463
+msgid "Previews"
+msgstr "Προεπισκοπήσεις"
+
+#: dbx_preference.py:467
 msgid "Show previews"
 msgstr "Εμφάνιση προεπισκοπήσεων"
 
-#: dbx_preference.py:433
+#: dbx_preference.py:472
 msgid "Preview size:"
 msgstr "Μέγεθος προεπισκόπησης:"
 
-#: dbx_preference.py:445
+#: dbx_preference.py:484
 msgid "Groupbutton actions"
 msgstr "Ενέργειες ομαδικού κουμπιού"
 
-#: dbx_preference.py:465
+#: dbx_preference.py:504
 msgid "select"
 msgstr "επιλογή"
 
-#: dbx_preference.py:466
+#: dbx_preference.py:505
 msgid "close all windows"
 msgstr "κλείσιμο όλων των παραθύρων"
 
-#: dbx_preference.py:467
+#: dbx_preference.py:506
 msgid "minimize all windows"
 msgstr "ελαχιστοποίηση όλων των παραθύρων"
 
-#: dbx_preference.py:468
+#: dbx_preference.py:507
 msgid "maximize all windows"
 msgstr "μεγιστοποίηση όλων των παραθύρων"
 
-#: dbx_preference.py:469
+#: dbx_preference.py:508
 msgid "launch application"
 msgstr "εκκίνηση εφαρμογής"
 
-#: dbx_preference.py:471
+#: dbx_preference.py:510
 msgid "remove launcher"
 msgstr "αφαίρεση εκκινητή"
 
-#: dbx_preference.py:472
+#: dbx_preference.py:511
 msgid "select next window"
 msgstr "επιλογή επόμενου παραθύρου"
 
-#: dbx_preference.py:473
+#: dbx_preference.py:512
 msgid "select previous window"
 msgstr "επιλογή προηγούμενου παραθύρου"
 
-#: dbx_preference.py:474
+#: dbx_preference.py:513
 msgid "minimize all other groups"
 msgstr "ελαχιστοποίηση όλων των άλλων παραθύρων"
 
-#: dbx_preference.py:475
+#: dbx_preference.py:514
 msgid "compiz scale windows"
-msgstr ""
+msgstr "compiz κλιμάκωση παραθύρων"
 
-#: dbx_preference.py:476
+#: dbx_preference.py:515
 msgid "compiz shift windows"
-msgstr ""
+msgstr "compiz αλλαγή θέσης παραθύρων"
 
-#: dbx_preference.py:477
+#: dbx_preference.py:516
 msgid "compiz scale all"
-msgstr ""
+msgstr "compiz κλίμακωση όλων"
 
-#: dbx_preference.py:478
+#: dbx_preference.py:517
 msgid "show preference dialog"
-msgstr ""
+msgstr "εμφάνιση προτιμήσεων"
 
-#: dbx_preference.py:506
+#: dbx_preference.py:545
 msgid "Double click"
 msgstr "Διπλό κλικ"
 
-#: dbx_preference.py:517
+#: dbx_preference.py:556
 msgid "\"Select\" action options"
 msgstr ""
 
-#: dbx_preference.py:523
+#: dbx_preference.py:562
 msgid "One window open:"
 msgstr "Ένα παράθυρο ανοικτό"
 
-#: dbx_preference.py:532
+#: dbx_preference.py:571
 msgid "Multiple windows open:"
 msgstr "Πολλαπλά παράθυρα ανοικτά"
 
-#: dbx_preference.py:535 dbx_preference.py:837 dbx_preference.py:1065
+#: dbx_preference.py:574 dbx_preference.py:890 dbx_preference.py:1122
 msgid "select all"
 msgstr "επιλογή όλων"
 
-#: dbx_preference.py:536 dbx_preference.py:838 dbx_preference.py:1066
+#: dbx_preference.py:575 dbx_preference.py:891 dbx_preference.py:1123
 msgid "select or minimize all"
 msgstr "επιλογή ή ελαχιστοποίηση όλων"
 
-#: dbx_preference.py:537 dbx_preference.py:839 dbx_preference.py:1067
+#: dbx_preference.py:576 dbx_preference.py:892 dbx_preference.py:1124
 msgid "compiz scale"
-msgstr ""
+msgstr "compiz κλιμάκωση"
 
-#: dbx_preference.py:538 dbx_preference.py:840 dbx_preference.py:1068
+#: dbx_preference.py:577 dbx_preference.py:893 dbx_preference.py:1125
 msgid "cycle through windows"
-msgstr ""
+msgstr "Κυκλική εναλλαγή παραθύρων"
 
-#: dbx_preference.py:539 dbx_preference.py:841 dbx_preference.py:1069
+#: dbx_preference.py:578 dbx_preference.py:894 dbx_preference.py:1126
 msgid "show popup"
-msgstr ""
+msgstr "Εμφάνιση αναδυόμενου παραθύρου"
 
-#: dbx_preference.py:544
+#: dbx_preference.py:583
 msgid "Workspace behavior:"
-msgstr ""
+msgstr "Συμπεριφορά επιφάνειας εργασίας"
 
-#: dbx_preference.py:548 dbx_preference.py:1081
+#: dbx_preference.py:587 dbx_preference.py:1138
 msgid "Ignore windows on other workspaces"
 msgstr "Άγνοια παραθύρων σε άλλες επιφάνειες εργασίας"
 
-#: dbx_preference.py:549 dbx_preference.py:851 dbx_preference.py:1082
+#: dbx_preference.py:588 dbx_preference.py:904 dbx_preference.py:1139
 msgid "Switch workspace when needed"
 msgstr "Αλλαγή επιφάνειας εργασίας όταν χρειάζεται"
 
-#: dbx_preference.py:551 dbx_preference.py:852 dbx_preference.py:1083
+#: dbx_preference.py:590 dbx_preference.py:905 dbx_preference.py:1140
 msgid "Move windows from other workspaces"
 msgstr "Μετακίνηση παραθύρων από άλλες επιφάνειες εργασίας"
 
-#: dbx_preference.py:562
+#: dbx_preference.py:601
 msgid "Ignore windows on other viewports/workspaces"
-msgstr ""
+msgstr "Αγνόησε παράθυρα σε άλλες επιφάνειες εργασίας"
 
-#: dbx_preference.py:569
+#: dbx_preference.py:607
+msgid "Ignore windows on other monitors"
+msgstr "Αγνόησε παράθυρα σε άλλες οθόνες"
+
+#: dbx_preference.py:614
 msgid "Give each wine application its own group button"
 msgstr "Δώσε σε κάθε εφαρμογή του wine δικό της ομαδικό κουμπί"
 
-#: dbx_preference.py:576
+#: dbx_preference.py:621
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "Διατήρησε ανοικτές office εφαρμογές (Writer, Calc, κτλ.) χωρισμένες"
 
-#: dbx_preference.py:583 dbx_preference.py:587
+#: dbx_preference.py:628 dbx_preference.py:632
 msgid "Opacify"
 msgstr "Εφαρμογή Αδιαφάνειας"
 
-#: dbx_preference.py:590
+#: dbx_preference.py:635
 msgid "Opacify group"
 msgstr ""
 
-#: dbx_preference.py:595
+#: dbx_preference.py:640
 msgid "Opacity:"
 msgstr "Αδιαφάνεια:"
 
-#: dbx_preference.py:609
+#: dbx_preference.py:654
 msgid "Global Keyboard Shortcuts"
 msgstr "Καθολικές συντομεύσεις πληκτρολογίου"
 
-#: dbx_preference.py:614 dockbarx/dockbar.py:1035
+#: dbx_preference.py:659 dockbarx/dockbar.py:1044
 msgid "Select next group"
 msgstr "Επιλέξτε επόμενη ομάδα"
 
-#: dbx_preference.py:616 dockbarx/dockbar.py:1036
+#: dbx_preference.py:661 dockbarx/dockbar.py:1045
 msgid "Select previous group"
 msgstr "Επιλέξτε προηγούμενη ομάδα"
 
-#: dbx_preference.py:618 dockbarx/dockbar.py:1037
+#: dbx_preference.py:663 dockbarx/dockbar.py:1046
 msgid "Select next window in group"
 msgstr "Επιλέξτε επόμενο παράθυρο στην ομάδα"
 
-#: dbx_preference.py:620 dockbarx/dockbar.py:1038
+#: dbx_preference.py:665 dockbarx/dockbar.py:1047
 msgid "Select previous window in group"
 msgstr "Επιλέξτε προηγούμενο παράθυρο στην ομάδα"
 
-#: dbx_preference.py:663
+#: dbx_preference.py:708
 msgid "Appearance"
 msgstr "Εμφάνιση"
 
-#: dbx_preference.py:664
+#: dbx_preference.py:709
 msgid "Popup Window"
-msgstr ""
+msgstr "Αναδυόμενο παράθυρο"
 
-#: dbx_preference.py:665
+#: dbx_preference.py:710
 msgid "Group Button"
 msgstr "Ομαδικό κουμπί"
 
-#: dbx_preference.py:666
+#: dbx_preference.py:711
 msgid "Window Button"
 msgstr "Κουμπί παραθύρου"
 
-#: dbx_preference.py:667
+#: dbx_preference.py:712
 msgid "Advanced"
 msgstr "Προχωρημένα"
 
-#: dbx_preference.py:727 dockbarx/theme.py:155
+#: dbx_preference.py:772 dockbarx/theme.py:168
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 "Δε βρέθηκαν θέματα που να δουλεύουν στο /usr/share/dockbarx/themes ή "
 "~/.dockbarx/themes"
 
-#: dbx_preference.py:850
+#: dbx_preference.py:903
 msgid "Ignore windows on other workspace"
-msgstr ""
+msgstr "Αγνόησε παράθυρα σε άλλες επιφάνειες εργασίας"
 
-#: dbx_preference.py:943
+#: dbx_preference.py:1000
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
@@ -350,14 +368,14 @@ msgstr ""
 "Οι προεπισκοπήσεις απαιτούν το plugin KDE Compatibility του compiz να είναι "
 "ενεργοποιημένο.Να το ενεργοποιήσει το dockbarx για εσάς;"
 
-#: dbx_preference.py:957
+#: dbx_preference.py:1014
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
 
-#: dbx_preference.py:974
+#: dbx_preference.py:1031
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
@@ -366,36 +384,28 @@ msgstr ""
 "να είναι ενεργοποιημένη στο  KDE Compatibility plugin.Να την ενεργοποιήσει "
 "το dockbarx για εσάς;"
 
-#: dbx_preference.py:996
+#: dbx_preference.py:1053
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference.py:1157
+#: dbx_preference.py:1214
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr ""
 
-#: dockbarx/dockbar.py:277
-msgid "The launcher at path"
-msgstr "Ο εκκινητής στο μονοπάτι"
-
-#: dockbarx/dockbar.py:279
-msgid "cant be found. Did you perhaps delete the file?"
-msgstr "δεν μπορεί να βρεθεί. Μήπως διαγράψατε το αρχείο;"
-
-#: dockbarx/dockbar.py:859 dockbarx/groupbutton.py:204
-#: dockbarx/groupbutton.py:250
+#: dockbarx/dockbar.py:866 dockbarx/groupbutton.py:185
+#: dockbarx/groupbutton.py:230
 msgid "Identifier"
 msgstr "Αναγνωριστικό"
 
-#: dockbarx/dockbar.py:860
+#: dockbarx/dockbar.py:867
 msgid "Enter the identifier here"
 msgstr "Εισάγετε το αναγνωριστικό εδώ"
 
-#: dockbarx/dockbar.py:862
+#: dockbarx/dockbar.py:869
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
@@ -403,7 +413,7 @@ msgstr ""
 "Θα πρέπει να χρειάζετε να το κάνετε αυτό μόνο όταν το πρόγραμμα αποτυγχάνει "
 "να αναγνωρίσει τα παράθυρά του "
 
-#: dockbarx/dockbar.py:863
+#: dockbarx/dockbar.py:870
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
@@ -411,86 +421,92 @@ msgstr ""
 "Αν το πρόγραμμα τρέχει ήδη πρέπει να μπορείτε να βρείτε το αναγνωριστικό του "
 "προγράμματος από την πτυσσόμενη λίστα."
 
-#: dockbarx/dockbar.py:881
+#: dockbarx/dockbar.py:888
 msgid "Identifier:"
 msgstr "Αναγνωριστικό:"
 
-#: dockbarx/dockbar.py:1064
+#: dockbarx/dockbar.py:1073
 msgid "The key is already bound elsewhere."
 msgstr "Το πλήκτρο είναι ήδη δεσμευμένο αλλού"
 
-#: dockbarx/dockbar.py:1066
+#: dockbarx/dockbar.py:1075
 #, python-format
 msgid ""
 "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
 msgstr ""
 
-#: dockbarx/windowbutton.py:541 dockbarx/groupbutton.py:1264
+#: dockbarx/windowbutton.py:550 dockbarx/groupbutton.py:1194
 msgid "_Minimize"
 msgstr "_Ελαχιστοποίηση"
 
-#: dockbarx/windowbutton.py:544 dockbarx/groupbutton.py:1256
+#: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1186
 msgid "Un_minimize"
 msgstr "Απ_ελαχιστοποίηση"
 
-#: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1274
+#: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1204
 msgid "Ma_ximize"
 msgstr "Με_γιστοποίηση"
 
-#: dockbarx/windowbutton.py:556 dockbarx/groupbutton.py:1278
+#: dockbarx/windowbutton.py:565 dockbarx/groupbutton.py:1208
 msgid "Unma_ximize"
 msgstr "Απομεγιστο_ποίηση"
 
-#: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1284
+#: dockbarx/windowbutton.py:571 dockbarx/groupbutton.py:1214
 msgid "_Close"
 msgstr "_Κλείσιμο"
 
-#: dockbarx/groupbutton.py:1164
+#: dockbarx/groupbutton.py:1094
 msgid "_Launch application"
 msgstr "_Εκκίνηση εφαρμογής"
 
-#: dockbarx/groupbutton.py:1171
+#: dockbarx/groupbutton.py:1101
 msgid "_Pin application"
-msgstr ""
+msgstr "_Καρφίτσωμα εφαρμογής"
 
-#: dockbarx/groupbutton.py:1177
+#: dockbarx/groupbutton.py:1107
 msgid "Make custom launcher"
-msgstr ""
+msgstr "Δημιουργία ιδιότυπου εκκινητή"
 
-#: dockbarx/groupbutton.py:1184
+#: dockbarx/groupbutton.py:1114
 msgid "Unpin application"
 msgstr ""
 
-#: dockbarx/groupbutton.py:1191
+#: dockbarx/groupbutton.py:1121
 msgid "Properties"
-msgstr ""
+msgstr "Ιδιότητες"
 
-#: dockbarx/groupbutton.py:1195
+#: dockbarx/groupbutton.py:1125
 msgid "Edit Identifier"
 msgstr "Επεξεργασία Αναγνωρστικού"
 
-#: dockbarx/groupbutton.py:1201
+#: dockbarx/groupbutton.py:1131
 msgid "Edit Launcher"
-msgstr ""
+msgstr "Επεξεργασία εκκινητή"
 
-#: dockbarx/groupbutton.py:1218
+#: dockbarx/groupbutton.py:1148
 msgid "Recent"
 msgstr "Πρόσφατο"
 
-#: dockbarx/groupbutton.py:1219
+#: dockbarx/groupbutton.py:1149
 msgid "Most used"
 msgstr "Περισσότερο χρησιμοποιημένα"
 
-#: dockbarx/groupbutton.py:1220
+#: dockbarx/groupbutton.py:1150
 msgid "Related"
-msgstr ""
+msgstr "Σχετικά"
 
-#: dockbarx/groupbutton.py:1252
+#: dockbarx/groupbutton.py:1182
 msgid " all windows"
 msgstr " όλα τα παράθυρα"
 
 #~ msgid "Cannot load icon for launcher"
 #~ msgstr "Δεν μπορεί να φορτωθεί εικονίδιο για τον εκκινητή"
+
+#~ msgid "The launcher at path"
+#~ msgstr "Ο εκκινητής στο μονοπάτι"
+
+#~ msgid "cant be found. Did you perhaps delete the file?"
+#~ msgstr "δεν μπορεί να βρεθεί. Μήπως διαγράψατε το αρχείο;"
 
 #~ msgid "Popup Settings"
 #~ msgstr "Ρυθμίσεις άμεσων ειδοποιήσεων"

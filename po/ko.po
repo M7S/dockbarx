@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-07-18 10:34+0300\n"
-"PO-Revision-Date: 2010-07-23 19:01+0000\n"
+"POT-Creation-Date: 2010-08-09 00:18+0300\n"
+"PO-Revision-Date: 2010-08-10 11:16+0000\n"
 "Last-Translator: Ernesto2k <boramism@gmail.com>\n"
 "Language-Team: Kim Boram <boramism@gmail.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-08-08 08:52+0000\n"
+"X-Launchpad-Export-Date: 2010-10-03 19:32+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: dbx_preference.py:212
@@ -25,45 +25,45 @@ msgstr "독바X 기본 설정"
 msgid "Windowbutton actions"
 msgstr "창 단추 동작"
 
-#: dbx_preference.py:237 dbx_preference.py:451
+#: dbx_preference.py:237 dbx_preference.py:490
 msgid "Left mouse button"
 msgstr "마우스 왼쪽 단추"
 
-#: dbx_preference.py:238 dbx_preference.py:452
+#: dbx_preference.py:238 dbx_preference.py:491
 msgid "Shift + left mouse button"
 msgstr "쉬프트 + 마우스 왼쪽 단추"
 
-#: dbx_preference.py:240 dbx_preference.py:454
+#: dbx_preference.py:240 dbx_preference.py:493
 msgid "Middle mouse button"
 msgstr "마우스 가운데 단추"
 
-#: dbx_preference.py:242 dbx_preference.py:455
+#: dbx_preference.py:242 dbx_preference.py:494
 msgid "Shift + middle mouse button"
 msgstr "쉬프트 + 마우스 가운데 단추"
 
-#: dbx_preference.py:244 dbx_preference.py:457
+#: dbx_preference.py:244 dbx_preference.py:496
 msgid "Right mouse button"
 msgstr "마우스 오른쪽 단추"
 
-#: dbx_preference.py:246 dbx_preference.py:458
+#: dbx_preference.py:246 dbx_preference.py:497
 msgid "Shift + right mouse button"
 msgstr "쉬프트 + 마우스 오른쪽 단추"
 
-#: dbx_preference.py:248 dbx_preference.py:460
+#: dbx_preference.py:248 dbx_preference.py:499
 msgid "Scroll up"
 msgstr "위로 스크롤"
 
-#: dbx_preference.py:249 dbx_preference.py:461
+#: dbx_preference.py:249 dbx_preference.py:500
 msgid "Scroll down"
 msgstr "아래로 스크롤"
 
-#: dbx_preference.py:254 dbx_preference.py:527 dbx_preference.py:828
-#: dbx_preference.py:1053
+#: dbx_preference.py:254 dbx_preference.py:566 dbx_preference.py:881
+#: dbx_preference.py:1110
 msgid "select or minimize window"
 msgstr "창 선택 또는 최소화"
 
-#: dbx_preference.py:255 dbx_preference.py:526 dbx_preference.py:827
-#: dbx_preference.py:1052
+#: dbx_preference.py:255 dbx_preference.py:565 dbx_preference.py:880
+#: dbx_preference.py:1109
 msgid "select window"
 msgstr "창 선택"
 
@@ -75,7 +75,7 @@ msgstr "창 최대화"
 msgid "close window"
 msgstr "창 닫기"
 
-#: dbx_preference.py:258 dbx_preference.py:470
+#: dbx_preference.py:258 dbx_preference.py:509
 msgid "show menu"
 msgstr "메뉴 보기"
 
@@ -87,268 +87,284 @@ msgstr "창 말아 올리기"
 msgid "unshade window"
 msgstr "창 말아 올리기 취소"
 
-#: dbx_preference.py:261 dbx_preference.py:479
+#: dbx_preference.py:261 dbx_preference.py:518
 msgid "no action"
 msgstr "동작 없음"
 
-#: dbx_preference.py:284
+#: dbx_preference.py:290
+msgid "Close popup"
+msgstr "팝업 닫기"
+
+#: dbx_preference.py:306
 msgid "Theme:"
 msgstr "테마:"
 
-#: dbx_preference.py:302
+#: dbx_preference.py:324
 msgid "Colors"
 msgstr "색"
 
-#: dbx_preference.py:359
+#: dbx_preference.py:381
 msgid "Needs attention effect"
 msgstr "주의가 필요할 때의 효과"
 
-#: dbx_preference.py:363
+#: dbx_preference.py:385
 msgid "Compiz water"
 msgstr "컴피즈 물결 효과"
 
-#: dbx_preference.py:365
+#: dbx_preference.py:387
 msgid "Blinking"
 msgstr "깜박이기"
 
-#: dbx_preference.py:367
+#: dbx_preference.py:389
 msgid "Static"
 msgstr "고정"
 
-#: dbx_preference.py:369
+#: dbx_preference.py:391
 msgid "No effect"
 msgstr "효과 없음"
 
-#: dbx_preference.py:383
+#: dbx_preference.py:405
 msgid "Show popup only if more than one window is open"
 msgstr "하나 이상의 창이 열려있을 때만 팝업 보기"
 
-#: dbx_preference.py:390
+#: dbx_preference.py:411
+msgid "Show tooltip when no window is open"
+msgstr "열린 창이 없을 때 툴팁 보기"
+
+#: dbx_preference.py:418
 msgid "Alignment"
 msgstr "정렬"
 
-#: dbx_preference.py:394
+#: dbx_preference.py:422
 msgid "Align left"
 msgstr "왼쪽 정렬"
 
-#: dbx_preference.py:396
+#: dbx_preference.py:424
 msgid "Align center"
 msgstr "가운데 정렬"
 
-#: dbx_preference.py:398
+#: dbx_preference.py:426
 msgid "Align right"
 msgstr "오른쪽 정렬"
 
-#: dbx_preference.py:407
+#: dbx_preference.py:435
 msgid "Delay"
 msgstr "지연 시간"
 
-#: dbx_preference.py:412
+#: dbx_preference.py:440
 msgid "Delay:"
 msgstr "지연 시간:"
 
-#: dbx_preference.py:424
+#: dbx_preference.py:450
+msgid "Delay for switching between popups"
+msgstr "팝업이 바뀔 때의 지연 시간"
+
+#: dbx_preference.py:463
 msgid "Previews"
 msgstr "미리 보기"
 
-#: dbx_preference.py:428
+#: dbx_preference.py:467
 msgid "Show previews"
 msgstr "미리 보기 사용"
 
-#: dbx_preference.py:433
+#: dbx_preference.py:472
 msgid "Preview size:"
 msgstr "미리 보기 크기:"
 
-#: dbx_preference.py:445
+#: dbx_preference.py:484
 msgid "Groupbutton actions"
 msgstr "그룹 단추 동작"
 
-#: dbx_preference.py:465
+#: dbx_preference.py:504
 msgid "select"
 msgstr "선택"
 
-#: dbx_preference.py:466
+#: dbx_preference.py:505
 msgid "close all windows"
 msgstr "모든 창 닫기"
 
-#: dbx_preference.py:467
+#: dbx_preference.py:506
 msgid "minimize all windows"
 msgstr "모든 창 최소화"
 
-#: dbx_preference.py:468
+#: dbx_preference.py:507
 msgid "maximize all windows"
 msgstr "모든 창 최대화"
 
-#: dbx_preference.py:469
+#: dbx_preference.py:508
 msgid "launch application"
 msgstr "프로그램 실행"
 
-#: dbx_preference.py:471
+#: dbx_preference.py:510
 msgid "remove launcher"
 msgstr "실행 아이콘 제거"
 
-#: dbx_preference.py:472
+#: dbx_preference.py:511
 msgid "select next window"
 msgstr "다음 창 선택"
 
-#: dbx_preference.py:473
+#: dbx_preference.py:512
 msgid "select previous window"
 msgstr "이전 창 선택"
 
-#: dbx_preference.py:474
+#: dbx_preference.py:513
 msgid "minimize all other groups"
 msgstr "다른 모든 그룹 최소화"
 
-#: dbx_preference.py:475
+#: dbx_preference.py:514
 msgid "compiz scale windows"
 msgstr "컴피즈 창 스케일"
 
-#: dbx_preference.py:476
+#: dbx_preference.py:515
 msgid "compiz shift windows"
 msgstr "컴피즈 창 던지기"
 
-#: dbx_preference.py:477
+#: dbx_preference.py:516
 msgid "compiz scale all"
 msgstr "컴피즈 모두 스케일"
 
-#: dbx_preference.py:478
+#: dbx_preference.py:517
 msgid "show preference dialog"
 msgstr "기본 설정 대화 상자 보기"
 
-#: dbx_preference.py:506
+#: dbx_preference.py:545
 msgid "Double click"
 msgstr "두번 누르기"
 
-#: dbx_preference.py:517
+#: dbx_preference.py:556
 msgid "\"Select\" action options"
 msgstr "\"선택\" 동작 옵션"
 
-#: dbx_preference.py:523
+#: dbx_preference.py:562
 msgid "One window open:"
 msgstr "하나의 창이 열렸을 때:"
 
-#: dbx_preference.py:532
+#: dbx_preference.py:571
 msgid "Multiple windows open:"
 msgstr "다수의 창이 열렸을 때:"
 
-#: dbx_preference.py:535 dbx_preference.py:837 dbx_preference.py:1065
+#: dbx_preference.py:574 dbx_preference.py:890 dbx_preference.py:1122
 msgid "select all"
 msgstr "모두 선택"
 
-#: dbx_preference.py:536 dbx_preference.py:838 dbx_preference.py:1066
+#: dbx_preference.py:575 dbx_preference.py:891 dbx_preference.py:1123
 msgid "select or minimize all"
 msgstr "선택 또는 모두 최소화"
 
-#: dbx_preference.py:537 dbx_preference.py:839 dbx_preference.py:1067
+#: dbx_preference.py:576 dbx_preference.py:892 dbx_preference.py:1124
 msgid "compiz scale"
 msgstr "컴피즈 스케일"
 
-#: dbx_preference.py:538 dbx_preference.py:840 dbx_preference.py:1068
+#: dbx_preference.py:577 dbx_preference.py:893 dbx_preference.py:1125
 msgid "cycle through windows"
 msgstr "창 전환"
 
-#: dbx_preference.py:539 dbx_preference.py:841 dbx_preference.py:1069
+#: dbx_preference.py:578 dbx_preference.py:894 dbx_preference.py:1126
 msgid "show popup"
 msgstr "팝업 보기"
 
-#: dbx_preference.py:544
+#: dbx_preference.py:583
 msgid "Workspace behavior:"
 msgstr "작업 공간 동작:"
 
-#: dbx_preference.py:548 dbx_preference.py:1081
+#: dbx_preference.py:587 dbx_preference.py:1138
 msgid "Ignore windows on other workspaces"
 msgstr "다른 작업 공간 위의 창 무시하기"
 
-#: dbx_preference.py:549 dbx_preference.py:851 dbx_preference.py:1082
+#: dbx_preference.py:588 dbx_preference.py:904 dbx_preference.py:1139
 msgid "Switch workspace when needed"
 msgstr "필요할 때 작업 공간 바꾸기"
 
-#: dbx_preference.py:551 dbx_preference.py:852 dbx_preference.py:1083
+#: dbx_preference.py:590 dbx_preference.py:905 dbx_preference.py:1140
 msgid "Move windows from other workspaces"
 msgstr "다른 작업 공간에서 창 옮기기"
 
-#: dbx_preference.py:562
+#: dbx_preference.py:601
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "다른 작업 공간 위의 창 무시하기"
 
-#: dbx_preference.py:569
+#: dbx_preference.py:607
+msgid "Ignore windows on other monitors"
+msgstr "다른 모니터 위의 창 무시하기"
+
+#: dbx_preference.py:614
 msgid "Give each wine application its own group button"
 msgstr "각 와인 응용 프로그램에 개별적으로 그룹 단추 주기"
 
-#: dbx_preference.py:576
+#: dbx_preference.py:621
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "오픈 오피스 응용 프로그램 (워드, 스프레드시트 등) 분리하기"
 
-#: dbx_preference.py:583 dbx_preference.py:587
+#: dbx_preference.py:628 dbx_preference.py:632
 msgid "Opacify"
 msgstr "투명화"
 
-#: dbx_preference.py:590
+#: dbx_preference.py:635
 msgid "Opacify group"
 msgstr "그룹 투명화"
 
-#: dbx_preference.py:595
+#: dbx_preference.py:640
 msgid "Opacity:"
 msgstr "투명도:"
 
-#: dbx_preference.py:609
+#: dbx_preference.py:654
 msgid "Global Keyboard Shortcuts"
 msgstr "글로벌 키보드 바로 가기"
 
-#: dbx_preference.py:614 dockbarx/dockbar.py:1035
+#: dbx_preference.py:659 dockbarx/dockbar.py:1044
 msgid "Select next group"
 msgstr "다음 그룹 선택"
 
-#: dbx_preference.py:616 dockbarx/dockbar.py:1036
+#: dbx_preference.py:661 dockbarx/dockbar.py:1045
 msgid "Select previous group"
 msgstr "이전 그룹 선택"
 
-#: dbx_preference.py:618 dockbarx/dockbar.py:1037
+#: dbx_preference.py:663 dockbarx/dockbar.py:1046
 msgid "Select next window in group"
 msgstr "그룹 안의 다음 창 선택"
 
-#: dbx_preference.py:620 dockbarx/dockbar.py:1038
+#: dbx_preference.py:665 dockbarx/dockbar.py:1047
 msgid "Select previous window in group"
 msgstr "그룹 안의 이전 창 선택"
 
-#: dbx_preference.py:663
+#: dbx_preference.py:708
 msgid "Appearance"
 msgstr "모양"
 
-#: dbx_preference.py:664
+#: dbx_preference.py:709
 msgid "Popup Window"
 msgstr "팝업 창"
 
-#: dbx_preference.py:665
+#: dbx_preference.py:710
 msgid "Group Button"
 msgstr "그룹 단추"
 
-#: dbx_preference.py:666
+#: dbx_preference.py:711
 msgid "Window Button"
 msgstr "창 단추"
 
-#: dbx_preference.py:667
+#: dbx_preference.py:712
 msgid "Advanced"
 msgstr "고급"
 
-#: dbx_preference.py:727 dockbarx/theme.py:155
+#: dbx_preference.py:772 dockbarx/theme.py:168
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 "/usr/share/dockbarx/themes 또는 ~/.dockbarx/themes 경로에서 사용 가능한 테마를 찾을 수 없습니다."
 
-#: dbx_preference.py:850
+#: dbx_preference.py:903
 msgid "Ignore windows on other workspace"
 msgstr "다른 작업 공간 위의 창 무시하기"
 
-#: dbx_preference.py:943
+#: dbx_preference.py:1000
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
 "미리 보기 기능을 사용하시려면 컴피즈 플러그인 중 KDE Compability을 사용해야 합니다. 지금부터 사용하시겠습니까?"
 
-#: dbx_preference.py:957
+#: dbx_preference.py:1014
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
@@ -357,7 +373,7 @@ msgstr ""
 "미리 보기 기능에 필요한 KDE Compability 컴피즈 플러그인이 설치되어있지 않습니다. 우분투를 사용 중이시라면 compiz-"
 "fusion-plugins-main 패키지를 설치해 주십시오."
 
-#: dbx_preference.py:974
+#: dbx_preference.py:1031
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
@@ -365,121 +381,119 @@ msgstr ""
 "미리 보기 기능은 KDE Compability 플러그인 기능 중 Support Plasma Thumnails 기능을 사용합니다. 지금부터 "
 "사용하시겠습니까?"
 
-#: dbx_preference.py:996
+#: dbx_preference.py:1053
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr "투명화 기능을 사용하려면 투명, 밝기, 채도 컴피즈 플러그인을 사용하야 합니다. 지금부터 사용하시겠습니까?"
 
-#: dbx_preference.py:1157
+#: dbx_preference.py:1214
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr "키보드 문자열 안에 적어도 하나 이상의 모드 키(<컨트롤> 또는 <알트>, <윈도우 키>)가 필요합니다."
 
-#: dockbarx/dockbar.py:277
-msgid "The launcher at path"
-msgstr "다음 경로 상의 실행 아이콘"
-
-#: dockbarx/dockbar.py:279
-msgid "cant be found. Did you perhaps delete the file?"
-msgstr "찾을 수 없습니다. 파일을 지우신 것은 아닙니까?"
-
-#: dockbarx/dockbar.py:859 dockbarx/groupbutton.py:204
-#: dockbarx/groupbutton.py:250
+#: dockbarx/dockbar.py:866 dockbarx/groupbutton.py:185
+#: dockbarx/groupbutton.py:230
 msgid "Identifier"
 msgstr "식별 이름"
 
-#: dockbarx/dockbar.py:860
+#: dockbarx/dockbar.py:867
 msgid "Enter the identifier here"
 msgstr "여기에 식별 이름을 입력하세요"
 
-#: dockbarx/dockbar.py:862
+#: dockbarx/dockbar.py:869
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr "프로그램이 그 것의 창을 인식하지 못했을 때만 사용해야 합니다. "
 
-#: dockbarx/dockbar.py:863
+#: dockbarx/dockbar.py:870
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr "프로그램이 이미 실행 중인 경우 드롭 다운 목록에서 프로그램 식별 이름을 찾을 수 있을 것입니다."
 
-#: dockbarx/dockbar.py:881
+#: dockbarx/dockbar.py:888
 msgid "Identifier:"
 msgstr "식별 이름:"
 
-#: dockbarx/dockbar.py:1064
+#: dockbarx/dockbar.py:1073
 msgid "The key is already bound elsewhere."
 msgstr "키가 다른 곳에서 이미 사용되고 있습니다."
 
-#: dockbarx/dockbar.py:1066
+#: dockbarx/dockbar.py:1075
 #, python-format
 msgid ""
 "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
 msgstr "오류: %(function)s 기능을 위한 '%(keystr)s' 글로벌 키보드 바로 가기를 설정할 수 없습니다."
 
-#: dockbarx/windowbutton.py:541 dockbarx/groupbutton.py:1264
+#: dockbarx/windowbutton.py:550 dockbarx/groupbutton.py:1194
 msgid "_Minimize"
 msgstr "최소화(_M)"
 
-#: dockbarx/windowbutton.py:544 dockbarx/groupbutton.py:1256
+#: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1186
 msgid "Un_minimize"
 msgstr "최소화 취소(_M)"
 
-#: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1274
+#: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1204
 msgid "Ma_ximize"
 msgstr "최대화(_X)"
 
-#: dockbarx/windowbutton.py:556 dockbarx/groupbutton.py:1278
+#: dockbarx/windowbutton.py:565 dockbarx/groupbutton.py:1208
 msgid "Unma_ximize"
 msgstr "최대화 취소(_X)"
 
-#: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1284
+#: dockbarx/windowbutton.py:571 dockbarx/groupbutton.py:1214
 msgid "_Close"
 msgstr "닫기(_C)"
 
-#: dockbarx/groupbutton.py:1164
+#: dockbarx/groupbutton.py:1094
 msgid "_Launch application"
 msgstr "프로그램 실행(_L)"
 
-#: dockbarx/groupbutton.py:1171
+#: dockbarx/groupbutton.py:1101
 msgid "_Pin application"
 msgstr "프로그램 고정(_P)"
 
-#: dockbarx/groupbutton.py:1177
+#: dockbarx/groupbutton.py:1107
 msgid "Make custom launcher"
 msgstr "사용자 설정 실행 아이콘 만들기"
 
-#: dockbarx/groupbutton.py:1184
+#: dockbarx/groupbutton.py:1114
 msgid "Unpin application"
 msgstr "프로그램 고정 취소"
 
-#: dockbarx/groupbutton.py:1191
+#: dockbarx/groupbutton.py:1121
 msgid "Properties"
 msgstr "속성"
 
-#: dockbarx/groupbutton.py:1195
+#: dockbarx/groupbutton.py:1125
 msgid "Edit Identifier"
 msgstr "식별 이름 편집"
 
-#: dockbarx/groupbutton.py:1201
+#: dockbarx/groupbutton.py:1131
 msgid "Edit Launcher"
 msgstr "실행 아이콘 편집"
 
-#: dockbarx/groupbutton.py:1218
+#: dockbarx/groupbutton.py:1148
 msgid "Recent"
 msgstr "최근 사용한 문서"
 
-#: dockbarx/groupbutton.py:1219
+#: dockbarx/groupbutton.py:1149
 msgid "Most used"
 msgstr "자주 사용한 문서"
 
-#: dockbarx/groupbutton.py:1220
+#: dockbarx/groupbutton.py:1150
 msgid "Related"
 msgstr "연관된 문서"
 
-#: dockbarx/groupbutton.py:1252
+#: dockbarx/groupbutton.py:1182
 msgid " all windows"
 msgstr " - 모든 창"
+
+#~ msgid "The launcher at path"
+#~ msgstr "다음 경로 상의 실행 아이콘"
+
+#~ msgid "cant be found. Did you perhaps delete the file?"
+#~ msgstr "찾을 수 없습니다. 파일을 지우신 것은 아닙니까?"

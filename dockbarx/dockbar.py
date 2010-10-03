@@ -42,7 +42,7 @@ from common import *
 import i18n
 _ = i18n.language.gettext
 
-VERSION = 'x.0.39.7'
+VERSION = 'x.0.39.8'
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")

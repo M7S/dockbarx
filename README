@@ -49,7 +49,7 @@ USAGE
 =====
 The default actions are listed here. There are more actions in dockbarx. You can assign them to different buttons via preference dialog.
 
-DEFAULT WINDOW BUTTON ACTIONS:
+DEFAULT WINDOW ITEM ACTIONS:
 left click:
 - activate / minimize / unminimize
 
@@ -86,7 +86,7 @@ Switch: Behaves as ignore if there are windows belonging to the group on the cur
 
 Move: Moves windows from other workspaces/viewports to current workspace/viewport. This is the behavior vanilla Dockbar uses.
 
-If you select a window in the popup list you will always switch to the workspace/viewport of the window. This is not configurable (vanilla Dockbar behaves the same way).
+If you select a window in the window list you will always switch to the workspace/viewport of the window. This is not configurable (vanilla Dockbar behaves the same way).
 
 
 ===
@@ -103,7 +103,7 @@ And another interesting link that has had quite a bit of infuence on my work wit
 http://arstechnica.com/software/news/2009/01/dock-and-windows-7-taskbar.ars
 
 Q: I want a button for every window instead of all windows of the same application grouped together under one button. When will DockbarX support that?
-A: Never. That would demand quite a bit of restructuring of the code and I believe it's less productive to keep the window buttons ungrouped. You are welcome to change the code yourself if you don't like my decision, or try the applet Talika it might suit your needs better than DockbarX does.
+A: Never. That would demand quite a bit of restructuring of the code and I believe it's less productive to keep the windows ungrouped. You are welcome to change the code yourself if you don't like my decision, or try the applet Talika it might suit your needs better than DockbarX does.
 
 Q: I added a new launcher for program X but when I click on the launcher a new groupbutton is made for the window instead of using the groupbutton of the launcher. What went wrong?
 A: Dockbarx connects group buttons and windows by using the resource class name of the application. When a launcher is added dockbarx tries to guess the resource class name of that launcher. This works in most cases but not always. Apparently it didn't work for your program X. To fix this, right click on the launcher for program X and choose "Edit Resource name" and enter the correct resource name. If the program is already running you should be able to find it's resource class name in the drop-down list.
