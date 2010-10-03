@@ -437,7 +437,7 @@ class PrefDialog():
         label1.set_use_markup(True)
         vbox.pack_start(label1,False)
         spinbox = gtk.HBox()
-        spinlabel = gtk.Label(_("Delay:"))
+        spinlabel = gtk.Label(_("Delay"))
         spinlabel.set_alignment(0,0.5)
         adj = gtk.Adjustment(0, 0, 2000, 1, 50)
         self.delay_spin = gtk.SpinButton(adj, 0.5, 0)
