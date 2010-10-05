@@ -711,15 +711,16 @@ class DockBar():
                 self.d_e_ids_by_wine_program[exe] = id
                 return
             l = exe.split()
-            if l[0] in ('sudo','gksudo', 'gksu',
-                        'java','mono',
-                        'ruby','python'):
+            if l and l[0] in ('sudo','gksudo', 'gksu',
+                              'java','mono',
+                              'ruby','python'):
                 exe = l[1]
             else:
                 exe = l[0]
             exe = exe.rpartition('/')[-1]
             exe = exe.partition('.')[0]
-            self.d_e_ids_by_exec[exe] = id
+            if exe != '':
+                self.d_e_ids_by_exec[exe] = id
 
             name = u"" + desktop_entry.getName().lower()
             if name.find(' ')>-1:
@@ -751,9 +752,9 @@ class DockBar():
         else:
             wine = False
             l= exe.split()
-            if l[0] in ('sudo','gksudo', 'gksu',
-                        'java','mono',
-                        'ruby','python'):
+            if l and l[0] in ('sudo','gksudo', 'gksu',
+                              'java','mono',
+                              'ruby','python'):
                 exe = l[1]
             else:
                 exe = l[0]
@@ -766,7 +767,7 @@ class DockBar():
         else:
             lname = None
 
-        if exe[0] == '/':
+        if exe and exe[0] == '/':
             exe = exe[exe.rfind('/')+1:]
 
         print "New launcher dropped"
@@ -828,7 +829,8 @@ class DockBar():
                     self.d_e_ids_by_longname[name] = id
                 else:
                     self.d_e_ids_by_name[name] = id
-                self.d_e_ids_by_exec[exe] = id
+                if exe:
+                    self.d_e_ids_by_exec[exe] = id
 
         # Remove existing groupbutton for the same program
         winlist = []

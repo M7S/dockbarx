@@ -148,6 +148,9 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
     def launch(self, uri=None):
         os.chdir(os.path.expanduser('~'))
         command = self.getExec()
+        if command == "":
+            return
+
         # Replace arguments
         if "%i" in command:
             icon = self.getIcon()
