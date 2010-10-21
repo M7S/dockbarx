@@ -72,12 +72,14 @@ def _get(name=None,
 def get_recent_for_app(name, days=14, number_of_results=5):
     if iface is None:
         return []
-    return _get(name, datamodel.ResultType.MostRecentSubjects, days)
+    return _get(name, datamodel.ResultType.MostRecentSubjects,
+                days, number_of_results)
 
 def get_most_used_for_app(name, days=14, number_of_results=5):
     if iface is None:
         return []
-    return _get(name, datamodel.ResultType.MostPopularSubjects,days)
+    return _get(name, datamodel.ResultType.MostPopularSubjects,
+                days, number_of_results)
 
 def get_most_used_for_mimetypes(mimetypes, days=1, number_of_results=5):
     if iface is None:
