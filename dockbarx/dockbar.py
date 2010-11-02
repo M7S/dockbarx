@@ -115,6 +115,7 @@ class DockBar():
         self.windows = None
         self.container = None
         self.theme = None
+        self.skip_tasklist_windows = None
 
         self.gkeys = {
                         'gkeys_select_next_group': None,
@@ -199,11 +200,14 @@ class DockBar():
                 group.hide_list()
                 group.icon_factory.remove()
 
+        del self.skip_tasklist_windows
         del self.groups
         del self.windows
         if self.theme:
             self.theme.remove()
         gc.collect()
+
+        self.skip_tasklist_windows = []
 
         print "Dockbarx reload"
         self.groups = GroupList()
@@ -406,11 +410,16 @@ class DockBar():
             if not group.windows and not group.pinned:
                 self.groups.remove(group)
             del self.windows[window]
+        if window in self.skip_tasklist_windows:
+            self.skip_tasklist_windows.remove(window)
 
     def on_window_opened(self,screen,window):
-        if window.is_skip_tasklist() \
-        or not (window.get_window_type() in [wnck.WINDOW_NORMAL,
+        if not (window.get_window_type() in [wnck.WINDOW_NORMAL,
                                              wnck.WINDOW_DIALOG]):
+            return
+        window.connect("state-changed", self.on_window_state_changed)
+        if window.is_skip_tasklist():
+            self.skip_tasklist_windows.append(window)
             return
 
         try:
@@ -594,6 +603,15 @@ class DockBar():
             if window == self.screen.get_active_window():
                 self.on_active_window_changed(self.screen, None)
 
+    def on_window_state_changed(self, window,changed_mask, new_state):
+        if window in self.skip_tasklist_windows and \
+           not window.is_skip_tasklist():
+            self.on_window_opened(self.screen, window)
+            self.skip_tasklist_windows.remove(window)
+        if window.is_skip_tasklist() and \
+           not window in self.skip_tasklist_windows:
+            self.on_window_closed(self.screen, window)
+            self.skip_tasklist_windows.append(window)
 
     #### Desktop events
     def on_desktop_changed(self, screen=None, workspace=None):

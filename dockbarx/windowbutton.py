@@ -160,6 +160,7 @@ class WindowButton(gobject.GObject):
         self.window.disconnect(self.state_changed_event)
         self.window.disconnect(self.icon_changed_event)
         self.window.disconnect(self.name_changed_event)
+        self.window.disconnect(self.geometry_changed_event)
         del self.icon
         del self.icon_transp
         del self.screen
