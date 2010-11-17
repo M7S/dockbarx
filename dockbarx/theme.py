@@ -123,7 +123,7 @@ class Theme(gobject.GObject):
             if theme.lower() == self.globals.settings['theme'].lower():
                 self.theme_path = path
                 break
-            if theme.lower == self.globals.DEFAULT_SETTINGS['theme'].lower():
+            if theme.lower() == self.globals.DEFAULT_SETTINGS['theme'].lower():
                 default_theme_path = path
         else:
             if default_theme_path:

@@ -246,7 +246,7 @@ class Globals(gobject.GObject):
     }
 
     DEFAULT_SETTINGS = {
-          "theme": "default",
+          "theme": "DBX",
           "groupbutton_attention_notification_type": "red",
           "workspace_behavior": "switch",
           "popup_delay": 250,
