@@ -1,15 +1,13 @@
 ===========
 DESCRIPTION
 ===========
-This is a branch of DockBar (a TaskBar with grouping and group manipulation) with some extra features added. 
+This is a branch of DockBar (a task bar with grouping and group manipulation). 
 
 
 Dockbar is made by Aleksey Shaferov. 
 DockbarX branch is developed by Matias Särs.
-The icon is made by BigRZA.
-"Human Bar" theme is made by bigRZA.
+Both the default theme "DBX" and "Sunny Colors" as well as the DockbarX icon is made by BigRZA.
 "Gaia" is made by Izobalax.
-The button image used in "Default" and "New" themes are is made by Sami Rissanen (st6). 
 
 Dockbar and DockbarX are licensed under GPL3.
 
@@ -19,19 +17,16 @@ Dockbar and DockbarX are licensed under GPL3.
 INSTALL
 =======
 
-Note! New dependency: python-keybinder
-1. Install python-wnck, python-gnomeapplet, python-keybinder and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt). 
-$ sudo apt-get install python-gnomeapplet python-wnck python-keybinder python-numpy
+1. Install zeitgeist, python-wnck, python-gnomeapplet, python-keybinder and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt to install it). 
+$ sudo apt-get install python-gnomeapplet python-wnck python-keybinder python-numpy zeitgeist
 
-1b. (Optional) For recent and most used files you need zeitgeist 0.3.3 or later from zeitgeist ppa.
-$ sudo add-apt-repository ppa:zeitgeist/ppa && sudo apt-get update
-$ sudo apt-get install libgtk2.0-0 libx11-6 libxcomposite1 zeitgeist
-
-2. Change directory to where you unpacked dockbarx and run the setup.py install
+2. Download and extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install
 $ sudo ./setup.py install
 
 3. Add DockBarX applet to panel (kill gnome-panel first if necessary)
 
+
+NOTE! To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". (Alternatively you can use kwin as window manager instead of compiz. That will give you previews for minimized windows as well.)
 
 You can also run dockbarx in window (meant for debugging purposes, mostly):
 $dockbarx_factory.py run-in-window
@@ -78,7 +73,7 @@ scroll up/down:
 
 
 WORKSPACE/VIEWPORT BEHAVIOR OPTIONS:
-You can change how DockBar reacts when you select a group (left click on the group icon if the default is used) from preference window.
+You can change how DockbarX reacts when you select a group (left click on the group icon if the default is used) from preference window.
 
 Ignore: Acts as if windows on other workspaces and viewport doesn't exist.
 

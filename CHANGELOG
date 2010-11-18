@@ -1,4 +1,18 @@
 Changelog:
+0.40
+End user features:
+- The default theme has changed. The new default theme DBX is made by BigRZA. It's made to look good with Radiance and Ambiance. (The old default theme is still included under the name Old.)
+- Another theme by BigRZA, Sunny Colors is also included, simply because its a great looking theme.
+- The theme Human bar is removed since it was pretty much an older version of the new default theme. 
+- Number of entries in recent and most used menus are increased to eight (for real this time).
+- A few new languages and updates to translations. Big thanks to all translators!
+
+Bug fixes:
+- DockbarX crashed if a launcher without a command line had been added.
+- Bug #505395, bug #661819 and bug #669711: Programs do now disappear from taskbar when they are minimized to tray.
+- A bug caused Dockbarx to pick a custom theme instead of the default theme if the by user chosen theme is missing or corrupt (a random theme is supposed to be picked only if the default theme as well is missing or corrupt).
+
+
 x.0.39.8 (codename 0.40 rc)
 End user features:
 - The tooltip for pinned programs with no open windows shows name and description now, just as normal gnome launchers do.
