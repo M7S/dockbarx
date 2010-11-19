@@ -86,7 +86,7 @@ cmdclass = {
     'install_data': install_data,
 }
 
-data_files=[('/usr/share/dockbarx/themes', ['themes/dbx.tar.gz',
+data_files=[('/usr/share/dockbarx/themes', ['themes/default.tar.gz',
                                             'themes/Gaia.tar.gz',
                                             'themes/old.tar.gz',
                                             'themes/minimalistic.tar.gz',
