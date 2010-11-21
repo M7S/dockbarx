@@ -84,6 +84,34 @@ class CairoPopup(gtk.Window):
         self.connect("expose_event", self.expose)
         self.globals = Globals()
 
+        self.alignment = gtk.Alignment(0, 0, 0, 0)
+        gtk.Window.add(self, self.alignment)
+        self.alignment.show()
+        self.pointer = ""
+        if self.globals.orient == 'h':
+            # The direction of the pointer isn't important here we only need
+            # the right amount of padding so that the popup has right width and
+            # height for placement calculations.
+            self.point('down')
+        else:
+            self.point('left')
+
+
+    def add(self, child):
+        self.alignment.add(child)
+
+    def point(self, new_pointer, pp=0):
+        self.pp = pp
+        p = 7
+        a = 10
+        if new_pointer != self.pointer:
+            self.pointer = new_pointer
+            padding = {'up':(p+a, p, p, p),
+                       'down':(p, p+a, p, p),
+                       'left':(p, p, p+a, p),
+                       'right':(p, p, p, p+a)}[self.pointer]
+            self.alignment.set_padding(*padding)
+
 
     def expose(self, widget, event):
         self.set_shape_mask()
@@ -110,28 +138,17 @@ class CairoPopup(gtk.Window):
         if h==0: h = 600
         pixmap = gtk.gdk.Pixmap (None, w, h, 1)
         ctx = pixmap.cairo_create()
-        ctx.set_source_rgba(1, 1, 1,0)
+        ctx.set_source_rgba(0, 0, 0,0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
         ctx.paint()
 
-        r = 6
-        lt = 0
-        rt = w
-        up = 0
-        dn = h
-        ctx.move_to(lt, up + r)
-        ctx.arc(lt + r, up + r, r, -pi, -pi/2)
-        ctx.arc(rt - r, up + r, r, -pi/2, 0)
-        ctx.arc(rt - r, dn - r, r, 0, pi/2)
-        ctx.arc(lt + r, dn - r, r, pi/2, pi)
-        ctx.close_path()
 
         if self.is_composited():
+            self.make_path(ctx, w, h, 0)
             ctx.set_source_rgba(1, 1, 1, 1)
         else:
-            # A grey color makes the "semi transparent"
-            # rounded corners look most transparent
-            ctx.set_source_rgb(0.5, 0.5, 0.5)
+            self.make_path(ctx, w, h, 1)
+            ctx.set_source_rgb(0, 0, 0)
         ctx.fill()
 
         if self.is_composited():
@@ -143,36 +160,67 @@ class CairoPopup(gtk.Window):
             self.shape_combine_mask(pixmap, 0, 0)
         del pixmap
 
+    def make_path(self, ctx, w, h, b=0, r=6):
+        a = 9
+        lt = b
+        rt = w - b
+        up = b
+        dn = h - b
+
+        if self.pointer == 'up':
+            up += a
+        if self.pointer == 'down':
+            dn -= a
+        if self.pointer == 'left':
+            lt += a
+        if self.pointer == 'right':
+            rt -= a
+        ctx.move_to(lt, up + r)
+        ctx.arc(lt + r, up + r, r, -pi, -pi/2)
+        if self.pointer == 'up':
+            ctx.line_to (self.pp-a, up)
+            ctx.line_to(self.pp, up-a)
+            ctx.line_to(self.pp+a, up)
+        ctx.arc(rt - r, up + r, r, -pi/2, 0)
+        if self.pointer == 'right':
+            ctx.line_to (rt, self.pp-a)
+            ctx.line_to(rt+a, self.pp)
+            ctx.line_to(rt, self.pp+a)
+        ctx.arc(rt - r, dn - r, r, 0, pi/2)
+        if self.pointer == 'down':
+            ctx.line_to (self.pp+a, dn)
+            ctx.line_to(self.pp, dn+a)
+            ctx.line_to(self.pp-a, dn)
+        ctx.arc(lt + r, dn - r, r, pi/2, pi)
+        if self.pointer == 'left':
+            ctx.line_to (lt, self.pp+a)
+            ctx.line_to(lt-a, self.pp)
+            ctx.line_to(lt, self.pp-a)
+        ctx.close_path()
+
     def draw_frame(self, ctx, w, h):
-        r = 6
         color = self.globals.colors['color1']
         red = float(int(color[1:3], 16))/255
         green = float(int(color[3:5], 16))/255
         blue = float(int(color[5:7], 16))/255
-
         alpha= float(self.globals.colors['color1_alpha']) / 255
-
-        lt = 0.5
-        rt = w - 0.5
-        up = 0.5
-        dn = h - 0.5
-        ctx.move_to(lt, up + r)
-        ctx.arc(lt + r, up + r, r, -pi, -pi/2)
-        ctx.arc(rt - r, up + r, r, -pi/2, 0)
-        ctx.arc(rt - r, dn - r, r, 0, pi/2)
-        ctx.arc(lt + r, dn - r, r, pi/2, pi)
-        ctx.close_path()
-
+        self.make_path(ctx, w, h, 2.5)
         if self.is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:
             ctx.set_source_rgb(red, green, blue)
         ctx.fill_preserve()
         if self.is_composited():
-            ctx.set_source_rgba(0.0, 0.0, 0.0, alpha)
+            ctx.set_source_rgba(0.0, 0.0, 0.0, 0.8)
         else:
-            ctx.set_source_rgb(0.0, 0.0, 0.0)
-        ctx.set_line_width(1)
+            ctx.set_source_rgb(0, 0, 0)
+        ctx.set_line_width(3)
+        ctx.stroke_preserve()
+        if self.is_composited():
+            ctx.set_source_rgba(1.0, 1.0, 1.0, 1.0)
+        else:
+            ctx.set_source_rgb(1.0, 1.0, 1.0)
+        ctx.set_line_width(2)
         ctx.stroke()
 
     def pointer_is_inside(self):
@@ -241,7 +289,7 @@ class CairoWindowButton(gtk.Button):
 
         ctx.set_source_rgba(red, green, blue, alpha)
         ctx.fill_preserve()
-        ctx.set_source_rgba(0.0, 0.0, 0.0, alpha)
+        ctx.set_source_rgba(1.0, 1.0, 1.0, alpha)
         ctx.set_line_width(1)
         ctx.stroke()
 
