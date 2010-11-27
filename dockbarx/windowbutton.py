@@ -87,8 +87,8 @@ class WindowButton(gobject.GObject):
                                    self.on_button_mouse_leave)
         self.window_button.connect("button-press-event",
                                    self.on_window_button_press_event)
-        self.window_button.connect("button-release-event",
-                                   self.on_window_button_release_event)
+        self.window_button.connect("clicked",
+                                   self.on_clicked)
         self.window_button.connect("scroll-event",
                                    self.on_window_button_scroll_event)
         self.state_changed_event = self.window.connect("state-changed",
@@ -453,7 +453,7 @@ class WindowButton(gobject.GObject):
         if self.globals.settings['windowbutton_close_popup_on_%s'%direction]:
             self.emit('popup-hide', None)
 
-    def on_window_button_release_event(self, widget, event):
+    def on_clicked(self, widget, event):
         if self.globals.settings["opacify"] and self.opacified:
             self.globals.opacified = False
             self.opacified = False

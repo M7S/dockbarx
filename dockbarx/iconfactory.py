@@ -259,11 +259,16 @@ class IconFactory():
         pb = self.surface2pixbuf(self.icon)
         for row in pb.get_pixels_array():
             for pix in row:
-                if pix[3] > 30:
-                    i += 1
-                    r += pix[0]
-                    g += pix[1]
-                    b += pix[2]
+                try:
+                    if pix[3] > 30:
+                        i += 1
+                        r += pix[0]
+                        g += pix[1]
+                        b += pix[2]
+                except:
+                    # If there are no icon there's no pix[3], or something?
+                    # Just leave it.
+                    pass
         if i > 0:
             r = int(float(r) / i + 0.5)
             g = int(float(g) / i + 0.5)

@@ -23,6 +23,7 @@ import gtk
 import cairo
 from math import pi
 from common import Globals
+import gobject
 
 class CairoButton(gtk.Button):
     """CairoButton is a gtk button with a cairo surface painted over it."""
@@ -100,8 +101,13 @@ class CairoPopup(gtk.Window):
     def add(self, child):
         self.alignment.add(child)
 
-    def point(self, new_pointer, pp=0):
-        self.pp = pp
+
+    def remove(self, child):
+        self.alignment.remove(child)
+
+
+    def point(self, new_pointer, ap=0):
+        self.ap = ap
         p = 7
         a = 10
         if new_pointer != self.pointer:
@@ -122,7 +128,7 @@ class CairoPopup(gtk.Window):
         if self.is_composited():
             self.ctx.set_source_rgba(1, 1, 1,0)
         else:
-            self.ctx.set_source_rgb(1, 1, 1)
+            self.ctx.set_source_rgb(0.8, 0.8, 0.8)
         self.ctx.set_operator(cairo.OPERATOR_SOURCE)
         self.ctx.paint()
         self.ctx.restore()
@@ -144,10 +150,10 @@ class CairoPopup(gtk.Window):
 
 
         if self.is_composited():
-            self.make_path(ctx, w, h, 0)
+            make_path(ctx, 0, 0, w, h, 6, 0, 9, self.pointer, self.ap)
             ctx.set_source_rgba(1, 1, 1, 1)
         else:
-            self.make_path(ctx, w, h, 1)
+            make_path(ctx, 0, 0, w, h, 6, 1, 9, self.pointer, self.ap)
             ctx.set_source_rgb(0, 0, 0)
         ctx.fill()
 
@@ -204,7 +210,7 @@ class CairoPopup(gtk.Window):
         green = float(int(color[3:5], 16))/255
         blue = float(int(color[5:7], 16))/255
         alpha= float(self.globals.colors['color1_alpha']) / 255
-        self.make_path(ctx, w, h, 2.5)
+        make_path(ctx, 0, 0, w, h, 6, 2.5, 9, self.pointer, self.ap)
         if self.is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:
@@ -248,48 +254,282 @@ class CairoPopup(gtk.Window):
         else:
             return False
 
-class CairoWindowButton(gtk.Button):
-    """CairoButton is a gtk button with a cairo surface painted over it."""
-    __gsignals__ = {'expose-event' : 'override',}
-    def __init__(self):
-        gtk.Button.__init__(self)
-        self.globals = Globals()
+class CairoWindowButton(gtk.EventBox):
+    __gsignals__ = {"clicked": (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,(gtk.gdk.Event, )),
+                    "button-release-event": "override",
+                    "button-press-event": "override"}
 
-    def do_expose_event(self, event):
-        ctx = self.window.cairo_create()
-        ctx.rectangle(event.area.x, event.area.y,
-                       event.area.width, event.area.height)
-        ctx.clip()
+    def __init__(self, label=None, border_width=6):
+        gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
+        self.area = CairoArea(label, border_width)
+        self.label = self.area.label
+        gtk.EventBox.add(self, self.area)
+        self.area.show()
+        self.connect('enter-notify-event', self.on_enter_notify_event)
+        self.connect('leave-notify-event', self.on_leave_notify_event)
+        self.mousedown = False
+
+    def on_leave_notify_event(self, *args):
+        if self.mousedown:
+            self.area.set_pressed_down(False)
+        self.area.queue_draw()
+
+    def on_enter_notify_event(self, *args):
+        if self.mousedown:
+            self.area.set_pressed_down(True)
+        self.area.queue_draw()
+
+    def add(self, child):
+        self.area.add(child)
+
+    def remove(self, child):
+        self.area.remove(child)
+
+    def get_child(self):
+        return self.area.get_child()
+
+    def set_label(self, text, color=None):
+        self.area.set_label(text, color)
+
+    def set_label_color(self, color):
+        self.area.set_label_color(color)
+
+    def get_label(self):
+        return self.area.text
+
+    def do_button_release_event(self, event):
+        if self.area.pointer_is_inside():
+            self.emit('clicked', event)
+        self.area.set_pressed_down(False)
+        self.mousedown=False
+
+    def do_button_press_event(self, event):
+        if self.area.pointer_is_inside():
+            self.mousedown = True
+            self.area.set_pressed_down(True)
+
+
+class CairoArea(gtk.Alignment):
+    """CairoButton is a gtk button with a cairo surface painted over it."""
+    __gsignals__ = {'expose-event' : 'override'}
+    def __init__(self, text=None, border_width=6, roundness=6):
+        self.r = roundness
+        self.b = border_width
+        self.text = text
+        gtk.Alignment.__init__(self)
+        self.set_padding(self.b, self.b, self.b, self.b)
+        self.set_app_paintable(1)
+        self.globals = Globals()
+        if text:
+            self.label = gtk.Label()
+            self.add(self.label)
+            self.label.show()
+            color = self.globals.colors['color2']
+            self.set_label(text, color)
+        else:
+            self.label = None
+
+    def set_label(self, text, color=None):
+        self.text = text
+        if color:
+            text = '<span foreground="' + color + '">' + text + '</span>'
+        self.label.set_text(text)
+        self.label.set_use_markup(True)
+        self.label.set_use_underline(True)
+
+    def set_label_color(self, color):
+        label = '<span foreground="' + color + '">' + self.text + '</span>'
+        self.label.set_text(label)
+        self.label.set_use_markup(True)
+        self.label.set_use_underline(True)
+
+    def do_expose_event(self, event, arg=None):
         a = self.get_allocation()
         mx , my = self.get_pointer()
-        if mx >= 0 and mx < a.width and my >= 0 and my < a.height:
-            self.draw_frame(ctx, a.x, a.y, a.width, a.height)
-        self.get_child().send_expose(event)
+        if (mx >= 0 and mx < a.width and my >= 0 and my < a.height):
+            ctx = self.window.cairo_create()
+            ctx.rectangle(event.area.x, event.area.y,
+                          event.area.width, event.area.height)
+            ctx.clip()
+            self.draw_frame(ctx, a.x, a.y, a.width, a.height, self.r)
+        self.propagate_expose(self.get_child(), event)
         return
 
-    def draw_frame(self, ctx, x, y, w, h):
-        r = 6
-        bg = 0.2
-        color = self.globals.colors['color1']
-        red = float(int(color[1:3], 16))/255
-        green = float(int(color[3:5], 16))/255
-        blue = float(int(color[5:7], 16))/255
+    def draw_frame(self, ctx, x, y, w, h, roundness=6, border_color="#FFFFFF"):
+        r, g, b = parse_color(self.globals.colors['color1'])
+        alpha = parse_alpha(self.globals.colors['color1_alpha'])
+        make_path(ctx, x, y, w, h, roundness)
 
-        alpha= float(self.globals.colors['color1_alpha']) / 255
-        lt = x + 0.5
-        rt = x + w - 0.5
-        up = y + 0.5
-        dn = y + h - 0.5
-        ctx.move_to(lt, up + r)
-        ctx.arc(lt + r, up + r, r, -pi, -pi/2)
-        ctx.arc(rt - r, up + r, r, -pi/2, 0)
-        ctx.arc(rt - r, dn - r, r, 0, pi/2)
-        ctx.arc(lt + r, dn - r, r, pi/2, pi)
-        ctx.close_path()
 
-        ctx.set_source_rgba(red, green, blue, alpha)
+        ctx.set_source_rgba(r, g, b, alpha)
         ctx.fill_preserve()
-        ctx.set_source_rgba(1.0, 1.0, 1.0, alpha)
+
+        r, g, b = parse_color(border_color)
+        ctx.set_source_rgba(r, g, b, alpha)
         ctx.set_line_width(1)
         ctx.stroke()
+
+    def set_pressed_down(self, pressed):
+        if pressed:
+            self.set_padding(self.b + 1, self.b - 1, self.b, self.b)
+        else:
+            self.set_padding(self.b, self.b, self.b, self.b)
+        ##self.queue_draw()
+
+    def pointer_is_inside(self):
+        mx,my = self.get_pointer()
+        a = self.get_allocation()
+
+        if mx >= 0 and mx < a.width \
+        and my >= 0 and my < a.height:
+            # Mouse pointer is inside the "rectangle"
+            # but check if it's still outside the rounded corners
+            x = None
+            y = None
+            r = self.r
+            if mx < r:
+                x = r - mx
+            if (a.width - mx) < r:
+                x = mx - (a.width - r)
+            if my < r:
+                y = r - my
+            if (a.height - my) < r:
+                y = my - (a.height - r)
+            if x is None or y is None \
+            or (x**2 + y**2) < (r-1)**2:
+                return True
+        else:
+            return False
+
+
+class CairoMenuItem(CairoWindowButton):
+    def __init__(self, label):
+        CairoWindowButton.__init__(self, label, border_width=3)
+
+class CairoToggleMenu(gtk.VBox):
+    __gsignals__ = {'toggled': (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,(bool, ))}
+
+    def __init__(self, label=None, show_menu=False):
+        gtk.VBox.__init__(self)
+        self.globals = Globals()
+
+        self.set_spacing(0)
+        self.set_border_width(0)
+        self.toggle_button = CairoMenuItem(label)
+        if label:
+            if show_menu:
+                color = self.globals.colors['color4']
+            else:
+                color = self.globals.colors['color2']
+            self.toggle_button.set_label(label, color)
+        self.pack_start(self.toggle_button)
+        self.toggle_button.show()
+        self.toggle_button.connect('clicked', self.toggle)
+        self.menu = CairoVBox()
+        self.pack_start(self.menu)
+        self.menu.set_border_width(10)
+        self.show_menu = show_menu
+        if show_menu:
+            self.menu.show()
+
+    def add_item(self, item):
+        self.menu.pack_start(item)
+
+    def remove_item(self, item):
+        self.menu.remove(item)
+
+    def get_items(self):
+        return self.menu.get_children()
+
+    def toggle(self, *args):
+        if self.show_menu:
+            self.menu.hide()
+            color = self.globals.colors['color2']
+        else:
+            self.menu.show()
+            color = self.globals.colors['color4']
+        if self.toggle_button.label:
+            self.toggle_button.set_label_color(color)
+        self.show_menu = not self.show_menu
+        self.emit('toggled', self.show_menu)
+
+class CairoVBox(gtk.VBox):
+    __gsignals__ = {'expose-event' : 'override'}
+
+    def __init__(self, label=None, show_menu=False):
+        gtk.VBox.__init__(self)
+        self.globals = Globals()
+
+    def do_expose_event(self, event, arg=None):
+        a = self.get_allocation()
+        ctx = self.window.cairo_create()
+        ctx.rectangle(event.area.x, event.area.y,
+                      event.area.width, event.area.height)
+        ctx.clip()
+        self.draw_frame(ctx, a.x, a.y, a.width, a.height, 6)
+        for child in self.get_children():
+            self.propagate_expose(child, event)
+
+    def draw_frame(self, ctx, x, y, w, h, roundness=6, color="#000000"):
+        r, g, b = parse_color(color)
+
+        make_path(ctx, x, y, w, h, roundness)
+        ctx.set_source_rgba(r, g, b, 0.2)
+        ctx.fill_preserve()
+
+        ctx.set_source_rgba(r, g, b, 0.3)
+        ctx.set_line_width(1)
+        ctx.stroke()
+
+def make_path(ctx, x=0, y=0, w=0, h=0, r=6, b=0.5,
+              arrow_size=0, arrow_direction=None, arrow_position=0):
+    a = arrow_size
+    ap = arrow_position
+    lt = x + b
+    rt = x + w - b
+    up = y + b
+    dn = y + h - b
+
+    if arrow_direction == 'up':
+        up += a
+    if arrow_direction == 'down':
+        dn -= a
+    if arrow_direction == 'left':
+        lt += a
+    if arrow_direction == 'right':
+        rt -= a
+    ctx.move_to(lt, up + r)
+    ctx.arc(lt + r, up + r, r, -pi, -pi/2)
+    if arrow_direction == 'up':
+        ctx.line_to (ap-a, up)
+        ctx.line_to(ap, up-a)
+        ctx.line_to(ap+a, up)
+    ctx.arc(rt - r, up + r, r, -pi/2, 0)
+    if arrow_direction == 'right':
+        ctx.line_to (rt, ap-a)
+        ctx.line_to(rt+a, ap)
+        ctx.line_to(rt, ap+a)
+    ctx.arc(rt - r, dn - r, r, 0, pi/2)
+    if arrow_direction == 'down':
+        ctx.line_to (ap+a, dn)
+        ctx.line_to(ap, dn+a)
+        ctx.line_to(ap-a, dn)
+    ctx.arc(lt + r, dn - r, r, pi/2, pi)
+    if arrow_direction == 'left':
+        ctx.line_to (lt, ap+a)
+        ctx.line_to(lt-a, ap)
+        ctx.line_to(lt, ap-a)
+    ctx.close_path()
+
+def parse_color(color):
+    r = float(int(color[1:3], 16))/255
+    g = float(int(color[3:5], 16))/255
+    b = float(int(color[5:7], 16))/255
+    return r, g, b
+
+def parse_alpha(alpha):
+    return float(alpha)/255
 
