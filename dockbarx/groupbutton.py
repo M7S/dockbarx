@@ -1336,9 +1336,9 @@ class GroupButton(gobject.GObject):
         self.hide_list()
 
     def menu_change_identifier(self, widget=None, event=None):
+        self.hide_list()
         self.emit('identifier-change',
                   self.desktop_entry.getFileName(), self.identifier)
-        self.hide_list()
 
     def menu_edit_launcher(self, widget=None, event=None):
         if self.desktop_entry:

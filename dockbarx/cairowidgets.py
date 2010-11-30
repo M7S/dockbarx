@@ -260,16 +260,18 @@ class CairoWindowButton(gtk.EventBox):
                     "button-release-event": "override",
                     "button-press-event": "override"}
 
-    def __init__(self, label=None, border_width=6):
+    def __init__(self, label=None, border_width=6, roundness=6):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
-        self.area = CairoArea(label, border_width)
+        self.set_above_child(False)
+        self.area = CairoArea(label, border_width, roundness)
         self.label = self.area.label
         gtk.EventBox.add(self, self.area)
         self.area.show()
         self.connect('enter-notify-event', self.on_enter_notify_event)
         self.connect('leave-notify-event', self.on_leave_notify_event)
         self.mousedown = False
+        self.prevent_click = False
 
     def on_leave_notify_event(self, *args):
         if self.mousedown:
@@ -300,16 +302,24 @@ class CairoWindowButton(gtk.EventBox):
         return self.area.text
 
     def do_button_release_event(self, event):
-        if self.area.pointer_is_inside():
+        if self.area.pointer_is_inside() and not self.prevent_click:
             self.emit('clicked', event)
         self.area.set_pressed_down(False)
         self.mousedown=False
+        self.prevent_click = False
 
     def do_button_press_event(self, event):
-        if self.area.pointer_is_inside():
+        if self.area.pointer_is_inside() and not self.prevent_click:
             self.mousedown = True
             self.area.set_pressed_down(True)
 
+    def disable_click(self, *args):
+        # A "hack" to avoid CairoWindowButton from reacting to clicks on
+        # buttons inside the CairoWindowButton. (The button on top should
+        # have it's press-button-event connected to this function.)
+        self.area.set_pressed_down(False)
+        self.mousedown = False
+        self.prevent_click = True
 
 class CairoArea(gtk.Alignment):
     """CairoButton is a gtk button with a cairo surface painted over it."""
@@ -477,10 +487,10 @@ class CairoVBox(gtk.VBox):
         r, g, b = parse_color(color)
 
         make_path(ctx, x, y, w, h, roundness)
-        ctx.set_source_rgba(r, g, b, 0.2)
+        ctx.set_source_rgba(r, g, b, 0.20)
         ctx.fill_preserve()
 
-        ctx.set_source_rgba(r, g, b, 0.3)
+        ctx.set_source_rgba(r, g, b, 0.20)
         ctx.set_line_width(1)
         ctx.stroke()
 

@@ -66,6 +66,9 @@ class WindowButton(gobject.GObject):
         self.button_pressed = False
 
         self.window_button = CairoWindowButton()
+        self.close_button = CairoWindowButton('<b>X</b>', 3, 3)
+        self.close_button.set_label_color("#FF0000")
+        #self.close_button.set_size_request(15,15)
         self.label = gtk.Label()
         self.label.set_alignment(0, 0.5)
         self.on_window_name_changed(self.window)
@@ -91,6 +94,9 @@ class WindowButton(gobject.GObject):
                                    self.on_clicked)
         self.window_button.connect("scroll-event",
                                    self.on_window_button_scroll_event)
+        self.close_button.connect("button-press-event",
+                                  self.window_button.disable_click)
+        self.close_button.connect("clicked", self.action_close_window)
         self.state_changed_event = self.window.connect("state-changed",
                                                 self.on_window_state_changed)
         self.icon_changed_event = self.window.connect("icon-changed",
@@ -216,6 +222,7 @@ class WindowButton(gobject.GObject):
         hbox = gtk.HBox()
         hbox.pack_start(self.window_button_icon, False, padding = 2)
         hbox.pack_start(self.label, True, True)
+        hbox.pack_start(self.close_button, False, False)
         if self.globals.settings["preview"]:
             vbox = gtk.VBox()
             vbox.pack_start(hbox, False)
