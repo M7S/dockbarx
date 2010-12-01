@@ -1270,11 +1270,17 @@ class GroupButton(gobject.GObject):
             close_all_windows_item.connect("clicked",
                                            self.action_close_all_windows)
             close_all_windows_item.show()
+
         self.popup.remove(self.popup_box)
         self.popup.add(menu)
         menu.show()
         self.popup.show()
         self.popup.resize(10,10)
+        # Hide other popup if open.
+        if self.globals.gb_showing_popup is not None and \
+           self.globals.gb_showing_popup != self:
+            self.globals.gb_showing_popup.hide_list()
+        self.globals.gb_showing_popup = self
 
 
     def menu_get_zg_files(self):

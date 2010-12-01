@@ -27,7 +27,7 @@ import gc
 gc.enable()
 
 from common import ODict, Globals, compiz_call
-from cairowidgets import CairoWindowButton
+from cairowidgets import CairoWindowButton, CairoCloseButton
 
 import i18n
 _ = i18n.language.gettext
@@ -66,9 +66,9 @@ class WindowButton(gobject.GObject):
         self.button_pressed = False
 
         self.window_button = CairoWindowButton()
-        self.close_button = CairoWindowButton('<b>X</b>', 3, 3)
-        self.close_button.set_label_color("#FF0000")
-        #self.close_button.set_size_request(15,15)
+        self.close_button = CairoCloseButton()
+        self.close_alignment = gtk.Alignment(1, 0.5, 0, 0)
+        self.close_alignment.add(self.close_button)
         self.label = gtk.Label()
         self.label.set_alignment(0, 0.5)
         self.on_window_name_changed(self.window)
@@ -217,12 +217,13 @@ class WindowButton(gobject.GObject):
         if oldbox:
             oldbox.remove(self.window_button_icon)
             oldbox.remove(self.label)
+            oldbox.remove(self.close_alignment)
 
         self.on_window_name_changed(self.window)
         hbox = gtk.HBox()
-        hbox.pack_start(self.window_button_icon, False, padding = 2)
-        hbox.pack_start(self.label, True, True)
-        hbox.pack_start(self.close_button, False, False)
+        hbox.pack_start(self.window_button_icon, False)
+        hbox.pack_start(self.label, True, True, padding = 4)
+        hbox.pack_start(self.close_alignment, False, False)
         if self.globals.settings["preview"]:
             vbox = gtk.VBox()
             vbox.pack_start(hbox, False)

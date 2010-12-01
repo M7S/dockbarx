@@ -71,6 +71,67 @@ class CairoButton(gtk.Button):
         else:
             return False
 
+
+class CairoCloseButton(gtk.Button):
+    __gsignals__ = {'expose-event' : 'override',}
+    def __init__(self):
+        gtk.Button.__init__(self)
+        self.set_size_request(14, 14)
+        self.connect('enter-notify-event', self.on_enter_notify_event)
+        self.connect('leave-notify-event', self.on_leave_notify_event)
+        self.connect('button-press-event', self.on_button_press_event)
+        self.connect('button-release-event', self.on_button_release_event)
+        self.mousedown = False
+        self.mouseover = False
+
+    def on_enter_notify_event(self, *args):
+        self.mouseover = True
+
+    def on_leave_notify_event(self, *args):
+        self.mouseover = False
+
+    def on_button_press_event(self, *args):
+        self.mousedown = True
+
+    def on_button_release_event(self, *args):
+        self.mousedown = False
+
+    def do_expose_event(self, event, arg=None):
+        a = self.get_allocation()
+        ctx = self.window.cairo_create()
+        ctx.rectangle(event.area.x, event.area.y,
+                      event.area.width, event.area.height)
+        ctx.clip()
+        self.draw_button(ctx, a.x, a.y, a.width, a.height)
+
+    def draw_button(self, ctx, x, y, w, h):
+        if self.mouseover:
+            alpha = 1
+        else:
+            alpha = 0.5
+        button_source = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                                       w, h)
+        bctx = cairo.Context(button_source)
+        make_path(bctx, 0, 0, w, h, 5)
+        bctx.set_source_rgba(1, 0, 0, alpha)
+        bctx.fill()
+        bctx.scale(w, h)
+        bctx.move_to(0.3, 0.3)
+        bctx.line_to(0.7, 0.7)
+        bctx.move_to(0.3, 0.7)
+        bctx.line_to(0.7, 0.3)
+        bctx.set_line_width(2.0/w)
+        if self.mousedown and self.mouseover:
+            bctx.set_source_rgba(1, 1, 1, 1)
+        else:
+            bctx.set_source_rgba(1, 1, 1, 0)
+        bctx.set_operator(cairo.OPERATOR_SOURCE)
+        bctx.stroke()
+
+        ctx.set_source_surface(button_source, x, y)
+        ctx.paint()
+
+
 class CairoPopup(gtk.Window):
     """CairoPopup is a transparent popup window with rounded corners"""
     def __init__(self):
@@ -158,10 +219,7 @@ class CairoPopup(gtk.Window):
         ctx.fill()
 
         if self.is_composited():
-            self.window.shape_combine_mask(None, 0, 0)
-            ctx.rectangle(0,0,w,h)
-            ctx.fill()
-            self.input_shape_combine_mask(pixmap,0,0)
+            self.shape_combine_mask(pixmap, 0, 0)
         else:
             self.shape_combine_mask(pixmap, 0, 0)
         del pixmap
@@ -328,7 +386,7 @@ class CairoArea(gtk.Alignment):
         self.r = roundness
         self.b = border_width
         self.text = text
-        gtk.Alignment.__init__(self)
+        gtk.Alignment.__init__(self, 0, 0, 1, 1)
         self.set_padding(self.b, self.b, self.b, self.b)
         self.set_app_paintable(1)
         self.globals = Globals()
@@ -465,6 +523,7 @@ class CairoToggleMenu(gtk.VBox):
             self.toggle_button.set_label_color(color)
         self.show_menu = not self.show_menu
         self.emit('toggled', self.show_menu)
+
 
 class CairoVBox(gtk.VBox):
     __gsignals__ = {'expose-event' : 'override'}
