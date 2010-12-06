@@ -740,8 +740,10 @@ class DockBar():
                               'java','mono',
                               'ruby','python'):
                 exe = l[1]
-            else:
+            elif l:
                 exe = l[0]
+            else:
+                exe = ""
             exe = exe.rpartition('/')[-1]
             exe = exe.partition('.')[0]
             if exe != '':
