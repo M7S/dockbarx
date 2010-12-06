@@ -24,6 +24,7 @@ import cairo
 from math import pi
 from common import Globals
 import gobject
+from pango import ELLIPSIZE_END
 
 class CairoButton(gtk.Button):
     """CairoButton is a gtk button with a cairo surface painted over it."""
@@ -378,6 +379,137 @@ class CairoWindowButton(gtk.EventBox):
         self.area.set_pressed_down(False)
         self.mousedown = False
         self.prevent_click = True
+
+class CairoWindowItem(CairoWindowButton):
+    __gsignals__ = {'close-clicked': (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,())}
+    def __init__(self, name, icon, big_icon):
+        CairoWindowButton.__init__(self)
+        self.globals = Globals()
+        self.window_name = name
+        self.icon = icon
+        self.big_icon = big_icon
+        self.minimized = False
+        self.is_active_window = False
+        self.needs_attention = False
+
+
+        self.close_button = CairoCloseButton()
+        self.label = gtk.Label()
+        self.label.set_ellipsize(ELLIPSIZE_END)
+        self.label.set_alignment(0, 0.5)
+        self.__update_label_state()
+        hbox = gtk.HBox()
+        self.icon_image = gtk.image_new_from_pixbuf(self.icon)
+        hbox.pack_start(self.icon_image, False)
+        hbox.pack_start(self.label, True, True, padding = 4)
+        alignment = gtk.Alignment(1, 0.5, 0, 0)
+        alignment.add(self.close_button)
+        hbox.pack_start(alignment, False, False)
+
+        vbox = gtk.VBox()
+        vbox.pack_start(hbox, False)
+        self.preview_box = gtk.Alignment(0.5, 0.5, 0, 0)
+        self.preview_box.set_padding(4, 2, 0, 0)
+        self.preview =  gtk.Image()
+        self.preview_box.add(self.preview)
+        self.preview.show()
+        vbox.pack_start(self.preview_box, True, True)
+        self.add(vbox)
+        self.preview_box.set_no_show_all(True)
+        vbox.show_all()
+        if self.globals.settings["preview"]:
+            self.preview_box.show()
+
+        self.close_button.connect("button-press-event", self.disable_click)
+        self.close_button.connect("clicked", self.on_close_button_clicked)
+        self.globals.connect('show-previews-changed',
+                             self.on_show_preview_changed)
+        self.globals.connect('color-changed', self.__update_label_state)
+
+    def on_show_preview_changed(self, *args):
+        if self.globals.settings["preview"]:
+            self.preview_box.show()
+        else:
+            self.preview_box.hide()
+
+    def on_close_button_clicked(self, *args):
+        self.emit('close-clicked')
+
+    def __update_label_state(self, arg=None):
+        """Updates the style of the label according to window state."""
+        text = str(self.window_name)
+        if self.needs_attention:
+            text = "<i>"+text+"</i>"
+        if self.is_active_window:
+            color = self.globals.colors['color3']
+        elif self.minimized:
+            color = self.globals.colors['color4']
+        else:
+            color = self.globals.colors['color2']
+        text = '<span foreground="' + color + '">' + text + '</span>'
+        self.label.set_text(text)
+        self.label.set_use_markup(True)
+        # The label should be 180px wide unless there are more room
+        # because the preview takes up more.
+        self.label.set_size_request(180, -1)
+
+    def __make_minimized_icon(self, icon):
+        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True,
+                                          8, icon.get_width(),
+                                          icon.get_height())
+        pixbuf.fill(0x00000000)
+        minimized_icon = pixbuf.copy()
+        icon.composite(pixbuf, 0, 0, pixbuf.get_width(),
+                         pixbuf.get_height(), 0, 0, 1, 1,
+                         gtk.gdk.INTERP_BILINEAR, 190)
+        pixbuf.saturate_and_pixelate(minimized_icon, 0.12, False)
+        return minimized_icon
+
+    def get_preview_allocation(self):
+        return self.preview.get_allocation()
+
+    def set_needs_attention(self, needs_attention):
+        self.needs_attention = needs_attention
+        self.__update_label_state()
+
+    def set_minimized(self, minimized):
+        self.minimized = minimized
+        if self.minimized:
+            pixbuf = self.__make_minimized_icon(self.icon)
+            self.icon_image.set_from_pixbuf(pixbuf)
+            self.preview.set_from_pixbuf(self.big_icon)
+        else:
+            self.icon_image.set_from_pixbuf(self.icon)
+            self.preview.clear()
+        self.__update_label_state()
+
+    def set_icon(self, icon, big_icon):
+        self.icon = icon
+        self.big_icon = big_icon
+        if self.minimized:
+            pixbuf = self.make_minimized_icon(icon)
+            self.icon_image.set_from_pixbuf(pixbuf)
+        else:
+            self.icon_image.set_from_pixbuf(self.icon)
+
+    def set_name(self, name):
+        self.window_name = name
+        self.__update_label_state()
+
+    def set_is_active_window(self, is_active):
+        self.is_active_window = is_active
+        self.__update_label_state()
+
+    def set_preview_aspect(self, width, height):
+        size = self.globals.settings["preview_size"]
+        if width < size and height < size:
+            self.preview.set_size_request(width, height)
+        elif width > height:
+            self.preview.set_size_request(size, size*height/width)
+        else:
+            self.preview.set_size_request(size*width/height, size)
+
 
 class CairoArea(gtk.Alignment):
     """CairoButton is a gtk button with a cairo surface painted over it."""

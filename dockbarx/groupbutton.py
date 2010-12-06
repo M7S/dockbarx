@@ -413,7 +413,7 @@ class GroupButton(gobject.GObject):
             return
         wb = WindowButton(window)
         self.windows[window] = wb
-        self.winlist.pack_start(wb.window_button, False)
+        self.winlist.pack_start(wb.button, True, True)
         if window.is_minimized():
             self.minimized_windows_count += 1
         if len(self.windows)==1:
@@ -444,9 +444,9 @@ class GroupButton(gobject.GObject):
                    not win.is_on_current_desktop()) or \
                    (self.globals.settings["show_only_current_monitor"] and \
                    self.monitor != win.monitor):
-                    win.window_button.hide_all()
+                    win.button.hide_all()
                 else:
-                    win.window_button.show_all()
+                    win.button.show_all()
             gobject.idle_add(self.show_list)
 
         self.update_tooltip()
@@ -563,9 +563,9 @@ class GroupButton(gobject.GObject):
                    not win.is_on_current_desktop()) or \
                    (self.globals.settings["show_only_current_monitor"] and \
                    self.monitor != win.monitor):
-                    win.window_button.hide_all()
+                    win.button.hide_all()
                 else:
-                    win.window_button.show_all()
+                    win.button.show_all()
             gobject.idle_add(self.show_list_request)
 
 
@@ -608,34 +608,23 @@ class GroupButton(gobject.GObject):
             # Set hint type so that previews can be used.
             if not self.popup.get_property('visible'):
                 self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
-            # Make space in where the previews can be placed.
-            ps = self.globals.settings['preview_size']
-            for win in self.windows.get_list():
-                self.windows[win].prepare_preview(ps)
-
-            # Set the width of popup window title.
-            p = 4
-            title_width = win_cnt * (ps+p*2) + \
-                          ( win_cnt-1)*self.popup_box.get_spacing()
-            self.popup_label.set_ellipsize(pango.ELLIPSIZE_END)
-            self.popup_label.set_size_request(title_width, -1)
         else:
             if not self.popup.get_property('visible'):
                 self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
-            self.popup_label.set_ellipsize(pango.ELLIPSIZE_NONE)
-            self.popup_label.set_size_request(-1, -1)
 
         self.popup_box.show()
         self.winlist.show()
         self.popup_label.show()
-        for win in self.windows.values():
+        for window, wb in self.windows.items():
             if (self.globals.settings["show_only_current_desktop"] and \
-               not win.is_on_current_desktop()) or \
+               not wb.is_on_current_desktop()) or \
                (self.globals.settings["show_only_current_monitor"] and \
-               self.monitor != win.monitor):
-                win.window_button.hide_all()
+               self.monitor != wb.monitor):
+                wb.button.hide()
             else:
-                win.window_button.show_all()
+                wb.button.show()
+                wb.button.set_preview_aspect(window.get_geometry()[2],
+                                              window.get_geometry()[3])
         self.popup.resize(10,10)
         self.popup.show()
         self.popup_showing = True
@@ -659,10 +648,9 @@ class GroupButton(gobject.GObject):
                 wb = self.windows[win]
                 previews.append(5)
                 previews.append(win.get_xid())
-                alloc = wb.preview_image.get_allocation()
-                (xo, yo, w, h) = wb.get_preview_alloc(ps)
-                previews.append(alloc.x+xo)
-                previews.append(alloc.y+yo)
+                (x, y, w, h) = wb.get_preview_alloc()
+                previews.append(x)
+                previews.append(y)
                 previews.append(w)
                 previews.append(h)
         else:
@@ -703,11 +691,6 @@ class GroupButton(gobject.GObject):
                                               [0,5,0,0,0,0,0])
         self.popup.hide()
         self.popup_showing = False
-        if self.globals.settings["preview"]:
-            # Remove preview icon to save memory
-            for win in self.windows.get_list():
-                self.windows[win].clear_preview_image()
-            gc.collect()
         if self.show_list_sid is not None:
             gobject.source_remove(self.show_list_sid)
             self.show_list_sid = None

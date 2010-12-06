@@ -27,10 +27,12 @@ import gc
 gc.enable()
 
 from common import ODict, Globals, compiz_call
-from cairowidgets import CairoWindowButton, CairoCloseButton
+from cairowidgets import CairoWindowItem
 
 import i18n
 _ = i18n.language.gettext
+
+
 
 
 class WindowButton(gobject.GObject):
@@ -52,88 +54,55 @@ class WindowButton(gobject.GObject):
     def __init__(self, window):
         gobject.GObject.__init__(self)
         self.globals = Globals()
-        self.globals.connect('color-changed', self.update_label_state)
         self.globals.connect('show-only-current-monitor-changed',
                              self.on_show_only_current_monitor_changed)
-        self.globals.connect('show-previews-changed',
-                             self.on_show_preview_changed)
         self.screen = wnck.screen_get_default()
         self.name = window.get_name()
         self.window = window
-        self.is_active_window = False
         self.needs_attention = False
         self.opacified = False
         self.button_pressed = False
 
-        self.window_button = CairoWindowButton()
-        self.close_button = CairoCloseButton()
-        self.close_alignment = gtk.Alignment(1, 0.5, 0, 0)
-        self.close_alignment.add(self.close_button)
-        self.label = gtk.Label()
-        self.label.set_alignment(0, 0.5)
-        self.on_window_name_changed(self.window)
-
-        if window.needs_attention():
-            self.needs_attention = True
-
-        self.window_button_icon = gtk.Image()
-        self.on_window_icon_changed(window)
-        self.preview_image = None
-        self.on_show_preview_changed()
-        self.update_label_state()
+        self.button = CairoWindowItem(u"" + window.get_name(),
+                                      window.get_mini_icon(),
+                                      window.get_icon())
+        self.button.set_needs_attention(window.needs_attention())
+        self.button.show()
+        self.button.set_preview_aspect(self.window.get_geometry()[2],
+                                       self.window.get_geometry()[3])
+        self.geometry_changed_event = None
+        self.on_show_only_current_monitor_changed()
 
 
         #--- Events
-        self.window_button.connect("enter-notify-event",
+        self.button.connect("enter-notify-event",
                                    self.on_button_mouse_enter)
-        self.window_button.connect("leave-notify-event",
+        self.button.connect("leave-notify-event",
                                    self.on_button_mouse_leave)
-        self.window_button.connect("button-press-event",
+        self.button.connect("button-press-event",
                                    self.on_window_button_press_event)
-        self.window_button.connect("clicked",
+        self.button.connect("clicked",
                                    self.on_clicked)
-        self.window_button.connect("scroll-event",
+        self.button.connect("scroll-event",
                                    self.on_window_button_scroll_event)
-        self.close_button.connect("button-press-event",
-                                  self.window_button.disable_click)
-        self.close_button.connect("clicked", self.action_close_window)
+        self.button.connect("close-clicked", self.action_close_window)
         self.state_changed_event = self.window.connect("state-changed",
                                                 self.on_window_state_changed)
         self.icon_changed_event = self.window.connect("icon-changed",
                                                 self.on_window_icon_changed)
         self.name_changed_event = self.window.connect("name-changed",
                                                 self.on_window_name_changed)
-        self.geometry_changed_event = None
-        self.on_show_only_current_monitor_changed()
 
         #--- D'n'D
-        self.window_button.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT, [], 0)
-        self.window_button.connect("drag_motion", self.on_button_drag_motion)
-        self.window_button.connect("drag_leave", self.on_button_drag_leave)
+        self.button.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT, [], 0)
+        self.button.connect("drag_motion", self.on_button_drag_motion)
+        self.button.connect("drag_leave", self.on_button_drag_leave)
         self.button_drag_entered = False
         self.dnd_select_window = None
 
     def set_button_active(self, mode):
-        self.is_active_window = mode
-        self.update_label_state()
+        self.button.set_is_active_window(mode)
 
-    def update_label_state(self, arg=None):
-        """Updates the style of the label according to window state."""
-        attr_list = pango.AttrList()
-        if self.needs_attention:
-            attr_list.insert(pango.AttrStyle(pango.STYLE_ITALIC, 0, 200))
-        if self.is_active_window:
-            color = self.globals.colors['color3']
-        elif self.window.is_minimized():
-            color = self.globals.colors['color4']
-        else:
-            color = self.globals.colors['color2']
-        # color is a hex-string (like '#FFFFFF').
-        r = int(color[1:3], 16)*256
-        g = int(color[3:5], 16)*256
-        b = int(color[5:7], 16)*256
-        attr_list.insert(pango.AttrForeground(r, g, b, 0, 200))
-        self.label.set_attributes(attr_list)
 
     def is_on_current_desktop(self):
         if (self.window.get_workspace() is None \
@@ -162,83 +131,22 @@ class WindowButton(gobject.GObject):
         self.monitor = self.get_monitor()
 
     def del_button(self):
-        self.window_button.destroy()
+        self.button.destroy()
         self.window.disconnect(self.state_changed_event)
         self.window.disconnect(self.icon_changed_event)
         self.window.disconnect(self.name_changed_event)
         if self.geometry_changed_event is not None:
             self.window.disconnect(self.geometry_changed_event)
-        del self.icon
-        del self.icon_transp
         del self.screen
         del self.window
         del self.globals
         gc.collect()
 
     #### Previews
-    def prepare_preview(self, size=None):
-        if not self.globals.settings["preview"]:
-            return False
-        if size is None:
-            size = self.globals.settings["preview_size"]
-        pixbuf = self.window.get_icon()
-        self.preview_image.set_from_pixbuf(pixbuf)
-        self.preview_image.set_size_request(size,size)
-        del pixbuf
-        gc.collect()
 
-    def get_preview_alloc(self, size):
-        x,y,w,h = self.window.get_geometry()
-        w = float(w)
-        h = float(h)
-        size = float(size)
-        if w>h:
-            h = size/(w/h)
-            w = size
-            x = 0
-            y = (size - h)//2
-        else:
-            w = size/(h/w)
-            h = size
-            x = (size - w)//2
-            y = 0
-        return (x, y, w, h)
+    def get_preview_alloc(self):
+        return self.button.get_preview_allocation()
 
-    def clear_preview_image(self):
-        if self.preview_image:
-            self.preview_image.clear()
-            gc.collect()
-
-    def on_show_preview_changed(self, arg=None):
-        child = self.window_button.get_child()
-        if child:
-            self.window_button.remove(child)
-        oldbox = self.window_button_icon.get_parent()
-        if oldbox:
-            oldbox.remove(self.window_button_icon)
-            oldbox.remove(self.label)
-            oldbox.remove(self.close_alignment)
-
-        self.on_window_name_changed(self.window)
-        hbox = gtk.HBox()
-        hbox.pack_start(self.window_button_icon, False)
-        hbox.pack_start(self.label, True, True, padding = 4)
-        hbox.pack_start(self.close_alignment, False, False)
-        if self.globals.settings["preview"]:
-            vbox = gtk.VBox()
-            vbox.pack_start(hbox, False)
-            self.preview_image =  gtk.Image()
-            vbox.pack_start(self.preview_image, True, True, padding = 2)
-            self.window_button.add(vbox)
-            # Fixed with of self.label.
-            self.label.set_ellipsize(pango.ELLIPSIZE_END)
-        else:
-            self.label.set_ellipsize(pango.ELLIPSIZE_NONE)
-            self.window_button.add(hbox)
-            if self.preview_image:
-                self.preview_image.clear()
-                self.preview_image = None
-                gc.collect()
 
     #### Windows's Events
     def on_window_state_changed(self, window,changed_mask, new_state):
@@ -247,48 +155,27 @@ class WindowButton(gobject.GObject):
         except:
             state_minimized = 1 << 0
         if state_minimized & changed_mask & new_state:
-            self.window_button_icon.set_from_pixbuf(self.icon_transp)
-            self.update_label_state()
+            self.button.set_minimized(True)
             self.emit('minimized')
         elif state_minimized & changed_mask:
-            self.window_button_icon.set_from_pixbuf(self.icon)
-            self.update_label_state()
+            self.button.set_minimized(False)
             self.emit('unminimized')
 
         # Check if the window needs attention
         if window.needs_attention() != self.needs_attention:
             self.needs_attention = window.needs_attention()
-            self.update_label_state()
+            self.button.set_needs_attention(self.needs_attention)
             self.emit('needs-attention-changed')
 
     def on_window_icon_changed(self, window):
         # Creates pixbufs for minimized and normal icons
         # from the window's mini icon and set the one that should
         # be used as window_button_icon according to window state.
-        self.icon = window.get_mini_icon()
-        pixbuf = self.icon.copy()
-        self.icon_transp = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True,
-                                          8, pixbuf.get_width(),
-                                          pixbuf.get_height())
-        self.icon_transp.fill(0x00000000)
-        pixbuf.composite(self.icon_transp, 0, 0, pixbuf.get_width(),
-                         pixbuf.get_height(), 0, 0, 1, 1,
-                         gtk.gdk.INTERP_BILINEAR, 190)
-        self.icon_transp.saturate_and_pixelate(self.icon_transp, 0.12, False)
-
-        if window.is_minimized():
-            self.window_button_icon.set_from_pixbuf(self.icon_transp)
-        else:
-            self.window_button_icon.set_from_pixbuf(self.icon)
-        del pixbuf
+        self.button.set_icon(window.get_mini_icon(), window.get_icon())
 
     def on_window_name_changed(self, window):
         name = u""+window.get_name()
-        # TODO: fix a better way to shorten names.
-        if len(name) > 40 and not self.globals.settings["preview"]:
-            name = name[0:37]+"..."
-        self.name = name
-        self.label.set_label(name)
+        self.button.set_name(name)
 
 
     def on_geometry_changed(self, *args):
@@ -346,8 +233,8 @@ class WindowButton(gobject.GObject):
             self.button_pressed = False
             return False
         # Check if mouse cursor still is over the window button.
-        b_m_x,b_m_y = self.window_button.get_pointer()
-        b_r = self.window_button.get_allocation()
+        b_m_x,b_m_y = self.button.get_pointer()
+        b_r = self.button.get_allocation()
         if b_m_x >= 0 and b_m_x < b_r.width \
         and b_m_y >= 0 and b_m_y < b_r.height:
             self.opacify()
@@ -382,8 +269,8 @@ class WindowButton(gobject.GObject):
         if not self.opacified:
             return False
         # Make sure that mouse cursor really has left the window button.
-        b_m_x,b_m_y = self.window_button.get_pointer()
-        b_r = self.window_button.get_allocation()
+        b_m_x,b_m_y = self.button.get_pointer()
+        b_r = self.button.get_allocation()
         if b_m_x >= 0 and b_m_x < b_r.width \
         and b_m_y >= 0 and b_m_y < b_r.height:
             return True
@@ -418,7 +305,6 @@ class WindowButton(gobject.GObject):
         # Keep that in mind when coding this def!
         if self.button_pressed :
             return
-        self.update_label_state(True)
         if self.globals.settings["opacify"]:
             gobject.timeout_add(100,self.opacify_request)
             # Just for safty in case no leave-signal is sent
@@ -429,7 +315,6 @@ class WindowButton(gobject.GObject):
         # event before a button_press event.
         # Keep that in mind when coding this def!
         self.button_pressed = False
-        self.update_label_state(False)
         if self.globals.settings["opacify"]:
             self.deopacify_request()
 
