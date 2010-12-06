@@ -145,10 +145,6 @@ class GroupButton(gobject.GObject):
         self.show_list_sid = None
 
         self.menu_is_shown = False
-        self.show_toggle_menus= {'Recent':False,
-                            'Most used': False,
-                            'Related': False,
-                            'Properties': False}
 
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
@@ -1157,8 +1153,7 @@ class GroupButton(gobject.GObject):
             properties_toggle = CairoToggleMenu(_('Properties'))
             menu.pack_start(properties_toggle)
             properties_toggle.show()
-            properties_toggle.connect('toggled', self.on_toggle_menu_toggled,
-                                      'Properties')
+            properties_toggle.connect('toggled', self.on_toggle_menu_toggled)
             #Edit identifier item
             edit_identifier_item = CairoMenuItem(_('Edit Identifier'))
             properties_toggle.add_item(edit_identifier_item)
@@ -1182,19 +1177,14 @@ class GroupButton(gobject.GObject):
                 menu.pack_start(sep)
                 sep.show()
             # Create and add the submenus.
-            for files,  menu_name, menu_trans in ((recent_files, 'Recent',
-                                                  _('Recent')),
-                                                 (most_used_files, 'Most used',
-                                                  _('Most used')),
-                                                 (related_files, 'Related',
-                                                  _('Related'))):
+            for files, menu_name in ((recent_files, _('Recent')),
+                                      (most_used_files, _('Most used')),
+                                      (related_files, _('Related'))):
                 if files:
-                    show_menu = self.show_toggle_menus[menu_name]
-                    toggle_menu = CairoToggleMenu(menu_trans, show_menu)
+                    toggle_menu = CairoToggleMenu(menu_name)
                     menu.pack_start(toggle_menu)
                     toggle_menu.show()
-                    toggle_menu.connect('toggled', self.on_toggle_menu_toggled,
-                                        menu_name)
+                    toggle_menu.connect('toggled', self.on_toggle_menu_toggled)
 
                     for text, uri in files:
                         label = text or uri
@@ -1312,8 +1302,7 @@ class GroupButton(gobject.GObject):
             related_files = related_files[:3]
         return recent_files, most_used_files, related_files
 
-    def on_toggle_menu_toggled(self, event, toggled, name):
-        self.show_toggle_menus[name] = toggled
+    def on_toggle_menu_toggled(self, *args):
         self.popup.resize(10,10)
 
 
