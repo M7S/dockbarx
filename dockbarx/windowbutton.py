@@ -85,7 +85,7 @@ class WindowButton(gobject.GObject):
                                    self.on_clicked)
         self.button.connect("scroll-event",
                                    self.on_window_button_scroll_event)
-        self.button.connect("close-clicked", self.action_close_window)
+        self.button.connect("close-clicked", self.on_close_clicked)
         self.state_changed_event = self.window.connect("state-changed",
                                                 self.on_window_state_changed)
         self.icon_changed_event = self.window.connect("icon-changed",
@@ -366,6 +366,13 @@ class WindowButton(gobject.GObject):
         popup_close = 'windowbutton_close_popup_on_%s%s_click'%(mod, button)
         if self.globals.settings[popup_close]:
             self.emit('popup-hide', None)
+
+    def on_close_clicked(self, *args):
+        if self.globals.settings["opacify"] and self.opacified:
+            self.globals.opacified = False
+            self.opacified = False
+            self.deopacify()
+        self.action_close_window()
 
     #### Menu functions
     def menu_closed(self, menushell):
