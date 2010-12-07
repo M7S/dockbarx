@@ -360,6 +360,9 @@ class CairoWindowButton(gtk.EventBox):
     def get_label(self):
         return self.area.text
 
+    def redraw(self):
+        self.area.queue_draw()
+
     def do_button_release_event(self, event):
         if self.area.pointer_is_inside() and not self.prevent_click:
             self.emit('clicked', event)

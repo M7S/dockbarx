@@ -649,6 +649,11 @@ class GroupButton(gobject.GObject):
                 previews.append(y)
                 previews.append(w)
                 previews.append(h)
+                # The button needs to be drawn again to ensure that
+                # the preview is shown correctly.
+                # Todo: Make sure if this is the best solution!
+                #       What is the connection between redrawing and previews?
+                wb.button.redraw()
         else:
             previews = [0,5,0,0,0,0,0]
         self.popup.window.property_change(ATOM_PREVIEWS,
