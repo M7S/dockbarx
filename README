@@ -44,16 +44,6 @@ USAGE
 =====
 The default actions are listed here. There are more actions in dockbarx. You can assign them to different buttons via preference dialog.
 
-DEFAULT WINDOW ITEM ACTIONS:
-left click:
-- activate / minimize / unminimize
-
-middle click:
-- close window
-
-right click:
-- minimize and lock
-
 
 DEFAULT GROUP BUTTON ACTIONS:
 left click:
@@ -70,6 +60,17 @@ right click:
 
 scroll up/down: 
 - Select next/previous window of the group
+
+
+DEFAULT WINDOW ITEM ACTIONS:
+left click:
+- activate / minimize / unminimize
+
+middle click:
+- close window
+
+right click:
+- minimize and lock
 
 
 WORKSPACE/VIEWPORT BEHAVIOR OPTIONS:
@@ -123,7 +124,7 @@ A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome
 
 AWN 
 Q: When I use dockbarx in AWN, IntelliHide and Window Dodge behaviors doesn't work. Why? Can I do anything about it?
-A: For IntelliHide and Window Dodge to work, AWN Taskmanager applet has to be activated. So to get back IntelliHide or Window Dodge, simply add Taskmanager to your applet list again. If you think using Taskmanager and DockbarX at the same time looks a bit wierd, you can go to the Task Manager tab of AWN preference and check the option "Display launchers only" and then remove all the launchers in the list. That will give you a completely invisible Taskmanager that will make sure IntelliHide and Window Dodge works as they should. 
+A: For IntelliHide and Window Dodge to work, AWN Taskmanager applet has to be activated. So to get back IntelliHide or Window Dodge, simply add Taskmanager to your applet list again. If you think using Taskmanager and DockbarX at the same time looks a bit weird, you can go to the Task Manager tab of AWN preference and check the option "Display launchers only" and then remove all the launchers in the list. That will give you a completely invisible Taskmanager that will make sure IntelliHide and Window Dodge works as they should. 
 
 
 

@@ -1,0 +1,60 @@
+# Ukrainian translation for dockbar
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the dockbar package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dockbar\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2010-06-09 13:23+0300\n"
+"PO-Revision-Date: 2010-10-09 07:44+0000\n"
+"Last-Translator: Skillman <Unknown>\n"
+"Language-Team: Ukrainian <uk@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+msgid "Window list background"
+msgstr "Колір фону перегляду мініатюр"
+
+msgid "Normal text"
+msgstr "Звичайний текст"
+
+msgid "Active window text"
+msgstr "Текст активного вікна"
+
+msgid "Minimized window text"
+msgstr "Текст мінімізованого вікна"
+
+msgid "Active color"
+msgstr "Активний колір"
+
+msgid "Not used"
+msgstr "Не використовується"
+
+msgid "Active"
+msgstr "Активний"
+
+msgid "Launching color"
+msgstr "Колір кнопок запуску"
+
+msgid "Attention color"
+msgstr "Колір звертання уваги"
+
+msgid "Minimized color"
+msgstr "Колір мінімізованого вікна"
+
+msgid "Active glow"
+msgstr "Активне світіння"
+
+msgid "Button color"
+msgstr "Колір кнопок"
+
+msgid "Active + indicator color"
+msgstr "Колір активності та індикатору"
+
+msgid "Active + dots color"
+msgstr "Колір активності та крапок"

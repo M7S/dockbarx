@@ -1,4 +1,15 @@
 Changelog:
+0.41
+End user features:
+- New looks for window list and menu!
+- Close button on window items.
+- A few new languages. (I forgot to add them to 0.40, sorry)
+
+Bug fixes:
+- Visual errors in previews shouldn't happen as often anymore.
+- A couple of bugs that caused DockbarX to show up empty should be fixed now.
+
+
 0.40
 End user features:
 - The default theme has changed. The new default theme DBX is made by BigRZA. It's made to look good with Radiance and Ambiance. (The old default theme is still included under the name Old.)

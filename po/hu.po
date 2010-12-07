@@ -1,0 +1,527 @@
+# Hungarian translation for dockbar
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the dockbar package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dockbar\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2010-10-03 22:50+0300\n"
+"PO-Revision-Date: 2010-09-21 16:31+0000\n"
+"Last-Translator: Papp Bence <papp.bence89@gmail.com>\n"
+"Language-Team: Hungarian <hu@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: dbx_preference.py:212
+msgid "DockBarX preferences"
+msgstr "DockBarX tulajdonságok"
+
+#: dbx_preference.py:231
+msgid "Window item actions"
+msgstr ""
+
+#: dbx_preference.py:237 dbx_preference.py:490
+msgid "Left mouse button"
+msgstr "Bal egérgomb"
+
+#: dbx_preference.py:238 dbx_preference.py:491
+msgid "Shift + left mouse button"
+msgstr "Shift + bal egérgomb"
+
+#: dbx_preference.py:240 dbx_preference.py:493
+msgid "Middle mouse button"
+msgstr "Középső egérgomb"
+
+#: dbx_preference.py:242 dbx_preference.py:494
+msgid "Shift + middle mouse button"
+msgstr "Shift + középső egérgomb"
+
+#: dbx_preference.py:244 dbx_preference.py:496
+msgid "Right mouse button"
+msgstr "Jobb egérgomb"
+
+#: dbx_preference.py:246 dbx_preference.py:497
+msgid "Shift + right mouse button"
+msgstr "Shift + jobb egérgpmb"
+
+#: dbx_preference.py:248 dbx_preference.py:499
+msgid "Scroll up"
+msgstr "Görgetés felfelé"
+
+#: dbx_preference.py:249 dbx_preference.py:500
+msgid "Scroll down"
+msgstr "Görgetés lefelé"
+
+#: dbx_preference.py:254 dbx_preference.py:566 dbx_preference.py:892
+#: dbx_preference.py:1123
+msgid "select or minimize window"
+msgstr "ablak kijelölése vagy minimalizálása"
+
+#: dbx_preference.py:255 dbx_preference.py:565 dbx_preference.py:891
+#: dbx_preference.py:1122
+msgid "select window"
+msgstr "ablak kijelölése"
+
+#: dbx_preference.py:256
+msgid "maximize window"
+msgstr "ablak maximalizálása"
+
+#: dbx_preference.py:257
+msgid "close window"
+msgstr "ablak bezárása"
+
+#: dbx_preference.py:258 dbx_preference.py:509
+msgid "show menu"
+msgstr "menü mutatása"
+
+#: dbx_preference.py:259
+msgid "shade window"
+msgstr "ablak árnyékolása"
+
+#: dbx_preference.py:260
+msgid "unshade window"
+msgstr "ablakárnyékolás visszavonása"
+
+#: dbx_preference.py:261 dbx_preference.py:518
+msgid "no action"
+msgstr "nincs művelet"
+
+#: dbx_preference.py:290
+msgid "Close window list"
+msgstr ""
+
+#: dbx_preference.py:306
+msgid "Theme:"
+msgstr "Téma:"
+
+#: dbx_preference.py:324
+msgid "Colors"
+msgstr "Színek"
+
+#: dbx_preference.py:381
+msgid "Needs attention effect"
+msgstr "Szükséges figyelmeztető effekt"
+
+#: dbx_preference.py:385
+msgid "Compiz water"
+msgstr "Compiz víz"
+
+#: dbx_preference.py:387
+msgid "Blinking"
+msgstr "Villogás"
+
+#: dbx_preference.py:389
+msgid "Static"
+msgstr "Statikus"
+
+#: dbx_preference.py:391
+msgid "No effect"
+msgstr "Nincs effektus"
+
+#: dbx_preference.py:405
+msgid "Show window list only if more than one window is open"
+msgstr ""
+
+#: dbx_preference.py:411
+msgid "Show tooltip when no window is open"
+msgstr "Eszköz tipp mutatása ha nincs nyitott ablak"
+
+#: dbx_preference.py:418
+msgid "Alignment"
+msgstr "Igazítás"
+
+#: dbx_preference.py:422
+msgid "Align left"
+msgstr "Balra igazítás"
+
+#: dbx_preference.py:424
+msgid "Align center"
+msgstr "Középre igazítás"
+
+#: dbx_preference.py:426
+msgid "Align right"
+msgstr "Jobbra igazítás"
+
+#: dbx_preference.py:435 dbx_preference.py:440
+msgid "Delay"
+msgstr "Késleltetés"
+
+#: dbx_preference.py:450
+msgid "Delay for switching between window lists"
+msgstr ""
+
+#: dbx_preference.py:463
+msgid "Previews"
+msgstr "Előnézetek"
+
+#: dbx_preference.py:467
+msgid "Show previews"
+msgstr "Előnézet mutatása"
+
+#: dbx_preference.py:472
+msgid "Preview size"
+msgstr ""
+
+#: dbx_preference.py:484
+msgid "Group button actions"
+msgstr ""
+
+#: dbx_preference.py:504
+msgid "select"
+msgstr "kiválasztás"
+
+#: dbx_preference.py:505
+msgid "close all windows"
+msgstr "minden ablak bezárása"
+
+#: dbx_preference.py:506
+msgid "minimize all windows"
+msgstr "minden ablak minimalizálása"
+
+#: dbx_preference.py:507
+msgid "maximize all windows"
+msgstr "minden ablak maximalizálása"
+
+#: dbx_preference.py:508
+msgid "launch application"
+msgstr "alkalmazás indítása"
+
+#: dbx_preference.py:510
+msgid "remove launcher"
+msgstr "Alkalmazásindító eltávolítása"
+
+#: dbx_preference.py:511
+msgid "select next window"
+msgstr "következő ablak kijelölése"
+
+#: dbx_preference.py:512
+msgid "select previous window"
+msgstr "előző ablak kijelölése"
+
+#: dbx_preference.py:513
+msgid "minimize all other groups"
+msgstr "a többi csoport minimalizálása"
+
+#: dbx_preference.py:514
+msgid "compiz scale windows"
+msgstr "compiz lépcsőzetes ablakok"
+
+#: dbx_preference.py:515
+msgid "compiz shift windows"
+msgstr "compiz ablakváltás"
+
+#: dbx_preference.py:516
+msgid "compiz scale all"
+msgstr "compiz lépcsőzetesség mindenre"
+
+#: dbx_preference.py:517
+msgid "show preference dialog"
+msgstr "tulajdonságok párbeszédablak mutatása"
+
+#: dbx_preference.py:545
+msgid "Double click"
+msgstr "Dupla kattintás"
+
+#: dbx_preference.py:556
+msgid "\"Select\" action options"
+msgstr "\"Kijelölés\" müvelet beállítások"
+
+#: dbx_preference.py:562
+msgid "One window open"
+msgstr ""
+
+#: dbx_preference.py:571
+msgid "Multiple windows open"
+msgstr ""
+
+#: dbx_preference.py:574 dbx_preference.py:901 dbx_preference.py:1135
+msgid "select all"
+msgstr "mind kijelölése"
+
+#: dbx_preference.py:575 dbx_preference.py:902 dbx_preference.py:1136
+msgid "select or minimize all"
+msgstr "mind kijelölése vagy minimalizálása"
+
+#: dbx_preference.py:576 dbx_preference.py:903 dbx_preference.py:1137
+msgid "compiz scale"
+msgstr "compiz lépcsőzetesség"
+
+#: dbx_preference.py:577 dbx_preference.py:904 dbx_preference.py:1138
+msgid "cycle through windows"
+msgstr "Ablakok körkörösen"
+
+#: dbx_preference.py:578 dbx_preference.py:905 dbx_preference.py:1139
+msgid "show window list"
+msgstr ""
+
+#: dbx_preference.py:583
+msgid "Workspace behavior"
+msgstr ""
+
+#: dbx_preference.py:587 dbx_preference.py:1151
+msgid "Ignore windows on other workspaces"
+msgstr "Más munkaterület ablakainak kihagyása"
+
+#: dbx_preference.py:588 dbx_preference.py:915 dbx_preference.py:1152
+msgid "Switch workspace when needed"
+msgstr "Munkaterület váltás ha szükséges"
+
+#: dbx_preference.py:590 dbx_preference.py:916 dbx_preference.py:1153
+msgid "Move windows from other workspaces"
+msgstr "Más munkaterület ablakainak áthelyezése"
+
+#: dbx_preference.py:601
+msgid "Ignore windows on other viewports/workspaces"
+msgstr "Ablakok kihagyása más nézőpontokon/munkaterületeken"
+
+#: dbx_preference.py:607
+msgid "Ignore windows on other monitors"
+msgstr "Más monitorok ablakainak kihagyása"
+
+#: dbx_preference.py:614
+msgid "Give each wine application its own group button"
+msgstr "Minden wine alkalmazásnak külön csoportgomb"
+
+#: dbx_preference.py:621
+msgid "Keep open office application (Writer, Calc, etc.) separated"
+msgstr ""
+"Az open office alkalmazásokat (Szövegszerkesztő, Táblázatkezelő, stb.) "
+"tartsa külön"
+
+#: dbx_preference.py:628
+msgid "Delay on select all (Workaround for order problems)"
+msgstr ""
+
+#: dbx_preference.py:629
+msgid ""
+"Compiz can't handle the order of multiple windows that are brought up at "
+"once. This problem can be solved by adding short delays between the "
+"activation of each window."
+msgstr ""
+
+#: dbx_preference.py:637 dbx_preference.py:641
+msgid "Opacify"
+msgstr "Átlátszatlanság"
+
+#: dbx_preference.py:642
+msgid ""
+"Opacify will make all other windows transparent when hovering a name or "
+"preview of a window in the window list."
+msgstr ""
+
+#: dbx_preference.py:645
+msgid "Opacify group"
+msgstr "Átlátszatlansági csoport"
+
+#: dbx_preference.py:646
+msgid ""
+"Opacify group will make all other groups transparent when hovering a group "
+"button."
+msgstr ""
+
+#: dbx_preference.py:651
+msgid "Opacity"
+msgstr ""
+
+#: dbx_preference.py:665
+msgid "Global Keyboard Shortcuts"
+msgstr "Általános gyorsbillentyűk"
+
+#: dbx_preference.py:670 dockbarx/dockbar.py:1066
+msgid "Select next group"
+msgstr "Következő csoport kiválasztása"
+
+#: dbx_preference.py:672 dockbarx/dockbar.py:1067
+msgid "Select previous group"
+msgstr "Előző csoport kiválasztása"
+
+#: dbx_preference.py:674 dockbarx/dockbar.py:1068
+msgid "Select next window in group"
+msgstr "A csoport következő ablakának kijelölése"
+
+#: dbx_preference.py:676 dockbarx/dockbar.py:1069
+msgid "Select previous window in group"
+msgstr "A csoport előző ablakának kijelölése"
+
+#: dbx_preference.py:719
+msgid "Appearance"
+msgstr "Megjelenítés"
+
+#: dbx_preference.py:720
+msgid "Window List"
+msgstr ""
+
+#: dbx_preference.py:721
+msgid "Group Button"
+msgstr "Csoport gomb"
+
+#: dbx_preference.py:722
+msgid "Window Item"
+msgstr ""
+
+#: dbx_preference.py:723
+msgid "Advanced"
+msgstr "Haladó"
+
+#: dbx_preference.py:783 dockbarx/theme.py:168
+msgid ""
+"No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
+msgstr ""
+"Nem található működő téma itt: /usr/share/dockbarx/themes vagy "
+"~/.dockbarx/themes"
+
+#: dbx_preference.py:914
+msgid "Ignore windows on other workspace"
+msgstr "Más munkaterületek ablakainak kihagyása"
+
+#: dbx_preference.py:1013
+msgid ""
+"Previews requires the compiz plugin KDE Compability to be activated. Should "
+"dockbarx activate it for you?"
+msgstr ""
+"Az előnézeti képekhez aktiválni kell a compiz KDE kompatibilitási plugint. "
+"Aktiválja ezt a dockbarx önnek?"
+
+#: dbx_preference.py:1027
+msgid ""
+"The compiz plugin KDE Compability that is needed for previews doesn't seem "
+"to be installed. If you use ubuntu, you need to install the package compiz-"
+"fusion-plugins-main."
+msgstr ""
+"A compiz KDE kompatibilitási plugin amire az előnézetekhez van szükség "
+"úgytűnik nincs teleptíve. Amennyiben ön ubuntu-t használ telepítse a compiz-"
+"fusion-plugins-main csomagot."
+
+#: dbx_preference.py:1044
+msgid ""
+"Previews requires that Support Plasma Thumnails should be activated in KDE "
+"Compability plugin. Should dockbarx activate it for you?"
+msgstr ""
+"Az előnézeti képekhez aktiválni kell a Plazma bélyegkép támogatást a KDE "
+"kompatibilitási pluginban. Aktiválja ezt a dockbarx önnek?"
+
+#: dbx_preference.py:1066
+msgid ""
+"Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
+"activated. Should dockbarx activate it for you?"
+msgstr ""
+"Az átlátszatlansághoz aktiválni kell a compiz Átlátszóság, Fényerő és "
+"Szaturáció plugint. Aktiválja ezt önnek a dockbarx?"
+
+#: dbx_preference.py:1227
+msgid ""
+"You need to have at least one mod key (<control>, <alt> or <super>) in the "
+"keyboard string."
+msgstr ""
+"Legalább egy módosítót (<control>, <alt> vagy <super>) használnod kell a "
+"billentyűzet-kombinációhoz."
+
+#: dockbarx/dockbar.py:872 dockbarx/groupbutton.py:186
+#: dockbarx/groupbutton.py:231
+msgid "Identifier"
+msgstr "Azonosító"
+
+#: dockbarx/dockbar.py:873
+msgid "Enter the identifier here"
+msgstr "Add meg az azonosítót"
+
+#: dockbarx/dockbar.py:875
+msgid ""
+"You should have to do this only if the program fails to recognice its "
+"windows. "
+msgstr ""
+"Csak akkor tudja ezt csinálni, ha a program nem ismeri fel, hogy ez egy "
+"ablak. "
+
+#: dockbarx/dockbar.py:876
+msgid ""
+"If the program is already running you should be able to find the identifier "
+"of the program from the dropdown list."
+msgstr ""
+"Ha a program jelenleg is fut, akkor a legördülő-menüből ki tudod választani "
+"az azonosítóját."
+
+#: dockbarx/dockbar.py:894
+msgid "Identifier:"
+msgstr "Azonosító:"
+
+#: dockbarx/dockbar.py:1095
+msgid "The key is already bound elsewhere."
+msgstr "Ez a kulcs már kötve van máshova."
+
+#: dockbarx/dockbar.py:1097
+#, python-format
+msgid ""
+"Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
+msgstr ""
+"Hiba: a DockbarX nem tudja beállítani a globális kucslot '%(keystr)s' for "
+"%(function)s."
+
+#: dockbarx/windowbutton.py:550 dockbarx/groupbutton.py:1207
+msgid "_Minimize"
+msgstr "_Minimalizálás"
+
+#: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1199
+msgid "Un_minimize"
+msgstr "Vissza_nagyítás"
+
+#: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1217
+msgid "Ma_ximize"
+msgstr "Ma_ximalizálás"
+
+#: dockbarx/windowbutton.py:565 dockbarx/groupbutton.py:1221
+msgid "Unma_ximize"
+msgstr "_Eredeti méret"
+
+#: dockbarx/windowbutton.py:571 dockbarx/groupbutton.py:1227
+msgid "_Close"
+msgstr "_Bezár"
+
+#: dockbarx/groupbutton.py:1107
+msgid "_Launch application"
+msgstr "Alkalmazás _indítás"
+
+#: dockbarx/groupbutton.py:1114
+msgid "_Pin application"
+msgstr "_Kitűzni az alkalmazást"
+
+#: dockbarx/groupbutton.py:1120
+msgid "Make custom launcher"
+msgstr "Egyéni alkalmazásindító készítése"
+
+#: dockbarx/groupbutton.py:1127
+msgid "Unpin application"
+msgstr "Alkalmazás kitűzésének megszüntetése"
+
+#: dockbarx/groupbutton.py:1134
+msgid "Properties"
+msgstr "Tulajdonságok"
+
+#: dockbarx/groupbutton.py:1138
+msgid "Edit Identifier"
+msgstr "Azonosító szerkesztése"
+
+#: dockbarx/groupbutton.py:1144
+msgid "Edit Launcher"
+msgstr "Alkalmazásindító szerkesztése"
+
+#: dockbarx/groupbutton.py:1161
+msgid "Recent"
+msgstr "Legutóbbi"
+
+#: dockbarx/groupbutton.py:1162
+msgid "Most used"
+msgstr "Legtöbbet használt"
+
+#: dockbarx/groupbutton.py:1163
+msgid "Related"
+msgstr "Kapcsolódó"
+
+#: dockbarx/groupbutton.py:1195
+msgid " all windows"
+msgstr " minden ablak"

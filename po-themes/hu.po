@@ -1,0 +1,60 @@
+# Hungarian translation for dockbar
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the dockbar package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dockbar\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2010-06-09 13:23+0300\n"
+"PO-Revision-Date: 2010-08-21 08:41+0000\n"
+"Last-Translator: Szávics Dániel <Unknown>\n"
+"Language-Team: Hungarian <hu@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+msgid "Window list background"
+msgstr ""
+
+msgid "Normal text"
+msgstr "Normál szöveg"
+
+msgid "Active window text"
+msgstr "Aktív ablak szöveg"
+
+msgid "Minimized window text"
+msgstr "Minimalizált ablak szöveg"
+
+msgid "Active color"
+msgstr "Aktív szín"
+
+msgid "Not used"
+msgstr "Nem használt"
+
+msgid "Active"
+msgstr "Aktív"
+
+msgid "Launching color"
+msgstr "Indítás színe"
+
+msgid "Attention color"
+msgstr "Figyelmeztetés színe"
+
+msgid "Minimized color"
+msgstr "Minimalizált szín"
+
+msgid "Active glow"
+msgstr "Aktív fény"
+
+msgid "Button color"
+msgstr "Gomb színe"
+
+msgid "Active + indicator color"
+msgstr "Aktív + jelző szín"
+
+msgid "Active + dots color"
+msgstr "Aktív + pontok színe"
