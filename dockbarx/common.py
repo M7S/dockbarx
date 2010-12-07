@@ -281,7 +281,7 @@ class Globals(gobject.GObject):
           "groupbutton_scroll_down": "select previous window",
           "groupbutton_left_click_double": False,
           "groupbutton_shift_and_left_click_double": False,
-          "groupbutton_middle_click_double": True,
+          "groupbutton_middle_click_double": False,
           "groupbutton_shift_and_middle_click_double": False,
           "groupbutton_right_click_double": False,
           "groupbutton_shift_and_right_click_double": False,
