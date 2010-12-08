@@ -1043,11 +1043,11 @@ class DockBar():
     def edit_launcher(self, arg, path, identifier):
         launcher_dir = os.path.join(os.path.expanduser('~'),
                                     '.dockbarx', 'launchers')
+        if not os.path.exists(launcher_dir):
+            os.makedirs(launcher_dir)
         if path:
             if not os.path.exists(path):
                 print "Error: file %s doesn't exist."%path
-            if not os.path.exists(launcher_dir):
-                os.makedirs(launcher_dir)
             new_path = os.path.join(launcher_dir, os.path.basename(path))
             if new_path != path:
                 os.system('cp %s %s'%(path, new_path))
