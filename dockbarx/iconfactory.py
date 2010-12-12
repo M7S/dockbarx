@@ -36,7 +36,7 @@ import i18n
 _ = i18n.language.gettext
 
 class IconFactory():
-    """IconFactory takes care of finding the right icon for a program and prepares the cairo surface."""
+    """IconFactory finds the icon for a program and prepares the cairo surface."""
     icon_theme = gtk.icon_theme_get_default()
     # Constants
     # Icon types

@@ -201,6 +201,7 @@ class DockBar():
                 group.icon_factory.remove()
 
         del self.skip_tasklist_windows
+        del self.globals.gb_showing_popup
         del self.groups
         del self.windows
         if self.theme:
@@ -212,6 +213,7 @@ class DockBar():
         print "Dockbarx reload"
         self.groups = GroupList()
         self.windows = {}
+        self.globals.gb_showing_popup = None
         # Get the monitor on which dockbarx is.
         gdk_screen = gtk.gdk.screen_get_default()
         win = self.container.window

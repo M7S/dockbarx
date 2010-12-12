@@ -26,7 +26,7 @@ import pango
 import gc
 gc.enable()
 
-from common import ODict, Globals, compiz_call
+from common import ODict, Globals, Opacify
 from cairowidgets import CairoWindowItem
 
 import i18n
@@ -54,13 +54,13 @@ class WindowButton(gobject.GObject):
     def __init__(self, window):
         gobject.GObject.__init__(self)
         self.globals = Globals()
+        self.opacify_obj = Opacify()
         self.globals.connect('show-only-current-monitor-changed',
                              self.on_show_only_current_monitor_changed)
         self.screen = wnck.screen_get_default()
         self.name = window.get_name()
         self.window = window
         self.needs_attention = False
-        self.opacified = False
         self.button_pressed = False
 
         self.button = CairoWindowItem(u"" + window.get_name(),
@@ -186,42 +186,14 @@ class WindowButton(gobject.GObject):
 
     #### Opacify
     def opacify(self):
-        # Makes all windows but the one connected
-        # to this windowbutton transparent.
-        if self.globals.opacity_values is None:
-            try:
-                self.globals.opacity_values = compiz_call(
-                                        'obs/screen0/opacity_values','get')
-            except:
-                try:
-                    self.globals.opacity_values = compiz_call(
-                                        'core/screen0/opacity_values','get')
-                except:
-                    return
-        if self.globals.opacity_matches is None:
-            try:
-                self.globals.opacity_matches = compiz_call(
-                                        'obs/screen0/opacity_matches','get')
-            except:
-                try:
-                    self.globals.opacity_matches = compiz_call(
-                                        'core/screen0/opacity_matches','get')
-                except:
-                    return
-        self.globals.opacified = True
-        self.opacified = True
-        ov = [self.globals.settings['opacify_alpha']]
-        om = ["!(xid=%s)"%self.window.get_xid() + \
-              " & !(class=Dockbarx_factory.py) & (type=Normal | type=Dialog)"]
-        try:
-            compiz_call('obs/screen0/opacity_values','set', ov)
-            compiz_call('obs/screen0/opacity_matches','set', om)
-        except:
-            try:
-                compiz_call('core/screen0/opacity_values','set', ov)
-                compiz_call('core/screen0/opacity_matches','set', om)
-            except:
-                return
+        xid = self.window.get_xid()
+        self.opacify_obj.opacify("!(xid=%s)" % xid,
+                                 self.globals.settings['opacify_alpha'],
+                                 xid)
+
+    def deopacify(self):
+        xid = self.window.get_xid()
+        self.opacify_obj.deopacify(xid)
 
     def opacify_request(self):
         if self.window.is_minimized():
@@ -238,44 +210,17 @@ class WindowButton(gobject.GObject):
         if b_m_x >= 0 and b_m_x < b_r.width \
         and b_m_y >= 0 and b_m_y < b_r.height:
             self.opacify()
-        return False
-
-
-    def deopacify(self):
-        # always called from deopacify_request (with timeout)
-        # If another window button has called opacify, don't deopacify.
-        if self.globals.opacified and not self.opacified:
-            return False
-        if self.globals.opacity_values is None:
-            return False
-        try:
-            compiz_call('obs/screen0/opacity_values','set',
-                        self.globals.opacity_values)
-            compiz_call('obs/screen0/opacity_matches','set',
-                        self.globals.opacity_matches)
-        except:
-            try:
-                compiz_call('core/screen0/opacity_values','set',
-                            self.globals.opacity_values)
-                compiz_call('core/screen0/opacity_matches','set',
-                            self.globals.opacity_matches)
-            except:
-                print "Error: Couldn't set opacity back to normal."
-        self.globals.opacity_values = None
-        self.globals.opacity_matches = None
+            # Just for safety in case no leave-signal is sent
+            gobject.timeout_add(500, self.deopacify_request)
         return False
 
     def deopacify_request(self):
-        if not self.opacified:
-            return False
         # Make sure that mouse cursor really has left the window button.
         b_m_x,b_m_y = self.button.get_pointer()
         b_r = self.button.get_allocation()
         if b_m_x >= 0 and b_m_x < b_r.width \
         and b_m_y >= 0 and b_m_y < b_r.height:
             return True
-        self.globals.opacified = False
-        self.opacified = False
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
         gobject.timeout_add(110, self.deopacify)
@@ -306,9 +251,7 @@ class WindowButton(gobject.GObject):
         if self.button_pressed :
             return
         if self.globals.settings["opacify"]:
-            gobject.timeout_add(100,self.opacify_request)
-            # Just for safty in case no leave-signal is sent
-            gobject.timeout_add(500, self.deopacify_request)
+            gobject.timeout_add(100, self.opacify_request)
 
     def on_button_mouse_leave(self, widget, event):
         # In compiz there is a enter and a leave
@@ -316,7 +259,7 @@ class WindowButton(gobject.GObject):
         # Keep that in mind when coding this def!
         self.button_pressed = False
         if self.globals.settings["opacify"]:
-            self.deopacify_request()
+            gobject.timeout_add(200, self.deopacify_request)
 
     def on_window_button_press_event(self, widget,event):
         # In compiz there is a enter and a leave event before
@@ -333,9 +276,7 @@ class WindowButton(gobject.GObject):
         return False
 
     def on_window_button_scroll_event(self, widget, event):
-        if self.globals.settings["opacify"] and self.opacified:
-            self.globals.opacified = False
-            self.opacified = False
+        if self.globals.settings["opacify"]:
             self.deopacify()
         if not event.direction in (gtk.gdk.SCROLL_UP, gtk.gdk.SCROLL_DOWN):
             return
@@ -347,9 +288,7 @@ class WindowButton(gobject.GObject):
             self.emit('popup-hide', None)
 
     def on_clicked(self, widget, event):
-        if self.globals.settings["opacify"] and self.opacified:
-            self.globals.opacified = False
-            self.opacified = False
+        if self.globals.settings["opacify"]:
             self.deopacify()
 
         if not event.button in (1, 2, 3):
@@ -368,9 +307,7 @@ class WindowButton(gobject.GObject):
             self.emit('popup-hide', None)
 
     def on_close_clicked(self, *args):
-        if self.globals.settings["opacify"] and self.opacified:
-            self.globals.opacified = False
-            self.opacified = False
+        if self.globals.settings["opacify"]:
             self.deopacify()
         self.action_close_window()
 

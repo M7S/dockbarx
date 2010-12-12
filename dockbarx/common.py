@@ -21,6 +21,7 @@
 import os
 import gconf
 import dbus
+from dbus.mainloop.glib import DBusGMainLoop
 import gobject
 import xdg.DesktopEntry
 from urllib import unquote
@@ -29,9 +30,10 @@ from urllib import unquote
 GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = '/apps/dockbarx'
 
+DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
 
-def compiz_call(obj_path, func_name, *args):
+def compiz_call_sync(obj_path, func_name, *args):
     # Returns a compiz function call.
     # No errors are dealt with here,
     # error handling are left to the calling function.
@@ -45,6 +47,22 @@ def compiz_call(obj_path, func_name, *args):
         return func(*args)
     return None
 
+def compiz_reply_handler(*args):
+    pass
+
+def compiz_error_handler(error, *args):
+    print "Compiz/dbus error: %s" % error
+
+def compiz_call_async(obj_path, func_name, *args):
+    path = '/org/freedesktop/compiz'
+    if obj_path:
+        path += '/' + obj_path
+    obj = BUS.get_object('org.freedesktop.compiz', path)
+    iface = dbus.Interface(obj, 'org.freedesktop.compiz')
+    func = getattr(iface, func_name)
+    if func:
+        func(reply_handler=compiz_reply_handler,
+             error_handler=compiz_error_handler, *args)
 class ODict():
     """An ordered dictionary.
 
@@ -222,6 +240,70 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
 
             print "Executing: %s"%cmd
             os.system("/bin/sh -c '%s' &"%cmd)
+
+
+class Opacify(gobject.GObject):
+    def __new__(cls, *p, **k):
+        if not '_the_instance' in cls.__dict__:
+            cls._the_instance = gobject.GObject.__new__(cls)
+        return cls._the_instance
+
+    def __init__(self):
+        if not 'opacifier' in self.__dict__:
+            self.opacifier = None
+            self.rule = None
+
+    def opacify(self, rule, alpha=100, opacifier=None):
+        """Add semi-transparency to windows"""
+        if rule and rule == self.rule:
+            # This opcaify rule is already set.
+            self.opacifier = opacifier
+            return
+        try:
+            values = compiz_call_sync('obs/screen0/opacity_values','get')
+            matches = compiz_call_sync('obs/screen0/opacity_matches','get')
+            old = False
+        except:
+            # For older versions of compiz
+            try:
+                values = compiz_call_sync('core/screen0/opacity_values', 'get')
+                matches = compiz_call_sync('core/screen0/opacity_matches',
+                                              'get')
+                old = True
+            except:
+                return
+        # Remove all old opacify settings
+        # (if everything works there should never be more than one.)
+        for match in matches[:]:
+            if "Line_added_by_DBX" in str(match):
+                index = matches.index(match)
+                matches.pop(index)
+                values.pop(index)
+        # Add the new rule to the settings
+        if rule:
+            new_match = rule + \
+                        "&(!class=Dockbarx_factory.py)" + \
+                        "&(type=Normal|type=Dialog)" + \
+                        "&!(title=Line_added_by_DBX)"
+            matches.insert(0, new_match)
+            values.insert(0, alpha)
+        if not old:
+            compiz_call_async('obs/screen0/opacity_matches','set', matches)
+            compiz_call_async('obs/screen0/opacity_values','set', values)
+        else:
+            compiz_call_async('core/screen0/opacity_matches', 'set', matches)
+            compiz_call_async('core/screen0/opacity_values', 'set', values)
+        self.opacifier = opacifier
+        self.rule = rule
+
+    def deopacify(self, opacifier=None):
+        if opacifier is None or opacifier == self.opacifier:
+            self.opacify(None)
+
+    def set_opacifier(self, opacifier):
+        if self.opacifier != None:
+            self.opacifier = opacifier
+
 
 
 class Globals(gobject.GObject):
