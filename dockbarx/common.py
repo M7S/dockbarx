@@ -25,6 +25,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 import gobject
 import xdg.DesktopEntry
 from urllib import unquote
+from time import time
 
 
 GCONF_CLIENT = gconf.client_get_default()
@@ -255,6 +256,7 @@ class Opacify(gobject.GObject):
         if not 'opacifier' in self.__dict__:
             self.opacifier = None
             self.rule = None
+            self.sids = {}
 
     def opacify(self, rule, alpha=100, opacifier=None):
         """Add semi-transparency to windows"""
@@ -263,25 +265,28 @@ class Opacify(gobject.GObject):
             self.opacifier = opacifier
             return
         try:
-            values = compiz_call_sync('obs/screen0/opacity_values','get')
-            matches = compiz_call_sync('obs/screen0/opacity_matches','get')
-            old = False
+            values = compiz_call_sync('obs/screen0/opacity_values','get')[:]
+            matches = compiz_call_sync('obs/screen0/opacity_matches','get')[:]
+            self.use_old_call = False
         except:
             # For older versions of compiz
             try:
                 values = compiz_call_sync('core/screen0/opacity_values', 'get')
                 matches = compiz_call_sync('core/screen0/opacity_matches',
                                               'get')
-                old = True
+                self.use_old_call = True
             except:
                 return
-        # Remove all old opacify settings
-        # (if everything works there should never be more than one.)
-        for match in matches[:]:
-            if "Line_added_by_DBX" in str(match):
-                index = matches.index(match)
-                matches.pop(index)
-                values.pop(index)
+        while self.sids:
+            gobject.source_remove(self.sids.popitem()[1])
+        steps = 10
+        interval = 20
+        old_line = False
+        # Remove old opacify rule if one exist
+        if matches and "Line_added_by_DBX" in str(matches[0]):
+            old_line = True
+            matches.pop(0)
+            old_alpha = values.pop(0)
         # Add the new rule to the settings
         if rule:
             new_match = rule + \
@@ -289,13 +294,36 @@ class Opacify(gobject.GObject):
                         "&(type=Normal|type=Dialog)" + \
                         "&!(title=Line_added_by_DBX)"
             matches.insert(0, new_match)
-            values.insert(0, alpha)
-        if not old:
-            compiz_call_async('obs/screen0/opacity_matches','set', matches)
-            compiz_call_async('obs/screen0/opacity_values','set', values)
-        else:
-            compiz_call_async('core/screen0/opacity_matches', 'set', matches)
-            compiz_call_async('core/screen0/opacity_values', 'set', values)
+        if old_line and not rule:
+            # Deopacify smoothly
+            for i in range(1, steps):
+                value = 100 -((steps - i) * (100 - old_alpha) / steps)
+                sid = time()
+                self.sids[sid] = gobject.timeout_add(i * interval,
+                                                     self.__compiz_call,
+                                                     [value]+values,
+                                                     None,
+                                                     sid)
+            delay = steps * interval+1
+            sid = time()
+            self.sids[sid] = gobject.timeout_add(delay,
+                                                 self.__compiz_call,
+                                                 values,
+                                                 matches,
+                                                 sid)
+        elif rule and not old_line:
+            # Opacify smoothly
+            self.__compiz_call([100]+values, matches)
+            for i in range(1, steps+1):
+                value = 100-(i*(100-alpha)/steps)
+                sid = time()
+                self.sids[sid] = gobject.timeout_add(i * interval,
+                                                     self.__compiz_call,
+                                                     [value]+values,
+                                                     None,
+                                                     sid)
+        elif rule and old_line:
+            self.__compiz_call([alpha]+values, matches)
         self.opacifier = opacifier
         self.rule = rule
 
@@ -306,6 +334,20 @@ class Opacify(gobject.GObject):
     def set_opacifier(self, opacifier):
         if self.opacifier != None:
             self.opacifier = opacifier
+
+    def __compiz_call(self, values=None, matches=None, sid=None):
+        if self.use_old_call:
+            plugin = 'core'
+            print 'oldstyle'
+        else:
+            plugin = 'obs'
+        if values is not None:
+            compiz_call_async(plugin + '/screen0/opacity_values',
+                              'set', values)
+        if matches is not None:
+            compiz_call_async(plugin + '/screen0/opacity_matches',
+                              'set', matches)
+        self.sids.pop(sid, None)
 
 
 
