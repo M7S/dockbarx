@@ -65,6 +65,7 @@ class WindowButton(gobject.GObject):
         self.deopacify_request_sid = None
         self.deopacify_sid = None
         self.opacify_request_sid = None
+        self.xid = window.get_xid()
 
         self.button = CairoWindowItem(u"" + window.get_name(),
                                       window.get_mini_icon(),
@@ -200,10 +201,10 @@ class WindowButton(gobject.GObject):
 
     #### Opacify
     def opacify(self):
-        xid = self.window.get_xid()
-        self.opacify_obj.opacify("!(xid=%s)" % xid,
+        self.xid = self.window.get_xid()
+        self.opacify_obj.opacify("!(xid=%s)" % self.xid,
                                  self.globals.settings['opacify_alpha'],
-                                 xid)
+                                 self.xid)
 
     def deopacify(self):
         if self.deopacify_request_sid:
@@ -211,8 +212,7 @@ class WindowButton(gobject.GObject):
             self.deopacify_request_sid = None
         if self.deopacify_sid:
             self.deopacify_sid = None
-        xid = self.window.get_xid()
-        self.opacify_obj.deopacify(xid)
+        self.opacify_obj.deopacify(self.xid)
 
     def opacify_request(self):
         if self.window.is_minimized():
