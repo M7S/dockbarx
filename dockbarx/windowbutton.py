@@ -62,6 +62,9 @@ class WindowButton(gobject.GObject):
         self.window = window
         self.needs_attention = False
         self.button_pressed = False
+        self.deopacify_request_sid = None
+        self.deopacify_sid = None
+        self.opacify_request_sid = None
 
         self.button = CairoWindowItem(u"" + window.get_name(),
                                       window.get_mini_icon(),
@@ -92,6 +95,7 @@ class WindowButton(gobject.GObject):
                                                 self.on_window_icon_changed)
         self.name_changed_event = self.window.connect("name-changed",
                                                 self.on_window_name_changed)
+        self.button_press_sid = None
 
         #--- D'n'D
         self.button.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT, [], 0)
@@ -131,6 +135,16 @@ class WindowButton(gobject.GObject):
         self.monitor = self.get_monitor()
 
     def del_button(self):
+        if self.deopacify_sid:
+            self.deopacify()
+            gobject.source_remove(self.deopacify_sid)
+        elif self.deopacify_request_sid:
+            self.deopacify()
+        if self.opacify_request_sid:
+            gobject.source_remove(self.opacify_request_sid)
+        if self.button_press_sid:
+            gobject.source_remove(self.button_press_sid)
+
         self.button.destroy()
         self.window.disconnect(self.state_changed_event)
         self.window.disconnect(self.icon_changed_event)
@@ -192,6 +206,11 @@ class WindowButton(gobject.GObject):
                                  xid)
 
     def deopacify(self):
+        if self.deopacify_request_sid:
+            gobject.source_remove(self.deopacify_request_sid)
+            self.deopacify_request_sid = None
+        if self.deopacify_sid:
+            self.deopacify_sid = None
         xid = self.window.get_xid()
         self.opacify_obj.deopacify(xid)
 
@@ -211,7 +230,8 @@ class WindowButton(gobject.GObject):
         and b_m_y >= 0 and b_m_y < b_r.height:
             self.opacify()
             # Just for safety in case no leave-signal is sent
-            gobject.timeout_add(500, self.deopacify_request)
+            self.deopacify_request_sid = \
+                            gobject.timeout_add(500, self.deopacify_request)
         return False
 
     def deopacify_request(self):
@@ -223,7 +243,7 @@ class WindowButton(gobject.GObject):
             return True
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
-        gobject.timeout_add(110, self.deopacify)
+        self.deopacify_sid = gobject.timeout_add(110, self.deopacify)
         return False
 
     #### D'n'D
@@ -232,7 +252,7 @@ class WindowButton(gobject.GObject):
             self.emit('popup-expose-request')
             self.button_drag_entered = True
             self.dnd_select_window = \
-                gobject.timeout_add(600,self.action_select_window)
+                gobject.timeout_add(600, self.action_select_window)
         drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
         return True
 
@@ -251,7 +271,8 @@ class WindowButton(gobject.GObject):
         if self.button_pressed :
             return
         if self.globals.settings["opacify"]:
-            gobject.timeout_add(100, self.opacify_request)
+            self.opacify_request_sid = \
+                gobject.timeout_add(100, self.opacify_request)
 
     def on_button_mouse_leave(self, widget, event):
         # In compiz there is a enter and a leave
@@ -259,7 +280,8 @@ class WindowButton(gobject.GObject):
         # Keep that in mind when coding this def!
         self.button_pressed = False
         if self.globals.settings["opacify"]:
-            gobject.timeout_add(200, self.deopacify_request)
+            self.deopacify_request_sid = \
+                            gobject.timeout_add(200, self.deopacify_request)
 
     def on_window_button_press_event(self, widget,event):
         # In compiz there is a enter and a leave event before
@@ -268,11 +290,13 @@ class WindowButton(gobject.GObject):
         # gobject.timeout_add from self.on_button_mouse_enter
         # or self.on_button_mouse_leave.
         self.button_pressed = True
-        gobject.timeout_add(600, self.set_button_pressed_false)
+        self.button_press_sid = \
+                        gobject.timeout_add(600, self.set_button_pressed_false)
 
     def set_button_pressed_false(self):
         # Helper function for on_window_button_press_event.
         self.button_pressed = False
+        self.button_press_sid = None
         return False
 
     def on_window_button_scroll_event(self, widget, event):
@@ -351,6 +375,9 @@ class WindowButton(gobject.GObject):
             self.window.minimize()
         else:
             self.window.activate(t)
+        # Deopacify is needed here since this function is called from
+        # the group button class as well.
+        self.deopacify()
 
     def action_select_window(self, widget = None, event = None):
         self.action_select_or_minimize_window(widget, event, False)

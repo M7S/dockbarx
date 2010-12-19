@@ -146,6 +146,7 @@ class CairoPopup(gtk.Window):
         self.set_app_paintable(1)
         self.connect("expose_event", self.expose)
         self.globals = Globals()
+        self._pointer_is_inside = False
 
         self.alignment = gtk.Alignment(0, 0, 0, 0)
         gtk.Window.add(self, self.alignment)
@@ -158,6 +159,9 @@ class CairoPopup(gtk.Window):
             self.point('down')
         else:
             self.point('left')
+
+        self.connect('enter-notify-event', self.on_enter_notify_event)
+        self.connect('leave-notify-event', self.on_leave_notify_event)
 
 
     def add(self, child):
@@ -209,8 +213,6 @@ class CairoPopup(gtk.Window):
         ctx.set_source_rgba(0, 0, 0,0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
         ctx.paint()
-
-
         if self.is_composited():
             make_path(ctx, 0, 0, w, h, 6, 0, 9, self.pointer, self.ap)
             ctx.set_source_rgba(1, 1, 1, 1)
@@ -218,11 +220,7 @@ class CairoPopup(gtk.Window):
             make_path(ctx, 0, 0, w, h, 6, 1, 9, self.pointer, self.ap)
             ctx.set_source_rgb(0, 0, 0)
         ctx.fill()
-
-        if self.is_composited():
-            self.shape_combine_mask(pixmap, 0, 0)
-        else:
-            self.shape_combine_mask(pixmap, 0, 0)
+        self.shape_combine_mask(pixmap, 0, 0)
         del pixmap
 
     def make_path(self, ctx, w, h, b=0, r=6):
@@ -289,29 +287,20 @@ class CairoPopup(gtk.Window):
         ctx.stroke()
 
     def pointer_is_inside(self):
-        p_m_x, p_m_y = self.get_pointer()
-        p_w, p_h = self.get_size()
-        r = 6 #radius for the rounded corner of popup window
-
-        if p_m_x >= 0 and p_m_x < p_w \
-        and p_m_y >= 0 and p_m_y < p_h:
-            # Mouse pointer is inside the "rectangle"
-            # but check if it's still outside the rounded corners
-            x = None
-            y = None
-            if p_m_x < r:
-                x = r - p_m_x
-            if (p_w - p_m_x) < r:
-                x = p_m_x - (p_w - r)
-            if p_m_y < r:
-                y = r - p_m_y
-            if (p_h - p_m_y) < r:
-                y = p_m_y - (p_h - r)
-            if x is None or y is None \
-            or (x**2 + y**2) < (r-1)**2:
-                return True
+        ax, ay, width, height = self.alignment.get_allocation()
+        top, bottom, left, right = self.alignment.get_padding()
+        x, y = self.get_pointer()
+        if x >= left and x < width - right and \
+           y >= top and y <= height - bottom:
+            return True
         else:
-            return False
+            return self._pointer_is_inside
+
+    def on_enter_notify_event(self, *args):
+        self._pointer_is_inside = True
+
+    def on_leave_notify_event(self, *args):
+        self._pointer_is_inside = False
 
 class CairoWindowButton(gtk.EventBox):
     __gsignals__ = {"clicked": (gobject.SIGNAL_RUN_FIRST,
@@ -513,6 +502,9 @@ class CairoWindowItem(CairoWindowButton):
         else:
             self.preview.set_size_request(size*width/height, size)
 
+    def set_highlighted(self, highlighted):
+        self.area.set_highlighted(highlighted)
+
 
 class CairoArea(gtk.Alignment):
     """CairoButton is a gtk button with a cairo surface painted over it."""
@@ -525,6 +517,7 @@ class CairoArea(gtk.Alignment):
         self.set_padding(self.b, self.b, self.b, self.b)
         self.set_app_paintable(1)
         self.globals = Globals()
+        self.highlighted = False
         if text:
             self.label = gtk.Label()
             self.add(self.label)
@@ -551,7 +544,8 @@ class CairoArea(gtk.Alignment):
     def do_expose_event(self, event, arg=None):
         a = self.get_allocation()
         mx , my = self.get_pointer()
-        if (mx >= 0 and mx < a.width and my >= 0 and my < a.height):
+        if (mx >= 0 and mx < a.width and my >= 0 and my < a.height) or \
+            self.highlighted:
             ctx = self.window.cairo_create()
             ctx.rectangle(event.area.x, event.area.y,
                           event.area.width, event.area.height)
@@ -580,6 +574,11 @@ class CairoArea(gtk.Alignment):
         else:
             self.set_padding(self.b, self.b, self.b, self.b)
         ##self.queue_draw()
+
+
+    def set_highlighted(self, highlighted):
+        self.highlighted = highlighted
+        self.queue_draw()
 
     def pointer_is_inside(self):
         mx,my = self.get_pointer()

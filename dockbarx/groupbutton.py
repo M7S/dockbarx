@@ -44,9 +44,9 @@ _ = i18n.language.gettext
 
 ATOM_PREVIEWS = gtk.gdk.atom_intern('_KDE_WINDOW_PREVIEW')
 
-class WindowDict(dict):
+class WindowDict(ODict):
     def __init__(self, monitor=1, **kvargs):
-        dict.__init__(self, **kvargs)
+        ODict.__init__(self, **kvargs)
         self.globals = Globals()
         self.monitor = monitor
 
@@ -144,6 +144,11 @@ class GroupButton(gobject.GObject):
         self.hide_list_sid = None
         self.show_list_sid = None
         self.opacify_request_sid = None
+        self.deopacify_request_sid = None
+        self.opacified = False
+        self.scrollpeak_sid = None
+        self.scrollpeak_wb = None
+        self.launch_sid = None
 
         self.menu_is_shown = False
 
@@ -279,6 +284,35 @@ class GroupButton(gobject.GObject):
         else:
             self.button.set_has_tooltip(False)
 
+    def remove(self):
+        # Remove group button.
+        if self.launch_sid:
+            gobject.source_remove(self.launch_sid)
+            self.launch_sid = None
+        if self.scrollpeak_sid is not None:
+            gobject.source_remove(self.scrollpeak_sid)
+        if self.show_list_sid is not None:
+            gobject.source_remove(self.show_list_sid)
+            self.show_list_sid = None
+        if self.hide_list_sid is not None:
+            gobject.source_remove(self.hide_list_sid)
+            self.hide_list_sid = None
+        if self.deopacify_request_sid is not None:
+            self.deopacify()
+            gobject.source_remove(self.deopacify_request_sid)
+            self.opacify_request_sid = None
+        if self.opacify_request_sid is not None:
+            gobject.source_remove(self.opacify_request_sid)
+            self.opacify_request_sid = None
+        self.hide_list()
+        self.icon_factory.remove()
+        del self.icon_factory
+        self.popup.destroy()
+        self.popup_box.destroy()
+        self.popup_label.destroy()
+        self.button.destroy()
+        self.winlist.destroy()
+
     #### State
     def update_popup_label(self, arg=None):
         if self.name is None:
@@ -324,11 +358,8 @@ class GroupButton(gobject.GObject):
         if self.pressed:
             self.state_type = self.state_type | IconFactory.MOUSE_BUTTON_DOWN
 
-        if self.mouse_over:
-            self.state_type = self.state_type | IconFactory.MOUSE_OVER
-        elif self.button_drag_entered and not self.launcher_drag:
-            # Mouse over effect on other drag and drop
-            # than launcher dnd.
+        if self.mouse_over or \
+           (self.button_drag_entered and not self.launcher_drag):
             self.state_type = self.state_type | IconFactory.MOUSE_OVER
 
         if self.launch_effect:
@@ -460,6 +491,10 @@ class GroupButton(gobject.GObject):
             y += a.y
             window.set_icon_geometry(x, y, a.width, a.height)
 
+        if self.launch_sid:
+            gobject.source_remove(self.launch_sid)
+            self.launch_sid = None
+
     def del_window(self,window):
         if window.is_minimized():
             self.minimized_windows_count -= 1
@@ -481,13 +516,7 @@ class GroupButton(gobject.GObject):
             else:
                 self.hide_list()
         if not self.windows and not self.pinned:
-            # Remove group button.
-            self.hide_list()
-            self.icon_factory.remove()
-            del self.icon_factory
-            self.popup.destroy()
-            self.button.destroy()
-            self.winlist.destroy()
+            self.remove()
 
     def set_has_active_window(self, mode):
         if mode != self.has_active_window:
@@ -499,11 +528,11 @@ class GroupButton(gobject.GObject):
 
     def on_window_minimized(self, arg, wb):
         self.minimized_windows_count+=1
-        self.update_state()
+        self.update_state_request()
 
     def on_window_unminimized(self, arg, wb):
         self.minimized_windows_count-=1
-        self.update_state()
+        self.update_state_request()
 
     def on_needs_attention_changed(self, arg=None):
         # Checks if there are any urgent windows and changes
@@ -549,7 +578,7 @@ class GroupButton(gobject.GObject):
         self.set_icongeo()
 
     def on_window_monitor_changed(self, arg=None):
-        self.update_state()
+        self.update_state_request()
         self.on_set_geo_grp()
         #Update popup-list if it is being shown.
         if self.popup_showing:
@@ -738,7 +767,7 @@ class GroupButton(gobject.GObject):
             y = b_alloc.y + wy
             # Check that the popup is within the monitor
             if y + height > mgeo.y + mgeo.height:
-                y = mgeo.y + mgeo.height - h
+                y = mgeo.y + mgeo.height - height
             if x + width >= mgeo.x + mgeo.width:
                 direction = 'right'
                 x = x - width - offset
@@ -748,6 +777,33 @@ class GroupButton(gobject.GObject):
             p= wy + b_alloc.y + (b_alloc.height / 2) - y
         self.popup.point(direction, p)
         self.popup.move(x, y)
+
+    def show_launch_popup(self):
+        if self.popup.window:
+            self.popup.window.property_change(ATOM_PREVIEWS,
+                                              ATOM_PREVIEWS,
+                                              32,
+                                              gtk.gdk.PROP_MODE_REPLACE,
+                                              [0,5,0,0,0,0,0])
+        self.menu_is_shown = False
+        menu = gtk.VBox()
+        menu.set_spacing(2)
+        #Launch program item
+        launch_program_item = CairoMenuItem(_('_Launch application'))
+        menu.pack_start(launch_program_item)
+        launch_program_item.connect("clicked",
+                            self.action_launch_application)
+        launch_program_item.show()
+        self.popup.remove(self.popup.alignment.get_child())
+        self.popup.add(menu)
+        menu.show()
+        self.popup.show()
+        self.popup.resize(10,10)
+        # Hide other popup if open.
+        if self.globals.gb_showing_popup is not None and \
+           self.globals.gb_showing_popup != self:
+            self.globals.gb_showing_popup.hide_list()
+        self.globals.gb_showing_popup = self
 
     #### Opacify
     def opacify(self):
@@ -769,7 +825,8 @@ class GroupButton(gobject.GObject):
             self.opacify()
             # This is a safety check to make sure that opacify won't stay on
             # forever when it shouldn't be.
-            gobject.timeout_add(500, self.deopacify_request)
+            self.deopacify_request_sid = gobject.timeout_add(500,
+                                                        self.deopacify_request)
         self.opacify_request_sid = None
 
     def deopacify_request(self):
@@ -778,7 +835,8 @@ class GroupButton(gobject.GObject):
             return True
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
-        gobject.timeout_add(110, self.deopacify)
+        self.deopacify_request_sid = \
+            gobject.timeout_add(110, self.deopacify)
 
 
     #### DnD (source)
@@ -977,6 +1035,9 @@ class GroupButton(gobject.GObject):
         if self.globals.settings["opacify"] \
         and self.globals.settings["opacify_group"]:
             gobject.timeout_add(100, self.deopacify_request)
+        if not self.globals.settings["select_next_activate_immediately"] and \
+           self.scrollpeak_sid is not None:
+            self.scrollpeak_select()
 
     def on_popup_mouse_leave (self,widget,event):
         self.hide_time = time()
@@ -1046,6 +1107,7 @@ class GroupButton(gobject.GObject):
     #### Menu
     def menu_show(self, event=None):
         if self.menu_is_shown:
+            # The menu is already shown, show the window list instead.
             self.menu_is_shown = False
             self.popup.remove(self.popup.alignment.get_child())
             self.popup.add(self.popup_box)
@@ -1187,7 +1249,7 @@ class GroupButton(gobject.GObject):
                                            self.action_close_all_windows)
             close_all_windows_item.show()
 
-        self.popup.remove(self.popup_box)
+        self.popup.remove(self.popup.alignment.get_child())
         self.popup.add(menu)
         menu.show()
         self.popup.show()
@@ -1549,43 +1611,73 @@ class GroupButton(gobject.GObject):
     def action_select_next(self, widget=None, event=None, previous=False):
         if not self.windows.get_list():
             return
-        if self.nextlist_time is None or time() - self.nextlist_time > 2 \
-        or self.nextlist is None:
-            self.nextlist = []
-            minimized_list = []
-            screen = self.screen
-            windows_stacked = screen.get_windows_stacked()
+        if self.nextlist_time is None or time() - self.nextlist_time > 1.5 or \
+           self.nextlist is None:
+            # Make the list and pick the window.
+            windows_stacked = self.screen.get_windows_stacked()
             wins = self.windows.get_list()
-            for win in windows_stacked:
-                    if win in wins:
-                        if win.is_minimized():
-                            minimized_list.append(win)
-                        else:
-                            self.nextlist.append(win)
-            # Reverse -> topmost window first
-            self.nextlist.reverse()
-            # Add minimized windows last.
-            self.nextlist.extend(minimized_list)
-        self.nextlist_time = time()
-
-        if previous:
-            win = self.nextlist.pop(-1)
-            if win.is_active():
-                self.nextlist.insert(0, win)
-                win = self.nextlist.pop(-1)
+            if self.globals.settings['select_next_use_lastest_active']:
+                self.nextlist = []
+                minimized_list = []
+                for win in windows_stacked:
+                        if win in wins:
+                            if win.is_minimized():
+                                minimized_list.append(win)
+                            else:
+                                self.nextlist.append(win)
+                # Reverse -> topmost window first
+                self.nextlist.reverse()
+                # Add minimized windows last.
+                self.nextlist.extend(minimized_list)
+            else:
+                topwin = None
+                for i in range(1, len(windows_stacked)+1):
+                        if windows_stacked[-i] in wins and \
+                           not windows_stacked[-i].is_minimized():
+                            topwin = windows_stacked[-i]
+                            break
+                self.nextlist = wins
+                if topwin:
+                    while self.nextlist[0] != topwin:
+                        win = self.nextlist.pop(0)
+                        self.nextlist.append(win)
+            if self.nextlist[0].is_active():
+                if previous:
+                    win = self.nextlist.pop(-1)
+                    self.nextlist.insert(0, win)
+                else:
+                    win = self.nextlist.pop(0)
+                    self.nextlist.append(win)
         else:
-            win = self.nextlist.pop(0)
-            if win.is_active():
-                self.nextlist.append(win)
+            # Iterate the list.
+            if previous:
+                win = self.nextlist.pop(-1)
+                self.nextlist.insert(0, win)
+            else:
                 win = self.nextlist.pop(0)
+                self.nextlist.append(win)
+        win = self.nextlist[0]
+        self.nextlist_time = time()
         # Just a safety check
         if not win in self.windows:
             return
-        self.windows[win].action_select_window(widget, event)
-        if previous:
-            self.nextlist.insert(0, win)
+
+        if not self.popup_showing:
+            self.show_list()
+        if self.globals.settings['select_next_activate_immediately']:
+            self.windows[win].action_select_window(widget, event)
         else:
-            self.nextlist.append(win)
+            if self.scrollpeak_wb:
+                self.scrollpeak_wb.button.set_highlighted(False)
+            self.scrollpeak_wb = self.windows[win]
+            self.scrollpeak_wb.button.set_highlighted(True)
+            if self.scrollpeak_sid is not None:
+                gobject.source_remove(self.scrollpeak_sid)
+            self.scrollpeak_sid = gobject.timeout_add(1500,
+                                                      self.scrollpeak_select)
+            while gtk.events_pending():
+                    gtk.main_iteration(False)
+            self.scrollpeak_wb.opacify()
 
     def action_select_previous(self, widget=None, event=None):
         self.action_select_next(widget, event, previous=True)
@@ -1597,8 +1689,25 @@ class GroupButton(gobject.GObject):
         if self.hide_list_sid is not None:
             gobject.source_remove(self.hide_list_sid)
         self.hide_time = time()
-        self.hide_list_sid = gobject.timeout_add(2000,
+        self.hide_list_sid = gobject.timeout_add(1500,
                                                  self.hide_list_request)
+
+    def scrollpeak_select(self):
+        self.scrollpeak_wb.action_select_window()
+        self.scrollpeak_abort()
+
+    def scrollpeak_abort(self):
+        if self.scrollpeak_wb:
+            self.scrollpeak_wb.button.set_highlighted(False)
+            self.scrollpeak_wb.deopacify()
+            self.scrollpeak_wb = None
+        if self.scrollpeak_sid:
+            gobject.source_remove(self.scrollpeak_sid)
+            self.scrollpeak_sid = None
+        if self.launch_sid:
+            gobject.source_remove(self.launch_sid)
+            self.launch_sid = None
+        self.hide_list()
 
     def action_close_all_windows(self, widget=None, event=None):
         if event:
@@ -1629,6 +1738,13 @@ class GroupButton(gobject.GObject):
                                                     self.remove_launch_effect)
         self.hide_list()
         self.deopacify()
+        if self.launch_sid:
+            gobject.source_remove(self.launch_sid)
+            self.launch_sid = None
+
+    def action_launch_with_delay(self, widget=None, event=None, delay=1500):
+        self.launch_sid = gobject.timeout_add(delay,
+                                              self.action_launch_application)
 
 
     def action_show_menu(self, widget, event):

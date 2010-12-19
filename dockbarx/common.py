@@ -90,6 +90,9 @@ class ODict():
         t = (key, value)
         self.list.append(t)
 
+    def __delitem__(self, key):
+        self.remove(key)
+
     def __len__(self):
         self.list.__len__()
 
@@ -341,8 +344,10 @@ class Globals(gobject.GObject):
           "preview_size": 230,
 
           "select_one_window": "select or minimize window",
-          "select_multiple_windows": "select all",
+          "select_multiple_windows": "select or minimize all",
           "delay_on_select_all": True,
+          "select_next_use_lastest_active": False,
+          "select_next_activate_immediately": False,
 
           "opacify": False,
           "opacify_group": False,
@@ -359,8 +364,8 @@ class Globals(gobject.GObject):
           "groupbutton_shift_and_middle_click_action": "no action",
           "groupbutton_right_click_action": "show menu",
           "groupbutton_shift_and_right_click_action": "no action",
-          "groupbutton_scroll_up": "select next window",
-          "groupbutton_scroll_down": "select previous window",
+          "groupbutton_scroll_up": "select previous window",
+          "groupbutton_scroll_down": "select next window",
           "groupbutton_left_click_double": False,
           "groupbutton_shift_and_left_click_double": False,
           "groupbutton_middle_click_double": False,
@@ -394,7 +399,8 @@ class Globals(gobject.GObject):
           "gkeys_select_next_window": False,
           "gkeys_select_next_window_keystr": '<super><control>Tab',
           "gkeys_select_previous_window": False,
-          "gkeys_select_previous_window_keystr": '<super><control><shift>Tab'}
+          "gkeys_select_previous_window_keystr": '<super><control><shift>Tab',
+          "gkeys_select_next_group_skip_launchers": False}
 
     DEFAULT_COLORS={
                       "color1": "#333333",

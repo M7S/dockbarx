@@ -109,13 +109,16 @@ class GroupList(list):
 
 class DockBar():
     def __init__(self, applet=None, as_awn_applet=False):
-        print "Dockbarx init"
+        print "DockbarX %s"%VERSION
+        print "DockbarX init"
         self.applet = applet
         self.groups = None
         self.windows = None
         self.container = None
         self.theme = None
         self.skip_tasklist_windows = None
+        self.scrollpeak_gr = None
+        self.nextlist = None
 
         self.gkeys = {
                         'gkeys_select_next_group': None,
@@ -187,6 +190,7 @@ class DockBar():
 
 
     def reload(self, event=None, data=None):
+        del self.scrollpeak_gr
         # Remove all old groupbuttons from container.
         for child in self.container.get_children():
             self.container.remove(child)
@@ -197,23 +201,26 @@ class DockBar():
         if self.groups is not None:
             # Removes pinned group buttons
             for group in self.groups:
-                group.hide_list()
-                group.icon_factory.remove()
+                group.remove()
 
         del self.skip_tasklist_windows
         del self.globals.gb_showing_popup
         del self.groups
         del self.windows
+        del self.nextlist
         if self.theme:
             self.theme.remove()
         gc.collect()
 
         self.skip_tasklist_windows = []
 
-        print "Dockbarx reload"
+        print "DockbarX reload"
         self.groups = GroupList()
         self.windows = {}
         self.globals.gb_showing_popup = None
+        self.nextlist = None
+        self.nextlist_time = None
+        self.scrollpeak_gr = None
         # Get the monitor on which dockbarx is.
         gdk_screen = gtk.gdk.screen_get_default()
         win = self.container.window
@@ -418,6 +425,12 @@ class DockBar():
             group.del_window(window)
             if not group.windows and not group.pinned:
                 self.groups.remove(group)
+                if self.nextlist:
+                    self.nextlist = None
+                    if self.scrollpeak_gr and \
+                       self.scrollpeak_gr in self.groups:
+                        self.scrollpeak_gr.scrollpeak_abort()
+                        self.scrollpeak_gr = None
             del self.windows[window]
         if window in self.skip_tasklist_windows:
             self.skip_tasklist_windows.remove(window)
@@ -1140,50 +1153,38 @@ class DockBar():
 
 
     def gkey_select_next_group(self, previous=False):
-        active_found = False
-        gl = self.groups
-        # Repeat list twice so we can get
-        # back to the first group after the last
-        gl = gl + gl
-        if previous:
-            gl.reverse()
-        for gr in gl:
-            if gr.hide_list_sid is not None:
-                # Hide the popup if it's opened
-                # by keyboard shortcut.
-                gr.hide_list()
-            if gr.has_active_window:
-                active_found = True
-                continue
-
-            if active_found and gr.windows.get_count() > 0:
-                # This is the group we will active.
-                # Remove the nextlist just in case
-                # action_select was recently used.
-                gr.nextlist = None
-                gr.action_select_next()
-                return
-
-        # No group contained the active window.
-        # Activate the topmost window that exists
-        # in a group instead.
-        windows_stacked = self.screen.get_windows_stacked()
-        for win in windows_stacked:
-            if win in self.windows:
-                aws = self.screen.get_active_workspace()
-                wws = win.get_workspace()
-                if not self.globals.settings['show_only_current_desktop'] or \
-                   (wws is None or aws == wws) and win.is_in_viewport(aws):
-                    t = int(time())
-                    if wws is not None and aws != wws:
-                        win.get_workspace().activate(t)
-                    if not win.is_in_viewport(aws):
-                        wx,wy,ww,wh = self.window.get_geometry()
-                        sw = self.screen.get_width()
-                        sh = self.screen.get_height()
-                        self.screen.move_viewport(wx - (wx%sw), wy - (wy%sh))
-                    win.activate(t)
+        if self.nextlist_time is None or time() - self.nextlist_time > 2 or \
+           self.nextlist is None:
+            # Prepare the new list
+            self.nextlist = self.groups[:]
+            if self.globals.settings['gkeys_select_next_group_skip_launchers']:
+                for gr in self.groups:
+                    if gr.get_count() == 0:
+                        self.nextlist.remove(gr)
+            for i in range(len(self.nextlist)):
+                if self.nextlist[0].has_active_window:
                     break
+                gr = self.nextlist.pop(0)
+                self.nextlist.append(gr)
+            self.scrollpeak_gr = None
+        if previous:
+            gr = self.nextlist.pop(-1)
+            self.nextlist.insert(0, gr)
+        else:
+            gr = self.nextlist.pop(0)
+            self.nextlist.append(gr)
+        gr = self.nextlist[0]
+        if gr.windows.get_count() > 0:
+            gr.action_select_next()
+        else:
+            gr.show_launch_popup()
+            gr.action_launch_with_delay(delay=1500)
+        if not self.globals.settings['select_next_activate_immediately']:
+            if self.scrollpeak_gr and not self.scrollpeak_gr == gr:
+                self.scrollpeak_gr.scrollpeak_abort()
+            self.scrollpeak_gr = gr
+        self.nextlist_time = time()
+
 
     def gkey_select_previous_group(self):
         self.gkey_select_next_group(previous=True)

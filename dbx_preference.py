@@ -596,6 +596,28 @@ class PrefDialog():
         frame.add(hbox)
         groupbutton_box.pack_start(frame, False)
 
+        # "Select" action options frame
+        vbox = gtk.VBox()
+        frame = gtk.Frame(_('"Select next" options'))
+        frame.set_border_width(5)
+        self.select_next_use_lastest_active_cb = gtk.CheckButton(_('"Select next" selects the most recently used window in the group'))
+        self.select_next_use_lastest_active_cb.set_tooltip_text(_('If set, "Select Next" action selects the window that has been used most recently, otherwise it activates the next window in the window list.'))
+        self.select_next_use_lastest_active_cb.connect('toggled',
+                                            self.checkbutton_toggled,
+                                            'select_next_use_lastest_active')
+        vbox.pack_start(self.select_next_use_lastest_active_cb, False)
+        self.select_next_activate_immediately_cb = gtk.CheckButton(
+                                        _('Use no delay with "Select next"'))
+        self.select_next_activate_immediately_cb.set_tooltip_text(_('If set, "Select Next" action selects the next window immediately without any delay'))
+        self.select_next_activate_immediately_cb.connect('toggled',
+                                            self.checkbutton_toggled,
+                                            'select_next_activate_immediately')
+        vbox.pack_start(self.select_next_activate_immediately_cb, False)
+
+
+        frame.add(vbox)
+        groupbutton_box.pack_start(frame, False)
+
         #--- Advanced page
         self.ignore_workspace_cb = gtk.CheckButton(
                             _('Ignore windows on other viewports/workspaces'))
@@ -862,6 +884,7 @@ class PrefDialog():
         self.opacify_group_cb.set_sensitive(self.globals.settings['opacify'])
         self.opacify_scale.set_sensitive(self.globals.settings['opacify'])
 
+
         # Colors
         if self.theme:
             self.theme_colors = self.theme.get_default_colors()
@@ -919,6 +942,11 @@ class PrefDialog():
                 if model[i][0] == wso:
                     self.select_workspace_cg.set_active(i)
                     break
+
+        self.select_next_activate_immediately_cb.set_active(
+                    self.globals.settings['select_next_activate_immediately'])
+        self.select_next_use_lastest_active_cb.set_active(
+                    self.globals.settings['select_next_use_lastest_active'])
 
         # Themes
         model = self.theme_combo.get_model()
@@ -1000,7 +1028,8 @@ class PrefDialog():
             # Check if the needed compiz plugin is activated
             # and ask if it should be if it isn't.
             try:
-                plugins = compiz_call("core/allscreens/active_plugins", "get")
+                plugins = compiz_call_sync("core/allscreens/active_plugins",
+                                            "get")
             except dbus.exceptions.DBusException:
                 # This probably means that compiz isn't running.
                 # Assume that kwin is used instead and do nothing.
@@ -1021,8 +1050,8 @@ class PrefDialog():
                     md.destroy()
                     if response == gtk.RESPONSE_YES:
                         plugins.append('kdecompat')
-                        compiz_call("core/allscreens/active_plugins", "set",
-                                    plugins)
+                        compiz_call_sync("core/allscreens/active_plugins",
+                                         "set", plugins)
                 else:
                     message = _("The compiz plugin KDE Compability that is needed for previews doesn't seem to be installed. If you use ubuntu, you need to install the package compiz-fusion-plugins-main.")
                     flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
@@ -1036,8 +1065,9 @@ class PrefDialog():
 
             # Check if Support Plasma thumbnails is activated.
             try:
-                plasmat = compiz_call("kdecompat/screen0/plasma_thumbnails",
-                                      "get")
+                plasmat = compiz_call_sync(
+                                        "kdecompat/screen0/plasma_thumbnails",
+                                        "get")
             except dbus.exceptions.DBusException:
                 return
             if not plasmat:
@@ -1052,13 +1082,14 @@ class PrefDialog():
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
                     plugins.append('kdecompat')
-                    compiz_call("kdecompat/screen0/plasma_thumbnails", "set",
-                                True)
+                    compiz_call_sync("kdecompat/screen0/plasma_thumbnails",
+                                     "set", True)
         elif name == "opacify" and button.get_active():
             # Check if the needed compiz plugin is activated
             # and ask if it should be if it isn't.
             try:
-                plugins = compiz_call("core/allscreens/active_plugins", "get")
+                plugins = compiz_call_sync("core/allscreens/active_plugins",
+                                           "get")
             except dbus.exceptions.DBusException:
                 # This probably means that compiz isn't running.
                 return
@@ -1074,8 +1105,8 @@ class PrefDialog():
                 md.destroy()
                 if response == gtk.RESPONSE_YES:
                     plugins.append('obs')
-                    compiz_call("core/allscreens/active_plugins", "set",
-                                plugins)
+                    compiz_call_sync("core/allscreens/active_plugins", "set",
+                                     plugins)
 
 
     def cb_changed(self, combobox):
