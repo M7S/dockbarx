@@ -26,6 +26,7 @@ import gobject
 import xdg.DesktopEntry
 from urllib import unquote
 from time import time
+import gtk
 
 
 GCONF_CLIENT = gconf.client_get_default()
@@ -255,13 +256,17 @@ class Opacify(gobject.GObject):
     def __init__(self):
         if not 'opacifier' in self.__dict__:
             self.opacifier = None
-            self.rule = None
+            self.old_windows = None
             self.sids = {}
+            self.globals = Globals()
 
-    def opacify(self, rule, alpha=100, opacifier=None):
+    def opacify(self, windows, opacifier=None):
         """Add semi-transparency to windows"""
-        if rule and rule == self.rule:
-            # This opcaify rule is already set.
+        if type(windows) in [long, int]:
+            windows = [windows]
+        if windows:
+            windows = [str(xid) for xid in windows]
+        if windows and windows == self.old_windows:
             self.opacifier = opacifier
             return
         try:
@@ -277,55 +282,119 @@ class Opacify(gobject.GObject):
                 self.use_old_call = True
             except:
                 return
+        # If last fade in/out isn't completed abort the rest of it.
         while self.sids:
             gobject.source_remove(self.sids.popitem()[1])
-        steps = 10
-        interval = 20
-        old_line = False
+
+        steps = self.globals.settings['opacify_smoothness']
+        interval = self.globals.settings['opacify_duration'] / steps
+        alpha = self.globals.settings['opacify_alpha']
+        use_fade = self.globals.settings['opacify_fade']
+        placeholder = "(title=Placeholder_line_for_DBX)"
+        placeholders = [placeholder, placeholder, placeholder]
+        rule_base = "(type=Normal|type=Dialog)&%s&!title=Line_added_by_DBX"
         # Remove old opacify rule if one exist
-        if matches and "Line_added_by_DBX" in str(matches[0]):
-            old_line = True
-            matches.pop(0)
-            old_alpha = values.pop(0)
-        # Add the new rule to the settings
-        if rule:
-            new_match = rule + \
-                        "&(!class=Dockbarx_factory.py)" + \
-                        "&(type=Normal|type=Dialog)" + \
-                        "&!(title=Line_added_by_DBX)"
-            matches.insert(0, new_match)
-        if old_line and not rule:
-            # Deopacify smoothly
-            for i in range(1, steps):
-                value = 100 -((steps - i) * (100 - old_alpha) / steps)
+        old_values = []
+        for match in matches[:]:
+            if "Line_added_by_DBX" in str(match) or \
+               "Placeholder_line_for_DBX" in str(match):
+                i = matches.index(match)
+                matches.pop(i)
+                try:
+                    old_values.append(max(values.pop(i), alpha))
+                except IndexError:
+                    pass
+        if not self.globals.settings['opacify_fade']:
+            if windows:
+                matches.insert(0,
+                               rule_base % "!(xid=%s)" % "|xid=".join(windows))
+                self.__compiz_call([alpha]+values, matches)
+            else:
+                self.__compiz_call(values, matches)
+            self.opacifier = opacifier
+            self.old_windows = windows
+            return
+
+        matches = placeholders + matches
+        if len(old_values)>3:
+            old_values = old_values[0:2]
+        while len(old_values)<3:
+            old_values.append(alpha)
+        min_index = old_values.index(min(old_values))
+        max_index = old_values.index(max(old_values))
+        if min_index == max_index:
+            min_index = 2
+        for x in (0,1,2):
+            if x != max_index and x != min_index:
+                mid_index = x
+                break
+        if self.old_windows and windows:
+            # Both fade in and fade out needed.
+            fadeins = [xid for xid in windows if not xid in self.old_windows]
+            fadeouts = [xid for xid in self.old_windows if not xid in windows]
+
+            matches[min_index] = rule_base % "!(xid=%s)" % \
+                                 "|xid=".join(windows + fadeouts)
+            if fadeouts:
+                matches[max_index] = \
+                               rule_base % "(xid=%s)" % "|xid=".join(fadeouts)
+            if fadeins:
+                matches[mid_index] = \
+                               rule_base % "(xid=%s)" % "|xid=".join(fadeins)
+            v = [alpha, alpha, alpha]
+            for i in range(1, steps+1):
+                if fadeins:
+                    v[mid_index] = 100 - ((steps - i) * (100 - alpha) / steps)
+                if fadeouts:
+                    v[max_index] = 100 - (i*(100-alpha) / steps)
+                sid = time()
+                if i == 1:
+                    self.__compiz_call(v + values, matches)
+                else:
+                    self.sids[sid] = gobject.timeout_add((i - 1) * interval,
+                                                         self.__compiz_call,
+                                                         v+values,
+                                                         None,
+                                                         sid)
+        elif windows:
+            # Fade in
+            matches[max_index] = rule_base % "!(xid=%s)" % \
+                                 "|xid=".join(windows) + "_"
+            # The "_" is added since matches that change only on a "!" isn't
+            # registered. (At least that's what I think.)
+            v = [alpha, alpha, alpha]
+            v[max_index] = 100
+            self.__compiz_call(v + values, matches)
+            for i in range(1, steps+1):
+                v[max_index] = 100 - ( i * (100 - alpha) / steps)
                 sid = time()
                 self.sids[sid] = gobject.timeout_add(i * interval,
                                                      self.__compiz_call,
-                                                     [value]+values,
+                                                     v + values,
                                                      None,
                                                      sid)
-            delay = steps * interval+1
+        else:
+            # Deopacify
+            v = [0, 0, 0]
+            for i in range(1, steps):
+                value = 100 - ((steps - i) * (100 - alpha) / steps)
+                v = [max(value, old_value) for old_value in old_values]
+                sid = time()
+                self.sids[sid] = gobject.timeout_add(i * interval,
+                                                     self.__compiz_call,
+                                                     v + values,
+                                                     None,
+                                                     sid)
+            delay = steps * interval + 1
             sid = time()
+            v = [100, alpha, alpha]
             self.sids[sid] = gobject.timeout_add(delay,
                                                  self.__compiz_call,
-                                                 values,
+                                                 v + values,
                                                  matches,
                                                  sid)
-        elif rule and not old_line:
-            # Opacify smoothly
-            self.__compiz_call([100]+values, matches)
-            for i in range(1, steps+1):
-                value = 100-(i*(100-alpha)/steps)
-                sid = time()
-                self.sids[sid] = gobject.timeout_add(i * interval,
-                                                     self.__compiz_call,
-                                                     [value]+values,
-                                                     None,
-                                                     sid)
-        elif rule and old_line:
-            self.__compiz_call([alpha]+values, matches)
         self.opacifier = opacifier
-        self.rule = rule
+        self.old_windows = windows
 
     def deopacify(self, opacifier=None):
         if opacifier is None or opacifier == self.opacifier:
@@ -338,7 +407,6 @@ class Opacify(gobject.GObject):
     def __compiz_call(self, values=None, matches=None, sid=None):
         if self.use_old_call:
             plugin = 'core'
-            print 'oldstyle'
         else:
             plugin = 'obs'
         if values is not None:
@@ -393,7 +461,10 @@ class Globals(gobject.GObject):
 
           "opacify": False,
           "opacify_group": False,
+          "opacify_fade": True,
           "opacify_alpha": 11,
+          "opacify_smoothness": 5,
+          "opacify_duration": 100,
 
           "separate_wine_apps": True,
           "separate_ooo_apps": True,

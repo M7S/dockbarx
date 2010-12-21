@@ -85,8 +85,7 @@ class WindowButton(gobject.GObject):
                                    self.on_button_mouse_leave)
         self.button.connect("button-press-event",
                                    self.on_window_button_press_event)
-        self.button.connect("clicked",
-                                   self.on_clicked)
+        self.button.connect("clicked", self.on_clicked)
         self.button.connect("scroll-event",
                                    self.on_window_button_scroll_event)
         self.button.connect("close-clicked", self.on_close_clicked)
@@ -137,8 +136,8 @@ class WindowButton(gobject.GObject):
 
     def del_button(self):
         if self.deopacify_sid:
-            self.deopacify()
             gobject.source_remove(self.deopacify_sid)
+            self.deopacify()
         elif self.deopacify_request_sid:
             self.deopacify()
         if self.opacify_request_sid:
@@ -202,9 +201,7 @@ class WindowButton(gobject.GObject):
     #### Opacify
     def opacify(self):
         self.xid = self.window.get_xid()
-        self.opacify_obj.opacify("!(xid=%s)" % self.xid,
-                                 self.globals.settings['opacify_alpha'],
-                                 self.xid)
+        self.opacify_obj.opacify(self.xid, self.xid)
 
     def deopacify(self):
         if self.deopacify_request_sid:

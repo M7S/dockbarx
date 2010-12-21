@@ -669,6 +669,11 @@ class PrefDialog():
         self.opacify_group_cb.connect('toggled', self.checkbutton_toggled,
                                       'opacify_group')
         vbox.pack_start(self.opacify_group_cb, False)
+        self.opacify_fade_cb = gtk.CheckButton(_('Use smooth fade in/out'))
+        self.opacify_fade_cb.connect('toggled',
+                                     self.checkbutton_toggled, 'opacify_fade')
+        vbox.pack_start(self.opacify_fade_cb, False)
+
         scalebox = gtk.HBox()
         scalelabel = gtk.Label(_("Opacity"))
         scalelabel.set_alignment(0,0.5)
@@ -680,6 +685,27 @@ class PrefDialog():
         scalebox.pack_start(scalelabel, False)
         scalebox.pack_start(self.opacify_scale, True)
         vbox.pack_start(scalebox, False)
+
+        scalebox = gtk.HBox()
+        scalelabel = gtk.Label(_("Smoothness"))
+        scalelabel.set_alignment(0,0.5)
+        adj = gtk.Adjustment(2, 2, 20, 1, 10, 0)
+        self.opacify_smoothness_scale = gtk.HScale(adj)
+        self.opacify_smoothness_scale.set_draw_value(False)
+        adj.connect("value_changed",
+                    self.adjustment_changed, 'opacify_smoothness')
+        scalebox.pack_start(scalelabel, False)
+        scalebox.pack_start(self.opacify_smoothness_scale, True)
+        scalelabel = gtk.Label(_("Duration"))
+        scalelabel.set_alignment(0,0.5)
+        adj = gtk.Adjustment(0, 30, 500, 1, 10, 0)
+        self.opacify_duration_scale = gtk.HScale(adj)
+        self.opacify_duration_scale.set_draw_value(False)
+        adj.connect("value_changed", self.adjustment_changed, 'opacify_duration')
+        scalebox.pack_start(scalelabel, False)
+        scalebox.pack_start(self.opacify_duration_scale, True)
+        vbox.pack_start(scalebox, False)
+
         frame.add(vbox)
         advanced_box.pack_start(frame, False, False, padding=5)
 
@@ -878,11 +904,21 @@ class PrefDialog():
         # Opacify
         self.opacify_cb.set_active(self.globals.settings['opacify'])
         self.opacify_group_cb.set_active(
-                                        self.globals.settings['opacify_group'])
+                                self.globals.settings['opacify_group'])
+        self.opacify_fade_cb.set_active(self.globals.settings['opacify_fade'])
         self.opacify_scale.set_value(self.globals.settings['opacify_alpha'])
+        self.opacify_smoothness_scale.set_value(
+                                self.globals.settings['opacify_smoothness'])
+        self.opacify_duration_scale.set_value(
+                                self.globals.settings['opacify_duration'])
 
-        self.opacify_group_cb.set_sensitive(self.globals.settings['opacify'])
-        self.opacify_scale.set_sensitive(self.globals.settings['opacify'])
+        opacify = self.globals.settings['opacify']
+        fade = self.globals.settings['opacify_fade']
+        self.opacify_group_cb.set_sensitive(opacify)
+        self.opacify_fade_cb.set_sensitive(opacify)
+        self.opacify_scale.set_sensitive(opacify)
+        self.opacify_duration_scale.set_sensitive(opacify and fade)
+        self.opacify_smoothness_scale.set_sensitive(opacify and fade)
 
 
         # Colors

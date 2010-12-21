@@ -807,9 +807,8 @@ class GroupButton(gobject.GObject):
 
     #### Opacify
     def opacify(self):
-        res_class = self.windows.keys()[0].get_class_group().get_res_class()
-        self.opacify_obj.opacify("!(class=%s)" % res_class,
-                                 self.globals.settings['opacify_alpha'],
+        xids = [window.get_xid() for window in self.windows]
+        self.opacify_obj.opacify(xids,
                                  self.identifier)
         self.opacified = True
 
