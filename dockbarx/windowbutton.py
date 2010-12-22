@@ -33,6 +33,16 @@ import i18n
 _ = i18n.language.gettext
 
 
+try:
+    WNCK_WINDOW_ACTION_MINIMIZE = wnck.WINDOW_ACTION_MINIMIZE
+    WNCK_WINDOW_ACTION_UNMINIMIZE = wnck.WINDOW_ACTION_UNMINIMIZE
+    WNCK_WINDOW_ACTION_MAXIMIZE = wnck.WINDOW_ACTION_MAXIMIZE
+    WNCK_WINDOW_STATE_MINIMIZED = wnck.WINDOW_STATE_MINIMIZED
+except:
+    WNCK_WINDOW_ACTION_MINIMIZE = 1 << 12
+    WNCK_WINDOW_ACTION_UNMINIMIZE = 1 << 13
+    WNCK_WINDOW_ACTION_MAXIMIZE = 1 << 14
+    WNCK_WINDOW_STATE_MINIMIZED = 1 << 0
 
 
 class WindowButton(gobject.GObject):
@@ -164,14 +174,11 @@ class WindowButton(gobject.GObject):
 
     #### Windows's Events
     def on_window_state_changed(self, window,changed_mask, new_state):
-        try:
-            state_minimized = wnck.WINDOW_STATE_MINIMIZED
-        except:
-            state_minimized = 1 << 0
-        if state_minimized & changed_mask & new_state:
+
+        if WNCK_WINDOW_STATE_MINIMIZED & changed_mask & new_state:
             self.button.set_minimized(True)
             self.emit('minimized')
-        elif state_minimized & changed_mask:
+        elif WNCK_WINDOW_STATE_MINIMIZED & changed_mask:
             self.button.set_minimized(False)
             self.emit('unminimized')
 
@@ -334,7 +341,7 @@ class WindowButton(gobject.GObject):
 
     #### Menu functions
     def menu_closed(self, menushell):
-        self.globals.right_menu_showing = False
+        self.globals.gtkmenu_showing = False
         self.emit('popup-hide', 'menu-closed')
 
     def minimize_window(self, widget=None, event=None):
@@ -395,23 +402,15 @@ class WindowButton(gobject.GObject):
         self.window.unshade()
 
     def action_show_menu(self, widget, event):
-        try:
-            action_minimize = wnck.WINDOW_ACTION_MINIMIZE
-            action_unminimize = wnck.WINDOW_ACTION_UNMINIMIZE
-            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
-        except:
-            action_minimize = 1 << 12
-            action_unminimize = 1 << 13
-            action_maximize = 1 << 14
         #Creates a popup menu
         menu = gtk.Menu()
         menu.connect('selection-done', self.menu_closed)
         #(Un)Minimize
         minimize_item = None
-        if self.window.get_actions() & action_minimize \
+        if self.window.get_actions() & WNCK_WINDOW_ACTION_MINIMIZE \
         and not self.window.is_minimized():
             minimize_item = gtk.MenuItem(_('_Minimize'))
-        elif self.window.get_actions() & action_unminimize \
+        elif self.window.get_actions() & WNCK_WINDOW_ACTION_UNMINIMIZE \
         and self.window.is_minimized():
             minimize_item = gtk.MenuItem(_('Un_minimize'))
         if minimize_item:
@@ -421,10 +420,10 @@ class WindowButton(gobject.GObject):
         # (Un)Maximize
         maximize_item = None
         if not self.window.is_maximized() \
-        and self.window.get_actions() & action_maximize:
+        and self.window.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
             maximize_item = gtk.MenuItem(_('Ma_ximize'))
         elif self.window.is_maximized() \
-        and self.window.get_actions() & action_unminimize:
+        and self.window.get_actions() & WNCK_WINDOW_ACTION_UNMINIMIZE:
             maximize_item = gtk.MenuItem(_('Unma_ximize'))
         if maximize_item:
             menu.append(maximize_item)
@@ -436,7 +435,7 @@ class WindowButton(gobject.GObject):
         close_item.connect("activate", self.action_close_window)
         close_item.show()
         menu.popup(None, None, None, event.button, event.time)
-        self.globals.right_menu_showing = True
+        self.globals.gtkmenu_showing = True
 
     def action_none(self, widget = None, event = None):
         pass

@@ -452,6 +452,7 @@ class Globals(gobject.GObject):
           "show_only_current_monitor": False,
           "preview": False,
           "preview_size": 230,
+          "old_menu": False,
 
           "select_one_window": "select or minimize window",
           "select_multiple_windows": "select or minimize all",
@@ -462,7 +463,7 @@ class Globals(gobject.GObject):
           "opacify": False,
           "opacify_group": False,
           "opacify_fade": True,
-          "opacify_alpha": 11,
+          "opacify_alpha": 5,
           "opacify_smoothness": 5,
           "opacify_duration": 100,
 
@@ -541,7 +542,7 @@ class Globals(gobject.GObject):
             gobject.GObject.__init__(self)
 
             # "Global" variables
-            self.right_menu_showing = False
+            self.gtkmenu_showing = False
             self.opacified = False
             self.opacity_values = None
             self.opacity_matches = None

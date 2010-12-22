@@ -398,6 +398,15 @@ class PrefDialog():
         hbox.pack_start(frame, True)
         appearance_box.pack_start(hbox, False, padding=5)
 
+        self.old_menu_cb = gtk.CheckButton(
+              _("Use gtk menu (old style) instead of DockbarX style menu."))
+        self.old_menu_cb.connect("toggled",
+                                 self.checkbutton_toggled, "old_menu")
+        alignment = gtk.Alignment()
+        alignment.set_padding(5, 5, 10, 10)
+        alignment.add(self.old_menu_cb)
+        appearance_box.pack_start(alignment, False)
+
 
         #--- Popup page
         popup_box.set_border_width(5)
@@ -854,6 +863,9 @@ class PrefDialog():
             self.rb1_3.set_active(True)
         elif settings_attention == 'nothing':
             self.rb1_4.set_active(True)
+
+        # Menu style
+        self.old_menu_cb.set_active(self.globals.settings['old_menu'])
 
         # Popup alignment
         settings_align = self.globals.settings["popup_align"]

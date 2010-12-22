@@ -45,6 +45,11 @@ _ = i18n.language.gettext
 
 ATOM_PREVIEWS = gtk.gdk.atom_intern('_KDE_WINDOW_PREVIEW')
 
+try:
+    WNCK_WINDOW_ACTION_MAXIMIZE = wnck.WINDOW_ACTION_MAXIMIZE
+except:
+    WNCK_WINDOW_ACTION_MAXIMIZE = 1 << 14
+
 class WindowDict(ODict):
     def __init__(self, monitor=1, **kvargs):
         ODict.__init__(self, **kvargs)
@@ -80,10 +85,12 @@ class WindowDict(ODict):
         return len(self.get_unminimized())
 
 class GroupButton(gobject.GObject):
-    """Group button takes care of a program's "button" in dockbar.
+    """
+    Group button takes care of a program's "button" in dockbar.
 
     It also takes care of the popup window and all the window buttons that
-    populates it."""
+    populates it.
+    """
 
     __gsignals__ = {
         "delete":
@@ -150,8 +157,11 @@ class GroupButton(gobject.GObject):
         self.scrollpeak_sid = None
         self.scrollpeak_wb = None
         self.launch_sid = None
-
+        self.item_activated_sid = None
+        self.menu_resized_sid = None
+        self.menu_selection_done_sid = None
         self.menu_is_shown = False
+        self.menu = None
 
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
@@ -620,12 +630,14 @@ class GroupButton(gobject.GObject):
         # If mouse cursor is over the button, show popup window.
         if self.popup_showing or \
            (self.button.pointer_is_inside() and \
-            not self.globals.right_menu_showing and \
+            not self.globals.gtkmenu_showing and \
             not self.globals.dragging):
             self.show_list()
         return False
 
     def show_list(self):
+        if self.globals.gtkmenu_showing:
+            return
         win_cnt = self.windows.get_count()
         if win_cnt == 0 and not self.menu_is_shown:
             self.hide_list()
@@ -714,6 +726,8 @@ class GroupButton(gobject.GObject):
         return
 
     def hide_list(self):
+        if self.globals.gtkmenu_showing:
+            return
         if self.popup.window:
             self.popup.window.property_change(ATOM_PREVIEWS,
                                               ATOM_PREVIEWS,
@@ -728,12 +742,23 @@ class GroupButton(gobject.GObject):
         if self.hide_list_sid is not None:
             gobject.source_remove(self.hide_list_sid)
             self.hide_list_sid = None
+        if self.item_activated_sid :
+            gobject.source_remove(self.item_activated_sid)
+            self.item_activated_sid = None
+        if self.menu_resized_sid:
+            gobject.source_remove(self.menu_resized_sid)
+            self.menu_resized_sid = None
+        if self.menu_selection_done_sid:
+            gobject.source_remove(self.menu_selection_done_sid)
+            self.menu_resized_sid = None
         if self.globals.gb_showing_popup == self:
             self.globals.gb_showing_popup = None
+        if self.menu is not None:
+            self.menu.delete_menu()
+            self.menu = None
         self.popup.remove(self.popup.alignment.get_child())
         self.popup.add(self.popup_box)
         self.menu_is_shown = False
-        return False
 
     def on_popup_size_allocate(self, widget, allocation):
         # Move popup to it's right spot
@@ -1014,7 +1039,7 @@ class GroupButton(gobject.GObject):
                                                           self.opacify_request)
 
         # Prepare for popup window
-        if not self.globals.right_menu_showing and not self.globals.dragging:
+        if not self.globals.gtkmenu_showing and not self.globals.dragging:
             self.show_list_sid = gobject.timeout_add(delay,
                                                      self.show_list_request)
 
@@ -1105,159 +1130,107 @@ class GroupButton(gobject.GObject):
 
     #### Menu
     def menu_show(self, event=None):
-        if self.menu_is_shown:
+        if self.globals.gtkmenu_showing:
+            return
+        if self.item_activated_sid :
+            gobject.source_remove(self.item_activated_sid)
+            self.item_activated_sid = None
+        if self.menu_resized_sid:
+            gobject.source_remove(self.menu_resized_sid)
+            self.menu_resized_sid = None
+        if self.menu is not None:
+            self.menu.delete_menu()
+            self.menu = None
+        if self.menu_is_shown and not self.globals.settings['old_menu']:
             # The menu is already shown, show the window list instead.
             self.menu_is_shown = False
             self.popup.remove(self.popup.alignment.get_child())
             self.popup.add(self.popup_box)
             self.show_list()
             return
-
-        self.menu_is_shown = True
-        if self.popup.window:
-            self.popup.window.property_change(ATOM_PREVIEWS,
-                                              ATOM_PREVIEWS,
-                                              32,
-                                              gtk.gdk.PROP_MODE_REPLACE,
-                                              [0,5,0,0,0,0,0])
-        try:
-            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
-        except:
-            action_maximize = 1 << 14
-        menu = gtk.VBox()
-        menu.set_spacing(2)
+        if self.globals.settings['old_menu']:
+            self.hide_list()
+        else:
+            self.menu_is_shown = True
+            if self.popup.window:
+                self.popup.window.property_change(ATOM_PREVIEWS,
+                                                  ATOM_PREVIEWS,
+                                                  32,
+                                                  gtk.gdk.PROP_MODE_REPLACE,
+                                                  [0,5,0,0,0,0,0])
+        # Build menu
+        self.menu = GroupMenu(self.globals.settings['old_menu'])
+        # Launcher stuff
         if self.desktop_entry:
-            #Launch program item
-            launch_program_item = CairoMenuItem(_('_Launch application'))
-            menu.pack_start(launch_program_item)
-            launch_program_item.connect("clicked",
-                                self.action_launch_application)
-            launch_program_item.show()
+            self.menu.add_item(_('_Launch application'))
         if self.desktop_entry and not self.pinned:
-            #Add launcher item
-            pin_item = CairoMenuItem(_('_Pin application'))
-            menu.pack_start(pin_item)
-            pin_item.connect("clicked", self.menu_pin)
-            pin_item.show()
+            self.menu.add_item(_('_Pin application'))
         if not self.pinned:
-            #Make Custom Launcher item
-            make_launcher_item = CairoMenuItem(_('Make custom launcher'))
-            menu.pack_start(make_launcher_item)
-            make_launcher_item.connect("clicked",
-                                         self.menu_edit_launcher)
-            make_launcher_item.show()
+            self.menu.add_item(_('Make custom launcher'))
         if self.pinned:
-            #Remove launcher item
-            remove_launcher_item = CairoMenuItem(_('Unpin application'))
-            menu.pack_start(remove_launcher_item)
-            remove_launcher_item.connect("clicked",
-                                         self.action_remove_launcher)
-            remove_launcher_item.show()
-            #Properties submenu
-            properties_toggle = CairoToggleMenu(_('Properties'))
-            menu.pack_start(properties_toggle)
-            properties_toggle.show()
-            properties_toggle.connect('toggled', self.on_toggle_menu_toggled)
-            #Edit identifier item
-            edit_identifier_item = CairoMenuItem(_('Edit Identifier'))
-            properties_toggle.add_item(edit_identifier_item)
-            edit_identifier_item.connect("clicked",
-                                         self.menu_change_identifier)
-            edit_identifier_item.show()
-            #Edit launcher item
-            edit_launcher_item = CairoMenuItem(_('Edit Launcher'))
-            properties_toggle.add_item(edit_launcher_item)
-            edit_launcher_item.connect("clicked",
-                                       self.menu_edit_launcher)
-            edit_launcher_item.show()
-
-        #--- Recent and most used files
+            self.menu.add_item(_('Unpin application'))
+            self.menu.add_submenu(_('Properties'))
+            self.menu.add_item(_('Edit Identifier'), _('Properties'))
+            self.menu.add_item(_('Edit Launcher'), _('Properties'))
+        # Recent and most used files
         if self.desktop_entry:
-            recent_files, most_used_files, related_files = \
-                                                    self.menu_get_zg_files()
-            #Separator
-            if recent_files or most_used_files or related_files:
-                sep = gtk.SeparatorMenuItem()
-                menu.pack_start(sep)
-                sep.show()
-            # Create and add the submenus.
-            for files, menu_name in ((recent_files, _('Recent')),
-                                      (most_used_files, _('Most used')),
-                                      (related_files, _('Related'))):
+            recent, most_used, related = self.menu_get_zg_files()
+            if recent or most_used or related:
+                self.menu.add_separator()
+            self.zg_files = {}
+            for files, name in ((recent, _('Recent')),
+                                (most_used, _('Most used')),
+                                (related, _('Related'))):
                 if files:
-                    toggle_menu = CairoToggleMenu(menu_name)
-                    menu.pack_start(toggle_menu)
-                    toggle_menu.show()
-                    toggle_menu.connect('toggled', self.on_toggle_menu_toggled)
-
+                    self.menu.add_submenu(name)
                     for text, uri in files:
                         label = text or uri
                         if len(label)>40:
                             label = label[:20]+"..."+label[-17:]
-                        toggle_menu_item = CairoMenuItem(label)
-                        toggle_menu.add_item(toggle_menu_item)
-                        toggle_menu_item.connect("clicked",
-                                             self.launch_item, uri)
-                        toggle_menu_item.show()
-
+                        self.zg_files[label] = uri
+                        self.menu.add_item(label, name)
         # Windows stuff
         win_nr = self.windows.get_count()
         if win_nr:
-            #Separator
-            sep = gtk.SeparatorMenuItem()
-            menu.pack_start(sep)
-            sep.show()
+            self.menu.add_separator()
             if win_nr == 1:
                 t = ""
             else:
                 t = _(" all windows")
             if self.windows.get_unminimized_count() == 0:
-                # Unminimize all
-                unminimize_all_windows_item = CairoMenuItem(
-                                                '%s%s'%(_("Un_minimize"), t))
-                menu.pack_start(unminimize_all_windows_item)
-                unminimize_all_windows_item.connect("clicked",
-                                              self.menu_unminimize_all_windows)
-                unminimize_all_windows_item.show()
+                self.menu.add_item(_("Un_minimize") + t)
             else:
-                # Minimize all
-                minimize_all_windows_item = CairoMenuItem(
-                                                    '%s%s'%(_("_Minimize"), t))
-                menu.pack_start(minimize_all_windows_item)
-                minimize_all_windows_item.connect("clicked",
-                                            self.action_minimize_all_windows)
-                minimize_all_windows_item.show()
-            # (Un)Maximize all
+                self.menu.add_item(_("_Minimize") + t)
             for window in self.windows:
                 if not window.is_maximized() \
-                and window.get_actions() & action_maximize:
-                    maximize_all_windows_item = CairoMenuItem(
-                                                    '%s%s'%(_("Ma_ximize"), t))
+                and window.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
+                    self.menu.add_item(_("Ma_ximize") + t)
                     break
             else:
-                maximize_all_windows_item = CairoMenuItem(
-                                                '%s%s'%(_("Unma_ximize"), t))
-            menu.pack_start(maximize_all_windows_item)
-            maximize_all_windows_item.connect("clicked",
-                                            self.action_maximize_all_windows)
-            maximize_all_windows_item.show()
-            # Close all
-            close_all_windows_item = CairoMenuItem('%s%s'%(_("_Close"), t))
-            menu.pack_start(close_all_windows_item)
-            close_all_windows_item.connect("clicked",
-                                           self.action_close_all_windows)
-            close_all_windows_item.show()
+                self.menu.add_item(_("Unma_ximize") + t)
+            self.menu.add_item(_("_Close") + t)
 
-        self.popup.remove(self.popup.alignment.get_child())
-        self.popup.add(menu)
-        menu.show()
-        self.popup.show()
-        self.popup.resize(10,10)
-        # Hide other popup if open.
-        if self.globals.gb_showing_popup is not None and \
-           self.globals.gb_showing_popup != self:
-            self.globals.gb_showing_popup.hide_list()
-        self.globals.gb_showing_popup = self
+        self.item_activated_sid = \
+                self.menu.connect('item-activated', self.on_menuitem_activated)
+        self.menu_resized_sid = \
+                    self.menu.connect('menu-resized', self.on_menu_resized)
+        if self.globals.settings['old_menu']:
+            menu = self.menu.get_menu()
+            menu.popup(None, None,
+                       self.menu_position, event.button, event.time)
+            self.globals.gtkmenu_showing = True
+            self.menu_selection_done_sid = \
+                            menu.connect('selection-done', self.menu_closed)
+        else:
+            self.popup.remove(self.popup.alignment.get_child())
+            self.popup.add(self.menu.get_menu())
+            self.popup.show()
+            self.popup.resize(10,10)
+            # Hide other popup if open.
+            if self.globals.gb_showing_popup is not None and \
+               self.globals.gb_showing_popup != self:
+                self.globals.gb_showing_popup.hide_list()
+            self.globals.gb_showing_popup = self
 
 
     def menu_get_zg_files(self):
@@ -1306,9 +1279,66 @@ class GroupButton(gobject.GObject):
             related_files = related_files[:3]
         return recent_files, most_used_files, related_files
 
-    def on_toggle_menu_toggled(self, *args):
+    def on_menuitem_activated(self, arg, name):
+        if name in self.zg_files:
+            self.launch_item(None, None, self.zg_files[name])
+            return
+        {_("Close"): self.action_close_all_windows,
+         _("Close") + _(" all windows"): self.action_close_all_windows,
+         _("Ma_ximize"): self.action_maximize_all_windows,
+         _("Ma_ximize") + _(" all windows"): self.action_maximize_all_windows,
+         _("Unma_ximize"): self.action_maximize_all_windows,
+         _("Unma_ximize")+_(" all windows"): self.action_maximize_all_windows,
+         _("_Minimize"): self.action_minimize_all_windows,
+         _("_Minimize")+_(" all windows"): self.action_minimize_all_windows,
+         _("Un_minimize"): self.menu_unminimize_all_windows,
+         _("Un_minimize")+_(" all windows"):self.menu_unminimize_all_windows,
+         _("Edit Launcher"): self.menu_edit_launcher,
+         _("Edit Identifier"): self.menu_change_identifier,
+         _("Unpin application"): self.action_remove_launcher,
+         _("Make custom launcher"): self.menu_edit_launcher,
+         _("_Pin application"): self.menu_pin,
+         _("_Launch application"): self.action_launch_application}[name]()
+
+    def on_menu_resized(self, *args):
         self.popup.resize(10,10)
 
+    def menu_position(self, menu):
+        # Used only with the gtk menu
+        x, y = self.button.window.get_origin()
+        a = self.button.get_allocation()
+        x += a.x
+        y += a.y
+        w, h = menu.size_request()
+        if self.globals.orient == 'v':
+            if x < (self.screen.get_width() / 2):
+                x += a.width
+            else:
+                x -= w
+            if y + h > self.screen.get_height():
+                y -= h - a.height
+        if self.globals.orient == 'h':
+            if y < (self.screen.get_height() / 2):
+                y += a.height
+            else:
+                y -= h
+            if x + w >= self.screen.get_width():
+                x -= w - a.width
+        return (x, y, False)
+
+    def menu_closed(self, menushell):
+        # Used only with the gtk menu
+        self.globals.gtkmenu_showing = False
+        gobject.source_remove(self.menu_selection_done_sid)
+        self.menu_selection_done_sid = None
+        if self.item_activated_sid :
+            gobject.source_remove(self.item_activated_sid)
+            self.item_activated_sid = None
+        if self.menu_resized_sid:
+            gobject.source_remove(self.menu_resized_sid)
+            self.menu_resized_sid = None
+        self.menu.delete_menu()
+        self.menu = None
 
     def menu_unminimize_all_windows(self, widget=None, event=None):
         t = gtk.get_current_event_time()
@@ -1590,14 +1620,10 @@ class GroupButton(gobject.GObject):
         self.deopacify()
 
     def action_maximize_all_windows(self,widget=None, event=None):
-        try:
-            action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
-        except:
-            action_maximize = 1 << 14
         maximized = False
         for window in self.windows.get_list():
             if not window.is_maximized() \
-            and window.get_actions() & action_maximize:
+            and window.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
                 window.maximize()
                 maximized = True
         if not maximized:
@@ -1862,3 +1888,84 @@ class GroupButton(gobject.GObject):
             ("show preference dialog", action_dbpref),
             ("no action", action_none)
             ))
+
+
+class GroupMenu(gobject.GObject):
+    __gsignals__ = {
+        "item-activated":
+            (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
+        "menu-resized":
+            (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())}
+
+    def __init__(self, gtk_menu=False):
+        gobject.GObject.__init__(self)
+        self.gtk_menu = gtk_menu
+        self.submenus = {}
+        self.sids = []
+        if gtk_menu:
+            self.menu = gtk.Menu()
+        else:
+            self.menu = gtk.VBox()
+            self.menu.set_spacing(2)
+        self.menu.show()
+
+    def add_item(self, name, submenu=None):
+        if self.gtk_menu:
+            item = gtk.MenuItem(name)
+            item.show()
+            if submenu:
+                self.submenus[submenu].append(item)
+                self.sids.append(item.connect("button-press-event",
+                                              self.on_item_activated, name))
+            else:
+                self.menu.append(item)
+                self.sids.append(item.connect("activate",
+                                              self.on_item_activated, name))
+        else:
+            item = CairoMenuItem(name)
+            self.sids.append(item.connect("clicked",
+                                          self.on_item_activated, name))
+            item.show()
+            if submenu:
+                self.submenus[submenu].add_item(item)
+            else:
+                self.menu.pack_start(item)
+
+    def add_submenu(self, name):
+        if self.gtk_menu:
+            item = gtk.MenuItem(name)
+            item.show()
+            self.menu.append(item)
+            menu = gtk.Menu()
+            item.set_submenu(menu)
+        else:
+            menu = CairoToggleMenu(name)
+            self.menu.pack_start(menu)
+            menu.show()
+            self.sids.append(menu.connect('toggled', self.on_submenu_toggled))
+        self.submenus[name] = menu
+
+    def add_separator(self):
+        separator = gtk.SeparatorMenuItem()
+        separator.show()
+        if self.gtk_menu:
+            self.menu.append(separator)
+        else:
+            self.menu.pack_start(separator)
+
+    def get_menu(self):
+        return self.menu
+
+    def on_item_activated(self, *args):
+        name = args[-1]
+        self.emit('item-activated', name)
+
+    def on_submenu_toggled(self, *args):
+        self.emit('menu-resized')
+
+    def delete_menu(self):
+        for sid in self.sids:
+            gobject.source_remove(sid)
+        del self.menu
+        del self.submenus
+
