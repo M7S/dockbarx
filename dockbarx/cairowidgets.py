@@ -23,6 +23,7 @@ import gtk
 import cairo
 from math import pi
 from common import Globals
+from xml.sax.saxutils import escape
 import gobject
 from pango import ELLIPSIZE_END
 
@@ -430,7 +431,7 @@ class CairoWindowItem(CairoWindowButton):
 
     def __update_label_state(self, arg=None):
         """Updates the style of the label according to window state."""
-        text = str(self.window_name)
+        text = escape(str(self.window_name))
         if self.needs_attention:
             text = "<i>"+text+"</i>"
         if self.is_active_window:
@@ -530,13 +531,15 @@ class CairoArea(gtk.Alignment):
     def set_label(self, text, color=None):
         self.text = text
         if color:
-            text = '<span foreground="' + color + '">' + text + '</span>'
+            text = '<span foreground="' + color + '">' + escape(text) + \
+                   '</span>'
         self.label.set_text(text)
         self.label.set_use_markup(True)
         self.label.set_use_underline(True)
 
     def set_label_color(self, color):
-        label = '<span foreground="' + color + '">' + self.text + '</span>'
+        label = '<span foreground="' + color + '">' + escape(self.text) + \
+                '</span>'
         self.label.set_text(label)
         self.label.set_use_markup(True)
         self.label.set_use_underline(True)

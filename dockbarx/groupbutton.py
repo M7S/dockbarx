@@ -30,6 +30,7 @@ import os
 import gc
 gc.enable()
 import pango
+from xml.sax.saxutils import escape
 
 from windowbutton import WindowButton
 from iconfactory import IconFactory
@@ -260,8 +261,7 @@ class GroupButton(gobject.GObject):
             return
         self.popup_label.set_label(
                     "<span foreground='%s'>"%self.globals.colors['color2'] + \
-                    "<big><b>%s</b></big></span>"%self.name
-                                  )
+                    "<big><b>%s</b></big></span>"%escape(self.name))
         self.update_tooltip()
 
     def remove_launch_effect(self):
