@@ -443,9 +443,9 @@ class CairoWindowItem(CairoWindowButton):
         text = '<span foreground="' + color + '">' + text + '</span>'
         self.label.set_text(text)
         self.label.set_use_markup(True)
-        # The label should be 180px wide unless there are more room
+        # The label should be 140px wide unless there are more room
         # because the preview takes up more.
-        self.label.set_size_request(180, -1)
+        self.label.set_size_request(140, -1)
 
     def __make_minimized_icon(self, icon):
         pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True,
@@ -494,14 +494,15 @@ class CairoWindowItem(CairoWindowButton):
         self.is_active_window = is_active
         self.__update_label_state()
 
-    def set_preview_aspect(self, width, height):
+    def set_preview_aspect(self, width, height, ar=1.0):
         size = self.globals.settings["preview_size"]
-        if width < size and height < size:
+        if width*ar < size and height < size:
             self.preview.set_size_request(width, height)
-        elif width > height:
-            self.preview.set_size_request(size, size*height/width)
+        elif float(width) / height > ar:
+            self.preview.set_size_request(size * ar,
+                                          size * ar * height / width)
         else:
-            self.preview.set_size_request(size*width/height, size)
+            self.preview.set_size_request(size * width / height, size)
 
     def set_highlighted(self, highlighted):
         self.area.set_highlighted(highlighted)

@@ -451,7 +451,7 @@ class Globals(gobject.GObject):
           "show_only_current_desktop": False,
           "show_only_current_monitor": False,
           "preview": False,
-          "preview_size": 230,
+          "preview_size": 150,
           "old_menu": False,
 
           "select_one_window": "select or minimize window",

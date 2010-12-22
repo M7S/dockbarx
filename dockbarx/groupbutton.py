@@ -166,6 +166,8 @@ class GroupButton(gobject.GObject):
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.windows = WindowDict(self.monitor)
+        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(self.monitor)
+        self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
 
 
         #--- Button
@@ -662,7 +664,8 @@ class GroupButton(gobject.GObject):
             else:
                 wb.button.show()
                 wb.button.set_preview_aspect(window.get_geometry()[2],
-                                              window.get_geometry()[3])
+                                             window.get_geometry()[3],
+                                             self.monitor_aspect_ratio)
         self.popup.resize(10,10)
         self.popup.show()
         self.popup_showing = True
