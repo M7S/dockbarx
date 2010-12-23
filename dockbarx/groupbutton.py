@@ -791,7 +791,7 @@ class GroupButton(gobject.GObject):
                 x = mgeo.x + mgeo.width - width
             if x < mgeo.x:
                 x = mgeo.x
-            if y - height >= mgeo.y:
+            if y >= mgeo.y + (mgeo.height / 2):
                 direction = 'down'
                 y = y - height
             else:
@@ -803,18 +803,26 @@ class GroupButton(gobject.GObject):
                 self.set_show_previews(False)
                 gobject.idle_add(self.popup.resize, 10, 10)
                 return
-            x = b_alloc.x + wx
-            y = b_alloc.y + wy
+            # Set position in such a way that the arrow is splits the
+            # height at golden ratio...
+            y = b_alloc.y + wy + (b_alloc.height / 2) - int(height * 0.382)
+            # ..but don't allow the popup to be lower than the upper egde of
+            # the button.
+            if y > b_alloc.y + wy:
+                y = b_alloc.y + wy
             # Check that the popup is within the monitor
             if y + height > mgeo.y + mgeo.height:
                 y = mgeo.y + mgeo.height - height
-            if x + width >= mgeo.x + mgeo.width:
+            if y < mgeo.y:
+                y = mgeo.y
+            x = b_alloc.x + wx
+            if x >= mgeo.x + (mgeo.width / 2):
                 direction = 'right'
                 x = x - width - offset
             else:
                 direction = 'left'
                 x = x + b_alloc.width + offset
-            p= wy + b_alloc.y + (b_alloc.height / 2) - y
+            p = wy + b_alloc.y + (b_alloc.height / 2) - y
         self.popup.point(direction, p)
         self.popup.move(x, y)
 

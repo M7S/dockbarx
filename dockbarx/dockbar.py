@@ -377,6 +377,7 @@ class DockBar():
             self.applet.add(self.container)
         for group in self.groups:
             self.container.pack_start(group.button, False)
+            group.set_show_previews(self.globals.settings['preview'])
             if orient == 'h':
                 # The direction of the pointer isn't important here, we only
                 # need the right amount of padding so that the popup has right
