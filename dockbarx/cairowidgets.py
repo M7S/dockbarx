@@ -411,20 +411,10 @@ class CairoWindowItem(CairoWindowButton):
         self.add(vbox)
         self.preview_box.set_no_show_all(True)
         vbox.show_all()
-        if self.globals.settings["preview"]:
-            self.preview_box.show()
 
         self.close_button.connect("button-press-event", self.disable_click)
         self.close_button.connect("clicked", self.on_close_button_clicked)
-        self.globals.connect('show-previews-changed',
-                             self.on_show_preview_changed)
         self.globals.connect('color-changed', self.__update_label_state)
-
-    def on_show_preview_changed(self, *args):
-        if self.globals.settings["preview"]:
-            self.preview_box.show()
-        else:
-            self.preview_box.hide()
 
     def on_close_button_clicked(self, *args):
         self.emit('close-clicked')
@@ -497,12 +487,21 @@ class CairoWindowItem(CairoWindowButton):
     def set_preview_aspect(self, width, height, ar=1.0):
         size = self.globals.settings["preview_size"]
         if width*ar < size and height < size:
-            self.preview.set_size_request(width, height)
+            pass
         elif float(width) / height > ar:
-            self.preview.set_size_request(size * ar,
-                                          size * ar * height / width)
+            height = int(size * ar * height / width)
+            width = int(size * ar)
         else:
-            self.preview.set_size_request(size * width / height, size)
+            width = size * width / height
+            height = size
+        self.preview.set_size_request(width, height)
+        return width, height
+
+    def set_show_preview(self, show_preview):
+        if show_preview:
+            self.preview_box.show()
+        else:
+            self.preview_box.hide()
 
     def set_highlighted(self, highlighted):
         self.area.set_highlighted(highlighted)

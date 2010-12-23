@@ -208,7 +208,7 @@ class GroupButton(gobject.GObject):
         self.popup_box.pack_start(self.popup_label, False)
         # Initiate the windowlist
         self.winlist = None
-        self.on_show_previews_changed()
+        self.set_show_previews(self.globals.settings['preview'])
         self.popup.add(self.popup_box)
 
 
@@ -435,8 +435,38 @@ class GroupButton(gobject.GObject):
         self.set_icongeo()
 
     def on_show_previews_changed(self, arg=None):
+        self.set_show_previews(self.globals.settings['preview'])
+
+    def set_show_previews(self, show_previews):
+        if show_previews:
+            mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
+                                                                self.monitor)
+            if self.globals.orient == 'h':
+                width = 10
+                for win in self.windows.get_list():
+                    wb = self.windows[win]
+                    width += max(190, wb.button.set_preview_aspect(
+                                                 win.get_geometry()[2],
+                                                 win.get_geometry()[3],
+                                                 self.monitor_aspect_ratio)[0])
+                    width += 16
+                    print width
+                if width > mgeo.width:
+                    show_previews = False
+            else:
+                height = 12 + self.popup_label.size_request()[1]
+                for win in self.windows.get_list():
+                    wb = self.windows[win]
+                    height += wb.button.set_preview_aspect(
+                                                 win.get_geometry()[2],
+                                                 win.get_geometry()[3],
+                                                 self.monitor_aspect_ratio)[1]
+                    height += 24 + wb.button.label.size_request()[1]
+                if height > mgeo.height:
+                    show_previews = False
+        self.show_previews = show_previews
         oldbox = self.winlist
-        if self.globals.settings['preview']:
+        if show_previews and self.globals.orient == 'h':
             self.winlist = gtk.HBox()
             self.winlist.set_spacing(4)
         else:
@@ -448,6 +478,9 @@ class GroupButton(gobject.GObject):
                 self.winlist.pack_start(c, False)
             self.popup_box.remove(oldbox)
         self.popup_box.pack_start(self.winlist, False)
+        self.winlist.show()
+        for win in self.windows.get_list():
+            self.windows[win].button.set_show_preview(show_previews)
 
     #### Window handling
     def add_window(self,window):
@@ -455,6 +488,7 @@ class GroupButton(gobject.GObject):
             return
         wb = WindowButton(window)
         self.windows[window] = wb
+        wb.button.set_show_preview(self.show_previews)
         self.winlist.pack_start(wb.button, True, True)
         if window.is_minimized():
             self.minimized_windows_count += 1
@@ -507,17 +541,20 @@ class GroupButton(gobject.GObject):
             gobject.source_remove(self.launch_sid)
             self.launch_sid = None
 
-    def del_window(self,window):
+    def del_window(self, window):
         if window.is_minimized():
             self.minimized_windows_count -= 1
         if self.nextlist and window in self.nextlist:
             self.nextlist.remove(window)
+        self.winlist.remove(self.windows[window].button)
         self.windows[window].del_button()
         del self.windows[window]
         if self.needs_attention:
             self.on_needs_attention_changed()
-        self.update_state_request()
-        self.update_tooltip()
+        if self.pinned or self.windows:
+            self.set_show_previews(self.globals.settings['preview'])
+            self.update_state_request()
+            self.update_tooltip()
         if self.windows.get_unminimized_count() == 0:
             if self.opacified:
                 self.deopacify()
@@ -663,9 +700,6 @@ class GroupButton(gobject.GObject):
                 wb.button.hide()
             else:
                 wb.button.show()
-                wb.button.set_preview_aspect(window.get_geometry()[2],
-                                             window.get_geometry()[3],
-                                             self.monitor_aspect_ratio)
         self.popup.resize(10,10)
         self.popup.show()
         self.popup_showing = True
@@ -676,37 +710,7 @@ class GroupButton(gobject.GObject):
             self.globals.gb_showing_popup.hide_list()
         self.globals.gb_showing_popup = self
 
-        # The popup must be shown before the
-        # preview can be set. Iterate gtk events.
-        while gtk.events_pending():
-                gtk.main_iteration(False)
-        # Tell the compiz/kwin where to put the previews.
-        if self.globals.settings["preview"] and not self.menu_is_shown and \
-           self.windows.get_count() > 0:
-            previews = []
-            previews.append(win_cnt)
-            for win in self.windows.get_list():
-                wb = self.windows[win]
-                previews.append(5)
-                previews.append(win.get_xid())
-                (x, y, w, h) = wb.get_preview_alloc()
-                previews.append(x)
-                previews.append(y)
-                previews.append(w)
-                previews.append(h)
-                # The button needs to be drawn again to ensure that
-                # the preview is shown correctly.
-                # Todo: Make sure if this is the best solution!
-                #       What is the connection between redrawing and previews?
-                wb.button.redraw()
-        else:
-            previews = [0,5,0,0,0,0,0]
-        self.popup.window.property_change(ATOM_PREVIEWS,
-                                          ATOM_PREVIEWS,
-                                          32,
-                                          gtk.gdk.PROP_MODE_REPLACE,
-                                          previews)
-
+        self.set_previews()
         return False
 
     def hide_list_request(self):
@@ -771,6 +775,10 @@ class GroupButton(gobject.GObject):
         width, height = self.popup.get_size()
         mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(self.monitor)
         if self.globals.orient == "h":
+            if width > mgeo.width and self.show_previews:
+                self.set_show_previews(False)
+                gobject.idle_add(self.popup.resize, 10, 10)
+                return
             if self.globals.settings['popup_align'] == 'left':
                 x = b_alloc.x + wx
             if self.globals.settings['popup_align'] == 'center':
@@ -791,6 +799,10 @@ class GroupButton(gobject.GObject):
                 y = y + b_alloc.height + (offset * 2)
             p = wx + b_alloc.x + (b_alloc.width / 2) - x
         else:
+            if height > mgeo.height and self.show_previews:
+                self.set_show_previews(False)
+                gobject.idle_add(self.popup.resize, 10, 10)
+                return
             x = b_alloc.x + wx
             y = b_alloc.y + wy
             # Check that the popup is within the monitor
@@ -805,6 +817,44 @@ class GroupButton(gobject.GObject):
             p= wy + b_alloc.y + (b_alloc.height / 2) - y
         self.popup.point(direction, p)
         self.popup.move(x, y)
+
+    def set_previews(self):
+        for win in self.windows.get_list():
+            wb = self.windows[win]
+            wb.button.set_preview_aspect(win.get_geometry()[2],
+                                         win.get_geometry()[3],
+                                         self.monitor_aspect_ratio)
+        # The popup must be shown before the
+        # preview can be set. Iterate gtk events.
+        while gtk.events_pending():
+                gtk.main_iteration(False)
+        # Tell the compiz/kwin where to put the previews.
+        if self.show_previews and not self.menu_is_shown and \
+           self.windows.get_count() > 0:
+            previews = []
+            previews.append(self.windows.get_count())
+            for win in self.windows.get_list():
+                wb = self.windows[win]
+                previews.append(5)
+                previews.append(win.get_xid())
+                (x, y, w, h) = wb.get_preview_alloc()
+                previews.append(x)
+                previews.append(y)
+                previews.append(w)
+                previews.append(h)
+                # The button needs to be drawn again to ensure that
+                # the preview is shown correctly.
+                # Todo: Make sure if this is the best solution!
+                #       What is the connection between redrawing and previews?
+                wb.button.redraw()
+        else:
+            previews = [0,5,0,0,0,0,0]
+        if self.popup.window:
+            self.popup.window.property_change(ATOM_PREVIEWS,
+                                              ATOM_PREVIEWS,
+                                              32,
+                                              gtk.gdk.PROP_MODE_REPLACE,
+                                              previews)
 
     def show_launch_popup(self):
         if self.popup.window:

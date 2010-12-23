@@ -83,7 +83,8 @@ class WindowButton(gobject.GObject):
         self.button.set_needs_attention(window.needs_attention())
         self.button.show()
         self.button.set_preview_aspect(self.window.get_geometry()[2],
-                                       self.window.get_geometry()[3])
+                                       self.window.get_geometry()[3],
+                                       self.globals.settings['preview_size'])
         self.geometry_changed_event = None
         self.on_show_only_current_monitor_changed()
 
