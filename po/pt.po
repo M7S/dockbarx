@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-10-03 22:50+0300\n"
-"PO-Revision-Date: 2010-10-30 18:16+0000\n"
-"Last-Translator: Claudio Novais <Unknown>\n"
+"PO-Revision-Date: 2010-12-17 17:42+0000\n"
+"Last-Translator: Sérgio Marques <Unknown>\n"
 "Language-Team: Portuguese <pt@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2010-12-23 19:44+0000\n"
+"X-Generator: Launchpad (build 12138)\n"
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
@@ -51,45 +51,45 @@ msgstr "Shift + Botão direito do rato"
 
 #: dbx_preference.py:248 dbx_preference.py:499
 msgid "Scroll up"
-msgstr "Deslizar para cima"
+msgstr "Deslocar para cima"
 
 #: dbx_preference.py:249 dbx_preference.py:500
 msgid "Scroll down"
-msgstr "Deslizar para baixo"
+msgstr "Deslocar para baixo"
 
 #: dbx_preference.py:254 dbx_preference.py:566 dbx_preference.py:892
 #: dbx_preference.py:1123
 msgid "select or minimize window"
-msgstr "Selecionar ou minimizar janela"
+msgstr "selecionar ou minimizar janela"
 
 #: dbx_preference.py:255 dbx_preference.py:565 dbx_preference.py:891
 #: dbx_preference.py:1122
 msgid "select window"
-msgstr "Selecionar janela"
+msgstr "selecionar janela"
 
 #: dbx_preference.py:256
 msgid "maximize window"
-msgstr "Maximizar janela"
+msgstr "maximizar janela"
 
 #: dbx_preference.py:257
 msgid "close window"
-msgstr "Fechar janela"
+msgstr "fechar janela"
 
 #: dbx_preference.py:258 dbx_preference.py:509
 msgid "show menu"
-msgstr "Mostrar menu"
+msgstr "mostrar menu"
 
 #: dbx_preference.py:259
 msgid "shade window"
-msgstr ""
+msgstr "enrolar janela"
 
 #: dbx_preference.py:260
 msgid "unshade window"
-msgstr ""
+msgstr "desenrolar janela"
 
 #: dbx_preference.py:261 dbx_preference.py:518
 msgid "no action"
-msgstr "Sem ação"
+msgstr "sem ação"
 
 #: dbx_preference.py:290
 msgid "Close window list"
@@ -169,15 +169,15 @@ msgstr "Tamanho da antevisão"
 
 #: dbx_preference.py:484
 msgid "Group button actions"
-msgstr ""
+msgstr "Agrupar botões de ação"
 
 #: dbx_preference.py:504
 msgid "select"
-msgstr "Seleccionar"
+msgstr "selecionar"
 
 #: dbx_preference.py:505
 msgid "close all windows"
-msgstr "Fechar todas as janelas"
+msgstr "fechar todas as janelas"
 
 #: dbx_preference.py:506
 msgid "minimize all windows"

@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-10-03 22:50+0300\n"
-"PO-Revision-Date: 2010-09-21 16:31+0000\n"
+"PO-Revision-Date: 2010-12-18 21:11+0000\n"
 "Last-Translator: Papp Bence <papp.bence89@gmail.com>\n"
 "Language-Team: Hungarian <hu@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2010-12-23 19:44+0000\n"
+"X-Generator: Launchpad (build 12138)\n"
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
@@ -23,7 +23,7 @@ msgstr "DockBarX tulajdonságok"
 
 #: dbx_preference.py:231
 msgid "Window item actions"
-msgstr ""
+msgstr "Ablak elemek akciók"
 
 #: dbx_preference.py:237 dbx_preference.py:490
 msgid "Left mouse button"
@@ -93,7 +93,7 @@ msgstr "nincs művelet"
 
 #: dbx_preference.py:290
 msgid "Close window list"
-msgstr ""
+msgstr "Bezárás ablak lista"
 
 #: dbx_preference.py:306
 msgid "Theme:"
@@ -125,7 +125,7 @@ msgstr "Nincs effektus"
 
 #: dbx_preference.py:405
 msgid "Show window list only if more than one window is open"
-msgstr ""
+msgstr "Ablak lista mutatása csak akkor, ha egynél több ablak van nyitva"
 
 #: dbx_preference.py:411
 msgid "Show tooltip when no window is open"
@@ -153,7 +153,7 @@ msgstr "Késleltetés"
 
 #: dbx_preference.py:450
 msgid "Delay for switching between window lists"
-msgstr ""
+msgstr "Késedelem az ablak listák váltása közben"
 
 #: dbx_preference.py:463
 msgid "Previews"
@@ -165,11 +165,11 @@ msgstr "Előnézet mutatása"
 
 #: dbx_preference.py:472
 msgid "Preview size"
-msgstr ""
+msgstr "Előnézet mérete"
 
 #: dbx_preference.py:484
 msgid "Group button actions"
-msgstr ""
+msgstr "Csoport gomb akciók"
 
 #: dbx_preference.py:504
 msgid "select"
@@ -233,11 +233,11 @@ msgstr "\"Kijelölés\" müvelet beállítások"
 
 #: dbx_preference.py:562
 msgid "One window open"
-msgstr ""
+msgstr "Csak egy ablak nyitva"
 
 #: dbx_preference.py:571
 msgid "Multiple windows open"
-msgstr ""
+msgstr "Több ablak nyitva"
 
 #: dbx_preference.py:574 dbx_preference.py:901 dbx_preference.py:1135
 msgid "select all"
@@ -257,7 +257,7 @@ msgstr "Ablakok körkörösen"
 
 #: dbx_preference.py:578 dbx_preference.py:905 dbx_preference.py:1139
 msgid "show window list"
-msgstr ""
+msgstr "ablak lista mutatása"
 
 #: dbx_preference.py:583
 msgid "Workspace behavior"
@@ -326,7 +326,7 @@ msgstr ""
 
 #: dbx_preference.py:651
 msgid "Opacity"
-msgstr ""
+msgstr "Áttetszőség"
 
 #: dbx_preference.py:665
 msgid "Global Keyboard Shortcuts"
@@ -354,7 +354,7 @@ msgstr "Megjelenítés"
 
 #: dbx_preference.py:720
 msgid "Window List"
-msgstr ""
+msgstr "Ablak lista"
 
 #: dbx_preference.py:721
 msgid "Group Button"
@@ -362,7 +362,7 @@ msgstr "Csoport gomb"
 
 #: dbx_preference.py:722
 msgid "Window Item"
-msgstr ""
+msgstr "Ablak elemek"
 
 #: dbx_preference.py:723
 msgid "Advanced"
@@ -525,3 +525,51 @@ msgstr "Kapcsolódó"
 #: dockbarx/groupbutton.py:1195
 msgid " all windows"
 msgstr " minden ablak"
+
+#~ msgid "Popup Settings"
+#~ msgstr "Felugró ablakok beállításai"
+
+#~ msgid "Opacity:"
+#~ msgstr "Áttetszőség:"
+
+#~ msgid "Delay:"
+#~ msgstr "Késleltetés:"
+
+#~ msgid "Popup"
+#~ msgstr "Felugró ablak"
+
+#~ msgid "Preview size:"
+#~ msgstr "Előnézeti méret:"
+
+#~ msgid "Show popup only if more than one window is open"
+#~ msgstr "Felugró mutatása csak egynél több nyitott ablak esetén"
+
+#~ msgid "Close popup"
+#~ msgstr "felugró tiltása"
+
+#~ msgid "Multiple windows open:"
+#~ msgstr "Több ablak nyitva van:"
+
+#~ msgid "One window open:"
+#~ msgstr "Egy ablak nyitva van:"
+
+#~ msgid "show popup"
+#~ msgstr "felugró mutatása"
+
+#~ msgid "Window Button"
+#~ msgstr "Ablak gomb"
+
+#~ msgid "Groupbutton actions"
+#~ msgstr "Csoportgomb műveletek"
+
+#~ msgid "Delay for switching between popups"
+#~ msgstr "Felugrók közti váltás késleltetése"
+
+#~ msgid "Windowbutton actions"
+#~ msgstr "Ablakgomb műveletek"
+
+#~ msgid "Workspace behavior:"
+#~ msgstr "Munkaterület viselkedése:"
+
+#~ msgid "Popup Window"
+#~ msgstr "Felugró ablak"

@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-10-03 22:50+0300\n"
-"PO-Revision-Date: 2010-10-25 20:25+0000\n"
-"Last-Translator: joshg <Unknown>\n"
+"PO-Revision-Date: 2010-11-18 22:11+0000\n"
+"Last-Translator: Matias Särs <Unknown>\n"
 "Language-Team: Italian <it@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2010-12-23 19:44+0000\n"
+"X-Generator: Launchpad (build 12138)\n"
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
@@ -532,6 +532,9 @@ msgstr "Correlato"
 msgid " all windows"
 msgstr " tutte le finestre"
 
+#~ msgid "Cannot load icon for launcher"
+#~ msgstr "Non posso caricare l'icona per il lanciatore"
+
 #~ msgid "The launcher at path"
 #~ msgstr "Il lanciatore all'indirizzo"
 
@@ -540,6 +543,9 @@ msgstr " tutte le finestre"
 
 #~ msgid "Opacity:"
 #~ msgstr "Opacità:"
+
+#~ msgid "Popup Settings"
+#~ msgstr "Impostazioni del popup"
 
 #~ msgid "One window open:"
 #~ msgstr "Una finestra aperta:"
@@ -552,6 +558,9 @@ msgstr " tutte le finestre"
 
 #~ msgid "Delay:"
 #~ msgstr "Ritardo:"
+
+#~ msgid "Popup"
+#~ msgstr "Popup"
 
 #~ msgid "Show popup only if more than one window is open"
 #~ msgstr "Mostra popup solo se c'è più di una finestra aperta"

@@ -7,15 +7,15 @@ msgstr ""
 "Project-Id-Version: dockbarx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-10-03 22:50+0300\n"
-"PO-Revision-Date: 2010-11-14 17:35+0000\n"
-"Last-Translator: Arve Eriksson <Unknown>\n"
+"PO-Revision-Date: 2010-11-18 22:23+0000\n"
+"Last-Translator: Matias Särs <Unknown>\n"
 "Language-Team: Launchpad Swedish Translators <lp-l10n-"
 "sv@lists.launchpad.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2010-12-23 19:44+0000\n"
+"X-Generator: Launchpad (build 12138)\n"
 "X-Poedit-Language: Swedish\n"
 
 #: dbx_preference.py:212
@@ -570,6 +570,12 @@ msgstr " alla fönster"
 
 #~ msgid "Window Button"
 #~ msgstr "Fönsterknapp"
+
+#~ msgid "The launcher at path"
+#~ msgstr "Programstartaren med sökvägen"
+
+#~ msgid "cant be found. Did you perhaps delete the file?"
+#~ msgstr "kan inte hittas. Har du kanske tagit bort filen?"
 
 #~ msgid "Close popup"
 #~ msgstr "Stäng popup-fönster"

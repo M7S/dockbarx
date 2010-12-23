@@ -1,4 +1,4 @@
-# Chinese (Traditional) translation for dockbar
+# Basque translation for dockbar
 # Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the dockbar package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-06-09 13:23+0300\n"
-"PO-Revision-Date: 2010-12-07 19:27+0000\n"
-"Last-Translator: Matias Särs <Unknown>\n"
-"Language-Team: Chinese (Traditional) <zh_TW@li.org>\n"
+"PO-Revision-Date: 2010-12-08 20:03+0000\n"
+"Last-Translator: Ander Elortondo <ander.elor@gmail.com>\n"
+"Language-Team: Basque <eu@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,43 +18,43 @@ msgstr ""
 "X-Generator: Launchpad (build 12138)\n"
 
 msgid "Window list background"
-msgstr "視窗清單背景"
+msgstr "Leiho zerrendaren atzeko planoa"
 
 msgid "Normal text"
-msgstr "普通文字"
+msgstr "Testu normala"
 
 msgid "Active window text"
-msgstr "執行中視窗文字"
+msgstr "Leiho aktiboaren testua"
 
 msgid "Minimized window text"
-msgstr "最小化視窗文字"
+msgstr "Leiho minimizatuaren testua"
 
 msgid "Active color"
-msgstr "執行中顏色"
+msgstr "Aktiboaren kolorea"
 
 msgid "Not used"
-msgstr "並未使用"
+msgstr "Erabili gabe"
 
 msgid "Active"
-msgstr "執行中"
+msgstr "Aktiboa"
 
 msgid "Launching color"
-msgstr "啟動中顏色"
+msgstr "Abiarazten kolorea"
 
 msgid "Attention color"
-msgstr "焦點顏色"
+msgstr "Harreta kolorea"
 
 msgid "Minimized color"
-msgstr "最小化顏色"
+msgstr "Minimizatu kolorea"
 
 msgid "Active glow"
-msgstr "執行中光暈"
+msgstr "Aktiboaren disdira"
 
 msgid "Button color"
-msgstr "按鈕顏色"
+msgstr "Botoi kolorea"
 
 msgid "Active + indicator color"
-msgstr "執行中標識符顏色"
+msgstr "Aktiboa + adierazlea kolorea"
 
 msgid "Active + dots color"
-msgstr "執行中的點顏色"
+msgstr "Aktiboa + puntuak kolorea"

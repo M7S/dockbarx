@@ -8,18 +8,18 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-10-03 22:50+0300\n"
-"PO-Revision-Date: 2010-06-07 08:09+0000\n"
+"PO-Revision-Date: 2010-12-07 19:48+0000\n"
 "Last-Translator: Fakhrul Rijal <frijal@gmail.com>\n"
 "Language-Team: Indonesian <id@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2010-12-23 19:44+0000\n"
+"X-Generator: Launchpad (build 12138)\n"
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
-msgstr ""
+msgstr "Pengeturan DockBarX"
 
 #: dbx_preference.py:231
 msgid "Window item actions"
@@ -27,11 +27,11 @@ msgstr ""
 
 #: dbx_preference.py:237 dbx_preference.py:490
 msgid "Left mouse button"
-msgstr ""
+msgstr "Tombol kiri mouse"
 
 #: dbx_preference.py:238 dbx_preference.py:491
 msgid "Shift + left mouse button"
-msgstr ""
+msgstr "Tombol kiri mouse + Shift"
 
 #: dbx_preference.py:240 dbx_preference.py:493
 msgid "Middle mouse button"
@@ -39,7 +39,7 @@ msgstr ""
 
 #: dbx_preference.py:242 dbx_preference.py:494
 msgid "Shift + middle mouse button"
-msgstr ""
+msgstr "Tombol tengah mouse + Shift"
 
 #: dbx_preference.py:244 dbx_preference.py:496
 msgid "Right mouse button"
@@ -47,25 +47,25 @@ msgstr ""
 
 #: dbx_preference.py:246 dbx_preference.py:497
 msgid "Shift + right mouse button"
-msgstr ""
+msgstr "Tombol kanan mouse + Shift"
 
 #: dbx_preference.py:248 dbx_preference.py:499
 msgid "Scroll up"
-msgstr ""
+msgstr "Menggeser keatas"
 
 #: dbx_preference.py:249 dbx_preference.py:500
 msgid "Scroll down"
-msgstr ""
+msgstr "Menggeser kebawah"
 
 #: dbx_preference.py:254 dbx_preference.py:566 dbx_preference.py:892
 #: dbx_preference.py:1123
 msgid "select or minimize window"
-msgstr ""
+msgstr "pilih atau mengecilkan jendela"
 
 #: dbx_preference.py:255 dbx_preference.py:565 dbx_preference.py:891
 #: dbx_preference.py:1122
 msgid "select window"
-msgstr ""
+msgstr "pilih jendela"
 
 #: dbx_preference.py:256
 msgid "maximize window"
@@ -73,11 +73,11 @@ msgstr ""
 
 #: dbx_preference.py:257
 msgid "close window"
-msgstr ""
+msgstr "tutup window"
 
 #: dbx_preference.py:258 dbx_preference.py:509
 msgid "show menu"
-msgstr ""
+msgstr "tampilkan menu"
 
 #: dbx_preference.py:259
 msgid "shade window"
@@ -89,11 +89,11 @@ msgstr ""
 
 #: dbx_preference.py:261 dbx_preference.py:518
 msgid "no action"
-msgstr ""
+msgstr "tidak terjadi apa-apa"
 
 #: dbx_preference.py:290
 msgid "Close window list"
-msgstr ""
+msgstr "Tutup daftar jendela"
 
 #: dbx_preference.py:306
 msgid "Theme:"
@@ -109,15 +109,15 @@ msgstr ""
 
 #: dbx_preference.py:385
 msgid "Compiz water"
-msgstr ""
+msgstr "Efek air Compiz"
 
 #: dbx_preference.py:387
 msgid "Blinking"
-msgstr ""
+msgstr "Berkedip"
 
 #: dbx_preference.py:389
 msgid "Static"
-msgstr ""
+msgstr "Diam"
 
 #: dbx_preference.py:391
 msgid "No effect"
@@ -126,10 +126,11 @@ msgstr ""
 #: dbx_preference.py:405
 msgid "Show window list only if more than one window is open"
 msgstr ""
+"Tampilkan daftar jendela hanya jika jendela yang terbuka lebih dari satu"
 
 #: dbx_preference.py:411
 msgid "Show tooltip when no window is open"
-msgstr ""
+msgstr "Tampilkan tooltip saat tidak ada jendela yang terbuka"
 
 #: dbx_preference.py:418
 msgid "Alignment"
@@ -153,7 +154,7 @@ msgstr ""
 
 #: dbx_preference.py:450
 msgid "Delay for switching between window lists"
-msgstr ""
+msgstr "Jeda saat beralih antara jendela"
 
 #: dbx_preference.py:463
 msgid "Previews"
@@ -161,7 +162,7 @@ msgstr ""
 
 #: dbx_preference.py:467
 msgid "Show previews"
-msgstr ""
+msgstr "Tampilkan preview"
 
 #: dbx_preference.py:472
 msgid "Preview size"
@@ -177,19 +178,19 @@ msgstr ""
 
 #: dbx_preference.py:505
 msgid "close all windows"
-msgstr ""
+msgstr "tutup semua jendela"
 
 #: dbx_preference.py:506
 msgid "minimize all windows"
-msgstr ""
+msgstr "Kecilkan semua jendela"
 
 #: dbx_preference.py:507
 msgid "maximize all windows"
-msgstr ""
+msgstr "perbesar semua jendela"
 
 #: dbx_preference.py:508
 msgid "launch application"
-msgstr ""
+msgstr "jalankan aplikasi"
 
 #: dbx_preference.py:510
 msgid "remove launcher"
@@ -197,15 +198,15 @@ msgstr ""
 
 #: dbx_preference.py:511
 msgid "select next window"
-msgstr ""
+msgstr "pilih jendela berikutnya"
 
 #: dbx_preference.py:512
 msgid "select previous window"
-msgstr ""
+msgstr "pilih jendela sebelumnya"
 
 #: dbx_preference.py:513
 msgid "minimize all other groups"
-msgstr ""
+msgstr "kecilkan semua jendela lain"
 
 #: dbx_preference.py:514
 msgid "compiz scale windows"
@@ -233,19 +234,19 @@ msgstr ""
 
 #: dbx_preference.py:562
 msgid "One window open"
-msgstr ""
+msgstr "Sebuah jendela terbuka"
 
 #: dbx_preference.py:571
 msgid "Multiple windows open"
-msgstr ""
+msgstr "Sejumlah jendela terbuka"
 
 #: dbx_preference.py:574 dbx_preference.py:901 dbx_preference.py:1135
 msgid "select all"
-msgstr ""
+msgstr "pilih semua"
 
 #: dbx_preference.py:575 dbx_preference.py:902 dbx_preference.py:1136
 msgid "select or minimize all"
-msgstr ""
+msgstr "pilih atau perkecil semua"
 
 #: dbx_preference.py:576 dbx_preference.py:903 dbx_preference.py:1137
 msgid "compiz scale"
@@ -257,7 +258,7 @@ msgstr ""
 
 #: dbx_preference.py:578 dbx_preference.py:905 dbx_preference.py:1139
 msgid "show window list"
-msgstr ""
+msgstr "tampilkan daftar jendela"
 
 #: dbx_preference.py:583
 msgid "Workspace behavior"
@@ -265,15 +266,15 @@ msgstr ""
 
 #: dbx_preference.py:587 dbx_preference.py:1151
 msgid "Ignore windows on other workspaces"
-msgstr ""
+msgstr "Abaikan jendela di workspace lainnya"
 
 #: dbx_preference.py:588 dbx_preference.py:915 dbx_preference.py:1152
 msgid "Switch workspace when needed"
-msgstr ""
+msgstr "Tukar workspace jika diperlukan"
 
 #: dbx_preference.py:590 dbx_preference.py:916 dbx_preference.py:1153
 msgid "Move windows from other workspaces"
-msgstr ""
+msgstr "Pindakhan jendela dari workspace lain"
 
 #: dbx_preference.py:601
 msgid "Ignore windows on other viewports/workspaces"
@@ -281,15 +282,15 @@ msgstr ""
 
 #: dbx_preference.py:607
 msgid "Ignore windows on other monitors"
-msgstr ""
+msgstr "Abaikan jendela di monitor lain"
 
 #: dbx_preference.py:614
 msgid "Give each wine application its own group button"
-msgstr ""
+msgstr "Berikan setiap aplikasi wine sebuah tombol group tersendiri"
 
 #: dbx_preference.py:621
 msgid "Keep open office application (Writer, Calc, etc.) separated"
-msgstr ""
+msgstr "Biarkan aplikasi open office (Writer, Calc, etc.) terpisah"
 
 #: dbx_preference.py:628
 msgid "Delay on select all (Workaround for order problems)"
@@ -332,15 +333,15 @@ msgstr ""
 
 #: dbx_preference.py:670 dockbarx/dockbar.py:1066
 msgid "Select next group"
-msgstr ""
+msgstr "Pilih grup berikutnya"
 
 #: dbx_preference.py:672 dockbarx/dockbar.py:1067
 msgid "Select previous group"
-msgstr ""
+msgstr "Pilih grup sebelumnya"
 
 #: dbx_preference.py:674 dockbarx/dockbar.py:1068
 msgid "Select next window in group"
-msgstr ""
+msgstr "Pilih jendela berikutnya pada grup"
 
 #: dbx_preference.py:676 dockbarx/dockbar.py:1069
 msgid "Select previous window in group"
@@ -504,3 +505,12 @@ msgstr ""
 #: dockbarx/groupbutton.py:1195
 msgid " all windows"
 msgstr ""
+
+#~ msgid "Cannot load icon for launcher"
+#~ msgstr "Tidak bisa membuka ikon dari peluncur"
+
+#~ msgid "The launcher at path"
+#~ msgstr "Alamat pada peluncur"
+
+#~ msgid "cant be found. Did you perhaps delete the file?"
+#~ msgstr "tidak ditemukan. Apakah anda telah menghapusnya?"

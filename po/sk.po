@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-10-03 22:50+0300\n"
-"PO-Revision-Date: 2010-10-03 23:45+0000\n"
+"PO-Revision-Date: 2010-12-20 19:20+0000\n"
 "Last-Translator: Marcel <marceliqq@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2010-12-23 19:44+0000\n"
+"X-Generator: Launchpad (build 12138)\n"
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
@@ -93,7 +93,7 @@ msgstr "žiadna akcia"
 
 #: dbx_preference.py:290
 msgid "Close window list"
-msgstr ""
+msgstr "Zatvoriť zoznam okien"
 
 #: dbx_preference.py:306
 msgid "Theme:"
@@ -125,7 +125,7 @@ msgstr "Žiadny efekt"
 
 #: dbx_preference.py:405
 msgid "Show window list only if more than one window is open"
-msgstr ""
+msgstr "Ukázať zoznam okien iba ak je otvorených viacero okien"
 
 #: dbx_preference.py:411
 msgid "Show tooltip when no window is open"
@@ -153,7 +153,7 @@ msgstr "Oneskorenie"
 
 #: dbx_preference.py:450
 msgid "Delay for switching between window lists"
-msgstr ""
+msgstr "Oneskorenie  prepínania zoznamu okien"
 
 #: dbx_preference.py:463
 msgid "Previews"
@@ -165,7 +165,7 @@ msgstr "Zobraziť náhľady"
 
 #: dbx_preference.py:472
 msgid "Preview size"
-msgstr ""
+msgstr "Veľkosť náhľadu"
 
 #: dbx_preference.py:484
 msgid "Group button actions"
@@ -233,11 +233,11 @@ msgstr "\"Vybrať\" možnosti akcie"
 
 #: dbx_preference.py:562
 msgid "One window open"
-msgstr ""
+msgstr "Otvorené jedno okno"
 
 #: dbx_preference.py:571
 msgid "Multiple windows open"
-msgstr ""
+msgstr "Otvorených viacero okein"
 
 #: dbx_preference.py:574 dbx_preference.py:901 dbx_preference.py:1135
 msgid "select all"
@@ -257,11 +257,11 @@ msgstr "Cyklovať medzi oknami"
 
 #: dbx_preference.py:578 dbx_preference.py:905 dbx_preference.py:1139
 msgid "show window list"
-msgstr ""
+msgstr "ukázať zoznam okien"
 
 #: dbx_preference.py:583
 msgid "Workspace behavior"
-msgstr ""
+msgstr "Správanie pracovných plôch"
 
 #: dbx_preference.py:587 dbx_preference.py:1151
 msgid "Ignore windows on other workspaces"
@@ -324,7 +324,7 @@ msgstr ""
 
 #: dbx_preference.py:651
 msgid "Opacity"
-msgstr ""
+msgstr "Priehľadnosť"
 
 #: dbx_preference.py:665
 msgid "Global Keyboard Shortcuts"
@@ -352,7 +352,7 @@ msgstr "Vzhľad"
 
 #: dbx_preference.py:720
 msgid "Window List"
-msgstr ""
+msgstr "Zoznam Okien"
 
 #: dbx_preference.py:721
 msgid "Group Button"

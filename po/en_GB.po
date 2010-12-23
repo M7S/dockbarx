@@ -14,8 +14,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-17 17:00+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2010-12-23 19:44+0000\n"
+"X-Generator: Launchpad (build 12138)\n"
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
@@ -523,6 +523,9 @@ msgstr "Related"
 msgid " all windows"
 msgstr " all windows"
 
+#~ msgid "Cannot load icon for launcher"
+#~ msgstr "Can not load icon for launcher"
+
 #~ msgid "The launcher at path"
 #~ msgstr "The launcher at path"
 
@@ -538,6 +541,9 @@ msgstr " all windows"
 #~ msgid "Opacity:"
 #~ msgstr "Opacity:"
 
+#~ msgid "Popup Settings"
+#~ msgstr "Popup Settings"
+
 #~ msgid "Multiple windows open:"
 #~ msgstr "Multiple windows open:"
 
@@ -549,6 +555,9 @@ msgstr " all windows"
 
 #~ msgid "Workspace behavior:"
 #~ msgstr "Workspace behaviour:"
+
+#~ msgid "Popup"
+#~ msgstr "Popup"
 
 #~ msgid "Show popup only if more than one window is open"
 #~ msgstr "Show popup only if more than one window is open"

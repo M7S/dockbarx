@@ -1,4 +1,4 @@
-# Ukrainian translation for dockbar
+# Basque translation for dockbar
 # Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the dockbar package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-10-03 22:50+0300\n"
-"PO-Revision-Date: 2010-12-07 19:44+0000\n"
-"Last-Translator: roman prokopyshyn (Роман Прокопишин) <colobocman@mail.ru>\n"
-"Language-Team: Ukrainian <uk@li.org>\n"
+"PO-Revision-Date: 2010-12-08 20:11+0000\n"
+"Last-Translator: Ander Elortondo <ander.elor@gmail.com>\n"
+"Language-Team: Basque <eu@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,281 +19,281 @@ msgstr ""
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
-msgstr "Налаштування DockBarX"
+msgstr "DockBarX hobespenak"
 
 #: dbx_preference.py:231
 msgid "Window item actions"
-msgstr "Дія кнопки вікна"
+msgstr "Leihoen ekintzak"
 
 #: dbx_preference.py:237 dbx_preference.py:490
 msgid "Left mouse button"
-msgstr "Ліва кнопка миші"
+msgstr "Saguaren ezkerreko botoia"
 
 #: dbx_preference.py:238 dbx_preference.py:491
 msgid "Shift + left mouse button"
-msgstr "Shift + ліва кнопка миші"
+msgstr "Shift + saguaren ezkerreko botoia"
 
 #: dbx_preference.py:240 dbx_preference.py:493
 msgid "Middle mouse button"
-msgstr "Середня кнопка миші"
+msgstr "Saguaren erdiko botoia"
 
 #: dbx_preference.py:242 dbx_preference.py:494
 msgid "Shift + middle mouse button"
-msgstr "Shift + середня кнопка миші"
+msgstr "Shift + saguaren erdiko botoia"
 
 #: dbx_preference.py:244 dbx_preference.py:496
 msgid "Right mouse button"
-msgstr "Права кнопка миші"
+msgstr "Saguaren eskuineko botoia"
 
 #: dbx_preference.py:246 dbx_preference.py:497
 msgid "Shift + right mouse button"
-msgstr "Shift + права кнопка миші"
+msgstr "Shift + saguaren eskuineko botoia"
 
 #: dbx_preference.py:248 dbx_preference.py:499
 msgid "Scroll up"
-msgstr "Прокрутити вгору"
+msgstr "Korritu gora"
 
 #: dbx_preference.py:249 dbx_preference.py:500
 msgid "Scroll down"
-msgstr "Прокрутити вниз"
+msgstr "Korritu behera"
 
 #: dbx_preference.py:254 dbx_preference.py:566 dbx_preference.py:892
 #: dbx_preference.py:1123
 msgid "select or minimize window"
-msgstr "обрати або мінімізувати вікно"
+msgstr "Aukeratu edo minimizatu leihoa"
 
 #: dbx_preference.py:255 dbx_preference.py:565 dbx_preference.py:891
 #: dbx_preference.py:1122
 msgid "select window"
-msgstr "обрати вікно"
+msgstr "Aukeratu leihoa"
 
 #: dbx_preference.py:256
 msgid "maximize window"
-msgstr "максимізувати вікно"
+msgstr "maximizatu leihoa"
 
 #: dbx_preference.py:257
 msgid "close window"
-msgstr "закрити вікно"
+msgstr "Itxi leihoa"
 
 #: dbx_preference.py:258 dbx_preference.py:509
 msgid "show menu"
-msgstr "показати меню"
+msgstr "Ikusi menua"
 
 #: dbx_preference.py:259
 msgid "shade window"
-msgstr "згорнути вікно в заголовок"
+msgstr "Itzaldu leihoa"
 
 #: dbx_preference.py:260
 msgid "unshade window"
-msgstr "розгорнути вікно із заголовку"
+msgstr "Desitzaldu leihoa"
 
 #: dbx_preference.py:261 dbx_preference.py:518
 msgid "no action"
-msgstr "немає дії"
+msgstr "Ekintzarik ez"
 
 #: dbx_preference.py:290
 msgid "Close window list"
-msgstr "Закрити список вікна"
+msgstr "Itxi leiho zerrenda"
 
 #: dbx_preference.py:306
 msgid "Theme:"
-msgstr "Тема:"
+msgstr "Gaia:"
 
 #: dbx_preference.py:324
 msgid "Colors"
-msgstr "Кольори"
+msgstr "Koloreak"
 
 #: dbx_preference.py:381
 msgid "Needs attention effect"
-msgstr "Ефект привертання уваги"
+msgstr "Efektua harreta behar denean"
 
 #: dbx_preference.py:385
 msgid "Compiz water"
-msgstr "Ефект води Compiz"
+msgstr "Compiz ura"
 
 #: dbx_preference.py:387
 msgid "Blinking"
-msgstr "Блимання"
+msgstr "Keinuka"
 
 #: dbx_preference.py:389
 msgid "Static"
-msgstr "Статичний"
+msgstr "Estatikoa"
 
 #: dbx_preference.py:391
 msgid "No effect"
-msgstr "Без ефектів"
+msgstr "Efekturik ez"
 
 #: dbx_preference.py:405
 msgid "Show window list only if more than one window is open"
-msgstr "Показувати список вікон, якщо відкрито більше, ніж одне вікно"
+msgstr "Ikusi leiho zerrenda leiho bat baino gehiago zabalik dagoenean"
 
 #: dbx_preference.py:411
 msgid "Show tooltip when no window is open"
-msgstr "Показувати виринаючу підказку, якщо немає відкритих вікон"
+msgstr "Erakutsi argibidea leihorik ez dagoenean irekita"
 
 #: dbx_preference.py:418
 msgid "Alignment"
-msgstr "Вирівнювання"
+msgstr "Lerrokatzea"
 
 #: dbx_preference.py:422
 msgid "Align left"
-msgstr "Вирівняти ліворуч"
+msgstr "Lerrokatu ezkerrean"
 
 #: dbx_preference.py:424
 msgid "Align center"
-msgstr "Вирівняти по центру"
+msgstr "Lerrokatu erdian"
 
 #: dbx_preference.py:426
 msgid "Align right"
-msgstr "Вирівняти праворуч"
+msgstr "Lerrokatu eskuinean"
 
 #: dbx_preference.py:435 dbx_preference.py:440
 msgid "Delay"
-msgstr "Затримка"
+msgstr "Denbora tartea"
 
 #: dbx_preference.py:450
 msgid "Delay for switching between window lists"
-msgstr "Затримка перемикання між списками вікон"
+msgstr "Leiho zerrenden aldaketa arteko denbora"
 
 #: dbx_preference.py:463
 msgid "Previews"
-msgstr "Мініатюри"
+msgstr "Aurrebistak"
 
 #: dbx_preference.py:467
 msgid "Show previews"
-msgstr "Показувати мініатюри"
+msgstr "Erakutsi aurrebistak"
 
 #: dbx_preference.py:472
 msgid "Preview size"
-msgstr "Розмір мініатюр"
+msgstr "Aurrebistaren tamaina"
 
 #: dbx_preference.py:484
 msgid "Group button actions"
-msgstr "Дія для клавіші групування"
+msgstr "Talde botoi ekintzak"
 
 #: dbx_preference.py:504
 msgid "select"
-msgstr "обрати"
+msgstr "Hautatu"
 
 #: dbx_preference.py:505
 msgid "close all windows"
-msgstr "закрити всі вікна"
+msgstr "Itxi leiho denak"
 
 #: dbx_preference.py:506
 msgid "minimize all windows"
-msgstr "згорнути всі вікна"
+msgstr "Minimizatu leiho denak"
 
 #: dbx_preference.py:507
 msgid "maximize all windows"
-msgstr "максимізувати всі вікна"
+msgstr "Maximizatu leiho denak"
 
 #: dbx_preference.py:508
 msgid "launch application"
-msgstr "запустити програму"
+msgstr "Abiarazi aplikazioa"
 
 #: dbx_preference.py:510
 msgid "remove launcher"
-msgstr "прибрати значок швидкого запуску"
+msgstr "Kendu abiarazlea"
 
 #: dbx_preference.py:511
 msgid "select next window"
-msgstr "вибрати наступне вікно"
+msgstr "Aukeratu hurrengo leihoa"
 
 #: dbx_preference.py:512
 msgid "select previous window"
-msgstr "вибрати попереднє вікно"
+msgstr "Aukeratu aurreko leihoa"
 
 #: dbx_preference.py:513
 msgid "minimize all other groups"
-msgstr "згорнути інші групи"
+msgstr "Minimizatu beste talde denak"
 
 #: dbx_preference.py:514
 msgid "compiz scale windows"
-msgstr "масштабування compiz"
+msgstr "compiz leiho eskalatzea"
 
 #: dbx_preference.py:515
 msgid "compiz shift windows"
-msgstr "пермикач вікон compiz"
+msgstr "compiz leiho aldatzea"
 
 #: dbx_preference.py:516
 msgid "compiz scale all"
-msgstr "маштабування compiz"
+msgstr "compiz dena eskalatu"
 
 #: dbx_preference.py:517
 msgid "show preference dialog"
-msgstr "показати вікно налаштувань"
+msgstr "Erakutsi hobespenen elkarrizketa"
 
 #: dbx_preference.py:545
 msgid "Double click"
-msgstr "Подвійне натискання"
+msgstr "Klik bikoitza"
 
 #: dbx_preference.py:556
 msgid "\"Select\" action options"
-msgstr "Дія при натисканні значка запуску"
+msgstr "\"aukeratu\" ekintzaren aukerak"
 
 #: dbx_preference.py:562
 msgid "One window open"
-msgstr "Відкрито одне вікно"
+msgstr "Leiho bat irekita"
 
 #: dbx_preference.py:571
 msgid "Multiple windows open"
-msgstr "Відкрито декілька вікон"
+msgstr "Hainbat leiho irekita"
 
 #: dbx_preference.py:574 dbx_preference.py:901 dbx_preference.py:1135
 msgid "select all"
-msgstr "вибрати усе"
+msgstr "aukeratu denak"
 
 #: dbx_preference.py:575 dbx_preference.py:902 dbx_preference.py:1136
 msgid "select or minimize all"
-msgstr "вибрати чи мінімізувати все"
+msgstr "aukeratu edo minimizatu denak"
 
 #: dbx_preference.py:576 dbx_preference.py:903 dbx_preference.py:1137
 msgid "compiz scale"
-msgstr "маштабування compiz"
+msgstr "compiz eskala"
 
 #: dbx_preference.py:577 dbx_preference.py:904 dbx_preference.py:1138
 msgid "cycle through windows"
-msgstr "циклічно змінювати вікна"
+msgstr ""
 
 #: dbx_preference.py:578 dbx_preference.py:905 dbx_preference.py:1139
 msgid "show window list"
-msgstr "показувати список вікон"
+msgstr "erakutsi leiho zerrenda"
 
 #: dbx_preference.py:583
 msgid "Workspace behavior"
-msgstr "Поведінка стільниць"
+msgstr "Idazmahaiaren portaera"
 
 #: dbx_preference.py:587 dbx_preference.py:1151
 msgid "Ignore windows on other workspaces"
-msgstr "Ігнорувати вікна з інших стільниць"
+msgstr "Ezikusi beste idazmahaietako leihoak"
 
 #: dbx_preference.py:588 dbx_preference.py:915 dbx_preference.py:1152
 msgid "Switch workspace when needed"
-msgstr "Перемикати стільниці, якщо необхідно"
+msgstr "Aldatu idazmahaia behar denean"
 
 #: dbx_preference.py:590 dbx_preference.py:916 dbx_preference.py:1153
 msgid "Move windows from other workspaces"
-msgstr "Перемістити вікна з інших стільниць"
+msgstr "Mugitu leihoak beste mahaigainetatik"
 
 #: dbx_preference.py:601
 msgid "Ignore windows on other viewports/workspaces"
-msgstr "Ігнорувати вікна з інших робочих областей/стільниць"
+msgstr "Ezikusi leihoak beste lehiatila/mahaiganetan"
 
 #: dbx_preference.py:607
 msgid "Ignore windows on other monitors"
-msgstr "Ігнорувати вікна з інших моніторів"
+msgstr "Ezikusi leihoak beste monitoretan"
 
 #: dbx_preference.py:614
 msgid "Give each wine application its own group button"
-msgstr "Використовувати власну кнопку для кожної wine-програми"
+msgstr "Wine aplikazio bakoitzari eman bere talde botoia"
 
 #: dbx_preference.py:621
 msgid "Keep open office application (Writer, Calc, etc.) separated"
-msgstr "Розділяти офісні програми (Writer, Calc, тощо)"
+msgstr "Mantendu banatuta bulego aplikazioak (Writer, Calc, etab.)"
 
 #: dbx_preference.py:628
 msgid "Delay on select all (Workaround for order problems)"
-msgstr "Затримка при виборі всіх (Вирішення ряду проблем)"
+msgstr "Atzerapena denak batera aukeratzean (ordena arazoak ekiditeko)"
 
 #: dbx_preference.py:629
 msgid ""
@@ -301,96 +301,92 @@ msgid ""
 "once. This problem can be solved by adding short delays between the "
 "activation of each window."
 msgstr ""
-"Compiz не може обробляти групу із декількох вікон, які всплили одночасно. Ця "
-"проблема може бути вирішена додаванням малих затримок між активацією кожного "
-"вікна."
+"Hainbat leiho batera aurkeztean, baliteke compiz ez izatea gai ordena "
+"gordetzeko. Arazo hau leiho bakoitzaren aktibazioan atzerapen txiki bat "
+"txertatuz konpontzen da."
 
 #: dbx_preference.py:637 dbx_preference.py:641
 msgid "Opacify"
-msgstr "Непрозорість"
+msgstr ""
 
 #: dbx_preference.py:642
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
 msgstr ""
-"Непрозорість робить усі інші вікна прозорими при наведенні курсору на назву "
-"або мініатюру в списці вікон"
 
 #: dbx_preference.py:645
 msgid "Opacify group"
-msgstr "Непрозорість групи"
+msgstr ""
 
 #: dbx_preference.py:646
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
 msgstr ""
-"Непрозорість групи робить усі інші групи прозорими при наведенні курсору на "
-"кнопку групи"
 
 #: dbx_preference.py:651
 msgid "Opacity"
-msgstr "Прозорість"
+msgstr "Opakotasuna"
 
 #: dbx_preference.py:665
 msgid "Global Keyboard Shortcuts"
-msgstr "Глобальні клавіатурні скорочення"
+msgstr "Laster-tekla orokorrak"
 
 #: dbx_preference.py:670 dockbarx/dockbar.py:1066
 msgid "Select next group"
-msgstr "Обрати наступну групу"
+msgstr "Aukeratu hurrengo taldea"
 
 #: dbx_preference.py:672 dockbarx/dockbar.py:1067
 msgid "Select previous group"
-msgstr "Обрати попередню групу"
+msgstr "Aukeratu aurreko taldea"
 
 #: dbx_preference.py:674 dockbarx/dockbar.py:1068
 msgid "Select next window in group"
-msgstr "Вибрати наступне вікно у групі"
+msgstr "Aukeratu taldeko hurrengo leihoa"
 
 #: dbx_preference.py:676 dockbarx/dockbar.py:1069
 msgid "Select previous window in group"
-msgstr "Вибрати попереднє вікно у групі"
+msgstr "Aukeratu taldeko aurreko leihoa"
 
 #: dbx_preference.py:719
 msgid "Appearance"
-msgstr "Зовнішній вигляд"
+msgstr "Itxura"
 
 #: dbx_preference.py:720
 msgid "Window List"
-msgstr "Список вікон"
+msgstr "Leiho Zerrenda"
 
 #: dbx_preference.py:721
 msgid "Group Button"
-msgstr "Кнопка групи"
+msgstr "Talde botoia"
 
 #: dbx_preference.py:722
 msgid "Window Item"
-msgstr "Кнопка вікна"
+msgstr "Leihoa"
 
 #: dbx_preference.py:723
 msgid "Advanced"
-msgstr "Додатково"
+msgstr "Aurreratua"
 
 #: dbx_preference.py:783 dockbarx/theme.py:168
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
-"Жодної працюючої теми не знайдено ні в /usr/share/dockbarx/themes, ні в "
-"~/.dockbarx/themes"
+"/usr/share/dockbarx/themes edo ~/.dockbarx/themes kokapeneko gaiak ez "
+"dabiltza."
 
 #: dbx_preference.py:914
 msgid "Ignore windows on other workspace"
-msgstr "Ігнорувати вікна з інших стільниць"
+msgstr "Ezikusi leihoak beste mahaiganetan"
 
 #: dbx_preference.py:1013
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
-"Перегляд мініатюр працює лише з ввімкненим плагіном compiz KDE Compability. "
-"Активувати його зараз?"
+"Aurrebistak compizeko KDE konpatibilitate plugina aktibatua behar du.Nahi "
+"duzu dockbarx zugatik aktibatzea?"
 
 #: dbx_preference.py:1027
 msgid ""
@@ -398,158 +394,126 @@ msgid ""
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
-"Плагін compiz KDE Compability для перегляду мініатюр наразі не встановлено. "
-"Якщо ви використовуєте Ubuntu, будь ласка, встановіть пакет compiz-fusion-"
-"plugins-main"
+"Compizeko KDE konpatibilitate plugina behar da aurrebistarako eta badirudi "
+"instalatzeke duzula. Ubuntu erabiltzen bazabiltza instalatu compiz-fusion-"
+"plugins-main paketea."
 
 #: dbx_preference.py:1044
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
-"Перегляд мініатюр працює з ввімкненою опцією \"Support Plasma Thumnails\" у "
-"налаштуваннях плагіна KDE Compability. Активувати її зараз?"
 
 #: dbx_preference.py:1066
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
-"Непрозорість працює з плагіном compiz Opacity, Brightness and Saturation. "
-"Активувати його зараз?"
 
 #: dbx_preference.py:1227
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr ""
-"У комбінації клавіш повинна бути хоча б одна модульна клавіша (<control>, "
-"<alt> чи <super>)"
 
 #: dockbarx/dockbar.py:872 dockbarx/groupbutton.py:186
 #: dockbarx/groupbutton.py:231
 msgid "Identifier"
-msgstr "Ідентифікатор"
+msgstr "Identifikatzailea"
 
 #: dockbarx/dockbar.py:873
 msgid "Enter the identifier here"
-msgstr "Введіть інтендифікатор тут"
+msgstr "Sartu identifikatzailea hemen"
 
 #: dockbarx/dockbar.py:875
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
-"Ви повинні зробити це лише у тому випадку, якщо програмі не вдасться "
-"організувати свої вікна "
+"Programak bere leihoak ezagutzen ez dituenean bakarrik egin behar duzu hau. "
 
 #: dockbarx/dockbar.py:876
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr ""
-"Ви можете знайти індефікатор у списку вікон лише тоді, коли програма вже "
-"працює"
+"Programa jadanik exekutatzen badabil bere identifikatzailea aurkitzeko gai "
+"izan beharko zinateke goitibehera zerrendan."
 
 #: dockbarx/dockbar.py:894
 msgid "Identifier:"
-msgstr "Ідентифікатор:"
+msgstr "Identifikatzailea:"
 
 #: dockbarx/dockbar.py:1095
 msgid "The key is already bound elsewhere."
-msgstr "Ця клавіша вже використовується"
+msgstr ""
 
 #: dockbarx/dockbar.py:1097
 #, python-format
 msgid ""
 "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
 msgstr ""
-"Помилка: DockbarX не вдалося встановити глобальну комбінацію клавіш "
-"'%(keystr)s' для %(function)s."
 
 #: dockbarx/windowbutton.py:550 dockbarx/groupbutton.py:1207
 msgid "_Minimize"
-msgstr "_Згорнути"
+msgstr "_minimizatu"
 
 #: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1199
 msgid "Un_minimize"
-msgstr "_Розгорнути"
+msgstr "des _minimizatu"
 
 #: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1217
 msgid "Ma_ximize"
-msgstr "Розгорнути на ве_сь екран"
+msgstr "Ma_ximizatu"
 
 #: dockbarx/windowbutton.py:565 dockbarx/groupbutton.py:1221
 msgid "Unma_ximize"
-msgstr "В_ідновити попередній розмір"
+msgstr "Desma_ximizatu"
 
 #: dockbarx/windowbutton.py:571 dockbarx/groupbutton.py:1227
 msgid "_Close"
-msgstr "_Закрити"
+msgstr "_Itxi"
 
 #: dockbarx/groupbutton.py:1107
 msgid "_Launch application"
-msgstr "_Виконати програму"
+msgstr "_Abiarazi aplikazioa"
 
 #: dockbarx/groupbutton.py:1114
 msgid "_Pin application"
-msgstr "_Прікріпити програму"
+msgstr ""
 
 #: dockbarx/groupbutton.py:1120
 msgid "Make custom launcher"
-msgstr "Створити кнопку запуску"
+msgstr "Egin abiarazle pertsonalizatua"
 
 #: dockbarx/groupbutton.py:1127
 msgid "Unpin application"
-msgstr "Вилучити програму"
+msgstr ""
 
 #: dockbarx/groupbutton.py:1134
 msgid "Properties"
-msgstr "Властивості"
+msgstr "Propietateak"
 
 #: dockbarx/groupbutton.py:1138
 msgid "Edit Identifier"
-msgstr "Змінити інтендифікатор"
+msgstr "Editatu identifikatzailea"
 
 #: dockbarx/groupbutton.py:1144
 msgid "Edit Launcher"
-msgstr "Редагувати кнопку запуску"
+msgstr "Abiarazlea editatu"
 
 #: dockbarx/groupbutton.py:1161
 msgid "Recent"
-msgstr "Нещодавні"
+msgstr "Azkenekoak"
 
 #: dockbarx/groupbutton.py:1162
 msgid "Most used"
-msgstr "Найчастіше використовувані"
+msgstr "Erabilienak"
 
 #: dockbarx/groupbutton.py:1163
 msgid "Related"
-msgstr "Схоже"
+msgstr "Harremana dutenak"
 
 #: dockbarx/groupbutton.py:1195
 msgid " all windows"
-msgstr " всі вікна"
-
-#~ msgid "Opacity:"
-#~ msgstr "Непрозорість:"
-
-#~ msgid "Popup Settings"
-#~ msgstr "Налаштування підказок"
-
-#~ msgid "show popup"
-#~ msgstr "показати виринаюче вікно"
-
-#~ msgid "Delay:"
-#~ msgstr "Затримка:"
-
-#~ msgid "Popup"
-#~ msgstr "Виринаюче вікно"
-
-#~ msgid "Show popup only if more than one window is open"
-#~ msgstr ""
-#~ "Показувати виринаюче вікно тільки у випадку, коли відкритих вікон більше "
-#~ "одного"
-
-#~ msgid "Preview size:"
-#~ msgstr "Розмір мініатюр:"
+msgstr " leiho denak"

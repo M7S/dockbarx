@@ -1,4 +1,17 @@
 Changelog:
+0.42
+End user features:
+- It's now possible to scroll through windows (by using mouse or keyboard shortcuts) without raising all of them.
+- Opacify now fades in and out.
+- If the previews takes up too much space to fit the screen, a list without previews will be shown instead.
+- The size of previews are now set in such a way that the window is shrunk until it fits a in box with the same size aspect ratio as the monitor (the size you set from preference window is the height of this box). Previously it was fitted into a square (size*size). This makes the height of the previews more even.
+- Vertical panels now stacks the previews vertically. The placement of the window list is set according to the golden ratio instead of aligning the top of the button and the window list.
+- For those of you who doesn't like the new menu: The old gtk menu is back and you can choose to use it from preference window.  
+
+Bug fixes:
+- Bug #688953: & and other symbols in window titles made the titles in the window list unreadable.
+- Bug #690731: With vertical panels the window lists were partly outside the screen when the group button was near the bottom of the screen.
+
 0.41
 End user features:
 - New looks for window list and menu!
