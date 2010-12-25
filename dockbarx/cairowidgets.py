@@ -388,6 +388,9 @@ class CairoWindowItem(CairoWindowButton):
 
 
         self.close_button = CairoCloseButton()
+        self.close_button.set_no_show_all(True)
+        if self.globals.settings["show_close_button"]:
+            self.close_button.show()
         self.label = gtk.Label()
         self.label.set_ellipsize(ELLIPSIZE_END)
         self.label.set_alignment(0, 0.5)
@@ -414,10 +417,19 @@ class CairoWindowItem(CairoWindowButton):
 
         self.close_button.connect("button-press-event", self.disable_click)
         self.close_button.connect("clicked", self.on_close_button_clicked)
+        self.globals.connect('show-close-button-changed',
+                             self.on_show_close_button_changed)
         self.globals.connect('color-changed', self.__update_label_state)
 
     def on_close_button_clicked(self, *args):
         self.emit('close-clicked')
+
+    def on_show_close_button_changed(self, *args):
+        if self.globals.settings["show_close_button"]:
+            self.close_button.show()
+        else:
+            self.close_button.hide()
+            self.label.queue_resize()
 
     def __update_label_state(self, arg=None):
         """Updates the style of the label according to window state."""

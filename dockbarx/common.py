@@ -437,7 +437,9 @@ class Globals(gobject.GObject):
         'show-previews-changed': (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,()),
         'preference-update': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'gkey-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
+        'gkey-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        'show-close-button-changed': (gobject.SIGNAL_RUN_FIRST,
+                                      gobject.TYPE_NONE,())
     }
 
     DEFAULT_SETTINGS = {
@@ -453,6 +455,7 @@ class Globals(gobject.GObject):
           "preview": False,
           "preview_size": 150,
           "old_menu": False,
+          "show_close_button": True,
 
           "select_one_window": "select or minimize window",
           "select_multiple_windows": "select or minimize all",
@@ -637,6 +640,8 @@ class Globals(gobject.GObject):
             self.emit('show-previews-changed')
         if 'groupbutton_show_tooltip' in changed_settings:
             self.emit('show-tooltip-changed')
+        if 'show_close_button' in changed_settings:
+            self.emit('show-close-button-changed')
         for key in changed_settings:
             if key == 'theme':
                 self.emit('theme-changed')

@@ -300,6 +300,14 @@ class PrefDialog():
         frame.add(hbox)
         windowbutton_box.pack_start(frame, False, padding=5)
 
+        self.show_close_button_cb = gtk.CheckButton(
+                            _('Show close button'))
+        self.show_close_button_cb.connect('toggled', self.checkbutton_toggled,
+                                         'show_close_button')
+        self.show_close_button_cb.set_border_width(5)
+        windowbutton_box.pack_start(self.show_close_button_cb,
+                                    False, padding=5)
+
 
         #--- Appearance page
         hbox = gtk.HBox()
@@ -912,6 +920,10 @@ class PrefDialog():
         for name in self.wb_close_popup_checkbutton_names:
             self.wb_close_popup_checkbutton[name].set_active(
                                                 self.globals.settings[name])
+
+        # Show close button
+        self.show_close_button_cb.set_active(
+                                self.globals.settings["show_close_button"])
 
         # Opacify
         self.opacify_cb.set_active(self.globals.settings['opacify'])
