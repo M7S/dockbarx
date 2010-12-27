@@ -1344,8 +1344,8 @@ class GroupButton(gobject.GObject):
         if name in self.zg_files:
             self.launch_item(None, None, self.zg_files[name])
             return
-        {_("Close"): self.action_close_all_windows,
-         _("Close") + _(" all windows"): self.action_close_all_windows,
+        {_("_Close"): self.action_close_all_windows,
+         _("_Close") + _(" all windows"): self.action_close_all_windows,
          _("Ma_ximize"): self.action_maximize_all_windows,
          _("Ma_ximize") + _(" all windows"): self.action_maximize_all_windows,
          _("Unma_ximize"): self.action_maximize_all_windows,
