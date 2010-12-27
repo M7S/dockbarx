@@ -1,4 +1,10 @@
 Changelog:
+0.42.1
+End user features:
+- You can now choose if you want a close buttons in window list or not.
+Bug fixes:
+- Close and Close all in group menu didn't work. 
+
 0.42
 End user features:
 - It's now possible to scroll through windows (by using mouse or keyboard shortcuts) without raising all of them.

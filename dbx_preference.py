@@ -303,10 +303,10 @@ class PrefDialog():
         self.show_close_button_cb = gtk.CheckButton(
                             _('Show close button'))
         self.show_close_button_cb.connect('toggled', self.checkbutton_toggled,
-                                         'show_close_button')
-        self.show_close_button_cb.set_border_width(5)
+                                          'show_close_button')
+        self.show_close_button_cb.set_border_width(10)
         windowbutton_box.pack_start(self.show_close_button_cb,
-                                    False, padding=5)
+                                    False)
 
 
         #--- Appearance page
