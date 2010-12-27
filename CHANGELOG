@@ -1,7 +1,7 @@
 Changelog:
 0.42.1
 End user features:
-- You can now choose if you want a close buttons in window list or not.
+- You can now choose if you want the close button on the window items or not.
 Bug fixes:
 - Close and Close all in group menu didn't work. 
 
