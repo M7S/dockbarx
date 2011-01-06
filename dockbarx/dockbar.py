@@ -38,6 +38,7 @@ from groupbutton import *
 from cairowidgets import *
 from theme import Theme, NoThemesError
 from common import *
+from mediabuttons import Mpris2Watch
 
 import i18n
 _ = i18n.language.gettext
@@ -119,6 +120,10 @@ class DockBar():
         self.skip_tasklist_windows = None
         self.scrollpeak_gr = None
         self.nextlist = None
+
+        self.mpris = Mpris2Watch()
+        self.mpris.connect('player-added', self.media_player_added)
+        self.mpris.connect('player-removed', self.media_player_removed)
 
         self.gkeys = {
                         'gkeys_select_next_group': None,
@@ -471,7 +476,6 @@ class DockBar():
                 window.connect("name-changed", self.on_ooo_window_name_changed)
         self.windows[window] = identifier
         if identifier in self.groups.get_identifiers():
-            # This isn't the first open window of this group.
             self.groups[identifier].add_window(window)
             return
 
@@ -483,11 +487,15 @@ class DockBar():
         else:
             desktop_entry_id = self.find_desktop_entry_id(identifier)
         if desktop_entry_id:
-            # The window is matching a launcher without open windows.
             desktop_entry = self.desktop_entry_by_id[desktop_entry_id]
             path = desktop_entry.getFileName()
             group = self.groups[path]
             group.set_identifier(identifier)
+            # Identifier changed, update media buttons.
+            if self.mpris.has_player(identifier):
+                group.add_media_buttons(identifier)
+            else:
+                group.remove_media_buttons()
             group.add_window(window)
             self.update_pinned_apps_list()
             self.remove_desktop_entry_id_from_undefined_list(desktop_entry_id)
@@ -671,6 +679,10 @@ class DockBar():
         else:
             self.groups.append(gb)
 
+        if identifier and self.mpris.has_player(identifier):
+            gb.add_media_buttons(identifier)
+        else:
+            gb.remove_media_buttons()
 
         gb.connect('delete', self.remove_groupbutton)
         gb.connect('identifier-change', self.change_identifier)
@@ -995,6 +1007,12 @@ class DockBar():
             self.on_window_opened(self.screen, window)
         self.update_pinned_apps_list()
 
+        if self.mpris.has_player(identifier):
+            group.add_media_buttons(identifier)
+        else:
+            group.remove_media_buttons()
+
+
     def update_pinned_apps_list(self, arg=None):
         # Saves pinned_apps_list to gconf.
         gconf_pinned_apps = []
@@ -1095,6 +1113,17 @@ class DockBar():
         return True
     def cleanup(self,event):
         del self.applet
+
+    #### Media players
+    def media_player_added(self, obj, name):
+        if self.groups is not None and \
+           name in self.groups.get_identifiers():
+            self.groups[name].add_media_buttons(name)
+
+    def media_player_removed(self, obj, name):
+        if self.groups is not None and \
+           name in self.groups.get_identifiers():
+            self.groups[name].remove_media_buttons()
 
     #### Keyboard actions
     def on_gkeys_changed(self, arg=None, dialog=True):

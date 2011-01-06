@@ -38,6 +38,7 @@ from cairowidgets import CairoButton, CairoMenuItem
 from cairowidgets import CairoPopup, CairoToggleMenu
 from common import ODict, Globals, DesktopEntry
 from common import Opacify,  compiz_call_async
+from mediabuttons import MediaButtons
 import zg
 
 import i18n
@@ -162,6 +163,7 @@ class GroupButton(gobject.GObject):
         self.menu_selection_done_sid = None
         self.menu_is_shown = False
         self.menu = None
+        self.media_buttons = None
 
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
@@ -210,6 +212,7 @@ class GroupButton(gobject.GObject):
         self.winlist = None
         self.set_show_previews(self.globals.settings['preview'])
         self.popup.add(self.popup_box)
+
 
 
         #--- D'n'D
@@ -283,7 +286,9 @@ class GroupButton(gobject.GObject):
 
     def update_tooltip(self, arg=None):
         if self.globals.settings['groupbutton_show_tooltip'] and \
-           self.windows.get_count() == 0:
+           self.windows.get_count() == 0 and \
+           (self.globals.settings['no_popup_for_one_window'] \
+            or not self.media_buttons):
             try:
                 comment = self.desktop_entry.getComment()
             except:
@@ -298,6 +303,8 @@ class GroupButton(gobject.GObject):
 
     def remove(self):
         # Remove group button.
+        if self.media_buttons:
+            self.remove_media_buttons()
         if self.launch_sid:
             gobject.source_remove(self.launch_sid)
             self.launch_sid = None
@@ -678,7 +685,7 @@ class GroupButton(gobject.GObject):
         if self.globals.gtkmenu_showing:
             return
         win_cnt = self.windows.get_count()
-        if win_cnt == 0 and not self.menu_is_shown:
+        if win_cnt == 0 and not self.media_buttons and not self.menu_is_shown:
             self.hide_list()
             return
         if self.globals.settings["preview"]:
@@ -924,6 +931,22 @@ class GroupButton(gobject.GObject):
             gobject.timeout_add(110, self.deopacify)
 
 
+    #### Media Buttons
+    def add_media_buttons(self, name):
+        if self.media_buttons:
+            self.remove_media_buttons()
+        self.media_buttons = MediaButtons(name)
+        self.popup_box.pack_start(self.media_buttons)
+        self.media_buttons.show()
+        self.update_tooltip()
+
+    def remove_media_buttons(self):
+        if self.media_buttons:
+            self.media_buttons.remove()
+            self.media_buttons.destroy()
+            self.media_buttons = None
+            self.update_tooltip()
+
     #### DnD (source)
     def on_drag_begin(self, widget, drag_context):
         self.is_current_drag_source = True
@@ -1083,10 +1106,10 @@ class GroupButton(gobject.GObject):
         self.mouse_over = True
         self.update_state()
         win_cnt = self.windows.get_count()
-        if  win_cnt == 0:
-            return
-        if win_cnt == 1 and \
+        if win_cnt <= 1 and \
            self.globals.settings['no_popup_for_one_window']:
+            return
+        if  win_cnt == 0 and not self.media_buttons:
             return
 
         if self.globals.gb_showing_popup is None:

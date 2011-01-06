@@ -73,12 +73,11 @@ class CairoButton(gtk.Button):
         else:
             return False
 
-
-class CairoCloseButton(gtk.Button):
+class CairoSmallButton(gtk.Button):
     __gsignals__ = {'expose-event' : 'override',}
-    def __init__(self):
+    def __init__(self, size):
         gtk.Button.__init__(self)
-        self.set_size_request(14, 14)
+        self.set_size_request(size, size)
         self.connect('enter-notify-event', self.on_enter_notify_event)
         self.connect('leave-notify-event', self.on_leave_notify_event)
         self.connect('button-press-event', self.on_button_press_event)
@@ -106,6 +105,12 @@ class CairoCloseButton(gtk.Button):
         ctx.clip()
         self.draw_button(ctx, a.x, a.y, a.width, a.height)
 
+    def draw_button(self, x, y, width, height): abstract
+
+class CairoCloseButton(CairoSmallButton):
+    def __init__(self):
+        CairoSmallButton.__init__(self, 14)
+
     def draw_button(self, ctx, x, y, w, h):
         if self.mouseover:
             alpha = 1
@@ -129,6 +134,91 @@ class CairoCloseButton(gtk.Button):
             bctx.set_source_rgba(1, 1, 1, 0)
         bctx.set_operator(cairo.OPERATOR_SOURCE)
         bctx.stroke()
+
+        ctx.set_source_surface(button_source, x, y)
+        ctx.paint()
+
+class CairoPlayPauseButton(CairoSmallButton):
+    def __init__(self):
+        self.pause = False
+        CairoSmallButton.__init__(self, 26)
+
+    def set_pause(self, pause):
+        self.pause = pause
+        self.queue_draw()
+
+    def draw_button(self, ctx, x, y, w, h):
+        if self.mouseover:
+            alpha = 1
+        else:
+            alpha = 0.5
+        button_source = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                                       w, h)
+        bctx = cairo.Context(button_source)
+        if self.mousedown and self.mouseover:
+            bctx.set_source_rgba(1, 0.4, 0.2, alpha)
+        else:
+            bctx.set_source_rgba(1, 1, 1, alpha)
+        bctx.scale(w, h)
+        bctx.set_operator(cairo.OPERATOR_SOURCE)
+        if not self.pause:
+            bctx.move_to(0.2, 0.0)
+            bctx.line_to(1.0, 0.5)
+            bctx.line_to(0.2, 1.0)
+            bctx.close_path()
+        else:
+            bctx.move_to(0.2, 0.1)
+            bctx.line_to(0.45, 0.1)
+            bctx.line_to(0.45, 0.9)
+            bctx.line_to(0.2, 0.9)
+            bctx.close_path()
+            bctx.move_to(0.55, 0.1)
+            bctx.line_to(0.8, 0.1)
+            bctx.line_to(0.8, 0.9)
+            bctx.line_to(0.55, 0.9)
+            bctx.close_path()
+        bctx.fill_preserve()
+        bctx.set_line_width(2.0/w)
+        bctx.set_source_rgba(1, 1, 1, 0)
+        bctx.stroke()
+
+        ctx.set_source_surface(button_source, x, y)
+        ctx.paint()
+
+class CairoNextButton(CairoSmallButton):
+    def __init__(self, previous=False):
+        self.previous = previous
+        CairoSmallButton.__init__(self, 26)
+
+    def draw_button(self, ctx, x, y, w, h):
+        if self.mouseover:
+            alpha = 1
+        else:
+            alpha = 0.5
+        button_source = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                                       w, h)
+        bctx = cairo.Context(button_source)
+        bctx.scale(w, h)
+
+        for p in [0.4, 0.0]:
+            if self.previous:
+                bctx.move_to(1.0-p, 0.0)
+                bctx.line_to(0.4-p, 0.5)
+                bctx.line_to(1.0-p, 1.0)
+            else:
+                bctx.move_to(0.0+p, 0.0)
+                bctx.line_to(0.6+p, 0.5)
+                bctx.line_to(0.0+p, 1.0)
+            bctx.close_path()
+            bctx.set_operator(cairo.OPERATOR_SOURCE)
+            if self.mousedown and self.mouseover:
+                bctx.set_source_rgba(1, 0.4, 0.2, alpha)
+            else:
+                bctx.set_source_rgba(1, 1, 1, alpha)
+            bctx.fill_preserve()
+            bctx.set_line_width(2.0/w)
+            bctx.set_source_rgba(1, 1, 1, 0)
+            bctx.stroke()
 
         ctx.set_source_surface(button_source, x, y)
         ctx.paint()
