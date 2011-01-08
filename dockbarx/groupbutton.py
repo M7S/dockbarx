@@ -507,7 +507,7 @@ class GroupButton(gobject.GObject):
             self.launch_effect = False
             gobject.source_remove(self.launch_effect_timeout)
         if window.needs_attention():
-            self.on_needs_attention_changed()
+            self.on_needs_attention_changed(state_update = False)
 
         wb.connect('minimized', self.on_window_minimized, wb)
         wb.connect('unminimized', self.on_window_unminimized, wb)
@@ -557,7 +557,7 @@ class GroupButton(gobject.GObject):
         self.windows[window].del_button()
         del self.windows[window]
         if self.needs_attention:
-            self.on_needs_attention_changed()
+            self.on_needs_attention_changed(state_update=False)
         if self.pinned or self.windows:
             self.set_show_previews(self.globals.settings['preview'])
             self.update_state_request()
@@ -567,8 +567,7 @@ class GroupButton(gobject.GObject):
                 self.deopacify()
         if self.popup_showing:
             if self.windows.get_count() > 0:
-                # Move and resize the popup.
-                self.show_list()
+                self.popup.resize(10, 10)
             else:
                 self.hide_list()
         if not self.windows and not self.pinned:
@@ -590,28 +589,18 @@ class GroupButton(gobject.GObject):
         self.minimized_windows_count-=1
         self.update_state_request()
 
-    def on_needs_attention_changed(self, arg=None):
+    def on_needs_attention_changed(self, arg=None, state_update=True):
         # Checks if there are any urgent windows and changes
         # the group button looks if there are at least one
-        for window in self.windows.keys():
+        for window in self.windows:
             if window.needs_attention():
                 self.needs_attention = True
-                self.update_state_request()
-                return True
+                break
         else:
-            if self.windows.keys() == []:
-                # The window needs attention already when it's added,
-                # before it's been added to the list.
-                self.needs_attention = True
-                # Update state unless the button hasn't been shown yet.
-                self.update_state_request()
-                return True
-            else:
-                self.needs_attention = False
-                # Update state unless the button hasn't been shown yet.
-                self.update_state_request()
-                return False
-
+            self.needs_attention = False
+        # Update state unless the button hasn't been shown yet.
+        if state_update:
+            self.update_state_request()
 
     def set_icongeo(self, arg=None):
         for win in self.windows:
@@ -1077,12 +1066,12 @@ class GroupButton(gobject.GObject):
 
 
     #### Events
-    def on_sizealloc(self,applet,allocation):
+    def on_sizealloc(self, button, allocation):
         # Sends the new size to icon_factory so that a new icon in the right
         # size can be found. The icon is then updated.
         if self.button_old_alloc != self.button.get_allocation():
             if self.globals.orient == "v" \
-            and allocation.width>10 and allocation.width < 220 \
+            and allocation.width > 10 and allocation.width < 220 \
             and allocation.width != self.button_old_alloc.width:
                 # A minimium size on 11 is set to stop unnecessary calls
                 # work when the button is created
