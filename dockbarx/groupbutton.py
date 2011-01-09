@@ -200,6 +200,7 @@ class GroupButton(gobject.GObject):
         self.popup_box = gtk.VBox()
         self.popup_box.set_border_width(0)
         self.popup_box.set_spacing(2)
+        self.winbox = gtk.Alignment(0.5, 0.5, 1, 1)
         self.popup_label = gtk.Label()
         self.popup_label.set_use_markup(True)
         self.update_name()
@@ -207,6 +208,7 @@ class GroupButton(gobject.GObject):
             self.popup_label.set_tooltip_text(
                                     "%s: %s"%(_("Identifier"),self.identifier))
         self.popup_box.pack_start(self.popup_label, False)
+        self.popup_box.pack_start(self.winbox)
         # Initiate the windowlist
         self.winlist = None
         self.set_show_previews(self.globals.settings['preview'])
@@ -481,9 +483,9 @@ class GroupButton(gobject.GObject):
         if oldbox:
             for c in oldbox.get_children():
                 oldbox.remove(c)
-                self.winlist.pack_start(c, False)
-            self.popup_box.remove(oldbox)
-        self.popup_box.pack_start(self.winlist, False)
+                self.winlist.pack_start(c, True, True)
+            self.winbox.remove(oldbox)
+        self.winbox.add(self.winlist)
         self.winlist.show()
         for win in self.windows.get_list():
             self.windows[win].button.set_show_preview(show_previews)
@@ -685,6 +687,7 @@ class GroupButton(gobject.GObject):
                 self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
 
         self.popup_box.show()
+        self.winbox.show()
         self.winlist.show()
         self.popup_label.show()
         for window, wb in self.windows.items():
@@ -695,7 +698,6 @@ class GroupButton(gobject.GObject):
                 wb.button.hide()
             else:
                 wb.button.show()
-        self.popup.resize(10,10)
         self.popup.show()
         self.popup_showing = True
 
@@ -706,6 +708,7 @@ class GroupButton(gobject.GObject):
         self.globals.gb_showing_popup = self
 
         self.set_previews()
+        self.popup.resize(10,10)
         return False
 
     def hide_list_request(self):

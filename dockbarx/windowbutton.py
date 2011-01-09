@@ -70,7 +70,6 @@ class WindowButton(gobject.GObject):
         self.screen = wnck.screen_get_default()
         self.name = window.get_name()
         self.window = window
-        self.needs_attention = False
         self.button_pressed = False
         self.deopacify_request_sid = None
         self.deopacify_sid = None
@@ -80,7 +79,8 @@ class WindowButton(gobject.GObject):
         self.button = CairoWindowItem(u"" + window.get_name(),
                                       window.get_mini_icon(),
                                       window.get_icon())
-        self.button.set_needs_attention(window.needs_attention())
+        self.needs_attention = window.needs_attention()
+        self.button.set_needs_attention(self.needs_attention)
         self.button.show()
         self.geometry_changed_event = None
         self.on_show_only_current_monitor_changed()
