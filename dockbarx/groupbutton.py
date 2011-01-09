@@ -38,7 +38,6 @@ from cairowidgets import CairoButton, CairoMenuItem
 from cairowidgets import CairoPopup, CairoToggleMenu
 from common import ODict, Globals, DesktopEntry
 from common import Opacify,  compiz_call_async
-from mediabuttons import MediaButtons
 import zg
 
 import i18n
@@ -507,7 +506,7 @@ class GroupButton(gobject.GObject):
             self.launch_effect = False
             gobject.source_remove(self.launch_effect_timeout)
         if window.needs_attention():
-            self.on_needs_attention_changed(state_update = False)
+            self.on_needs_attention_changed(state_update=False)
 
         wb.connect('minimized', self.on_window_minimized, wb)
         wb.connect('unminimized', self.on_window_unminimized, wb)
@@ -921,18 +920,17 @@ class GroupButton(gobject.GObject):
 
 
     #### Media Buttons
-    def add_media_buttons(self, name):
+    def add_media_buttons(self, media_buttons):
         if self.media_buttons:
             self.remove_media_buttons()
-        self.media_buttons = MediaButtons(name)
+        self.media_buttons = media_buttons
         self.popup_box.pack_start(self.media_buttons)
         self.media_buttons.show()
         self.update_tooltip()
 
     def remove_media_buttons(self):
         if self.media_buttons:
-            self.media_buttons.remove()
-            self.media_buttons.destroy()
+            self.popup_box.remove(self.media_buttons)
             self.media_buttons = None
             self.update_tooltip()
 

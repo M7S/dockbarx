@@ -33,12 +33,10 @@ class MediaButtons(gtk.Alignment):
         self.player_iface = dbus.Interface(self.player,
                                            dbus_interface=\
                                            "org.mpris.MediaPlayer2.Player")
-        # Todo: Find a way to disconnect this!
         self.signal = self.player.connect_to_signal("PropertiesChanged",
                                       self.on_properties_changed,
                                       dbus_interface=\
                                       "org.freedesktop.DBus.Properties")
-        print self.signal
         gtk.Alignment.__init__(self, 0.5, 0.5, 0, 0)
         hbox = gtk.HBox()
         self.previous_button = CairoNextButton(previous=True)
@@ -127,7 +125,7 @@ class Mpris2Watch(gobject.GObject):
                                                                     address
                     continue
                 self.players.append(
-                        str(address).replace("org.mpris.MediaPlayer2.",""))
+                        str(address).replace("org.mpris.MediaPlayer2.", ""))
 
         self.fdo.connect_to_signal("NameOwnerChanged",
                                     self.on_name_change_detected,
@@ -136,7 +134,7 @@ class Mpris2Watch(gobject.GObject):
 
     def on_name_change_detected(self, name, previous_owner, current_owner):
         if str(name).startswith("org.mpris.MediaPlayer2."):
-            player_name = str(name).replace("org.mpris.MediaPlayer2.","")
+            player_name = str(name).replace("org.mpris.MediaPlayer2.", "")
             if previous_owner == "" and current_owner !="":
                 try:
                     BUS.get_object(name, "/org/mpris/MediaPlayer2")
@@ -145,11 +143,9 @@ class Mpris2Watch(gobject.GObject):
                     raise
                 self.players.append(player_name)
                 self.emit('player-added', player_name)
-                print "%s added to players list" % player_name
-            if previous_owner != "" and current_owner =="":
+            if previous_owner != "" and current_owner == "":
                 try:
                     self.players.remove(player_name)
-                    print "%s was removed from player list" % player_name
                 except ValueError:
                     pass
                 else:

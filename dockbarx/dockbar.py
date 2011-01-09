@@ -38,7 +38,7 @@ from groupbutton import *
 from cairowidgets import *
 from theme import Theme, NoThemesError
 from common import *
-from mediabuttons import Mpris2Watch
+from mediabuttons import Mpris2Watch, MediaButtons
 
 import i18n
 _ = i18n.language.gettext
@@ -57,6 +57,9 @@ SPECIAL_RES_CLASSES = {
                         'geogebra-geogebra': 'geogebra',
                         'tuxpaint.tuxpaint': 'tuxpaint'
                       }
+
+# Media player name substitutes (for non-identical resclass/dbus-address pairs)
+MPS = {"banshee-1": "banshee"}
 
 class AboutDialog():
     __instance = None
@@ -121,6 +124,7 @@ class DockBar():
         self.scrollpeak_gr = None
         self.nextlist = None
 
+        self.media_buttons = {}
         self.mpris = Mpris2Watch()
         self.mpris.connect('player-added', self.media_player_added)
         self.mpris.connect('player-removed', self.media_player_removed)
@@ -490,12 +494,7 @@ class DockBar():
             desktop_entry = self.desktop_entry_by_id[desktop_entry_id]
             path = desktop_entry.getFileName()
             group = self.groups[path]
-            group.set_identifier(identifier)
-            # Identifier changed, update media buttons.
-            if self.mpris.has_player(identifier):
-                group.add_media_buttons(identifier)
-            else:
-                group.remove_media_buttons()
+            self.set_group_identifier(group, identifier)
             group.add_window(window)
             self.update_pinned_apps_list()
             self.remove_desktop_entry_id_from_undefined_list(desktop_entry_id)
@@ -515,6 +514,7 @@ class DockBar():
             group = self.make_groupbutton(identifier=identifier,
                                           desktop_entry=desktop_entry)
             group.add_window(window)
+
 
     def find_desktop_entry_id(self, identifier):
         id = None
@@ -644,6 +644,12 @@ class DockBar():
             self.on_window_closed(self.screen, window)
             self.skip_tasklist_windows.append(window)
 
+    def set_group_identifier(self, group, identifier):
+        group.set_identifier(identifier)
+        for window in group.windows:
+            self.windows[window] = indentifier
+        self.media_player_check(identifier, group)
+
     #### Desktop events
     def on_desktop_changed(self, screen=None, workspace=None):
         if not self.globals.settings['show_only_current_desktop']:
@@ -679,11 +685,7 @@ class DockBar():
         else:
             self.groups.append(gb)
 
-        if identifier and self.mpris.has_player(identifier):
-            gb.add_media_buttons(identifier)
-        else:
-            gb.remove_media_buttons()
-
+        self.media_player_check(identifier, gb)
         gb.connect('delete', self.remove_groupbutton)
         gb.connect('identifier-change', self.change_identifier)
         gb.connect('pinned', self.update_pinned_apps_list)
@@ -1002,16 +1004,10 @@ class DockBar():
             group = self.groups[old_identifier]
         except KeyError:
             group = self.groups[path]
-        group.set_identifier(identifier)
+        self.set_group_identifier(group, identifier)
         for window in winlist:
             self.on_window_opened(self.screen, window)
         self.update_pinned_apps_list()
-
-        if self.mpris.has_player(identifier):
-            group.add_media_buttons(identifier)
-        else:
-            group.remove_media_buttons()
-
 
     def update_pinned_apps_list(self, arg=None):
         # Saves pinned_apps_list to gconf.
@@ -1115,15 +1111,35 @@ class DockBar():
         del self.applet
 
     #### Media players
+    def get_media_buttons(self, identifier):
+        if not identifier in self.media_buttons:
+            self.media_buttons[identifier] = MediaButtons(identifier)
+        return self.media_buttons[identifier]
+
+    def media_player_check(self, identifier, group):
+        identifier = MPS.get(identifier, identifier)
+        if self.mpris.has_player(identifier):
+            media_buttons = self.get_media_buttons(identifier)
+            group.add_media_buttons(media_buttons)
+        else:
+            group.remove_media_buttons()
+
     def media_player_added(self, obj, name):
-        if self.groups is not None and \
-           name in self.groups.get_identifiers():
-            self.groups[name].add_media_buttons(name)
+        identifiers = [MPS.get(id, id) for id in self.groups.get_identifiers()]
+        if self.groups is not None and name in identifiers:
+            media_buttons = self.get_media_buttons(name)
+            group = self.groups[identifiers.index(name)]
+            group.add_media_buttons(media_buttons)
 
     def media_player_removed(self, obj, name):
-        if self.groups is not None and \
-           name in self.groups.get_identifiers():
-            self.groups[name].remove_media_buttons()
+        identifiers = [MPS.get(id, id) for id in self.groups.get_identifiers()]
+        if self.groups is not None and name in identifiers:
+            group = self.groups[identifiers.index(name)]
+            group.remove_media_buttons()
+        if name in self.media_buttons:
+            media_buttons = self.media_buttons.pop(name)
+            media_buttons.remove()
+            media_buttons.destroy()
 
     #### Keyboard actions
     def on_gkeys_changed(self, arg=None, dialog=True):
