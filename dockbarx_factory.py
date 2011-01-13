@@ -19,7 +19,7 @@
 
 
 import pygtk
-pygtk.require('2.0')
+pygtk.require("2.0")
 import gtk
 import gnomeapplet
 import sys
@@ -33,13 +33,12 @@ class DockBarWindow():
         self.window.show()
         self.window.set_property("skip-taskbar-hint",True)
         self.window.set_keep_above(True)
-        self.window.connect ("delete_event",self.delete_event)
-        self.window.connect ("destroy",self.destroy)
+        self.window.connect ("destroy",self.__destroy)
 
         self.dockbar = dockbarx.dockbar.DockBar(None)
         hbox = gtk.HBox()
-        button = gtk.Button('Pref')
-        button.connect('clicked', self.dockbar.on_ppm_pref)
+        button = gtk.Button("Pref")
+        button.connect("clicked", self.dockbar.on_ppm_pref)
         hbox.pack_start(button, False)
         hbox.pack_start(self.dockbar.container, False)
         eb = gtk.EventBox()
@@ -49,10 +48,7 @@ class DockBarWindow():
         eb.show_all()
         ##self.window.add(self.dockbar.container)
 
-    def delete_event (self,widget,event,data=None):
-        return False
-
-    def destroy (self,widget,data=None):
+    def __destroy (self,widget,data=None):
         gtk.main_quit()
 
     def main(self):

@@ -27,10 +27,11 @@ import xdg.DesktopEntry
 from urllib import unquote
 from time import time
 import gtk
+import weakref
 
 
 GCONF_CLIENT = gconf.client_get_default()
-GCONF_DIR = '/apps/dockbarx'
+GCONF_DIR = "/apps/dockbarx"
 
 DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
@@ -39,11 +40,11 @@ def compiz_call_sync(obj_path, func_name, *args):
     # Returns a compiz function call.
     # No errors are dealt with here,
     # error handling are left to the calling function.
-    path = '/org/freedesktop/compiz'
+    path = "/org/freedesktop/compiz"
     if obj_path:
-        path += '/' + obj_path
-    obj = BUS.get_object('org.freedesktop.compiz', path)
-    iface = dbus.Interface(obj, 'org.freedesktop.compiz')
+        path += "/" + obj_path
+    obj = BUS.get_object("org.freedesktop.compiz", path)
+    iface = dbus.Interface(obj, "org.freedesktop.compiz")
     func = getattr(iface, func_name)
     if func:
         return func(*args)
@@ -56,15 +57,40 @@ def compiz_error_handler(error, *args):
     print "Compiz/dbus error: %s" % error
 
 def compiz_call_async(obj_path, func_name, *args):
-    path = '/org/freedesktop/compiz'
+    path = "/org/freedesktop/compiz"
     if obj_path:
-        path += '/' + obj_path
-    obj = BUS.get_object('org.freedesktop.compiz', path)
-    iface = dbus.Interface(obj, 'org.freedesktop.compiz')
+        path += "/" + obj_path
+    obj = BUS.get_object("org.freedesktop.compiz", path)
+    iface = dbus.Interface(obj, "org.freedesktop.compiz")
     func = getattr(iface, func_name)
     if func:
         func(reply_handler=compiz_reply_handler,
              error_handler=compiz_error_handler, *args)
+
+class Connector():
+    """A class to simplify disconnecting of signals"""
+    def __init__(self):
+        self.connections = weakref.WeakKeyDictionary()
+
+    def connect(self, obj, signal, handler, *args):
+            sids = self.connections.get(obj, [])
+            sids.append(obj.connect(signal, handler, *args))
+            self.connections[obj] = sids
+
+    def connect_after(self, obj, signal, handler, *args):
+            sids = self.connections.get(obj, [])
+            sids.append(obj.connect_after(signal, handler, *args))
+            self.connections[obj] = sids
+
+    def disconnect(self, obj):
+        sids = self.connections.pop(obj, None)
+        while sids:
+            try:
+                obj.disconnect(sids.pop())
+            except:
+                raise
+
+
 class ODict():
     """An ordered dictionary.
 
@@ -72,15 +98,15 @@ class ODict():
     def __init__(self, d=[]):
         if not type(d) in (list, tuple):
             raise TypeError(
-                        'The argument has to be a list or a tuple or nothing.')
+                        "The argument has to be a list or a tuple or nothing.")
         self.list = []
         for t in d:
             if not type(d) in (list, tuple):
                 raise ValueError(
-                        'Every item of the list has to be a list or a tuple.')
+                        "Every item of the list has to be a list or a tuple.")
             if not len(t) == 2:
                 raise ValueError(
-                        'Every tuple in the list needs to be two items long.')
+                        "Every tuple in the list needs to be two items long.")
             self.list.append(t)
 
     def __getitem__(self, key):
@@ -169,7 +195,7 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
         xdg.DesktopEntry.DesktopEntry.__init__(self, file_name)
 
     def launch(self, uri=None):
-        os.chdir(os.path.expanduser('~'))
+        os.chdir(os.path.expanduser("~"))
         command = self.getExec()
         if command == "":
             return
@@ -194,7 +220,7 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
         if uri:
             uri = str(uri)
             # Multiple uris are separated with newlines
-            uri_list = uri.split('\n')
+            uri_list = uri.split("\n")
             for uri in uri_list:
                 uri = uri.rstrip()
                 file = uri
@@ -205,7 +231,7 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
                 uri = uri.replace('"', "%22")
                 uris.append(uri)
 
-                if file.startswith('file://'):
+                if file.startswith("file://"):
                     file = file[7:]
                 file = file.replace("%20","\ ")
                 file = unquote(file)
@@ -247,14 +273,14 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
             os.system("/bin/sh -c '%s' &"%cmd)
 
 
-class Opacify(gobject.GObject):
+class Opacify():
     def __new__(cls, *p, **k):
-        if not '_the_instance' in cls.__dict__:
+        if not "_the_instance" in cls.__dict__:
             cls._the_instance = gobject.GObject.__new__(cls)
         return cls._the_instance
 
     def __init__(self):
-        if not 'opacifier' in self.__dict__:
+        if not "opacifier" in self.__dict__:
             self.opacifier = None
             self.old_windows = None
             self.sids = {}
@@ -270,15 +296,15 @@ class Opacify(gobject.GObject):
             self.opacifier = opacifier
             return
         try:
-            values = compiz_call_sync('obs/screen0/opacity_values','get')[:]
-            matches = compiz_call_sync('obs/screen0/opacity_matches','get')[:]
+            values = compiz_call_sync("obs/screen0/opacity_values","get")[:]
+            matches = compiz_call_sync("obs/screen0/opacity_matches","get")[:]
             self.use_old_call = False
         except:
             # For older versions of compiz
             try:
-                values = compiz_call_sync('core/screen0/opacity_values', 'get')
-                matches = compiz_call_sync('core/screen0/opacity_matches',
-                                              'get')
+                values = compiz_call_sync("core/screen0/opacity_values", "get")
+                matches = compiz_call_sync("core/screen0/opacity_matches",
+                                              "get")
                 self.use_old_call = True
             except:
                 return
@@ -286,10 +312,10 @@ class Opacify(gobject.GObject):
         while self.sids:
             gobject.source_remove(self.sids.popitem()[1])
 
-        steps = self.globals.settings['opacify_smoothness']
-        interval = self.globals.settings['opacify_duration'] / steps
-        alpha = self.globals.settings['opacify_alpha']
-        use_fade = self.globals.settings['opacify_fade']
+        steps = self.globals.settings["opacify_smoothness"]
+        interval = self.globals.settings["opacify_duration"] / steps
+        alpha = self.globals.settings["opacify_alpha"]
+        use_fade = self.globals.settings["opacify_fade"]
         placeholder = "(title=Placeholder_line_for_DBX)"
         placeholders = [placeholder, placeholder, placeholder]
         rule_base = "(type=Normal|type=Dialog)&%s&!title=Line_added_by_DBX"
@@ -304,7 +330,7 @@ class Opacify(gobject.GObject):
                     old_values.append(max(values.pop(i), alpha))
                 except IndexError:
                     pass
-        if not self.globals.settings['opacify_fade']:
+        if not self.globals.settings["opacify_fade"]:
             if windows:
                 matches.insert(0,
                                rule_base % "!(xid=%s)" % "|xid=".join(windows))
@@ -406,15 +432,15 @@ class Opacify(gobject.GObject):
 
     def __compiz_call(self, values=None, matches=None, sid=None):
         if self.use_old_call:
-            plugin = 'core'
+            plugin = "core"
         else:
-            plugin = 'obs'
+            plugin = "obs"
         if values is not None:
-            compiz_call_async(plugin + '/screen0/opacity_values',
-                              'set', values)
+            compiz_call_async(plugin + "/screen0/opacity_values",
+                              "set", values)
         if matches is not None:
-            compiz_call_async(plugin + '/screen0/opacity_matches',
-                              'set', matches)
+            compiz_call_async(plugin + "/screen0/opacity_matches",
+                              "set", matches)
         self.sids.pop(sid, None)
 
 
@@ -425,20 +451,20 @@ class Globals(gobject.GObject):
     It also keeps track of gconf settings and signals changes in gconf to other programs"""
 
     __gsignals__ = {
-        'color2-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'show-only-current-desktop-changed': (gobject.SIGNAL_RUN_FIRST,
+        "color2-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "show-only-current-desktop-changed": (gobject.SIGNAL_RUN_FIRST,
                                               gobject.TYPE_NONE,()),
-        'show-only-current-monitor-changed': (gobject.SIGNAL_RUN_FIRST,
+        "show-only-current-monitor-changed": (gobject.SIGNAL_RUN_FIRST,
                                               gobject.TYPE_NONE,()),
-        'theme-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'color-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'show-tooltip-changed': (gobject.SIGNAL_RUN_FIRST,
+        "theme-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "color-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "show-tooltip-changed": (gobject.SIGNAL_RUN_FIRST,
                                  gobject.TYPE_NONE,()),
-        'show-previews-changed': (gobject.SIGNAL_RUN_FIRST,
+        "show-previews-changed": (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,()),
-        'preference-update': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'gkey-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        'show-close-button-changed': (gobject.SIGNAL_RUN_FIRST,
+        "preference-update": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "gkey-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "show-close-button-changed": (gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,())
     }
 
@@ -510,13 +536,13 @@ class Globals(gobject.GObject):
           "windowbutton_close_popup_on_scroll_down": False,
 
           "gkeys_select_next_group": False,
-          "gkeys_select_next_group_keystr": '<super>Tab',
+          "gkeys_select_next_group_keystr": "<super>Tab",
           "gkeys_select_previous_group": False,
-          "gkeys_select_previous_group_keystr": '<super><shift>Tab',
+          "gkeys_select_previous_group_keystr": "<super><shift>Tab",
           "gkeys_select_next_window": False,
-          "gkeys_select_next_window_keystr": '<super><control>Tab',
+          "gkeys_select_next_window_keystr": "<super><control>Tab",
           "gkeys_select_previous_window": False,
-          "gkeys_select_previous_window_keystr": '<super><control><shift>Tab',
+          "gkeys_select_previous_window_keystr": "<super><control><shift>Tab",
           "gkeys_select_next_group_skip_launchers": False}
 
     DEFAULT_COLORS={
@@ -535,12 +561,12 @@ class Globals(gobject.GObject):
                }
 
     def __new__(cls, *p, **k):
-        if not '_the_instance' in cls.__dict__:
+        if not "_the_instance" in cls.__dict__:
             cls._the_instance = gobject.GObject.__new__(cls)
         return cls._the_instance
 
     def __init__(self):
-        if not 'settings' in self.__dict__:
+        if not "settings" in self.__dict__:
             # First run.
             gobject.GObject.__init__(self)
 
@@ -550,7 +576,7 @@ class Globals(gobject.GObject):
             self.opacity_values = None
             self.opacity_matches = None
             self.dragging = False
-            self.orient = 'h'
+            self.orient = "h"
             self.theme_name = None
 
             self.gb_showing_popup = None
@@ -563,18 +589,18 @@ class Globals(gobject.GObject):
             for name, value in self.settings.items():
                 gc_value = None
                 try:
-                    gc_value = GCONF_CLIENT.get_value(GCONF_DIR + '/' + name)
+                    gc_value = GCONF_CLIENT.get_value(GCONF_DIR + "/" + name)
                 except:
-                    gconf_set[type(value)](GCONF_DIR + '/' + name , value)
+                    gconf_set[type(value)](GCONF_DIR + "/" + name , value)
                 else:
                     if type(gc_value) != type(value):
-                        gconf_set[type(value)](GCONF_DIR + '/' + name , value)
+                        gconf_set[type(value)](GCONF_DIR + "/" + name , value)
                     else:
                         self.settings[name] = gc_value
 
             # Set gconf notifiers
             GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
-            GCONF_CLIENT.notify_add(GCONF_DIR, self.on_gconf_changed, None)
+            GCONF_CLIENT.notify_add(GCONF_DIR, self.__on_gconf_changed, None)
 
             # Change old gconf settings
             group_button_actions_d = {"select or minimize group": "select",
@@ -585,16 +611,16 @@ class Globals(gobject.GObject):
                    ("click" in name or "scroll" in name) and \
                    (value in group_button_actions_d):
                     self.settings[name] = group_button_actions_d[value]
-                    GCONF_CLIENT.set_string(GCONF_DIR + '/' + name,
+                    GCONF_CLIENT.set_string(GCONF_DIR + "/" + name,
                                             self.settings[name])
-            if self.settings.get('workspace_behavior') == 'ingore':
-                self.settings['workspace_behavior'] = 'ignore'
-                GCONF_CLIENT.set_string(GCONF_DIR + '/workspace_behavior',
-                                        'ignore')
+            if self.settings.get("workspace_behavior") == "ingore":
+                self.settings["workspace_behavior"] = "ignore"
+                GCONF_CLIENT.set_string(GCONF_DIR + "/workspace_behavior",
+                                        "ignore")
 
             self.colors = {}
 
-    def on_gconf_changed(self, client, par2, entry, par4):
+    def __on_gconf_changed(self, client, par2, entry, par4):
         if entry.get_value() is None:
             return
         pref_update = False
@@ -602,7 +628,7 @@ class Globals(gobject.GObject):
         entry_get = { str: entry.get_value().get_string,
                       bool: entry.get_value().get_bool,
                       int: entry.get_value().get_int }
-        key = entry.get_key().split('/')[-1]
+        key = entry.get_key().split("/")[-1]
         if key in self.settings:
             value = self.settings[key]
             if entry_get[type(value)]() != value:
@@ -611,14 +637,14 @@ class Globals(gobject.GObject):
                 pref_update = True
 
         if self.theme_name:
-            theme_name = self.theme_name.replace(' ', '_').encode()
+            theme_name = self.theme_name.replace(" ", "_").encode()
             try:
                 theme_name = theme_name.translate(None, '!?*()/#"@')
             except:
                 pass
             for i in range(1, 9):
-                c = 'color%s'%i
-                a = 'color%s_alpha'%i
+                c = "color%s"%i
+                a = "color%s_alpha"%i
                 for k in (c, a):
                     if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR,
                                                              theme_name, k):
@@ -630,28 +656,28 @@ class Globals(gobject.GObject):
 
         #TODO: Add check for sane values for critical settings.
 
-        if 'color2' in changed_settings:
-            self.emit('color2-changed')
-        if 'show_only_current_desktop' in changed_settings:
-            self.emit('show-only-current-desktop-changed')
-        if 'show_only_current_monitor' in changed_settings:
-            self.emit('show-only-current-monitor-changed')
-        if 'preview' in changed_settings:
-            self.emit('show-previews-changed')
-        if 'groupbutton_show_tooltip' in changed_settings:
-            self.emit('show-tooltip-changed')
-        if 'show_close_button' in changed_settings:
-            self.emit('show-close-button-changed')
+        if "color2" in changed_settings:
+            self.emit("color2-changed")
+        if "show_only_current_desktop" in changed_settings:
+            self.emit("show-only-current-desktop-changed")
+        if "show_only_current_monitor" in changed_settings:
+            self.emit("show-only-current-monitor-changed")
+        if "preview" in changed_settings:
+            self.emit("show-previews-changed")
+        if "groupbutton_show_tooltip" in changed_settings:
+            self.emit("show-tooltip-changed")
+        if "show_close_button" in changed_settings:
+            self.emit("show-close-button-changed")
         for key in changed_settings:
-            if key == 'theme':
-                self.emit('theme-changed')
-            if 'color' in key:
-                self.emit('color-changed')
-            if 'gkey' in key:
-                self.emit('gkey-changed')
+            if key == "theme":
+                self.emit("theme-changed")
+            if "color" in key:
+                self.emit("color-changed")
+            if "gkey" in key:
+                self.emit("gkey-changed")
 
         if pref_update == True:
-            self.emit('preference-update')
+            self.emit("preference-update")
 
     def update_colors(self, theme_name, theme_colors=None, theme_alphas=None):
         # Updates the colors when the theme calls for an update.
@@ -659,30 +685,30 @@ class Globals(gobject.GObject):
             self.colors.clear()
             # If there are no theme name, preference window wants empty colors.
             for i in range(1, 9):
-                self.colors['color%s'%i] = "#000000"
+                self.colors["color%s"%i] = "#000000"
             return
 
-        theme_name = theme_name.replace(' ', '_').encode()
+        theme_name = theme_name.replace(" ", "_").encode()
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
-        color_dir = GCONF_DIR + '/themes/' + theme_name
+        color_dir = GCONF_DIR + "/themes/" + theme_name
         self.colors.clear()
         for i in range(1, 9):
-            c = 'color%s'%i
-            a = 'color%s_alpha'%i
+            c = "color%s"%i
+            a = "color%s_alpha"%i
             try:
-                self.colors[c] = GCONF_CLIENT.get_value(color_dir + '/' + c)
+                self.colors[c] = GCONF_CLIENT.get_value(color_dir + "/" + c)
             except:
                 if c in theme_colors:
                     self.colors[c] = theme_colors[c]
                 else:
                     self.colors[c] = self.DEFAULT_COLORS[c]
-                GCONF_CLIENT.set_string(color_dir + '/' + c , self.colors[c])
+                GCONF_CLIENT.set_string(color_dir + "/" + c , self.colors[c])
             try:
-                self.colors[a] = GCONF_CLIENT.get_value(color_dir + '/' + a)
+                self.colors[a] = GCONF_CLIENT.get_value(color_dir + "/" + a)
             except:
                 if c in theme_alphas:
-                    if'no' in theme_alphas[c]:
+                    if "no" in theme_alphas[c]:
                         continue
                     else:
                         self.colors[a] = int(int(theme_alphas[c]) * 2.55 + 0.4)
@@ -690,19 +716,25 @@ class Globals(gobject.GObject):
                     self.colors[a] = self.DEFAULT_COLORS[a]
                 else:
                     continue
-                GCONF_CLIENT.set_int(color_dir + '/' + a , self.colors[a])
+                GCONF_CLIENT.set_int(color_dir + "/" + a , self.colors[a])
 
     def get_pinned_apps_from_gconf(self):
         # Get list of pinned_apps
         gconf_pinned_apps = []
         try:
-            gconf_pinned_apps = GCONF_CLIENT.get_list(GCONF_DIR + '/launchers',
+            gconf_pinned_apps = GCONF_CLIENT.get_list(GCONF_DIR + "/launchers",
                                                     gconf.VALUE_STRING)
         except:
-            GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING,
+            GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", gconf.VALUE_STRING,
                                   gconf_pinned_apps)
         return gconf_pinned_apps
 
     def set_pinned_apps_list(self, pinned_apps):
-        GCONF_CLIENT.set_list(GCONF_DIR + '/launchers', gconf.VALUE_STRING,
+        GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", gconf.VALUE_STRING,
                              pinned_apps)
+
+
+__connector = Connector()
+connect = __connector.connect
+connect_after = __connector.connect_after
+disconnect = __connector.disconnect

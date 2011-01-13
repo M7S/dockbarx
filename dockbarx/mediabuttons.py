@@ -34,7 +34,7 @@ class MediaButtons(gtk.Alignment):
                                            dbus_interface=\
                                            "org.mpris.MediaPlayer2.Player")
         self.signal = self.player.connect_to_signal("PropertiesChanged",
-                                      self.on_properties_changed,
+                                      self.__on_properties_changed,
                                       dbus_interface=\
                                       "org.freedesktop.DBus.Properties")
         gtk.Alignment.__init__(self, 0.5, 0.5, 0, 0)
@@ -42,28 +42,23 @@ class MediaButtons(gtk.Alignment):
         self.previous_button = CairoNextButton(previous=True)
         self.playpause_button = CairoPlayPauseButton()
         self.next_button = CairoNextButton()
-        self.sids.append((self.previous_button,
-                          self.previous_button.connect("clicked",
-                                                       self.previous)))
-        self.sids.append((self.playpause_button,
-                          self.playpause_button.connect("clicked",
-                                                        self.playpause)))
-        self.sids.append((self.next_button,
-                         self.next_button.connect("clicked", self.next)))
+        connect(self.previous_button, "clicked", self.previous)
+        connect(self.playpause_button,"clicked", self.playpause)
+        connect(self.next_button, "clicked", self.next)
         hbox.pack_start(self.previous_button)
         hbox.pack_start(self.playpause_button, padding=4)
         hbox.pack_start(self.next_button)
         self.add(hbox)
         hbox.show_all()
-        if self.get_property('PlaybackStatus')== "Playing":
+        if self.get_property("PlaybackStatus")== "Playing":
             self.playpause_button.set_pause(True)
 
     def get_property(self, property):
         try:
-            ret_str = str(self.player.Get('org.mpris.MediaPlayer2.Player',
+            ret_str = str(self.player.Get("org.mpris.MediaPlayer2.Player",
                                           property,
                                           dbus_interface=\
-                                          'org.freedesktop.DBus.Properties'))
+                                          "org.freedesktop.DBus.Properties"))
         except:
             return
         return ret_str
@@ -72,9 +67,8 @@ class MediaButtons(gtk.Alignment):
         self.player_iface.Previous(reply_handler=self.__reply_handler,
                                    error_handler=self.__error_handler)
 
-
     def playpause(self, *args):
-        if "Playing" in self.get_property('PlaybackStatus'):
+        if "Playing" in self.get_property("PlaybackStatus"):
             self.player_iface.Pause(reply_handler=self.__reply_handler,
                                     error_handler=self.__error_handler)
         else:
@@ -85,30 +79,30 @@ class MediaButtons(gtk.Alignment):
         self.player_iface.Next(reply_handler=self.__reply_handler,
                                error_handler=self.__error_handler)
 
-    def __reply_handler(self, *args):
-        pass
-
-    def __error_handler(self, *args):
-        pass
-
     def remove(self):
-        while self.sids:
-            widget, sid = self.sids.pop()
-            widget.disconnect(sid)
+        disconnect(self.previous_button)
+        disconnect(self.next_button)
+        disconnect(self.playpause_button)
         self.previous_button.destroy()
         self.next_button.destroy()
         self.playpause_button.destroy()
         del self.player_iface
         del self.player
 
-    def on_properties_changed(self, *args):
-        pause = self.get_property('PlaybackStatus') == "Playing"
+    def __reply_handler(self, *args):
+        pass
+
+    def __error_handler(self, *args):
+        pass
+
+    def __on_properties_changed(self, *args):
+        pause = self.get_property("PlaybackStatus") == "Playing"
         self.playpause_button.set_pause(pause)
 
 class Mpris2Watch(gobject.GObject):
-    __gsignals__ = {'player-added':
+    __gsignals__ = {"player-added":
                         (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
-                    'player-removed':
+                    "player-removed":
                         (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, ))}
     def __init__(self):
         gobject.GObject.__init__(self)
@@ -128,11 +122,11 @@ class Mpris2Watch(gobject.GObject):
                         str(address).replace("org.mpris.MediaPlayer2.", ""))
 
         self.fdo.connect_to_signal("NameOwnerChanged",
-                                    self.on_name_change_detected,
+                                    self.__on_name_change_detected,
                                     dbus_interface=\
                                     "org.freedesktop.DBus")
 
-    def on_name_change_detected(self, name, previous_owner, current_owner):
+    def __on_name_change_detected(self, name, previous_owner, current_owner):
         if str(name).startswith("org.mpris.MediaPlayer2."):
             player_name = str(name).replace("org.mpris.MediaPlayer2.", "")
             if previous_owner == "" and current_owner !="":
@@ -142,14 +136,14 @@ class Mpris2Watch(gobject.GObject):
                     print "Error: Couldn't make dbus connection with %s" % name
                     raise
                 self.players.append(player_name)
-                self.emit('player-added', player_name)
+                self.emit("player-added", player_name)
             if previous_owner != "" and current_owner == "":
                 try:
                     self.players.remove(player_name)
                 except ValueError:
                     pass
                 else:
-                    self.emit('player-removed', player_name)
+                    self.emit("player-removed", player_name)
 
     def has_player(self, name):
         return name in self.players

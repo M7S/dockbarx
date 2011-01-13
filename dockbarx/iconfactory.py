@@ -18,7 +18,7 @@
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 import pygtk
-pygtk.require('2.0')
+pygtk.require("2.0")
 import gtk
 import gc
 gc.enable()
@@ -30,7 +30,7 @@ import os
 from cStringIO import StringIO
 
 from theme import Theme
-from common import Globals
+from common import Globals, connect, disconnect
 
 import i18n
 _ = i18n.language.gettext
@@ -53,21 +53,21 @@ class IconFactory():
     LAUNCH_EFFECT = 1<<12
     # Double width/height icons for drag and drop situations.
     DRAG_DROPP = 1<<13
-    TYPE_DICT = {'some_minimized':SOME_MINIMIZED,
-                 'all_minimized':ALL_MINIMIZED,
-                 'launcher':LAUNCHER,
-                 'mouse_over':MOUSE_OVER,
-                 'needs_attention':NEEDS_ATTENTION,
-                 'blink':BLINK,
-                 'active':ACTIVE,
-                 'launching':LAUNCH_EFFECT,
-                 'mouse_button_down':MOUSE_BUTTON_DOWN}
+    TYPE_DICT = {"some_minimized":SOME_MINIMIZED,
+                 "all_minimized":ALL_MINIMIZED,
+                 "launcher":LAUNCHER,
+                 "mouse_over":MOUSE_OVER,
+                 "needs_attention":NEEDS_ATTENTION,
+                 "blink":BLINK,
+                 "active":ACTIVE,
+                 "launching":LAUNCH_EFFECT,
+                 "mouse_button_down":MOUSE_BUTTON_DOWN}
 
     def __init__(self, class_group=None,
                  desktop_entry=None, identifier=None):
         self.theme = Theme()
         self.globals = Globals()
-        self.globals.connect('color-changed', self.reset_surfaces)
+        connect(self.globals, "color-changed", self.reset_surfaces)
         self.desktop_entry = desktop_entry
         self.identifier = identifier
         self.class_group = class_group
@@ -120,6 +120,9 @@ class IconFactory():
     def get_size(self):
         return self.size
 
+    def get_icon(self, size):
+        return self.__find_icon_pixbuf(size)
+
     def reset_surfaces(self, arg=None):
         self.surfaces = {}
         self.average_color = None
@@ -146,7 +149,7 @@ class IconFactory():
             self.type = type
             for command, args in commands.items():
                 try:
-                    f = getattr(self,"command_%s"%command)
+                    f = getattr(self, "_IconFactory__command_%s"%command)
                 except:
                     raise
                 else:
@@ -156,17 +159,17 @@ class IconFactory():
             del self.temp
             gc.collect()
         if dnd:
-            surface = self.dd_highlight(surface, self.globals.orient)
+            surface = self.__dd_highlight(surface, self.globals.orient)
             gc.collect()
         return surface
 
 
-    def dd_highlight(self, surface, direction = 'h'):
+    def __dd_highlight(self, surface, direction = "h"):
         w = surface.get_width()
         h = surface.get_height()
         # Make a background almost twice as wide or high
         # as the surface depending on panel orientation.
-        if direction == 'v':
+        if direction == "v":
             h = h + 4
         else:
             w = w + 4
@@ -174,7 +177,7 @@ class IconFactory():
         ctx = cairo.Context(bg)
 
         # Put arrow pointing to the empty part on it.
-        if direction == 'v':
+        if direction == "v":
             ctx.move_to(1, h - 1.5)
             ctx.line_to(w - 1, h - 1.5)
             ctx.set_source_rgba(1, 1, 1, 0.2)
@@ -203,17 +206,17 @@ class IconFactory():
         ctx.paint()
         return bg
 
-    def get_color(self, color):
+    def __get_color(self, color):
         if color == "active_color":
-            color = 'color5'
-        if color in ['color%s'%i for i in range(1, 9)]:
+            color = "color5"
+        if color in ["color%s"%i for i in range(1, 9)]:
             color = self.globals.colors[color]
         if color == "icon_average":
-            color = self.get_average_color()
+            color = self.__get_average_color()
         else:
             try:
                 if len(color) != 7:
-                    raise ValueError('The string has the wrong lenght')
+                    raise ValueError("The string has the wrong lenght")
                 t = int(color[1:], 16)
             except:
                 print "Theme error: the color attribute for a theme command"+ \
@@ -222,16 +225,16 @@ class IconFactory():
                 color = "#000000"
         return color
 
-    def get_alpha(self, alpha):
+    def __get_alpha(self, alpha):
         # Transparency
         if alpha == "active_opacity":
             # For backwards compability
             alpha = "color5"
 
         for i in range(1, 9):
-            if alpha in ('color%s'%i, 'opacity%s'%i):
-                if self.globals.colors.has_key('color%s_alpha'%i):
-                    a = float(self.globals.colors['color%s_alpha'%i])/255
+            if alpha in ("color%s"%i, "opacity%s"%i):
+                if self.globals.colors.has_key("color%s_alpha"%i):
+                    a = float(self.globals.colors["color%s_alpha"%i])/255
                 else:
                     print "Theme error: The theme has no" + \
                           " opacity option for color%s."%i
@@ -243,20 +246,20 @@ class IconFactory():
                 if a > 1.0 or a < 0:
                     raise
             except:
-                print 'Theme error: The opacity attribute of a theme ' + \
-                      'command should be a number between "0" ' + \
-                      ' and "100" or "color1" to "color8".'
+                print "Theme error: The opacity attribute of a theme " + \
+                      "command should be a number between \"0\" " + \
+                      " and \"100\" or \"color1\" to \"color8\"."
                 a = 1.0
         return a
 
-    def get_average_color(self):
+    def __get_average_color(self):
         if self.average_color is not None:
             return self.average_color
         r = 0
         b = 0
         g = 0
         i = 0
-        pb = self.surface2pixbuf(self.icon)
+        pb = self.__surface2pixbuf(self.icon)
         for row in pb.get_pixels_array():
             for pix in row:
                 try:
@@ -282,13 +285,13 @@ class IconFactory():
 
 
     #### Flow commands
-    def command_if(self, surface, type=None, windows=None,
+    def __command_if(self, surface, type=None, windows=None,
                    size=None, content=None):
         if content is None:
             return surface
         # TODO: complete this
 ##        l = []
-##        splits = ['!', '(', ')', '&', '|']
+##        splits = ["!", "(", ")", "&", "|"]
 ##        for c in type:
 ##            if c in splits:
 ##                l.append(c)
@@ -324,9 +327,9 @@ class IconFactory():
             try:
                 l = [int(n) for n in l]
             except ValueError:
-                print 'Theme Error: The windows attribute of ' + \
-                      'an <if> statement can\'t look like this:' + \
-                      ' "%s". See Theming HOWTO for more information'%windows
+                print "Theme Error: The windows attribute of " + \
+                      "an <if> statement can\'t look like this:" + \
+                      " \"%s\". See Theming HOWTO for more information"%windows
                 return surface
             if len(l) == 1:
                 if not ((l[0] == self.win_nr) ^ negation):
@@ -350,9 +353,9 @@ class IconFactory():
             try:
                 l = [int(n) for n in l]
             except ValueError:
-                print 'Theme Error: The size attribute of ' + \
-                      'an <if> statement can\'t look like this:' + \
-                      ' "%s". See Theming HOWTO for more information'%size
+                print "Theme Error: The size attribute of " + \
+                      "an <if> statement can\'t look like this:" + \
+                      " \"%s\". See Theming HOWTO for more information"%size
                 return surface
             if len(l) == 1:
                 if not ((l[0] == self.win_nr) ^ negation):
@@ -364,14 +367,14 @@ class IconFactory():
         # All tests passed, proceed.
         for command, args in content.items():
             try:
-                f = getattr(self,"command_%s"%command)
+                f = getattr(self,"_IconFactory__command_%s"%command)
             except:
                 raise
             else:
                 surface = f(surface, **args)
         return surface
 
-    def command_pixmap_from_self(self, surface, name, content=None):
+    def __command_pixmap_from_self(self, surface, name, content=None):
         if not name:
             print "Theme Error: no name given for pixmap_from_self"
             raise Exeption
@@ -385,14 +388,14 @@ class IconFactory():
             return surface
         for command,args in content.items():
             try:
-                f = getattr(self,"command_%s"%command)
+                f = getattr(self,"_IconFactory__command_%s"%command)
             except:
                 raise
             else:
                 self.temp[name] = f(self.temp[name], **args)
         return surface
 
-    def command_pixmap(self, surface, name, content=None, size=None):
+    def __command_pixmap(self, surface, name, content=None, size=None):
         if size is not None:
             # TODO: Fix for different height and width
             w = h = self.size + int(size)
@@ -406,7 +409,7 @@ class IconFactory():
             return surface
         for command,args in content.items():
             try:
-                f = getattr(self,"command_%s"%command)
+                f = getattr(self,"_IconFactory__command_%s"%command)
             except:
                 raise
             else:
@@ -415,7 +418,7 @@ class IconFactory():
 
 
     #### Get icon
-    def command_get_icon(self,surface=None, size=0):
+    def __command_get_icon(self,surface=None, size=0):
         size = int(size)
         size = self.size + size
         if size <= 0:
@@ -427,7 +430,7 @@ class IconFactory():
             return self.icon
         del self.icon
         self.icon = None
-        pb = self.find_icon_pixbuf(size)
+        pb = self.__find_icon_pixbuf(size)
         if pb.get_width() != pb.get_height():
             if pb.get_width() < pb.get_height():
                 h = size
@@ -446,16 +449,16 @@ class IconFactory():
             del pbs
         elif pb.get_width() != size:
             pbs = pb.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
-            self.icon = self.pixbuf2surface(pbs)
+            self.icon = self.__pixbuf2surface(pbs)
             del pb
             del pbs
         else:
-            self.icon = self.pixbuf2surface(pb)
+            self.icon = self.__pixbuf2surface(pb)
             del pb
         return self.icon
 
 
-    def find_icon_pixbuf(self, size):
+    def __find_icon_pixbuf(self, size):
         # Returns the icon pixbuf for the program. Uses the following metods:
 
         # 1) If it is a launcher, return the icon from the
@@ -470,7 +473,7 @@ class IconFactory():
         if self.desktop_entry:
             icon_name = self.desktop_entry.getIcon()
             if os.path.isfile(icon_name):
-                pixbuf = self.icon_from_file_name(icon_name, size)
+                pixbuf = self.__icon_from_file_name(icon_name, size)
                 if pixbuf is not None:
                     return pixbuf
 
@@ -483,7 +486,7 @@ class IconFactory():
                 icon_name = ""
 
             # Special cases
-            if icon_name.startswith('openoffice'):
+            if icon_name.startswith("openoffice"):
                 # Makes sure openoffice gets a themed icon
                 icon_name = "ooo-writer"
 
@@ -496,7 +499,7 @@ class IconFactory():
                 if pixbuf is not None:
                     return pixbuf
 
-        pixbuf = self.icon_search_in_data_path(icon_name, size)
+        pixbuf = self.__icon_search_in_data_path(icon_name, size)
         if pixbuf is not None:
             return pixbuf
 
@@ -506,8 +509,8 @@ class IconFactory():
 
         # If no pixbuf has been found (can only happen for an unlaunched
         # launcher), make an empty pixbuf and show a warning.
-        if self.icon_theme.has_icon('application-default-icon'):
-            pixbuf = self.icon_theme.load_icon('application-default-icon',
+        if self.icon_theme.has_icon("application-default-icon"):
+            pixbuf = self.icon_theme.load_icon("application-default-icon",
                                                 size, 0)
         else:
             pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
@@ -522,12 +525,12 @@ class IconFactory():
 ##                    type=gtk.MESSAGE_WARNING,
 ##                    buttons=gtk.BUTTONS_OK,
 ##                    message_format= (_("Cannot load icon for %s")%name))
-##        dialog.set_title('DockBarX')
+##        dialog.set_title("DockBarX")
 ##        dialog.run()
 ##        dialog.destroy()
         return pixbuf
 
-    def icon_from_file_name(self, icon_name, icon_size = -1):
+    def __icon_from_file_name(self, icon_name, icon_size = -1):
         if os.path.isfile(icon_name):
             try:
                 return gtk.gdk.pixbuf_new_from_file_at_size(icon_name, -1,
@@ -536,7 +539,7 @@ class IconFactory():
                 pass
         return None
 
-    def icon_search_in_data_path(self, icon_name, icon_size):
+    def __icon_search_in_data_path(self, icon_name, icon_size):
         data_folders = None
 
         if os.environ.has_key("XDG_DATA_DIRS"):
@@ -545,23 +548,23 @@ class IconFactory():
         if not data_folders:
             data_folders = "/usr/local/share/:/usr/share/"
 
-        for data_folder in data_folders.split(':'):
+        for data_folder in data_folders.split(":"):
             #The line below line used datafolders instead of datafolder.
             #I changed it because I suspect it was a bug.
             paths = (os.path.join(data_folder, "pixmaps", icon_name),
                      os.path.join(data_folder, "icons", icon_name))
             for path in paths:
                 if os.path.isfile(path):
-                    icon = self.icon_from_file_name(path, icon_size)
+                    icon = self.__icon_from_file_name(path, icon_size)
                     if icon:
                         return icon
         return None
 
 
     #### Other commands
-    def command_get_pixmap(self, surface, name, size=0):
+    def __command_get_pixmap(self, surface, name, size=0):
         if surface is None:
-            if self.globals.orient == 'h':
+            if self.globals.orient == "h":
                 width = int(self.size * ar)
                 height = self.size
             else:
@@ -571,13 +574,13 @@ class IconFactory():
             width = surface.get_width()
             height = surface.get_height()
         if self.theme.has_surface(name):
-            surface = self.resize_surface(self.theme.get_surface(name),
+            surface = self.__resize_surface(self.theme.get_surface(name),
                                           width, height)
         else:
             print "theme error: pixmap %s not found"%name
         return surface
 
-    def command_fill(self, surface, color, opacity=100):
+    def __command_fill(self, surface, color, opacity=100):
         w = surface.get_width()
         h = surface.get_height()
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
@@ -585,8 +588,8 @@ class IconFactory():
         ctx.set_source_surface(surface)
         ctx.paint()
 
-        alpha = self.get_alpha(opacity)
-        c = self.get_color(color)
+        alpha = self.__get_alpha(opacity)
+        c = self.__get_color(color)
         r = float(int(c[1:3], 16))/255
         g = float(int(c[3:5], 16))/255
         b = float(int(c[5:7], 16))/255
@@ -596,7 +599,7 @@ class IconFactory():
         return new
 
 
-    def command_combine(self, surface, pix1, pix2, degrees=90):
+    def __command_combine(self, surface, pix1, pix2, degrees=90):
         # Combines left half of surface with right half of surface2.
         # The transition between the two halves are soft.
         w = surface.get_width()
@@ -608,7 +611,7 @@ class IconFactory():
         elif self.theme.has_surface(pix1):
             w = surface.get_width()
             h = surface.get_height()
-            p1 = self.resize_surface(self.theme.get_surface(bg), w, h)
+            p1 = self.__resize_surface(self.theme.get_surface(bg), w, h)
         else:
             print "theme error: pixmap %s not found"%pix1
         if pix2=="self":
@@ -618,7 +621,7 @@ class IconFactory():
         elif self.theme.has_surface(pix2):
             w = surface.get_width()
             h = surface.get_height()
-            p2 = self.resize_surface(self.theme.get_surface(bg), w, h)
+            p2 = self.__resize_surface(self.theme.get_surface(bg), w, h)
         else:
             print "theme error: pixmap %s not found"%pix2
 
@@ -645,13 +648,13 @@ class IconFactory():
             pass
         return surface
 
-    def command_transp_sat(self, surface, opacity=100, saturation=100):
+    def __command_transp_sat(self, surface, opacity=100, saturation=100):
         # Makes the icon desaturized and/or transparent.
         w = surface.get_width()
         h = surface.get_height()
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = gtk.gdk.CairoContext(cairo.Context(new))
-        alpha = self.get_alpha(opacity)
+        alpha = self.__get_alpha(opacity)
         # Todo: Add error check for saturation
         if int(saturation) < 100:
             sio = StringIO()
@@ -675,7 +678,7 @@ class IconFactory():
             ctx.paint_with_alpha(alpha)
         return new
 
-    def command_composite(self, surface, bg, fg,
+    def __command_composite(self, surface, bg, fg,
                           opacity=100, xoffset=0, yoffset=0):
         if fg=="self":
             foreground = surface
@@ -684,7 +687,7 @@ class IconFactory():
         elif self.theme.has_surface(fg):
             w = surface.get_width()
             h = surface.get_height()
-            foreground = self.resize_surface(self.theme.get_surface(fg), w, h)
+            foreground = self.__resize_surface(self.theme.get_surface(fg), w, h)
         else:
             print "theme error: pixmap %s not found"%fg
             return surface
@@ -701,12 +704,12 @@ class IconFactory():
         elif self.theme.has_surface(bg):
             w = surface.get_width()
             h = surface.get_height()
-            background = self.resize_surface(self.theme.get_surface(bg), w, h)
+            background = self.__resize_surface(self.theme.get_surface(bg), w, h)
         else:
             print "theme error: pixmap %s not found"%bg
             return surface
 
-        opacity = self.get_alpha(opacity)
+        opacity = self.__get_alpha(opacity)
         xoffset = float(xoffset)
         yoffset = float(yoffset)
         ctx = cairo.Context(background)
@@ -714,7 +717,7 @@ class IconFactory():
         ctx.paint_with_alpha(opacity)
         return background
 
-    def command_shrink(self, surface, percent=0, pixels=0):
+    def __command_shrink(self, surface, percent=0, pixels=0):
         w0 = surface.get_width()
         h0 = surface.get_height()
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w0, h0)
@@ -722,7 +725,7 @@ class IconFactory():
 
         w = int(((100-int(percent)) * w0)/100)-int(pixels)
         h = int(((100-int(percent)) * h0)/100)-int(pixels)
-        shrinked = self.resize_surface(surface, w, h)
+        shrinked = self.__resize_surface(surface, w, h)
         x = int(float(w0 - w) / 2 + 0.5)
         y = int(float(h0 - h) / 2 + 0.5)
         ctx.set_source_surface(shrinked, x, y)
@@ -730,10 +733,10 @@ class IconFactory():
         del shrinked
         return new
 
-    def command_correct_size(self, surface):
+    def __command_correct_size(self, surface):
         if surface is None:
             return
-        if self.globals.orient == 'v':
+        if self.globals.orient == "v":
             width = self.size
             height = int(self.size * self.ar)
         else:
@@ -749,17 +752,17 @@ class IconFactory():
         ctx.paint()
         return new
 
-    def command_glow(self, surface, color, opacity=100):
+    def __command_glow(self, surface, color, opacity=100):
         # Adds a glow around the parts of the surface
         # that isn't completely transparent.
 
-        alpha = self.get_alpha(opacity)
+        alpha = self.__get_alpha(opacity)
         # Thickness (pixels)
         tk = 1.5
 
 
         # Prepare the glow that should be put behind the icon
-        cs = self.command_colorize(surface, color)
+        cs = self.__command_colorize(surface, color)
         w = surface.get_width()
         h = surface.get_height()
         glow = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
@@ -781,12 +784,12 @@ class IconFactory():
         ctx.paint()
         return new
 
-    def command_colorize(self, surface, color):
+    def __command_colorize(self, surface, color):
         # Changes the color of all pixels to color.
         # The pixels alpha values are unchanged.
 
-        # Convert color hex-string (format '#FFFFFF')to int r, g, b
-        color = self.get_color(color)
+        # Convert color hex-string (format "#FFFFFF")to int r, g, b
+        color = self.__get_color(color)
         r = int(color[1:3], 16)/255.0
         g = int(color[3:5], 16)/255.0
         b = int(color[5:7], 16)/255.0
@@ -800,11 +803,11 @@ class IconFactory():
         return new
 
 
-    def command_bright(self, surface, strength = None, strenght = None):
+    def __command_bright(self, surface, strength = None, strenght = None):
         if strength is None and strenght is not None:
             # For compability with older themes.
             strength = strenght
-        alpha = self.get_alpha(strength)
+        alpha = self.__get_alpha(strength)
         w = surface.get_width()
         h = surface.get_height()
         # Colorize white
@@ -822,14 +825,14 @@ class IconFactory():
         ctx.paint_with_alpha(alpha)
         return new
 
-    def command_alpha_mask(self, surface, mask):
+    def __command_alpha_mask(self, surface, mask):
         if mask in self.temp:
             mask = self.temp[mask]
         elif self.theme.has_surface(mask):
-            m = self.surface2pixbuf(self.theme.get_surface(mask))
+            m = self.__surface2pixbuf(self.theme.get_surface(mask))
             m = m.scale_simple(surface.get_width(), surface.get_height(),
                                gtk.gdk.INTERP_BILINEAR)
-            mask = self.pixbuf2surface(m)
+            mask = self.__pixbuf2surface(m)
         w = surface.get_width()
         h = surface.get_height()
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
@@ -839,7 +842,7 @@ class IconFactory():
         return new
 
 #### Format conversions
-    def pixbuf2surface(self, pixbuf):
+    def __pixbuf2surface(self, pixbuf):
         if pixbuf is None:
             return None
         w = pixbuf.get_width()
@@ -851,7 +854,7 @@ class IconFactory():
         del pixbuf
         return surface
 
-    def surface2pixbuf(self, surface):
+    def __surface2pixbuf(self, surface):
         if surface is None:
             return None
         sio = StringIO()
@@ -864,16 +867,16 @@ class IconFactory():
         pixbuf = loader.get_pixbuf()
         return pixbuf
 
-    def surface2pil(self, surface):
+    def __surface2pil(self, surface):
         w = surface.get_width()
         h = surface.get_height()
         return Image.frombuffer("RGBA", (w, h), surface.get_data(),
                                 "raw", "RGBA", 0,1)
 
 
-    def pil2surface(self, im):
+    def __pil2surface(self, im):
         imgd = im.tostring("raw","RGBA",0,1)
-        a = array.array('B',imgd)
+        a = array.array("B",imgd)
         w = im.size[0]
         h = im.size[1]
         stride = im.size[0] * 4
@@ -881,10 +884,10 @@ class IconFactory():
                                                       w, h, stride)
         return surface
 
-    def resize_surface(self, surface, w, h):
-        im = self.surface2pil(surface)
+    def __resize_surface(self, surface, w, h):
+        im = self.__surface2pil(surface)
         im = im.resize((w, h), Image.ANTIALIAS)
-        return self.pil2surface(im)
+        return self.__pil2surface(im)
 
 
 

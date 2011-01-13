@@ -44,9 +44,9 @@ class ThemeHandler(ContentHandler):
 
     def startElement(self, name, attrs):
         name = name.lower().encode()
-        if name == 'theme':
+        if name == "theme":
             for attr in attrs.keys():
-                if attr.lower() == 'name':
+                if attr.lower() == "name":
                     self.name = attrs[attr]
             return
         # Add all attributes to a dictionary
@@ -56,19 +56,19 @@ class ThemeHandler(ContentHandler):
             d[attr.encode().lower()] = attrs[attr].encode().lower()
         # Add a ODict to the dictionary in which all
         # content will be put.
-        d['content'] = ODict()
+        d["content"] = ODict()
         self.nested_contents[-1][name] = d
         # Append content ODict to the list so that it
         # next element will be put there.
-        self.nested_contents.append(d['content'])
+        self.nested_contents.append(d["content"])
 
         self.nested_attributes.append(d)
 
-        if name == "if" and 'type' in d:
-            self.__add_to_types(d['type'])
+        if name == "if" and "type" in d:
+            self.__add_to_types(d["type"])
 
     def endElement(self, name):
-        if name == 'theme':
+        if name == "theme":
             return
         # Pop the last element of nested_contents
         # so that the new elements won't show up
@@ -78,11 +78,11 @@ class ThemeHandler(ContentHandler):
         # Remove Content Odict if the element
         # had no content.
         d = self.nested_attributes.pop()
-        if d['content'].keys() == []:
-                d.pop('content')
+        if d["content"].keys() == []:
+                d.pop("content")
 
     def __add_to_types(self, type):
-        if type[0] == '!':
+        if type[0] == "!":
             type == type[1:]
         if not type in self.types:
             self.types.append(type)
@@ -102,28 +102,28 @@ class Theme(gobject.GObject):
     }
 
     def __new__(cls, *p, **k):
-        if not '_the_instance' in cls.__dict__:
+        if not "_the_instance" in cls.__dict__:
             cls._the_instance = gobject.GObject.__new__(cls)
         return cls._the_instance
 
     def __init__(self):
-        if 'theme' in self.__dict__:
+        if "theme" in self.__dict__:
             # This is not the first instance of Theme,
             #no need to initiate anything
             return
         gobject.GObject.__init__(self)
         self.globals = Globals()
-        self.globals.connect('theme_changed', self.on_theme_changed)
+        self.globals.connect("theme_changed", self.on_theme_changed)
         self.on_theme_changed()
 
     def on_theme_changed(self, arg=None):
         self.themes = self.find_themes()
         default_theme_path = None
         for theme, path in self.themes.items():
-            if theme.lower() == self.globals.settings['theme'].lower():
+            if theme.lower() == self.globals.settings["theme"].lower():
                 self.theme_path = path
                 break
-            if theme.lower() == self.globals.DEFAULT_SETTINGS['theme'].lower():
+            if theme.lower() == self.globals.DEFAULT_SETTINGS["theme"].lower():
                 default_theme_path = path
         else:
             if default_theme_path:
@@ -149,7 +149,7 @@ class Theme(gobject.GObject):
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
-                    if f[-7:] == '.tar.gz':
+                    if f[-7:] == ".tar.gz":
                         theme_paths.append(dir+"/"+f)
         for theme_path in theme_paths:
             try:
@@ -165,16 +165,16 @@ class Theme(gobject.GObject):
             md = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                _('No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes'))
+                _("No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"))
             md.run()
             md.destroy()
-            raise NoThemesError('No working themes found in ' + \
-                        '/usr/share/dockbarx/themes or ~/.dockbarx/themes')
+            raise NoThemesError("No working themes found in " + \
+                        "/usr/share/dockbarx/themes or ~/.dockbarx/themes")
         return themes
 
     def reload(self):
         tar = taropen(self.theme_path)
-        config = tar.extractfile('config')
+        config = tar.extractfile("config")
 
         # Parse
         parser = make_parser()
@@ -191,43 +191,43 @@ class Theme(gobject.GObject):
         # Pixmaps
         self.surfaces = {}
         pixmaps = {}
-        if self.theme.has_key('pixmaps'):
-            pixmaps = self.theme['pixmaps']['content']
+        if self.theme.has_key("pixmaps"):
+            pixmaps = self.theme["pixmaps"]["content"]
         for (type, d) in pixmaps.items():
-            if type == 'pixmap_from_file':
-                self.surfaces[d['name']] = self.load_surface(tar, d['file'])
+            if type == "pixmap_from_file":
+                self.surfaces[d["name"]] = self.load_surface(tar, d["file"])
 
         # Colors
         self.color_names = {}
         self.default_colors = {}
         self.default_alphas = {}
         colors = {}
-        if self.theme.has_key('colors'):
-            colors = self.theme['colors']['content']
+        if self.theme.has_key("colors"):
+            colors = self.theme["colors"]["content"]
         for i in range(1, 9):
-            c = 'color%s'%i
+            c = "color%s"%i
             if colors.has_key(c):
                 d = colors[c]
-                if d.has_key('name'):
-                    self.color_names[c] = d['name']
-                if d.has_key('default'):
-                    if self.test_color(d['default']):
-                        self.default_colors[c] = d['default']
+                if d.has_key("name"):
+                    self.color_names[c] = d["name"]
+                if d.has_key("default"):
+                    if self.test_color(d["default"]):
+                        self.default_colors[c] = d["default"]
                     else:
-                        print 'Theme error: %s\'s default for theme %s cannot be read.'%(c, self.name)
-                        print 'A default color should start with an "#" ' + \
-                              'and be followed by six hex-digits,' + \
-                              'for example "#FF13A2".'
-                if d.has_key('opacity'):
-                    alpha = d['opacity']
+                        print "Theme error: %s\'s default for theme %s cannot be read."%(c, self.name)
+                        print "A default color should start with an \"#\" " + \
+                              "and be followed by six hex-digits," + \
+                              "for example \"#FF13A2\"."
+                if d.has_key("opacity"):
+                    alpha = d["opacity"]
                     if self.test_alpha(alpha):
                         self.default_alphas[c] = alpha
                     else:
-                        print 'Theme error: ' + \
-                              '%s\'s opacity for theme %s'%(c, self.name) + \
-                              ' cannot be read.'
-                        print 'The opacity should be a number ("0"-"100") ' + \
-                              'or the words "not used".'
+                        print "Theme error: " + \
+                              "%s\'s opacity for theme %s"%(c, self.name) + \
+                              " cannot be read."
+                        print "The opacity should be a number (\"0\"-\"100\") " + \
+                              "or the words \"not used\"."
 
         config.close()
         tar.close()
@@ -236,12 +236,12 @@ class Theme(gobject.GObject):
         self.globals.theme_name = self.name
         self.globals.update_colors(self.name,
                                    self.default_colors, self.default_alphas)
-        self.emit('theme_reloaded')
+        self.emit("theme_reloaded")
 
     def check(self, path_to_tar):
         #TODO: Optimize this
         tar = taropen(path_to_tar)
-        config = tar.extractfile('config')
+        config = tar.extractfile("config")
         parser = make_parser()
         theme_handler = ThemeHandler()
         try:
@@ -257,15 +257,15 @@ class Theme(gobject.GObject):
 
     def print_dict(self, d, indent=""):
         for key in d.keys():
-            if key == 'content' or type(d[key]) == dict:
+            if key == "content" or type(d[key]) == dict:
                 print "%s%s={"%(indent,key)
                 self.print_dict(d[key], indent+"   ")
                 print "%s}"%indent
             else:
-                print '%s%s = %s'%(indent,key,d[key])
+                print "%s%s = %s"%(indent,key,d[key])
 
     def load_pixbuf(self, tar, name):
-        f = tar.extractfile('pixmaps/'+name)
+        f = tar.extractfile("pixmaps/"+name)
         buffer=f.read()
         pixbuf_loader=gtk.gdk.PixbufLoader()
         pixbuf_loader.write(buffer)
@@ -275,7 +275,7 @@ class Theme(gobject.GObject):
         return pixbuf
 
     def load_surface(self, tar, name):
-        f = tar.extractfile('pixmaps/'+name)
+        f = tar.extractfile("pixmaps/"+name)
         surface = cairo.ImageSurface.create_from_png(f)
         f.close()
         return surface
@@ -290,7 +290,7 @@ class Theme(gobject.GObject):
         return self.surfaces[name]
 
     def get_icon_dict(self):
-        return self.theme['button_pixmap']['content']
+        return self.theme["button_pixmap"]["content"]
 
     def get_name(self):
         return self.name
@@ -299,14 +299,14 @@ class Theme(gobject.GObject):
         return self.types
 
     def get_gap(self):
-        return int(self.theme['button_pixmap'].get('gap', 0))
+        return int(self.theme["button_pixmap"].get("gap", 0))
 
     def get_windows_cnt(self):
-        return int(self.theme['button_pixmap'].get('windows_cnt', 1))
+        return int(self.theme["button_pixmap"].get("windows_cnt", 1))
 
     def get_aspect_ratio(self):
-        ar = self.theme['button_pixmap'].get('aspect_ratio', "1")
-        l = ar.split('/',1)
+        ar = self.theme["button_pixmap"].get("aspect_ratio", "1")
+        l = ar.split("/",1)
         if len(l) == 2:
             ar = float(l[0])/float(l[1])
         else:
@@ -332,7 +332,7 @@ class Theme(gobject.GObject):
         return True
 
     def test_alpha(self, alpha):
-        if 'no' in alpha:
+        if "no" in alpha:
             return True
         try:
             t = int(alpha)

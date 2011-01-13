@@ -34,7 +34,7 @@ __version__ = "1.1"
 MESSAGES = {}
 
 
-def usage (ecode, msg=''):
+def usage (ecode, msg=""):
     """
     Print usage and msg and exit with given code.
     """
@@ -48,7 +48,7 @@ def add (msgid, transtr, fuzzy):
     Add a non-fuzzy translation to the dictionary.
     """
     global MESSAGES
-    if not fuzzy and transtr and not transtr.startswith('\0'):
+    if not fuzzy and transtr and not transtr.startswith("\0"):
         MESSAGES[msgid] = transtr
 
 def generate ():
@@ -60,14 +60,14 @@ def generate ():
     # the keys are sorted in the .mo file
     keys.sort()
     offsets = []
-    ids = strs = ''
+    ids = strs = ""
     for _id in keys:
         # For each string, we need size and file offset.  Each string is NUL
         # terminated; the NUL does not count into the size.
         offsets.append((len(ids), len(_id), len(strs), len(MESSAGES[_id])))
-        ids += _id + '\0'
-        strs += MESSAGES[_id] + '\0'
-    output = ''
+        ids += _id + "\0"
+        strs += MESSAGES[_id] + "\0"
+    output = ""
     # The header is 7 32-bit unsigned integers.  We don't use hash tables, so
     # the keys start right after the index tables.
     # translated string.
@@ -102,12 +102,12 @@ def make (filename, outfile):
     MESSAGES = {}
 
     # Compute .mo name from .po name and arguments
-    if filename.endswith('.po'):
+    if filename.endswith(".po"):
         infile = filename
     else:
-        infile = filename + '.po'
+        infile = filename + ".po"
     if outfile is None:
-         outfile = os.path.splitext(infile)[0] + '.mo'
+         outfile = os.path.splitext(infile)[0] + ".mo"
 
     try:
         lines = open(infile).readlines()
@@ -118,43 +118,43 @@ def make (filename, outfile):
     fuzzy = 0
 
     # Parse the catalog
-    msgid = msgstr = ''
+    msgid = msgstr = ""
     lno = 0
     for l in lines:
         lno += 1
         # If we get a comment line after a msgstr, this is a new entry
-        if l[0] == '#' and section == STR:
+        if l[0] == "#" and section == STR:
             add(msgid, msgstr, fuzzy)
             section = None
             fuzzy = 0
         # Record a fuzzy mark
-        if l[:2] == '#,' and (l.find('fuzzy') >= 0):
+        if l[:2] == "#," and (l.find("fuzzy") >= 0):
             fuzzy = 1
         # Skip comments
-        if l[0] == '#':
+        if l[0] == "#":
             continue
         # Start of msgid_plural section, separate from singular form with \0
-        if l.startswith('msgid_plural'):
-            msgid += '\0'
+        if l.startswith("msgid_plural"):
+            msgid += "\0"
             l = l[12:]
         # Now we are in a msgid section, output previous section
-        elif l.startswith('msgid'):
+        elif l.startswith("msgid"):
             if section == STR:
                 add(msgid, msgstr, fuzzy)
             section = ID
             l = l[5:]
-            msgid = msgstr = ''
+            msgid = msgstr = ""
         # Now we are in a msgstr section
-        elif l.startswith('msgstr'):
+        elif l.startswith("msgstr"):
             section = STR
             l = l[6:]
             # Check for plural forms
-            if l.startswith('['):
+            if l.startswith("["):
                 # Separate plural forms with \0
-                if not l.startswith('[0]'):
-                    msgstr += '\0'
+                if not l.startswith("[0]"):
+                    msgstr += "\0"
                 # Ignore the index - must come in sequence
-                l = l[l.index(']') + 1:]
+                l = l[l.index("]") + 1:]
         # Skip empty lines
         l = l.strip()
         if not l:
@@ -166,8 +166,8 @@ def make (filename, outfile):
         elif section == STR:
             msgstr += l
         else:
-            print >> sys.stderr, 'Syntax error on %s:%d' % (infile, lno), \
-                  'before:'
+            print >> sys.stderr, "Syntax error on %s:%d" % (infile, lno), \
+                  "before:"
             print >> sys.stderr, l
             sys.exit(1)
     # Add last entry
@@ -183,24 +183,24 @@ def make (filename, outfile):
 
 def main ():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hVo:',
-                                   ['help', 'version', 'output-file='])
+        opts, args = getopt.getopt(sys.argv[1:], "hVo:",
+                                   ["help", "version", "output-file="])
     except getopt.error, msg:
         usage(1, msg)
 
     outfile = None
     # parse options
     for opt, arg in opts:
-        if opt in ('-h', '--help'):
+        if opt in ("-h", "--help"):
             usage(0)
-        elif opt in ('-V', '--version'):
+        elif opt in ("-V", "--version"):
             print >> sys.stderr, "msgfmt.py", __version__
             sys.exit(0)
-        elif opt in ('-o', '--output-file'):
+        elif opt in ("-o", "--output-file"):
             outfile = arg
     # do it
     if not args:
-        print >> sys.stderr, 'No input file given'
+        print >> sys.stderr, "No input file given"
         print >> sys.stderr, "Try `msgfmt --help' for more information."
         return
 
@@ -208,5 +208,5 @@ def main ():
         make(filename, outfile)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
