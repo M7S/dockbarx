@@ -79,6 +79,13 @@ class MediaButtons(gtk.Alignment):
         self.player_iface.Next(reply_handler=self.__reply_handler,
                                error_handler=self.__error_handler)
 
+    def show_player(self, *args):
+        try:
+            self.player.Raise(dbus_interface="org.mpris.MediaPlayer2")
+        except:
+            return False
+        return True
+
     def remove(self):
         disconnect(self.previous_button)
         disconnect(self.next_button)

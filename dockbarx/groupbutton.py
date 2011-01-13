@@ -1395,7 +1395,10 @@ class GroupButton():
     def action_select(self, widget, event):
         wins = self.windows.get_list()
         if (self.pinned and not wins):
-            self.action_launch_application()
+            if self.media_buttons:
+                sucess = self.media_buttons.show_player()
+            if not self.media_buttons or not sucess:
+                self.action_launch_application()
         # One window
         elif len(wins) == 1:
             sow = self.globals.settings["select_one_window"]
