@@ -456,7 +456,8 @@ class DockBar():
             wine = True
         else:
             wine = False
-        if identifier.startswith("openoffice.org"):
+        if identifier.startswith("openoffice.org") or \
+           identifier.startswith("libreoffice"):
             identifier = self.__get_ooo_app_name(window)
             if self.globals.settings["separate_ooo_apps"]:
                 connect(window, "name-changed", self.__on_ooo_window_name_changed)
@@ -593,14 +594,18 @@ class DockBar():
     def __get_ooo_app_name(self, window):
         # Separates the differnt openoffice applications from each other
         # The names are chosen to match the gio app ids.
-        if not self.globals.settings["separate_ooo_apps"]:
-            return "openoffice.org-writer"
         name = window.get_name().lower()
+        if "libreoffice" in name:
+            office = "libreoffice"
+        else:
+            office = "openoffice.org"
+        if not self.globals.settings["separate_ooo_apps"]:
+            return office + "-writer"
         for app in ["calc", "impress", "draw", "math"]:
             if name.endswith(app):
-                return "openoffice.org-" + app.lower()
+                return office + "-" + app.lower()
         else:
-            return "openoffice.org-writer"
+            return office + "-writer"
 
     def __on_ooo_window_name_changed(self, window):
         identifier = None

@@ -487,8 +487,9 @@ class IconFactory():
 
             # Special cases
             if icon_name.startswith("openoffice"):
-                # Makes sure openoffice gets a themed icon
                 icon_name = "ooo-writer"
+            if icon_name.startswith("libreoffice"):
+                icon_name = "libreoffice-writer"
 
         if self.icon_theme.has_icon(icon_name):
             return self.icon_theme.load_icon(icon_name,size,0)
