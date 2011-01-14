@@ -38,7 +38,7 @@ class DockBarWindow():
         self.dockbar = dockbarx.dockbar.DockBar(None)
         hbox = gtk.HBox()
         button = gtk.Button("Pref")
-        button.connect("clicked", self.dockbar.on_ppm_pref)
+        button.connect("clicked", self.__on_pref_clicked)
         hbox.pack_start(button, False)
         hbox.pack_start(self.dockbar.container, False)
         eb = gtk.EventBox()
@@ -47,6 +47,9 @@ class DockBarWindow():
         self.window.add(eb)
         eb.show_all()
         ##self.window.add(self.dockbar.container)
+
+    def __on_pref_clicked(self, *args):
+        self.dockbar.open_preference()
 
     def __destroy (self,widget,data=None):
         gtk.main_quit()

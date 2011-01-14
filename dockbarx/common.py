@@ -274,17 +274,11 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
 
 
 class Opacify():
-    def __new__(cls, *p, **k):
-        if not "_the_instance" in cls.__dict__:
-            cls._the_instance = gobject.GObject.__new__(cls)
-        return cls._the_instance
-
     def __init__(self):
-        if not "opacifier" in self.__dict__:
-            self.opacifier = None
-            self.old_windows = None
-            self.sids = {}
-            self.globals = Globals()
+        self.opacifier = None
+        self.old_windows = None
+        self.sids = {}
+        self.globals = Globals()
 
     def opacify(self, windows, opacifier=None):
         """Add semi-transparency to windows"""
@@ -429,6 +423,9 @@ class Opacify():
     def set_opacifier(self, opacifier):
         if self.opacifier != None:
             self.opacifier = opacifier
+
+    def get_opacifier(self):
+        return self.opacifier
 
     def __compiz_call(self, values=None, matches=None, sid=None):
         if self.use_old_call:
@@ -738,3 +735,9 @@ __connector = Connector()
 connect = __connector.connect
 connect_after = __connector.connect_after
 disconnect = __connector.disconnect
+
+__opacify_obj = Opacify()
+opacify = __opacify_obj.opacify
+deopacify = __opacify_obj.deopacify
+set_opacifier = __opacify_obj.set_opacifier
+get_opacifier = __opacify_obj.get_opacifier

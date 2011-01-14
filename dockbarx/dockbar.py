@@ -445,9 +445,7 @@ class DockBar():
         if not self.globals.settings["show_only_current_desktop"]:
             return
         for group in self.groups:
-            group.update_state()
-            group.set_icongeo()
-            group.nextlist = None
+            group.desktop_changed()
 
 
     #### Groupbuttons

@@ -225,8 +225,8 @@ class GroupButton():
 
 
     def set_identifier(self, identifier):
-        if self.opacify_obj.opacifier == self.identifier:
-            self.opacify_obj.set_opacifier(identifier)
+        if self.identifier == get_opacifier():
+            set_opacifier(identifier)
         self.identifier = identifier
         self.popup_label.set_tooltip_text(
                                 "%s: %s"%(_("Identifier"), self.identifier))
@@ -301,6 +301,11 @@ class GroupButton():
 
     def dockbar_moved(self, arg=None):
         self.__set_icongeo()
+
+    def desktop_changed(self):
+        self.update_state()
+        self.__set_icongeo()
+        self.nextlist = None
 
     def launch_item(self, button, event, uri):
         self.desktop_entry.launch(uri)
@@ -854,15 +859,14 @@ class GroupButton():
     #### Opacify
     def opacify(self):
         xids = [window.get_xid() for window in self.windows]
-        self.opacify_obj.opacify(xids,
-                                 self.identifier)
+        opacify(xids, self.identifier)
         self.opacified = True
 
     def deopacify(self):
         if self.opacify_request_sid is not None:
             gobject.source_remove(self.opacify_request_sid)
             self.opacify_request_sid = None
-        self.opacify_obj.deopacify(self.identifier)
+        deopacify(self.identifier)
 
     def opacify_request(self):
         if self.windows.get_unminimized_count() > 0 and \
@@ -1085,7 +1089,8 @@ class GroupButton():
             # False mouse_leave event, the cursor might be on a screen edge
             # or the mouse has been clicked (compiz bug).
             # A timeout is set so that the real mouse leave won't be missed.
-            gobject.timeout_add(50, self.__on_button_mouse_leave, widget, event)
+            gobject.timeout_add(50,
+                                self.__on_button_mouse_leave, widget, event)
             return
         self.mouse_over = False
         self.pressed = False

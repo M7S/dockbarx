@@ -27,7 +27,8 @@ import weakref
 import gc
 gc.enable()
 
-from common import ODict, Globals, Opacify, connect, disconnect
+from common import ODict, Globals, Opacify
+from common import connect, disconnect, opacify, deopacify
 from cairowidgets import CairoWindowItem
 
 import i18n
@@ -163,7 +164,6 @@ class WindowButton():
 
     #### Windows's Events
     def __on_window_state_changed(self, window,changed_mask, new_state):
-
         if WNCK_WINDOW_STATE_MINIMIZED & changed_mask & new_state:
             self.button.set_minimized(True)
             self.groupbutton_r().update_state_request()
@@ -197,7 +197,7 @@ class WindowButton():
     #### Opacify
     def opacify(self):
         self.xid = self.window.get_xid()
-        self.opacify_obj.opacify(self.xid, self.xid)
+        opacify(self.xid, self.xid)
 
     def deopacify(self):
         if self.deopacify_request_sid:
@@ -205,7 +205,7 @@ class WindowButton():
             self.deopacify_request_sid = None
         if self.deopacify_sid:
             self.deopacify_sid = None
-        self.opacify_obj.deopacify(self.xid)
+        deopacify(self.xid)
 
     def opacify_request(self):
         if self.window.is_minimized():
@@ -236,7 +236,7 @@ class WindowButton():
             return True
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
-        self.deopacify_sid = gobject.timeout_add(110, self.deopacify)
+        self.deopacify_sid = gobject.timeout_add(150, self.deopacify)
         return False
 
     #### D'n'D
