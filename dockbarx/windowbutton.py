@@ -124,16 +124,6 @@ class WindowButton():
         x, y, w, h, bit_depth = win.get_geometry()
         return gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
 
-    def __on_show_only_current_monitor_changed(self, arg=None):
-        if self.globals.settings["show_only_current_monitor"]:
-            if self.geometry_changed_event is None:
-                self.geometry_changed_event = self.window.connect(
-                                "geometry-changed", self.__on_geometry_changed)
-        else:
-            if self.geometry_changed_event is not None:
-                self.window.disconnect(self.geometry_changed_event)
-        self.monitor = self.get_monitor()
-
     def del_button(self):
         if self.deopacify_sid:
             gobject.source_remove(self.deopacify_sid)
@@ -156,8 +146,17 @@ class WindowButton():
         del self.globals
         gc.collect()
 
-    #### Previews
+    def __on_show_only_current_monitor_changed(self, arg=None):
+        if self.globals.settings["show_only_current_monitor"]:
+            if self.geometry_changed_event is None:
+                self.geometry_changed_event = self.window.connect(
+                                "geometry-changed", self.__on_geometry_changed)
+        else:
+            if self.geometry_changed_event is not None:
+                self.window.disconnect(self.geometry_changed_event)
+        self.monitor = self.get_monitor()
 
+    #### Previews
     def get_preview_alloc(self):
         return self.button.get_preview_allocation()
 
@@ -285,7 +284,8 @@ class WindowButton():
         # or self.__on_button_mouse_leave.
         self.button_pressed = True
         self.button_press_sid = \
-                        gobject.timeout_add(600, self.__set_button_pressed_false)
+                        gobject.timeout_add(600,
+                                            self.__set_button_pressed_false)
 
     def __set_button_pressed_false(self):
         # Helper function for __on_window_button_press_event.

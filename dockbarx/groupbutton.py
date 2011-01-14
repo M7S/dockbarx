@@ -302,6 +302,15 @@ class GroupButton():
     def dockbar_moved(self, arg=None):
         self.__set_icongeo()
 
+    def launch_item(self, button, event, uri):
+        self.desktop_entry.launch(uri)
+        if self.windows:
+            self.launch_effect_timeout = gobject.timeout_add(2000,
+                                                self.__remove_launch_effect)
+        else:
+            self.launch_effect_timeout = gobject.timeout_add(10000,
+                                                self.__remove_launch_effect)
+
     def remove(self):
         # Remove group button.
         if self.media_buttons:
@@ -1382,15 +1391,6 @@ class GroupButton():
         self.dockbar_r().update_pinned_apps_list()
         self.hide_list()
 
-    def launch_item(self, button, event, uri):
-        self.desktop_entry.launch(uri)
-        if self.windows:
-            self.launch_effect_timeout = gobject.timeout_add(2000,
-                                                    self.__remove_launch_effect)
-        else:
-            self.launch_effect_timeout = gobject.timeout_add(10000,
-                                                    self.__remove_launch_effect)
-
     #### Actions
     def action_select(self, widget, event):
         wins = self.windows.get_list()
@@ -1777,10 +1777,10 @@ class GroupButton():
         self.update_state()
         if self.windows:
             self.launch_effect_timeout = gobject.timeout_add(2000,
-                                                    self.__remove_launch_effect)
+                                                self.__remove_launch_effect)
         else:
             self.launch_effect_timeout = gobject.timeout_add(10000,
-                                                    self.__remove_launch_effect)
+                                                self.__remove_launch_effect)
         self.hide_list()
         self.deopacify()
         if self.launch_sid:
@@ -1877,7 +1877,7 @@ class GroupButton():
 
     def action_dbpref (self,widget=None, event=None):
         # Preferences dialog
-        self.dockbar_r().on_ppm_pref()
+        self.dockbar_r().open_preference()
         self.hide_list()
         self.deopacify()
 
