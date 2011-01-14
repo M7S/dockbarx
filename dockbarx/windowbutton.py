@@ -363,7 +363,7 @@ class WindowButton():
             # Hide popup since mouse movment won't
             # be tracked during compiz move effect
             # which means popup list can be left open.
-            groupbutton = self.groupbutton_r
+            groupbutton = self.groupbutton_r()
             if groupbutton.hide_list_sid is None:
                 groupbutton.hide_list()
         if self.window.is_minimized():
