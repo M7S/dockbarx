@@ -1399,7 +1399,7 @@ class GroupButton():
              _("Make custom launcher"): self.__menu_edit_launcher,
              _("_Pin application"): self.__menu_pin,
              _("_Launch application"): self.action_launch_application}
-        func = menufuncs.get(name, None)
+        func = menu_funcs.get(name, None)
         if func:
             func()
 
