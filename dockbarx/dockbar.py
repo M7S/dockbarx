@@ -39,6 +39,7 @@ from cairowidgets import *
 from theme import Theme, NoThemesError
 from common import *
 from mediabuttons import Mpris2Watch, MediaButtons
+from dockmanager import DockManager
 
 import i18n
 _ = i18n.language.gettext
@@ -123,6 +124,8 @@ class DockBar():
         self.skip_tasklist_windows = None
         self.scrollpeak_gr = None
         self.nextlist = None
+
+        self.dockmanager = DockManager(self)
 
         self.media_buttons = {}
         self.mpris = Mpris2Watch()
@@ -449,11 +452,19 @@ class DockBar():
 
 
     #### Groupbuttons
-    def remove_groupbutton(self, name):
-        group = self.groups[name]
+    def remove_groupbutton(self, group):
+        dm_path = group.get_dm_path()
+        if dm_path:
+            self.__remove_dm_item(dm_path)
         group.remove()
         self.groups.remove(group)
         self.update_pinned_apps_list()
+        if self.nextlist:
+            self.nextlist = None
+            if self.scrollpeak_gr and \
+               self.scrollpeak_gr in self.groups:
+                self.scrollpeak_gr.scrollpeak_abort()
+                self.scrollpeak_gr = None
 
     def groupbutton_moved(self, name, calling_button=None):
         # Moves the button to the right of the calling button.
@@ -516,6 +527,9 @@ class DockBar():
         else:
             self.groups.append(gb)
 
+        dm_path = gb.get_dm_path()
+        if dm_path:
+            self.__add_dm_item(dm_path)
         self.__media_player_check(identifier, gb)
         return gb
 
@@ -588,13 +602,7 @@ class DockBar():
         group = self.groups[identifier]
         group.del_window(window)
         if not group.windows and not group.pinned:
-            self.groups.remove(group)
-            if self.nextlist:
-                self.nextlist = None
-                if self.scrollpeak_gr and \
-                   self.scrollpeak_gr in self.groups:
-                    self.scrollpeak_gr.scrollpeak_abort()
-                    self.scrollpeak_gr = None
+            self.remove_groupbutton(group)
         del self.windows[window]
 
     def __find_desktop_entry_id(self, identifier):
@@ -1120,6 +1128,53 @@ class DockBar():
             group.add_media_buttons(media_buttons)
         else:
             group.remove_media_buttons()
+
+    #### DockManager
+    def get_dm_paths(self):
+        paths = []
+        for group in self.groups:
+            path = group.get_dm_path()
+            if path is not None:
+                paths.append(path)
+        return paths
+
+    def get_dm_paths_by_name(self, name):
+        paths = []
+        for group in self.groups:
+            path = group.get_dm_path_by_name(name)
+            if path is not None:
+                paths.append(path)
+        return paths
+
+    def get_dm_paths_by_desktop_file(self, name):
+        paths = []
+        for group in self.groups:
+            path = group.get_dm_path_by_desktop_file(name)
+            if path is not None:
+                paths.append(path)
+        return paths
+
+    def get_dm_paths_by_pid(self, pid):
+        paths = []
+        for group in self.groups:
+            path = group.get_dm_path_by_pid(pid)
+            if path is not None:
+                paths.append(path)
+        return paths
+
+    def get_dm_paths_by_xid(self):
+        paths = []
+        for group in self.groups:
+            path = group.get_dm_path_by_xid(xid)
+            if path is not None:
+                paths.append(path)
+        return paths
+
+    def __add_dm_item(self, path):
+        self.dockmanager.ItemAdded(dbus.ObjectPath(path))
+
+    def __remove_dm_item(self, path):
+        self.dockmanager.ItemRemoved(dbus.ObjectPath(path))
 
     #### Keyboard actions
     def __gkeys_changed(self, arg=None, dialog=True):

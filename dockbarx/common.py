@@ -110,9 +110,7 @@ class ODict():
             self.list.append(t)
 
     def __getitem__(self, key):
-        for t in self.list:
-            if t[0] == key:
-                return t[1]
+        return self.get(key)
 
     def __setitem__(self, key, value):
         t = (key, value)
@@ -166,6 +164,12 @@ class ODict():
     def add_at_index(self, index, key, value):
         t = (key, value)
         self.list.insert(index, t)
+
+    def get(self, key, default=None):
+        for t in self.list:
+            if t[0] == key:
+                return t[1]
+        return default
 
     def get_index(self, key):
         for t in self.list:

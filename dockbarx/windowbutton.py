@@ -175,7 +175,7 @@ class WindowButton():
         if window.needs_attention() != self.needs_attention:
             self.needs_attention = window.needs_attention()
             self.button.set_needs_attention(self.needs_attention)
-            self.groupbutton_r().need_attention_changed()
+            self.groupbutton_r().needs_attention_changed()
 
     def __on_window_icon_changed(self, window):
         # Creates pixbufs for minimized and normal icons

@@ -35,9 +35,8 @@ from windowbutton import WindowButton
 from iconfactory import IconFactory
 from cairowidgets import CairoButton, CairoMenuItem
 from cairowidgets import CairoPopup, CairoToggleMenu
-from common import ODict, Globals, DesktopEntry
-from common import Opacify,  compiz_call_async
-from common import connect, connect_after, disconnect
+from dockmanager import DockManagerItem
+from common import *
 import zg
 
 import i18n
@@ -223,6 +222,13 @@ class GroupButton():
         connect(self.button, "drag_end", self.__on_drag_end)
         self.is_current_drag_source = False
 
+        #--- Dockmanager
+        try:
+            self.dockmanager = DockManagerItem(self)
+        except:
+            raise
+            self.dockmanager = None
+
 
     def set_identifier(self, identifier):
         if self.identifier == get_opacifier():
@@ -267,7 +273,6 @@ class GroupButton():
                                                  win.get_geometry()[3],
                                                  self.monitor_aspect_ratio)[0])
                     width += 16
-                    print width
                 if width > mgeo.width:
                     show_previews = False
             else:
@@ -578,8 +583,6 @@ class GroupButton():
                 self.popup.resize(10, 10)
             else:
                 self.hide_list()
-        if not self.windows and not self.pinned:
-            self.remove()
 
     def set_has_active_window(self, mode):
         if mode != self.has_active_window:
@@ -903,6 +906,46 @@ class GroupButton():
             self.media_buttons = None
             self.__update_tooltip()
 
+    #### DockManager
+    def get_dm_path(self, match=None):
+        if self.dockmanager is None:
+            return None
+        return self.dockmanager.get_path()
+
+    def get_dm_path_by_name(self, name):
+        if self.dockmanager is None:
+            return None
+        if name == self.identifier:
+            return self.dockmanager.get_path()
+
+    def get_dm_path_by_desktop_file(self, name):
+        if self.dockmanager is None:
+            return None
+        df_name = self.desktop_entry.getFileName().rsplit('/')[-1]
+        if name == df_name:
+            return self.dockmanager.get_path()
+
+    def get_dm_path_by_pid(self, pid):
+        if self.dockmanager is None:
+            return None
+        pids = [window.get_pid() for window in self.windows]
+        if pid in pids:
+            return self.dockmanager.get_path()
+
+    def get_dm_path_by_xid(self, xid):
+        if self.dockmanager is None:
+            return None
+        xids = [window.get_xid() for window in self.windows]
+        if xid in xids:
+            return self.dockmanager.get_path()
+
+    def get_desktop_entry_file_name(self):
+        if self.desktop_entry:
+            file_name = self.desktop_entry.getFileName()
+        else:
+            file_name = ''
+        return file_name
+
     #### DnD (source)
     def __on_drag_begin(self, widget, drag_context):
         self.is_current_drag_source = True
@@ -1209,6 +1252,16 @@ class GroupButton():
             self.menu.add_submenu(_("Properties"))
             self.menu.add_item(_("Edit Identifier"), _("Properties"))
             self.menu.add_item(_("Edit Launcher"), _("Properties"))
+        # DockManager
+        dm_menu_items = self.dockmanager.get_menu_items()
+        if dm_menu_items:
+            self.menu.add_separator()
+        for item in dm_menu_items.values():
+            submenu = item.get("container-title", None)
+            if submenu and not self.menu.has_submenu(submenu):
+                self.menu.add_submenu(submenu)
+            if item["label"]:
+                self.menu.add_item(item["label"], submenu)
         # Recent and most used files
         if self.desktop_entry:
             recent, most_used, related = self.__menu_get_zg_files()
@@ -1320,22 +1373,35 @@ class GroupButton():
         if name in self.zg_files:
             self.launch_item(None, None, self.zg_files[name])
             return
-        {_("_Close"): self.action_close_all_windows,
-         _("_Close") + _(" all windows"): self.action_close_all_windows,
-         _("Ma_ximize"): self.action_maximize_all_windows,
-         _("Ma_ximize") + _(" all windows"): self.action_maximize_all_windows,
-         _("Unma_ximize"): self.action_maximize_all_windows,
-         _("Unma_ximize")+_(" all windows"): self.action_maximize_all_windows,
-         _("_Minimize"): self.action_minimize_all_windows,
-         _("_Minimize")+_(" all windows"): self.action_minimize_all_windows,
-         _("Un_minimize"): self.__menu_unminimize_all_windows,
-         _("Un_minimize")+_(" all windows"):self.__menu_unminimize_all_windows,
-         _("Edit Launcher"): self.__menu_edit_launcher,
-         _("Edit Identifier"): self.__menu_change_identifier,
-         _("Unpin application"): self.action_remove_launcher,
-         _("Make custom launcher"): self.__menu_edit_launcher,
-         _("_Pin application"): self.__menu_pin,
-         _("_Launch application"): self.action_launch_application}[name]()
+        for id, menu_item in self.dockmanager.get_menu_items().items():
+            if name == menu_item['label']:
+                self.dockmanager.MenuItemActivated(id)
+                self.hide_list()
+                return
+        menu_funcs = \
+            {_("_Close"): self.action_close_all_windows,
+             _("_Close") + _(" all windows"): self.action_close_all_windows,
+             _("Ma_ximize"): self.action_maximize_all_windows,
+             _("Ma_ximize") + _(" all windows"):
+                                        self.action_maximize_all_windows,
+             _("Unma_ximize"): self.action_maximize_all_windows,
+             _("Unma_ximize")+_(" all windows"):
+                                        self.action_maximize_all_windows,
+             _("_Minimize"): self.action_minimize_all_windows,
+             _("_Minimize")+_(" all windows"):
+                                        self.action_minimize_all_windows,
+             _("Un_minimize"): self.__menu_unminimize_all_windows,
+             _("Un_minimize")+_(" all windows"):
+                                        self.__menu_unminimize_all_windows,
+             _("Edit Launcher"): self.__menu_edit_launcher,
+             _("Edit Identifier"): self.__menu_change_identifier,
+             _("Unpin application"): self.action_remove_launcher,
+             _("Make custom launcher"): self.__menu_edit_launcher,
+             _("_Pin application"): self.__menu_pin,
+             _("_Launch application"): self.action_launch_application}
+        func = menufuncs.get(name, None)
+        if func:
+            func()
 
     def __on_menu_resized(self, *args):
         self.popup.resize(10,10)
@@ -1808,7 +1874,7 @@ class GroupButton():
             name = self.desktop_entry.getFileName()
         self.pinned = False
         if not self.windows:
-            self.dockbar_r().remove_groupbutton(name)
+            self.dockbar_r().remove_groupbutton(self)
         else:
             self.dockbar_r().group_unpinned(name)
         self.hide_list()
@@ -1971,6 +2037,9 @@ class GroupMenu(gobject.GObject):
 
     def get_menu(self):
         return self.menu
+
+    def has_submenu(self, name):
+        return name in self.submenus
 
     def delete_menu(self):
         self.menu.destroy()
