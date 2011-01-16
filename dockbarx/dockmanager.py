@@ -122,6 +122,12 @@ class DockManager(dbus.service.Object):
                           invalidated_properties):
         pass
 
+    def reset(self):
+        bus = dbus.SessionBus()
+        proxy = bus.get_object("net.launchpad.DockManager.Daemon",
+                               "net/launchpad/DockManager/Daemon")
+        proxy.RestartAll(dbus_interface="net.launchpad.DockManager.Daemon")
+
 class DockManagerItem(dbus.service.Object):
     counter = 0
     def __init__(self, groupbutton):

@@ -226,7 +226,6 @@ class GroupButton():
         try:
             self.dockmanager = DockManagerItem(self)
         except:
-            raise
             self.dockmanager = None
 
 

@@ -358,6 +358,8 @@ class DockBar():
         else:
             self.container.show_all()
 
+        self.dockmanager.reset()
+
     def open_preference(self):
         # Starts the preference dialog
         os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference.py",
