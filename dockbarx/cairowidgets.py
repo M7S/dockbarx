@@ -371,7 +371,7 @@ class CairoWindowButton(gtk.EventBox):
                     "button-release-event": "override",
                     "button-press-event": "override"}
 
-    def __init__(self, label=None, border_width=6, roundness=6):
+    def __init__(self, label=None, border_width=5, roundness=5):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_above_child(False)
@@ -582,7 +582,7 @@ class CairoWindowItem(CairoWindowButton):
 class CairoArea(gtk.Alignment):
     """CairoButton is a gtk button with a cairo surface painted over it."""
     __gsignals__ = {"expose-event" : "override"}
-    def __init__(self, text=None, border_width=6, roundness=6):
+    def __init__(self, text=None, border_width=5, roundness=5):
         self.r = roundness
         self.b = border_width
         self.text = text
@@ -630,8 +630,12 @@ class CairoArea(gtk.Alignment):
         return
 
     def draw_frame(self, ctx, x, y, w, h, roundness=6, border_color="#FFFFFF"):
-        r, g, b = parse_color(self.globals.colors["color1"])
-        alpha = parse_alpha(self.globals.colors["color1_alpha"])
+        if self.is_composited():
+            r, g, b = parse_color(self.globals.colors["color1"])
+            alpha = parse_alpha(self.globals.colors["color1_alpha"])
+        else:
+            r = g = b = 0.0
+            alpha = 0.25
         make_path(ctx, x, y, w, h, roundness)
 
 
@@ -639,7 +643,7 @@ class CairoArea(gtk.Alignment):
         ctx.fill_preserve()
 
         r, g, b = parse_color(border_color)
-        ctx.set_source_rgba(r, g, b, alpha)
+        ctx.set_source_rgba(r, g, b, 0.8)
         ctx.set_line_width(1)
         ctx.stroke()
 
@@ -682,7 +686,8 @@ class CairoArea(gtk.Alignment):
 
 class CairoMenuItem(CairoWindowButton):
     def __init__(self, label):
-        CairoWindowButton.__init__(self, label, border_width=3)
+        CairoWindowButton.__init__(self, label)
+        self.area.set_padding(3, 3, 5, 5)
 
 class CairoToggleMenu(gtk.VBox):
     __gsignals__ = {"toggled": (gobject.SIGNAL_RUN_FIRST,
