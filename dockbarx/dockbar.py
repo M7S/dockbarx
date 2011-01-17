@@ -326,6 +326,7 @@ class DockBar():
                             self.__on_desktop_changed)
 
         self.__on_active_window_changed(self.screen, None)
+        self.dockmanager.reset()
 
     def set_orient(self, orient):
         for group in self.groups:
@@ -357,8 +358,6 @@ class DockBar():
             self.__on_desktop_changed()
         else:
             self.container.show_all()
-
-        self.dockmanager.reset()
 
     def open_preference(self):
         # Starts the preference dialog
