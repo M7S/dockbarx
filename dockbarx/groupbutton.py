@@ -38,6 +38,7 @@ from cairowidgets import CairoPopup, CairoToggleMenu
 from dockmanager import DockManagerItem
 from common import *
 import zg
+from log import logger
 
 import i18n
 _ = i18n.language.gettext
@@ -1866,7 +1867,7 @@ class GroupButton():
         self.menu_show(event)
 
     def action_remove_launcher(self, widget=None, event=None):
-        print "Removing launcher ", self.identifier
+        logger.debug("Removing launcher ", self.identifier)
         if self.identifier:
             name = self.identifier
         else:

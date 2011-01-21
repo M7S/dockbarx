@@ -22,6 +22,8 @@ import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 
 from cairowidgets import *
+from log import logger
+
 DBusGMainLoop(set_as_default=True)
 BUS = dbus.SessionBus()
 
@@ -122,8 +124,8 @@ class Mpris2Watch(gobject.GObject):
                 try:
                     BUS.get_object(address, "/org/mpris/MediaPlayer2")
                 except:
-                    print "Error: Couldn't make dbus connection with %s" % \
-                                                                    address
+                    logger.warning("Error: Couldn't make dbus connection " + \
+                                   "with %s" % address)
                     continue
                 self.players.append(
                         str(address).replace("org.mpris.MediaPlayer2.", ""))
@@ -140,8 +142,9 @@ class Mpris2Watch(gobject.GObject):
                 try:
                     BUS.get_object(name, "/org/mpris/MediaPlayer2")
                 except:
-                    print "Error: Couldn't make dbus connection with %s" % name
-                    raise
+                    logger.exception("Error: Couldn't make dbus " + \
+                                     "connection with %s" % name)
+                    return
                 self.players.append(player_name)
                 self.emit("player-added", player_name)
             if previous_owner != "" and current_owner == "":

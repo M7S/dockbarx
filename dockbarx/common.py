@@ -28,7 +28,7 @@ from urllib import unquote
 from time import time
 import gtk
 import weakref
-
+from log import logger
 
 GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = "/apps/dockbarx"
@@ -54,7 +54,7 @@ def compiz_reply_handler(*args):
     pass
 
 def compiz_error_handler(error, *args):
-    print "Compiz/dbus error: %s" % error
+    logger.warning("Compiz/dbus error: %s" % error)
 
 def compiz_call_async(obj_path, func_name, *args):
     path = "/org/freedesktop/compiz"
@@ -273,7 +273,7 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
             elif files:
                 cmd = "%s %s"%(cmd, " ".join(files))
 
-            print "Executing: %s"%cmd
+            logger.info("Executing: %s"%cmd)
             os.system("/bin/sh -c '%s' &"%cmd)
 
 

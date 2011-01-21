@@ -40,6 +40,7 @@ from theme import Theme, NoThemesError
 from common import *
 from mediabuttons import Mpris2Watch, MediaButtons
 from dockmanager import DockManager
+from log import logger
 
 import i18n
 _ = i18n.language.gettext
@@ -114,8 +115,8 @@ class GroupList(list):
 
 class DockBar():
     def __init__(self, applet=None, as_awn_applet=False):
-        print "DockbarX %s"%VERSION
-        print "DockbarX init"
+        logger.info("DockbarX %s"%VERSION)
+        logger.info("DockbarX init")
         self.applet = applet
         self.groups = None
         self.windows = None
@@ -126,6 +127,7 @@ class DockBar():
         self.nextlist = None
 
         self.dockmanager = DockManager(self)
+
 
         self.media_buttons = {}
         self.mpris = Mpris2Watch()
@@ -146,7 +148,6 @@ class DockBar():
 
         self.globals = Globals()
         self.globals.connect("theme-changed", self.reload)
-
 
         #--- Applet / Window container
         if self.applet is not None:
@@ -263,7 +264,7 @@ class DockBar():
 
         self.skip_tasklist_windows = []
 
-        print "DockbarX reload"
+        logger.info("DockbarX reload")
         self.groups = GroupList()
         self.windows = {}
         self.globals.gb_showing_popup = None
@@ -284,7 +285,7 @@ class DockBar():
             else:
                 self.theme.on_theme_changed()
         except NoThemesError, details:
-            print details
+            logger.exception("Error: Couldn't find any themes")
             sys.exit(1)
 
         self.container.set_spacing(self.theme.get_gap())
@@ -476,7 +477,8 @@ class DockBar():
         if calling_button:
             index = self.groups.index(self.groups[calling_button]) + 1
         else:
-            print "Error: cant move button without the calling button's name"
+            logger.warning("Error: cant move button without " + \
+                           "the calling button's name")
             return
         # Insterts the button on it's index by removing
         # and repacking the buttons that should come after it
@@ -612,14 +614,16 @@ class DockBar():
         if rc != "":
             if rc in self.desktop_entry_by_id:
                 id = rc
-                print "Opened window matched with desktop entry on id:", rc
+                logger.debug("Opened window matched with " + \
+                             "desktop entry on id: %s" % rc)
             elif rc in self.d_e_ids_by_name:
                 id = self.d_e_ids_by_name[rc]
-                print "Opened window matched with desktop entry on name:", rc
+                logger.debug("Opened window matched with " + \
+                             "desktop entry on name: %s" % rc)
             elif rc in self.d_e_ids_by_exec:
                 id = self.d_e_ids_by_exec[rc]
-                print "Opened window matched with " + \
-                      "desktop entry on executable:", rc
+                logger.debug("Opened window matched with " + \
+                             "desktop entry on executable: %s" % rc)
             else:
                 for lname in self.d_e_ids_by_longname:
                     pos = lname.find(rc)
@@ -630,8 +634,8 @@ class DockBar():
                         and lname[pos-1] == " ") \
                         or (lname[pos-1] == " " and lname[pos+len(rc)] == " "):
                             id = self.d_e_ids_by_longname[lname]
-                            print "Opened window matched with" + \
-                                  " desktop entry on long name:", rc
+                            logger.debug("Opened window matched with " + \
+                                         "desktop entry on long name: %s" % rc)
                             break
 
             if id is None and rc.find(" ")>-1:
@@ -640,16 +644,16 @@ class DockBar():
                     # with identifier like this "App 1.2.3" (name with ver)
                     if rc in self.desktop_entry_by_id:
                         id = rc
-                        print "Partial name for open window" + \
-                              " matched with id:", rc
+                        logger.debug("Partial name for open window" + \
+                              " matched with id: %s" % rc)
                     elif rc in self.d_e_ids_by_name:
                         id = self.d_e_ids_by_name[rc]
-                        print "Partial name for open " + \
-                              "window matched with name:", rc
+                        logger.debug("Partial name for open " + \
+                              "window matched with name: %s" % rc)
                     elif rc in self.d_e_ids_by_exec:
                         id = self.d_e_ids_by_exec[rc]
-                        print "Partial name for open window" + \
-                              " matched with executable:", rc
+                        logger.debug("Partial name for open window" + \
+                              " matched with executable: %s" % rc)
         return id
 
     def __find_gio_app(self, identifier):
@@ -659,13 +663,16 @@ class DockBar():
         if rc != "":
             if rc in self.apps_by_id:
                 app_id = rc
-                print "Opened window matched with gio app on id:", rc
+                logger.debug("Opened window matched " + \
+                             "with gio app on id: %s" % rc)
             elif rc in self.app_ids_by_name:
                 app_id = self.app_ids_by_name[rc]
-                print "Opened window matched with gio app on name:", rc
+                logger.debug("Opened window matched with " + \
+                             "gio app on name: %s" % rc)
             elif rc in self.app_ids_by_exec:
                 app_id = self.app_ids_by_exec[rc]
-                print "Opened window matched with gio app on executable:", rc
+                logger.debug("Opened window matched with " + \
+                             "gio app on executable: %s" % rc)
             else:
                 for lname in self.app_ids_by_longname:
                     pos = lname.find(rc)
@@ -676,25 +683,25 @@ class DockBar():
                         and lname[pos-1] == " ") \
                         or (lname[pos-1] == " " and lname[pos+len(rc)] == " "):
                             app_id = self.app_ids_by_longname[lname]
-                            print "Opened window matched with" + \
-                                  " gio app on longname:", rc
+                            logger.debug("Opened window matched with" + \
+                                  " gio app on longname: %s" % rc)
                             break
             if not app_id:
                 if rc.find(" ")>-1:
                     rc = rc.partition(" ")[0] # Cut all before space
-                    print " trying to find as",rc
+                    logger.debug(" trying to find as %s" % rc)
                     # Workaround for apps
                     # with identifier like this "App 1.2.3" (name with ver)
                     ### keys()
                     if rc in self.apps_by_id.keys():
                         app_id = rc
-                        print " found in apps id list as",rc
+                        logger.debug(" found in apps id list as %s" % rc)
                     elif rc in self.app_ids_by_name.keys():
                         app_id = self.app_ids_by_name[rc]
-                        print " found in apps name list as",rc
+                        logger.debug(" found in apps name list as %s" % rc)
                     elif rc in self.app_ids_by_exec.keys():
                         app_id = self.app_ids_by_exec[rc]
-                        print " found in apps exec list as",rc
+                        logger.debug(" found in apps exec list as %s" % rc)
             if app_id:
                 app = self.apps_by_id[app_id]
         return app
@@ -722,7 +729,7 @@ class DockBar():
                 identifier = group.identifier
                 break
         else:
-            print "OOo app error: Name changed but no group found."
+            logger.warning("OOo app error: Name changed but no group found.")
         if identifier != self.__get_ooo_app_name(window):
             self.__on_window_closed(self.screen, window)
             self.__on_window_opened(self.screen, window)
@@ -750,8 +757,8 @@ class DockBar():
         try:
             desktop_entry = DesktopEntry(path)
         except Exception, detail:
-            print "ERROR: Couldn't read dropped file. Was it a desktop entry?"
-            print "Error message:", detail
+            logger.exception("ERROR: Couldn't read dropped file. " + \
+                             "Was it a desktop entry?")
             return False
 
         # Try to match the launcher against the groups that aren't pinned.
@@ -785,13 +792,13 @@ class DockBar():
         if exe and exe[0] == "/":
             exe = exe[exe.rfind("/")+1:]
 
-        print "New launcher dropped"
-        print "id: ", id
+        logger.debug("New launcher dropped")
+        logger.debug("id:  %s" % id)
         if lname:
-            print "long name: ", name
+            logger.debug("long name:  %s" % name)
         else:
-            print "name: ", name
-        print "executable: ", exe
+            logger.debug("name:  %s" % name)
+        logger.debug("executable:  %s" % exe)
         print
         for gb in self.groups:
             if gb.pinned:
@@ -909,7 +916,7 @@ class DockBar():
             os.makedirs(launcher_dir)
         if path:
             if not os.path.exists(path):
-                print "Error: file %s doesn't exist."%path
+                logger.warning("Error: file %s doesn't exist."%path)
             new_path = os.path.join(launcher_dir, os.path.basename(path))
             if new_path != path:
                 os.system("cp %s %s"%(path, new_path))
@@ -944,17 +951,18 @@ class DockBar():
                 if desktop_entry is None:
                     return
             else:
-                print "Couldn't find gio app for launcher %s"%path
+                logger.debug("Couldn't find gio app for launcher %s" % path)
                 return
         else:
             try:
                 desktop_entry = DesktopEntry(path)
             except ParsingError:
-                print "Couldn't add launcher: %s is not an desktop file!" % \
-                      path
+                logger.debug("Couldn't add launcher: " + \
+                             "%s is not an desktop file!" % path)
                 return
             except UnboundLocalError:
-                print "Couldn't add launcher: path %s doesn't exist" % path
+                logger.debug("Couldn't add launcher: " + \
+                             "path %s doesn't exist" % path)
                 return
 
         self.__make_groupbutton(identifier=identifier, \
@@ -1218,11 +1226,12 @@ class DockBar():
                         pass
             except KeyError:
                 error = True
-                reason = _("The key is already bound elsewhere.")
+                reason = "The key is already bound elsewhere."
             if error:
-                message = _("Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s.")%{"keystr":keystr, "function":translations[s]}
+                message = "Error: DockbarX couldn't set " + \
+                          "global keybinding '%s' for %s." % (keystr, s)
                 text = "%s %s"%(message, reason)
-                print text
+                logger.warning(text)
                 if dialog:
                     md = gtk.MessageDialog(
                             None,

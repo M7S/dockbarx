@@ -31,6 +31,7 @@ from cStringIO import StringIO
 
 from theme import Theme
 from common import Globals, connect, disconnect
+from log import logger
 
 import i18n
 _ = i18n.language.gettext
@@ -219,9 +220,10 @@ class IconFactory():
                     raise ValueError("The string has the wrong lenght")
                 t = int(color[1:], 16)
             except:
-                print "Theme error: the color attribute for a theme command"+ \
+                logger.exception("Theme error: the color attribute " +
+                      "for a theme command"+ \
                       " should be a six digit hex string eg. \"#FFFFFF\" or"+ \
-                      " the a dockbarx color (\"color1\"-\"color8\")."
+                      " the a dockbarx color (\"color1\"-\"color8\").")
                 color = "#000000"
         return color
 
@@ -236,8 +238,8 @@ class IconFactory():
                 if self.globals.colors.has_key("color%s_alpha"%i):
                     a = float(self.globals.colors["color%s_alpha"%i])/255
                 else:
-                    print "Theme error: The theme has no" + \
-                          " opacity option for color%s."%i
+                    logger.warning("Theme error: The theme has no" + \
+                          " opacity option for color%s." % i)
                     a = 1.0
                 break
         else:
@@ -246,9 +248,9 @@ class IconFactory():
                 if a > 1.0 or a < 0:
                     raise
             except:
-                print "Theme error: The opacity attribute of a theme " + \
+                logger.exception("Theme error: The opacity attribute of a theme " + \
                       "command should be a number between \"0\" " + \
-                      " and \"100\" or \"color1\" to \"color8\"."
+                      " and \"100\" or \"color1\" to \"color8\".")
                 a = 1.0
         return a
 
@@ -327,9 +329,10 @@ class IconFactory():
             try:
                 l = [int(n) for n in l]
             except ValueError:
-                print "Theme Error: The windows attribute of " + \
+                logger.exception("Theme Error: The windows attribute of " + \
                       "an <if> statement can\'t look like this:" + \
-                      " \"%s\". See Theming HOWTO for more information"%windows
+                      " \"%s\"." % windows + \
+                      "See Theming HOWTO for more information")
                 return surface
             if len(l) == 1:
                 if not ((l[0] == self.win_nr) ^ negation):
@@ -353,9 +356,9 @@ class IconFactory():
             try:
                 l = [int(n) for n in l]
             except ValueError:
-                print "Theme Error: The size attribute of " + \
+                logger.exception("Theme Error: The size attribute of " + \
                       "an <if> statement can\'t look like this:" + \
-                      " \"%s\". See Theming HOWTO for more information"%size
+                      " \"%s\". See Theming HOWTO for more information" % size)
                 return surface
             if len(l) == 1:
                 if not ((l[0] == self.win_nr) ^ negation):
@@ -376,7 +379,7 @@ class IconFactory():
 
     def __command_pixmap_from_self(self, surface, name, content=None):
         if not name:
-            print "Theme Error: no name given for pixmap_from_self"
+            logger.warning("Theme Error: no name given for pixmap_from_self")
             raise Exeption
         w = int(surface.get_width())
         h = int(surface.get_height())
@@ -578,7 +581,7 @@ class IconFactory():
             surface = self.__resize_surface(self.theme.get_surface(name),
                                           width, height)
         else:
-            print "theme error: pixmap %s not found"%name
+            logger.warning("theme error: pixmap %s not found" % name)
         return surface
 
     def __command_fill(self, surface, color, opacity=100):
@@ -614,7 +617,7 @@ class IconFactory():
             h = surface.get_height()
             p1 = self.__resize_surface(self.theme.get_surface(bg), w, h)
         else:
-            print "theme error: pixmap %s not found"%pix1
+            logger.warning("theme error: pixmap %s not found"%pix1)
         if pix2=="self":
             p2 = surface
         elif pix2 in self.temp:
@@ -624,7 +627,7 @@ class IconFactory():
             h = surface.get_height()
             p2 = self.__resize_surface(self.theme.get_surface(bg), w, h)
         else:
-            print "theme error: pixmap %s not found"%pix2
+            logger.warning("theme error: pixmap %s not found" % pix2)
 
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                      p1.get_width(), p1.get_height())
@@ -690,7 +693,7 @@ class IconFactory():
             h = surface.get_height()
             foreground = self.__resize_surface(self.theme.get_surface(fg), w, h)
         else:
-            print "theme error: pixmap %s not found"%fg
+            logger.warning("theme error: pixmap %s not found" % fg)
             return surface
 
         if bg=="self":
@@ -707,7 +710,7 @@ class IconFactory():
             h = surface.get_height()
             background = self.__resize_surface(self.theme.get_surface(bg), w, h)
         else:
-            print "theme error: pixmap %s not found"%bg
+            logger.warning("theme error: pixmap %s not found" % bg)
             return surface
 
         opacity = self.__get_alpha(opacity)

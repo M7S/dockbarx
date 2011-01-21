@@ -28,6 +28,7 @@ import gobject
 from pango import ELLIPSIZE_END
 
 from common import connect, disconnect
+from log import logger
 
 class CairoButton(gtk.Button):
     """CairoButton is a gtk button with a cairo surface painted over it."""

@@ -30,6 +30,7 @@ gc.enable()
 from common import ODict, Globals, Opacify
 from common import connect, disconnect, opacify, deopacify
 from cairowidgets import CairoWindowItem
+from log import logger
 
 import i18n
 _ = i18n.language.gettext
@@ -118,9 +119,9 @@ class WindowButton():
         gdk_screen = gtk.gdk.screen_get_default()
         win = gtk.gdk.window_lookup(self.window.get_xid())
         if win is None:
-            print "Error: couldn't find out on which " + \
-                  "monitor window \"%s\" is located" % self.window.get_name()
-            print "Guessing it's monitor 0"
+            logger.warning("Error: couldn't find out on which " + \
+                  "monitor window \"%s\" is located" % self.window.get_name())
+            logger.warning("Guessing it's monitor 0")
             return 0
         x, y, w, h, bit_depth = win.get_geometry()
         return gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))

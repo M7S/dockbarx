@@ -25,6 +25,7 @@ import cairo
 import os
 from common import ODict
 from common import Globals
+from log import logger
 
 import i18n
 _ = i18n.language.gettext
@@ -155,8 +156,7 @@ class Theme(gobject.GObject):
             try:
                 name = self.check(theme_path)
             except Exception, detail:
-                print "Error loading theme from %s"%theme_path
-                print detail
+                logger.exeption("Error loading theme from %s"%theme_path)
                 name = None
             if name is not None:
                 name = str(name)
@@ -214,20 +214,22 @@ class Theme(gobject.GObject):
                     if self.test_color(d["default"]):
                         self.default_colors[c] = d["default"]
                     else:
-                        print "Theme error: %s\'s default for theme %s cannot be read."%(c, self.name)
-                        print "A default color should start with an \"#\" " + \
-                              "and be followed by six hex-digits," + \
-                              "for example \"#FF13A2\"."
+                        logger.warning("Theme error: %s\'s default for" % c + \
+                                       " theme %s cannot be read." % self.name)
+                        logger.info("A default color should start with an " + \
+                                    "\"#\" and be followed by six " + \
+                                    "hex-digits, for example \"#FF13A2\".")
                 if d.has_key("opacity"):
                     alpha = d["opacity"]
                     if self.test_alpha(alpha):
                         self.default_alphas[c] = alpha
                     else:
-                        print "Theme error: " + \
-                              "%s\'s opacity for theme %s"%(c, self.name) + \
-                              " cannot be read."
-                        print "The opacity should be a number (\"0\"-\"100\") " + \
-                              "or the words \"not used\"."
+                        logger.warning("Theme error: %s\'s opacity" % c + \
+                                       " for theme %s" % self.name + \
+                                       " cannot be read.")
+                        logger.info("The opacity should be a number " + \
+                                    "(\"0\"-\"100\") or the words " + \
+                                    "\"not used\".")
 
         config.close()
         tar.close()

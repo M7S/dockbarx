@@ -17,12 +17,17 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
+from dockbarx.log import *
+import sys
+if not (len(sys.argv) == 2 and sys.argv[1] == "run-in-window"):
+    log_to_file()
+    sys.stderr = StdErrWrapper()
+    sys.stdout = StdOutWrapper()
 
 import pygtk
 pygtk.require("2.0")
 import gtk
 import gnomeapplet
-import sys
 import dockbarx.dockbar
 
 class DockBarWindow():
@@ -63,8 +68,6 @@ def dockbar_factory(applet, iid):
     applet.set_background_widget(applet)
     applet.show_all()
     return True
-
-##gc.enable()
 
 if len(sys.argv) == 2 and sys.argv[1] == "run-in-window":
     dockbarwin = DockBarWindow()
