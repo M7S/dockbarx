@@ -380,7 +380,7 @@ class DockBar():
                 self.applet_origin_x = x
                 self.applet_origin_y = y
                 for group in self.groups:
-                    group.on_db_move()
+                    group.dockbar_moved()
 
     def __on_change_orient(self,arg1,data):
         if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
