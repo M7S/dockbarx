@@ -33,7 +33,7 @@ import weakref
 
 from windowbutton import WindowButton
 from iconfactory import IconFactory
-from cairowidgets import CairoButton, CairoMenuItem
+from cairowidgets import CairoAppButton, CairoMenuItem
 from cairowidgets import CairoPopup, CairoToggleMenu
 from dockmanager import DockManagerItem
 from common import *
@@ -136,7 +136,7 @@ class GroupButton():
         self.menu_is_shown = False
         self.menu = None
         self.media_buttons = None
-        self.launch_program_item = None
+        self.launch_menu = None
         self.window_connects = []
 
         self.screen = wnck.screen_get_default()
@@ -149,8 +149,8 @@ class GroupButton():
         #--- Button
         self.icon_factory = IconFactory(identifier=self.identifier,
                                         desktop_entry=self.desktop_entry)
-        self.button = CairoButton()
-        self.button.show_all()
+        self.button = CairoAppButton()
+        self.button.show()
 
 
 
@@ -343,8 +343,8 @@ class GroupButton():
         if self.opacify_request_sid is not None:
             gobject.source_remove(self.opacify_request_sid)
             self.opacify_request_sid = None
-        if self.launch_program_item:
-            self.launch_program_item.destroy()
+        if self.launch_menu:
+            self.launch_menu.destroy()
         if self.popup:
             disconnect(self.popup)
             self.popup.destroy()
@@ -837,20 +837,19 @@ class GroupButton():
                                               gtk.gdk.PROP_MODE_REPLACE,
                                               [0,5,0,0,0,0,0])
         self.menu_is_shown = False
-        menu = gtk.VBox()
-        menu.set_spacing(2)
         #Launch program item
-        if not self.launch_program_item:
-            self.launch_program_item = CairoMenuItem(_("_Launch application"))
-            self.launch_program_item.connect("clicked",
+        if not self.launch_menu:
+            self.launch_menu = gtk.VBox()
+            self.launch_menu.set_spacing(2)
+            launch_program_item = CairoMenuItem(_("_Launch application"))
+            launch_program_item.connect("clicked",
                                 self.action_launch_application)
-            self.launch_program_item.show()
-        menu.pack_start(self.launch_program_item)
+            self.launch_menu.pack_start(launch_program_item)
         popup_child = self.popup.alignment.get_child()
         if popup_child:
             self.popup.remove(popup_child)
-        self.popup.add(menu)
-        menu.show()
+        self.popup.add(self.launch_menu)
+        self.launch_menu.show_all()
         self.popup.show()
         self.popup.resize(10,10)
         # Hide other popup if open.
@@ -945,6 +944,7 @@ class GroupButton():
         else:
             file_name = ''
         return file_name
+
 
     #### DnD (source)
     def __on_drag_begin(self, widget, drag_context):

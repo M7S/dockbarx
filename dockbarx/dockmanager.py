@@ -39,7 +39,8 @@ class DockManager(dbus.service.Object):
         capabilities = ["menu-item-container-title",
                         "menu-item-icon-file",
                         "menu-item-icon-name",
-                        "menu-item-with-label"]
+                        "menu-item-with-label",
+                        "dock-item-badge"]
         return capabilities
 
     @dbus.service.method(dbus_interface="net.launchpad.DockManager",
@@ -167,7 +168,8 @@ class DockManagerItem(dbus.service.Object):
     @dbus.service.method(dbus_interface="net.launchpad.DockItem",
                          in_signature="a{sv}", out_signature="")
     def UpdateDockItem(self, properties):
-        pass
+        badge = properties.get('badge', None)
+        self.groupbutton_r().button.set_badge(badge)
 
     @dbus.service.signal(dbus_interface='net.launchpad.DockItem',
                          signature='i')

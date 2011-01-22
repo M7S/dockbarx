@@ -30,37 +30,60 @@ from pango import ELLIPSIZE_END
 from common import connect, disconnect
 from log import logger
 
-class CairoButton(gtk.Button):
-    """CairoButton is a gtk button with a cairo surface painted over it."""
+class CairoAppButton(gtk.EventBox):
     __gsignals__ = {"expose-event" : "override",}
     def __init__(self, surface=None):
-        gtk.Button.__init__(self)
+        gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
+        self.area = gtk.Alignment(0, 0, 1, 1)
+        self.add(self.area)
+        self.area.show()
         self.globals = Globals()
         self.surface = surface
+        self.badge = None
 
     def update(self, surface):
-        a = self.get_allocation()
+        a = self.area.get_allocation()
         self.surface = surface
         if self.window is None:
             # TODO: Find out why is window is None sometimes?
             return
-        self.window.clear_area(a.x, a.y, a.width, a.height)
-        ctx = self.window.cairo_create()
+        self.area.window.clear_area(a.x, a.y, a.width, a.height)
+        ctx = self.area.window.cairo_create()
         ctx.rectangle(a.x, a.y, a.width, a.height)
         ctx.clip()
         ctx.set_source_surface(self.surface, a.x, a.y)
         ctx.paint()
+        child = self.area.get_child()
+        if child:
+            child.queue_draw()
 
     def do_expose_event(self, event):
         if self.surface is not None:
-            ctx = self.window.cairo_create()
+            ctx = self.area.window.cairo_create()
             ctx.rectangle(event.area.x, event.area.y,
-                           event.area.width, event.area.height)
+                          event.area.width, event.area.height)
             ctx.clip()
             a = self.get_allocation()
             ctx.set_source_surface(self.surface, a.x, a.y)
             ctx.paint()
-        return
+            self.propagate_expose(self.area, event)
+
+    def set_badge(self, badge):
+        if not badge:
+            if self.badge:
+                self.area.get_child().destroy()
+                self.badge = None
+            return
+        if not self.badge:
+            self.badge = gtk.Label(badge)
+            alignment = gtk.Alignment(1, 1, 0, 0)
+            alignment.set_padding(1, 1, 2, 2)
+            alignment.add(self.badge)
+            alignment.show_all()
+            self.area.add(alignment)
+        else:
+            self.badge.set_text(badge)
 
     def cleanup(self):
         del self.surface
@@ -364,7 +387,7 @@ class CairoPopup(gtk.Window):
         self._pointer_is_inside = False
         gtk.Window.do_leave_notify_event(self, *args)
 
-class CairoWindowButton(gtk.EventBox):
+class CairoButton(gtk.EventBox):
     __gsignals__ = {"clicked": (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,(gtk.gdk.Event, )),
                     "enter-notify-event": "override",
@@ -427,18 +450,18 @@ class CairoWindowButton(gtk.EventBox):
             self.area.set_pressed_down(True)
 
     def disable_click(self, *args):
-        # A "hack" to avoid CairoWindowButton from reacting to clicks on
-        # buttons inside the CairoWindowButton. (The button on top should
+        # A "hack" to avoid CairoButton from reacting to clicks on
+        # buttons inside the CairoButton. (The button on top should
         # have it's press-button-event connected to this function.)
         self.area.set_pressed_down(False)
         self.mousedown = False
         self.prevent_click = True
 
-class CairoWindowItem(CairoWindowButton):
+class CairoWindowItem(CairoButton):
     __gsignals__ = {"close-clicked": (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,())}
     def __init__(self, name, icon, big_icon):
-        CairoWindowButton.__init__(self)
+        CairoButton.__init__(self)
         self.globals = Globals()
         self.window_name = name
         self.icon = icon
@@ -581,7 +604,6 @@ class CairoWindowItem(CairoWindowButton):
 
 
 class CairoArea(gtk.Alignment):
-    """CairoButton is a gtk button with a cairo surface painted over it."""
     __gsignals__ = {"expose-event" : "override"}
     def __init__(self, text=None, border_width=5, roundness=5):
         self.r = roundness
@@ -691,9 +713,9 @@ class CairoArea(gtk.Alignment):
             return False
 
 
-class CairoMenuItem(CairoWindowButton):
+class CairoMenuItem(CairoButton):
     def __init__(self, label):
-        CairoWindowButton.__init__(self, label)
+        CairoButton.__init__(self, label)
         self.area.set_padding(3, 3, 5, 5)
 
 class CairoToggleMenu(gtk.VBox):
