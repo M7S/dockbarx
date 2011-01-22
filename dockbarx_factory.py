@@ -47,11 +47,9 @@ class DockBarWindow():
         hbox.pack_start(button, False)
         hbox.pack_start(self.dockbar.container, False)
         eb = gtk.EventBox()
-##        eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#2E2E2E"))
         eb.add(hbox)
         self.window.add(eb)
         eb.show_all()
-        ##self.window.add(self.dockbar.container)
 
     def __on_pref_clicked(self, *args):
         self.dockbar.open_preference()

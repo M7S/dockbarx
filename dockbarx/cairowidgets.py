@@ -592,6 +592,7 @@ class CairoArea(gtk.Alignment):
         self.set_app_paintable(1)
         self.globals = Globals()
         self.highlighted = False
+        self.pressed_down = False
         if text:
             self.label = gtk.Label()
             self.add(self.label)
@@ -609,6 +610,10 @@ class CairoArea(gtk.Alignment):
         self.label.set_text(text)
         self.label.set_use_markup(True)
         self.label.set_use_underline(True)
+
+    def set_padding(self, top, bottom, left, right):
+        self.pressed_down = False
+        gtk.Alignment.set_padding(self, top, bottom, left, right)
 
     def set_label_color(self, color):
         label = "<span foreground=\"" + color + "\">" + escape(self.text) + \
@@ -649,11 +654,12 @@ class CairoArea(gtk.Alignment):
         ctx.stroke()
 
     def set_pressed_down(self, pressed):
-        if pressed:
-            self.set_padding(self.b + 1, self.b - 1, self.b, self.b)
-        else:
-            self.set_padding(self.b, self.b, self.b, self.b)
-
+        p = self.get_padding()
+        if pressed and not self.pressed_down:
+            gtk.Alignment.set_padding(self, p[0] + 1, p[1] - 1, p[2], p[3])
+        elif self.pressed_down and not pressed:
+            gtk.Alignment.set_padding(self, p[0] - 1, p[1] + 1, p[2], p[3])
+        self.pressed_down = pressed
 
     def set_highlighted(self, highlighted):
         self.highlighted = highlighted
