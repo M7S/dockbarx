@@ -672,7 +672,7 @@ class GroupButton():
             self.globals.gb_showing_popup.hide_list()
         self.globals.gb_showing_popup = self
 
-        self.__set_previews()
+        self.__prepare_previews()
         self.popup.resize(10,10)
         return False
 
@@ -791,17 +791,18 @@ class GroupButton():
             p = wy + b_alloc.y + (b_alloc.height / 2) - y
         self.popup.point(direction, p)
         self.popup.move(x, y)
+        self.__set_previews()
 
-    def __set_previews(self):
+    def __prepare_previews(self):
+        if not self.show_previews:
+            return
         for win in self.windows.get_list():
             wb = self.windows[win]
             wb.button.set_preview_aspect(win.get_geometry()[2],
                                          win.get_geometry()[3],
                                          self.monitor_aspect_ratio)
-        # The popup must be shown before the
-        # preview can be set. Iterate gtk events.
-        while gtk.events_pending():
-                gtk.main_iteration(False)
+
+    def __set_previews(self):
         # Tell the compiz/kwin where to put the previews.
         if self.show_previews and not self.menu_is_shown and \
            self.windows.get_count() > 0:
