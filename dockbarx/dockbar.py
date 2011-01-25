@@ -125,14 +125,9 @@ class DockBar():
         self.skip_tasklist_windows = None
         self.scrollpeak_gr = None
         self.nextlist = None
-
-        self.dockmanager = DockManager(self)
-
-
+        self.dockmanager = None
         self.media_buttons = {}
-        self.mpris = Mpris2Watch()
-        self.mpris.connect("player-added", self.media_player_added)
-        self.mpris.connect("player-removed", self.media_player_removed)
+        self.mpris = Mpris2Watch(self)
 
         self.gkeys = {
                         "gkeys_select_next_group": None,
@@ -148,6 +143,10 @@ class DockBar():
 
         self.globals = Globals()
         self.globals.connect("theme-changed", self.reload)
+        self.globals.connect("media-buttons-changed",
+                             self.__on_media_buttons_changed)
+        self.globals.connect("dockmanager-changed",
+                             self.__on_dockmanager_changed)
 
         #--- Applet / Window container
         if self.applet is not None:
@@ -276,9 +275,6 @@ class DockBar():
         win = self.container.window
         if win is not None:
             self.monitor = gdk_screen.get_monitor_at_window(win)
-
-
-
         try:
             if self.theme is None:
                 self.theme = Theme()
@@ -290,6 +286,7 @@ class DockBar():
 
         self.container.set_spacing(self.theme.get_gap())
         self.container.show()
+        self.__start_dockmanager()
 
         #--- Initiate launchers
         self.desktop_entry_by_id = {}
@@ -327,7 +324,6 @@ class DockBar():
                             self.__on_desktop_changed)
 
         self.__on_active_window_changed(self.screen, None)
-        self.dockmanager.reset()
 
     def set_orient(self, orient):
         for group in self.groups:
@@ -379,8 +375,9 @@ class DockBar():
                 # Applet and/or panel moved
                 self.applet_origin_x = x
                 self.applet_origin_y = y
-                for group in self.groups:
-                    group.dockbar_moved()
+                if self.groups:
+                    for group in self.groups:
+                        group.dockbar_moved()
 
     def __on_change_orient(self,arg1,data):
         if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
@@ -455,9 +452,6 @@ class DockBar():
 
     #### Groupbuttons
     def remove_groupbutton(self, group):
-        dm_path = group.get_dm_path()
-        if dm_path:
-            self.__remove_dm_item(dm_path)
         group.remove()
         self.groups.remove(group)
         self.update_pinned_apps_list()
@@ -529,10 +523,6 @@ class DockBar():
             self.groups.insert(index, gb)
         else:
             self.groups.append(gb)
-
-        dm_path = gb.get_dm_path()
-        if dm_path:
-            self.__add_dm_item(dm_path)
         self.__media_player_check(identifier, gb)
         return gb
 
@@ -1113,14 +1103,16 @@ class DockBar():
             self.media_buttons[identifier] = MediaButtons(identifier)
         return self.media_buttons[identifier]
 
-    def media_player_added(self, obj, name):
+    def media_player_added(self, name):
+        if not self.globals.settings["media_buttons"]:
+            return
         identifiers = [MPS.get(id, id) for id in self.groups.get_identifiers()]
         if self.groups is not None and name in identifiers:
             media_buttons = self.get_media_buttons(name)
             group = self.groups[identifiers.index(name)]
             group.add_media_buttons(media_buttons)
 
-    def media_player_removed(self, obj, name):
+    def media_player_removed(self, name):
         identifiers = [MPS.get(id, id) for id in self.groups.get_identifiers()]
         if self.groups is not None and name in identifiers:
             group = self.groups[identifiers.index(name)]
@@ -1132,11 +1124,20 @@ class DockBar():
 
     def __media_player_check(self, identifier, group):
         identifier = MPS.get(identifier, identifier)
-        if self.mpris.has_player(identifier):
+        if self.globals.settings["media_buttons"] and \
+           self.mpris.has_player(identifier):
             media_buttons = self.get_media_buttons(identifier)
             group.add_media_buttons(media_buttons)
         else:
             group.remove_media_buttons()
+
+    def __on_media_buttons_changed(self, *args):
+        if self.globals.settings["media_buttons"]:
+            for player in self.mpris.get_players():
+                self.media_player_added(player)
+        else:
+            for group in self.groups:
+                group.remove_media_buttons()
 
     #### DockManager
     def get_dm_paths(self):
@@ -1179,11 +1180,33 @@ class DockBar():
                 paths.append(path)
         return paths
 
-    def __add_dm_item(self, path):
+    def add_dm_item(self, path):
         self.dockmanager.ItemAdded(dbus.ObjectPath(path))
 
-    def __remove_dm_item(self, path):
+    def remove_dm_item(self, path):
         self.dockmanager.ItemRemoved(dbus.ObjectPath(path))
+
+    def __start_dockmanager(self):
+        if not self.globals.settings['dockmanager']:
+            return
+        if not self.dockmanager:
+            self.dockmanager = DockManager(self)
+        for group in self.groups:
+            group.add_dockmanager()
+        self.dockmanager.reset()
+
+    def __stop_dockmanager(self):
+        for group in self.groups:
+            group.remove_dockmanager()
+        if self.dockmanager:
+            self.dockmanager.remove()
+            self.dockmanager = None
+
+    def __on_dockmanager_changed(self, *args):
+        if self.globals.settings["dockmanager"]:
+            self.__start_dockmanager()
+        else:
+            self.__stop_dockmanager()
 
     #### Keyboard actions
     def __gkeys_changed(self, arg=None, dialog=True):

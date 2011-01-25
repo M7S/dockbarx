@@ -104,6 +104,8 @@ class GroupButton():
                 self.__on_show_previews_changed)
         connect(self.globals, "show-tooltip-changed",
                 self.__update_tooltip)
+        connect(self.globals, "dockmanager-badge-changed",
+                self.__on_dm_badge_changed)
         self.opacify_obj = Opacify()
         self.pinned = pinned
         self.desktop_entry = desktop_entry
@@ -224,10 +226,9 @@ class GroupButton():
         self.is_current_drag_source = False
 
         #--- Dockmanager
-        try:
-            self.dockmanager = DockManagerItem(self)
-        except:
-            self.dockmanager = None
+        self.dockmanager = None
+        if self.globals.settings["dockmanager"]:
+            self.add_dockmanager()
 
 
     def set_identifier(self, identifier):
@@ -323,8 +324,8 @@ class GroupButton():
 
     def remove(self):
         # Remove group button.
-        if self.media_buttons:
-            self.remove_media_buttons()
+        self.remove_dockmanager()
+        self.remove_media_buttons()
         if self.launch_sid:
             gobject.source_remove(self.launch_sid)
             self.launch_sid = None
@@ -906,6 +907,23 @@ class GroupButton():
             self.__update_tooltip()
 
     #### DockManager
+    def add_dockmanager(self):
+        if not self.dockmanager and self.globals.settings["dockmanager"]:
+            try:
+                self.dockmanager = DockManagerItem(self)
+            except:
+                logger.exception("Could not add Dockmanager item to %s" % \
+                                 self.name)
+                self.dockmanager = None
+            else:
+                self.dockbar_r().add_dm_item(self.dockmanager.get_path())
+
+    def remove_dockmanager(self):
+        if self.dockmanager:
+            self.dockbar_r().remove_dm_item(self.dockmanager.get_path())
+            self.dockmanager.remove()
+            self.dockmanager = None
+
     def get_dm_path(self, match=None):
         if self.dockmanager is None:
             return None
@@ -944,6 +962,10 @@ class GroupButton():
         else:
             file_name = ''
         return file_name
+
+    def __on_dm_badge_changed(self, *args):
+        if not self.globals.settings["dockmanager_badge"]:
+            self.button.set_badge(None)
 
 
     #### DnD (source)
@@ -1253,15 +1275,16 @@ class GroupButton():
             self.menu.add_item(_("Edit Identifier"), _("Properties"))
             self.menu.add_item(_("Edit Launcher"), _("Properties"))
         # DockManager
-        dm_menu_items = self.dockmanager.get_menu_items()
-        if dm_menu_items:
-            self.menu.add_separator()
-        for item in dm_menu_items.values():
-            submenu = item.get("container-title", None)
-            if submenu and not self.menu.has_submenu(submenu):
-                self.menu.add_submenu(submenu)
-            if item["label"]:
-                self.menu.add_item(item["label"], submenu)
+        if self.dockmanager:
+            dm_menu_items = self.dockmanager.get_menu_items()
+            if dm_menu_items:
+                self.menu.add_separator()
+            for item in dm_menu_items.values():
+                submenu = item.get("container-title", None)
+                if submenu and not self.menu.has_submenu(submenu):
+                    self.menu.add_submenu(submenu)
+                if item["label"]:
+                    self.menu.add_item(item["label"], submenu)
         # Recent and most used files
         if self.desktop_entry:
             recent, most_used, related = self.__menu_get_zg_files()

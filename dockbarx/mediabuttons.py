@@ -23,6 +23,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 
 from cairowidgets import *
 from log import logger
+import weakref
 
 DBusGMainLoop(set_as_default=True)
 BUS = dbus.SessionBus()
@@ -108,13 +109,9 @@ class MediaButtons(gtk.Alignment):
         pause = self.get_property("PlaybackStatus") == "Playing"
         self.playpause_button.set_pause(pause)
 
-class Mpris2Watch(gobject.GObject):
-    __gsignals__ = {"player-added":
-                        (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
-                    "player-removed":
-                        (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, ))}
-    def __init__(self):
-        gobject.GObject.__init__(self)
+class Mpris2Watch():
+    def __init__(self, dockbar):
+        self.dockbar_r = weakref.ref(dockbar)
         self.players = []
         self.fdo = BUS.get_object("org.freedesktop.DBus",
                                   "/org/freedesktop/DBus")
@@ -146,15 +143,18 @@ class Mpris2Watch(gobject.GObject):
                                      "connection with %s" % name)
                     return
                 self.players.append(player_name)
-                self.emit("player-added", player_name)
+                self.dockbar_r().media_player_added(player_name)
             if previous_owner != "" and current_owner == "":
                 try:
                     self.players.remove(player_name)
                 except ValueError:
                     pass
                 else:
-                    self.emit("player-removed", player_name)
+                    self.dockbar_r().media_player_removed(player_name)
 
     def has_player(self, name):
         return name in self.players
+
+    def get_players(self):
+        return self.players
 

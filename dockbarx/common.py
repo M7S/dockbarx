@@ -459,6 +459,12 @@ class Globals(gobject.GObject):
                                               gobject.TYPE_NONE,()),
         "theme-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "color-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "dockmanager-changed": (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,()),
+        "dockmanager-badge-changed": (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,()),
+        "media-buttons-changed": (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,()),
         "show-tooltip-changed": (gobject.SIGNAL_RUN_FIRST,
                                  gobject.TYPE_NONE,()),
         "show-previews-changed": (gobject.SIGNAL_RUN_FIRST,
@@ -489,6 +495,10 @@ class Globals(gobject.GObject):
           "delay_on_select_all": True,
           "select_next_use_lastest_active": False,
           "select_next_activate_immediately": False,
+
+          "dockmanager": True,
+          "dockmanager_badge": False,
+          "media_buttons": True,
 
           "opacify": False,
           "opacify_group": False,
@@ -656,7 +666,6 @@ class Globals(gobject.GObject):
                             pref_update = True
 
         #TODO: Add check for sane values for critical settings.
-
         if "color2" in changed_settings:
             self.emit("color2-changed")
         if "show_only_current_desktop" in changed_settings:
@@ -669,6 +678,12 @@ class Globals(gobject.GObject):
             self.emit("show-tooltip-changed")
         if "show_close_button" in changed_settings:
             self.emit("show-close-button-changed")
+        if "media_buttons" in changed_settings:
+            self.emit("media-buttons-changed")
+        if "dockmanager" in changed_settings:
+            self.emit("dockmanager-changed")
+        if "dockmanager_badge" in changed_settings:
+            self.emit("dockmanager-badge-changed")
         for key in changed_settings:
             if key == "theme":
                 self.emit("theme-changed")

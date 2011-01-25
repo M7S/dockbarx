@@ -21,7 +21,7 @@ import weakref
 import dbus
 import dbus.service
 
-from common import ODict
+from common import ODict, Globals
 from log import logger
 
 class DockManager(dbus.service.Object):
@@ -31,6 +31,9 @@ class DockManager(dbus.service.Object):
                                         bus = dbus.SessionBus())
         dbus.service.Object.__init__(self, bus_name,
                                      "/net/launchpad/DockManager")
+        self.globals = Globals()
+        self.badge_sid = self.globals.connect("dockmanager-badge-changed",
+                                              self.__on_use_badge_changed)
 
 
     @dbus.service.method(dbus_interface="net.launchpad.DockManager",
@@ -39,8 +42,9 @@ class DockManager(dbus.service.Object):
         capabilities = ["menu-item-container-title",
                         "menu-item-icon-file",
                         "menu-item-icon-name",
-                        "menu-item-with-label",
-                        "dock-item-badge"]
+                        "menu-item-with-label"]
+        if self.globals.settings["dockmanager_badge"]:
+            capabilities.append("dock-item-badge")
         return capabilities
 
     @dbus.service.method(dbus_interface="net.launchpad.DockManager",
@@ -130,12 +134,21 @@ class DockManager(dbus.service.Object):
                                "/net/launchpad/DockManager/Daemon")
         proxy.RestartAll(dbus_interface="net.launchpad.DockManager.Daemon")
 
+    def remove(self):
+        self.remove_from_connection()
+        self.globals.disconnect(self.badge_sid)
+
+    def __on_use_badge_changed(self, *args):
+        if self.globals.settings["dockmanager_badge"]:
+            self.reset()
+
 class DockManagerItem(dbus.service.Object):
     counter = 0
     def __init__(self, groupbutton):
         self.groupbutton_r = weakref.ref(groupbutton)
         self.menu_counter = 0
         self.menu_items = ODict()
+        self.globals = Globals()
 
         DockManagerItem.counter += 1
         self.obj_path = "/net/launchpad/DockManager/Item" + \
@@ -143,11 +156,6 @@ class DockManagerItem(dbus.service.Object):
         bus_name = dbus.service.BusName("net.launchpad.DockManager",
                                         bus = dbus.SessionBus())
         dbus.service.Object.__init__(self, bus_name, self.obj_path)
-        desktop_entry = self.groupbutton_r().desktop_entry
-        if desktop_entry:
-            path = desktop_entry.getFileName()
-        else:
-            path = ""
 
     @dbus.service.method(dbus_interface="net.launchpad.DockItem",
                          in_signature="a{sv}", out_signature="i")
@@ -168,8 +176,9 @@ class DockManagerItem(dbus.service.Object):
     @dbus.service.method(dbus_interface="net.launchpad.DockItem",
                          in_signature="a{sv}", out_signature="")
     def UpdateDockItem(self, properties):
-        badge = properties.get('badge', None)
-        self.groupbutton_r().button.set_badge(badge)
+        if self.globals.settings["dockmanager_badge"]:
+            badge = properties.get('badge', None)
+            self.groupbutton_r().button.set_badge(badge)
 
     @dbus.service.signal(dbus_interface='net.launchpad.DockItem',
                          signature='i')
@@ -211,3 +220,7 @@ class DockManagerItem(dbus.service.Object):
 
     def get_menu_items(self):
         return self.menu_items
+
+    def remove(self):
+        self.groupbutton_r().button.set_badge(None)
+        self.remove_from_connection()
