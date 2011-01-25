@@ -223,6 +223,7 @@ class PrefDialog():
         appearance_box = gtk.VBox()
         windowbutton_box = gtk.VBox()
         groupbutton_box = gtk.VBox()
+        plugins_box = gtk.VBox()
         advanced_box = gtk.VBox()
         popup_box = gtk.VBox()
 
@@ -635,6 +636,32 @@ class PrefDialog():
         frame.add(vbox)
         groupbutton_box.pack_start(frame, False)
 
+        #--- Plugins page
+        self.media_buttons_cb = gtk.CheckButton(_("Use media buttons"))
+        self.media_buttons_cb.set_border_width(5)
+        self.media_buttons_cb.connect("toggled",
+                                      self.__checkbutton_toggled,
+                                      "media_buttons")
+        plugins_box.pack_start(self.media_buttons_cb, False)
+
+        dockmanager_frame = gtk.Frame(_("DockManager"))
+        dockmanager_frame.set_border_width(5)
+        dockmanager_box = gtk.VBox()
+        dockmanager_box.set_border_width(5)
+        self.dockmanager_cb = gtk.CheckButton(_("Use DockManager"))
+        self.dockmanager_cb.connect("toggled",
+                                    self.__checkbutton_toggled,
+                                    "dockmanager")
+        self.dockmanager_badge_cb = gtk.CheckButton(_("Allow DockManager to write badges on GroupButtons"))
+        self.dockmanager_badge_cb.connect("toggled",
+                                           self.__checkbutton_toggled,
+                                           "dockmanager_badge")
+        dockmanager_box.pack_start(self.dockmanager_cb, False)
+        dockmanager_box.pack_start(self.dockmanager_badge_cb, False)
+        dockmanager_frame.add(dockmanager_box)
+        plugins_box.pack_start(dockmanager_frame, False)
+
+
         #--- Advanced page
         self.ignore_workspace_cb = gtk.CheckButton(
                             _("Ignore windows on other viewports/workspaces"))
@@ -785,6 +812,7 @@ class PrefDialog():
         notebook.append_page(popup_box, gtk.Label(_("Window List")))
         notebook.append_page(groupbutton_box, gtk.Label(_("Group Button")))
         notebook.append_page(windowbutton_box, gtk.Label(_("Window Item")))
+        notebook.append_page(plugins_box, gtk.Label(_("Plugins")))
         notebook.append_page(advanced_box, gtk.Label(_("Advanced")))
         ca.pack_start(notebook)
         self.__update()
@@ -944,6 +972,15 @@ class PrefDialog():
         self.opacify_duration_scale.set_sensitive(opacify and fade)
         self.opacify_smoothness_scale.set_sensitive(opacify and fade)
 
+        # Plugins
+        self.media_buttons_cb.set_active(
+                                self.globals.settings["media_buttons"])
+        self.dockmanager_cb.set_active(
+                                self.globals.settings["dockmanager"])
+        self.dockmanager_badge_cb.set_active(
+                                self.globals.settings["dockmanager_badge"])
+        self.dockmanager_badge_cb.set_sensitive(
+                                self.globals.settings["dockmanager"])
 
         # Colors
         if self.theme:
