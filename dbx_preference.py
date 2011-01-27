@@ -658,6 +658,9 @@ class PrefDialog():
                                            "dockmanager_badge")
         dockmanager_box.pack_start(self.dockmanager_cb, False)
         dockmanager_box.pack_start(self.dockmanager_badge_cb, False)
+        helpers_button = gtk.Button(_("Helpers"))
+        helpers_button.connect("clicked", self.__open_dockmanager_settings)
+        dockmanager_box.pack_start(helpers_button, False)
         dockmanager_frame.add(dockmanager_box)
         plugins_box.pack_start(dockmanager_frame, False)
 
@@ -1414,6 +1417,17 @@ class PrefDialog():
             text = dockbarx.i18n.theme.gettext(text)
             self.color_labels[c].set_text(text)
             self.color_buttons[c].set_title(text)
+
+    def __open_dockmanager_settings(self, *args):
+        bus = dbus.SessionBus()
+        try:
+            daemon = bus.get_object("net.launchpad.DockManager.Daemon",
+                                    "/net/launchpad/DockManager/Daemon")
+            daemon.ShowPreferences(dbus_interface=\
+                                  "net.launchpad.DockManager.Daemon")
+        except dbus.exceptions.DBusException, e:
+            print "Couldnt open DockManager Preferences"
+            print "reason: %s " % e
 
 PrefDialog()
 gtk.main()
