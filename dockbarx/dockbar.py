@@ -1190,7 +1190,12 @@ class DockBar():
         if not self.globals.settings['dockmanager']:
             return
         if not self.dockmanager:
-            self.dockmanager = DockManager(self)
+            try:
+                self.dockmanager = DockManager(self)
+            except:
+                logger.exception("Couldn't start Dockmanager, is it " + \
+                                 "prehaps already in use by some other dock?")
+                return
         for group in self.groups:
             group.add_dockmanager()
         self.dockmanager.reset()
