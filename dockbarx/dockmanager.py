@@ -129,10 +129,13 @@ class DockManager(dbus.service.Object):
         pass
 
     def reset(self):
-        bus = dbus.SessionBus()
-        proxy = bus.get_object("net.launchpad.DockManager.Daemon",
-                               "/net/launchpad/DockManager/Daemon")
-        proxy.RestartAll(dbus_interface="net.launchpad.DockManager.Daemon")
+        try:
+            bus = dbus.SessionBus()
+            proxy = bus.get_object("net.launchpad.DockManager.Daemon",
+                                   "/net/launchpad/DockManager/Daemon")
+            proxy.RestartAll(dbus_interface="net.launchpad.DockManager.Daemon")
+        except:
+            logger.exception("Restarting DockManager Helpers failed.")
 
     def remove(self):
         self.remove_from_connection()
