@@ -541,12 +541,15 @@ class DockBar():
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
             identifier = SPECIAL_RES_CLASSES[identifier]
-        if identifier == "wine" \
-        and self.globals.settings["separate_wine_apps"]:
+        if identifier == "wine" and \
+           self.globals.settings["separate_wine_apps"]:
             identifier = res_name
             wine = True
         else:
             wine = False
+        if identifier == "prism" and \
+           self.globals.settings["separate_prism_apps"]:
+            identifier = self.__get_prism_app_name(window)
         if identifier.startswith("openoffice.org") or \
            identifier.startswith("libreoffice"):
             identifier = self.__get_ooo_app_name(window)
@@ -711,6 +714,9 @@ class DockBar():
                 return office + "-" + app.lower()
         else:
             return office + "-writer"
+
+    def __get_prism_app_name(self, window):
+        return window.get_name()
 
     def __on_ooo_window_name_changed(self, window):
         identifier = None

@@ -1426,7 +1426,7 @@ class PrefDialog():
             daemon.ShowPreferences(dbus_interface=\
                                   "net.launchpad.DockManager.Daemon")
         except dbus.exceptions.DBusException, e:
-            print "Couldnt open DockManager Preferences"
+            print "Couldn't open DockManager Preferences"
             print "reason: %s " % e
 
 PrefDialog()

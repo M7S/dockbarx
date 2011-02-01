@@ -508,6 +508,7 @@ class Globals(gobject.GObject):
           "opacify_duration": 100,
 
           "separate_wine_apps": True,
+          "separate_prism_apps": True,
           "separate_ooo_apps": True,
 
           "groupbutton_show_tooltip": False,

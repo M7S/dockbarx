@@ -523,15 +523,6 @@ class IconFactory():
             name = self.desktop_entry.getName()
         else:
             name = None
-##        dialog = gtk.MessageDialog(
-##                    parent=None,
-##                    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-##                    type=gtk.MESSAGE_WARNING,
-##                    buttons=gtk.BUTTONS_OK,
-##                    message_format= (_("Cannot load icon for %s")%name))
-##        dialog.set_title("DockBarX")
-##        dialog.run()
-##        dialog.destroy()
         return pixbuf
 
     def __icon_from_file_name(self, icon_name, icon_size = -1):
