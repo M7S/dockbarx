@@ -25,7 +25,7 @@ from math import pi
 from common import Globals
 from xml.sax.saxutils import escape
 import gobject
-from pango import ELLIPSIZE_END
+import pango
 
 from common import connect, disconnect
 from log import logger
@@ -41,6 +41,8 @@ class CairoAppButton(gtk.EventBox):
         self.globals = Globals()
         self.surface = surface
         self.badge = None
+        self.bf_sid = self.globals.connect("dockmanager-badge-font-changed",
+                                    self.__on_dockmanager_badge_font_changed)
 
     def update(self, surface):
         a = self.area.get_allocation()
@@ -76,16 +78,25 @@ class CairoAppButton(gtk.EventBox):
                 self.badge = None
             return
         if not self.badge:
-            self.badge = gtk.Label(badge)
+            self.badge = gtk.Label()
             alignment = gtk.Alignment(1, 1, 0, 0)
             alignment.set_padding(1, 1, 2, 2)
             alignment.add(self.badge)
             alignment.show_all()
             self.area.add(alignment)
-        else:
-            self.badge.set_text(badge)
+            font = self.globals.settings["dockmanager_badge_font"]
+            self.badge.modify_font(pango.FontDescription(font))
+        self.badge.set_text(badge)
+
+    def __on_dockmanager_badge_font_changed(self, *args):
+        if self.badge:
+            font = self.globals.settings["dockmanager_badge_font"]
+            self.badge.modify_font(pango.FontDescription(font))
 
     def cleanup(self):
+        if self.bf_sid:
+            self.globals.disconnect(self.bf_sid)
+            self.bf_sid = None
         del self.surface
 
     def pointer_is_inside(self):
@@ -476,7 +487,7 @@ class CairoWindowItem(CairoButton):
         if self.globals.settings["show_close_button"]:
             self.close_button.show()
         self.label = gtk.Label()
-        self.label.set_ellipsize(ELLIPSIZE_END)
+        self.label.set_ellipsize(pango.ELLIPSIZE_END)
         self.label.set_alignment(0, 0.5)
         self.__update_label_state()
         hbox = gtk.HBox()

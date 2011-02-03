@@ -658,6 +658,19 @@ class PrefDialog():
                                            "dockmanager_badge")
         dockmanager_box.pack_start(self.dockmanager_cb, False)
         dockmanager_box.pack_start(self.dockmanager_badge_cb, False)
+
+        bfbox = gtk.HBox()
+        badge_font_label = gtk.Label(_("Badge font"))
+        bfbox.pack_start(badge_font_label, False)
+        self.badge_font_button = gtk.FontButton(_("Font"))
+        self.badge_font_button.set_use_font(True)
+        self.badge_font_button.set_use_size(True)
+        self.badge_font_button.set_show_style(True)
+        self.badge_font_button.set_title("Badge font")
+        self.badge_font_button.connect("font_set", self.__set_font,
+                                       "dockmanager_badge_font")
+        bfbox.pack_start(self.badge_font_button, False, padding=5)
+        dockmanager_box.pack_start(bfbox, padding=5)
         helpers_button = gtk.Button(_("Helpers"))
         helpers_button.connect("clicked", self.__open_dockmanager_settings)
         dockmanager_box.pack_start(helpers_button, False)
@@ -977,13 +990,15 @@ class PrefDialog():
 
         # Plugins
         self.media_buttons_cb.set_active(
-                                self.globals.settings["media_buttons"])
-        self.dockmanager_cb.set_active(
-                                self.globals.settings["dockmanager"])
-        self.dockmanager_badge_cb.set_active(
-                                self.globals.settings["dockmanager_badge"])
-        self.dockmanager_badge_cb.set_sensitive(
-                                self.globals.settings["dockmanager"])
+                            self.globals.settings["media_buttons"])
+        dockmanager = self.globals.settings["dockmanager"]
+        badge = self.globals.settings["dockmanager_badge"]
+        self.dockmanager_cb.set_active(dockmanager)
+        self.dockmanager_badge_cb.set_active(badge)
+        self.dockmanager_badge_cb.set_sensitive(dockmanager)
+        self.badge_font_button.set_font_name(
+                            self.globals.settings["dockmanager_badge_font"])
+        self.badge_font_button.set_sensitive(dockmanager and badge)
 
         # Colors
         if self.theme:
@@ -1428,6 +1443,11 @@ class PrefDialog():
         except dbus.exceptions.DBusException, e:
             print "Couldn't open DockManager Preferences"
             print "reason: %s " % e
+
+    def __set_font(self, button, name):
+        font = button.get_font_name()
+        if font != self.globals.settings[name]:
+            GCONF_CLIENT.set_string(GCONF_DIR + "/" + name, font)
 
 PrefDialog()
 gtk.main()

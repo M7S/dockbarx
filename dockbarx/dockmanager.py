@@ -180,7 +180,7 @@ class DockManagerItem(dbus.service.Object):
                          in_signature="a{sv}", out_signature="")
     def UpdateDockItem(self, properties):
         if self.globals.settings["dockmanager_badge"]:
-            badge = properties.get('badge', None)
+            badge = properties.get("badge", None)
             self.groupbutton_r().button.set_badge(badge)
 
     @dbus.service.signal(dbus_interface='net.launchpad.DockItem',

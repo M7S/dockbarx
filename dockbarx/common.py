@@ -462,7 +462,9 @@ class Globals(gobject.GObject):
         "dockmanager-changed": (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,()),
         "dockmanager-badge-changed": (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,()),
+                                      gobject.TYPE_NONE,()),
+        "dockmanager-badge-font-changed": (gobject.SIGNAL_RUN_FIRST,
+                                           gobject.TYPE_NONE,()),
         "media-buttons-changed": (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,()),
         "show-tooltip-changed": (gobject.SIGNAL_RUN_FIRST,
@@ -498,6 +500,7 @@ class Globals(gobject.GObject):
 
           "dockmanager": True,
           "dockmanager_badge": False,
+          "dockmanager_badge_font": "sans 10",
           "media_buttons": True,
 
           "opacify": False,
@@ -685,6 +688,8 @@ class Globals(gobject.GObject):
             self.emit("dockmanager-changed")
         if "dockmanager_badge" in changed_settings:
             self.emit("dockmanager-badge-changed")
+        if "dockmanager_badge_font" in changed_settings:
+            self.emit("dockmanager-badge-font-changed")
         for key in changed_settings:
             if key == "theme":
                 self.emit("theme-changed")
