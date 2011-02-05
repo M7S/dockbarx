@@ -57,7 +57,8 @@ SPECIAL_RES_CLASSES = {
                         "exaile.py": "exaile",
                         "eric4.py": "eric",
                         "geogebra-geogebra": "geogebra",
-                        "tuxpaint.tuxpaint": "tuxpaint"
+                        "tuxpaint.tuxpaint": "tuxpaint",
+                        "quodlibet":"quod libet"
                       }
 
 # Media player name substitutes (for non-identical resclass/dbus-address pairs)

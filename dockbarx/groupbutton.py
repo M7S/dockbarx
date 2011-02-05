@@ -1411,11 +1411,12 @@ class GroupButton():
         if name in self.zg_files:
             self.launch_item(None, None, self.zg_files[name])
             return
-        for id, menu_item in self.dockmanager.get_menu_items().items():
-            if name == menu_item['label']:
-                self.dockmanager.MenuItemActivated(id)
-                self.hide_list()
-                return
+        if self.dockmanager:
+            for id, menu_item in self.dockmanager.get_menu_items().items():
+                if name == menu_item['label']:
+                    self.dockmanager.MenuItemActivated(id)
+                    self.hide_list()
+                    return
         menu_funcs = \
             {_("_Close"): self.action_close_all_windows,
              _("_Close") + _(" all windows"): self.action_close_all_windows,

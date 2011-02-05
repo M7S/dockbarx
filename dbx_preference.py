@@ -662,11 +662,11 @@ class PrefDialog():
         bfbox = gtk.HBox()
         badge_font_label = gtk.Label(_("Badge font"))
         bfbox.pack_start(badge_font_label, False)
-        self.badge_font_button = gtk.FontButton(_("Font"))
+        self.badge_font_button = gtk.FontButton()
         self.badge_font_button.set_use_font(True)
         self.badge_font_button.set_use_size(True)
         self.badge_font_button.set_show_style(True)
-        self.badge_font_button.set_title("Badge font")
+        self.badge_font_button.set_title(_("Badge font"))
         self.badge_font_button.connect("font_set", self.__set_font,
                                        "dockmanager_badge_font")
         bfbox.pack_start(self.badge_font_button, False, padding=5)
