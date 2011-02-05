@@ -1281,12 +1281,13 @@ class GroupButton():
             dm_menu_items = self.dockmanager.get_menu_items()
             if dm_menu_items:
                 self.menu.add_separator()
-            for item in dm_menu_items.values():
+            for (id, item) in dm_menu_items.items():
                 submenu = item.get("container-title", None)
                 if submenu and not self.menu.has_submenu(submenu):
                     self.menu.add_submenu(submenu)
                 if item["label"]:
-                    self.menu.add_item(item["label"], submenu)
+                    id = "dockmanager_%s" % id
+                    self.menu.add_item(item["label"], submenu, identifier=id)
         # Recent and most used files
         if self.desktop_entry:
             recent, most_used, related = self.__menu_get_zg_files()
@@ -1302,8 +1303,13 @@ class GroupButton():
                         label = text or uri
                         if len(label)>40:
                             label = label[:20]+"..."+label[-17:]
-                        self.zg_files[label] = uri
-                        self.menu.add_item(label, name)
+                        id = "zg_%s" % label
+                        n = 0
+                        while id in self.zg_files:
+                            n += 1
+                            id = "zg_%s%s" % (label, n)
+                        self.zg_files[id] = uri
+                        self.menu.add_item(label, name, identifier=id)
         # Windows stuff
         win_nr = self.windows.get_count()
         if win_nr:
@@ -1408,13 +1414,13 @@ class GroupButton():
             related_files = related_files[:3]
         return recent_files, most_used_files, related_files
 
-    def __on_menuitem_activated(self, arg, name):
-        if name in self.zg_files:
-            self.launch_item(None, None, self.zg_files[name])
+    def __on_menuitem_activated(self, arg, identifier):
+        if identifier in self.zg_files:
+            self.launch_item(None, None, self.zg_files[identifier])
             return
         if self.dockmanager:
             for id, menu_item in self.dockmanager.get_menu_items().items():
-                if name == menu_item['label']:
+                if identifier == "dockmanager_%s" % id:
                     self.dockmanager.MenuItemActivated(id)
                     self.hide_list()
                     return
@@ -1439,7 +1445,7 @@ class GroupButton():
              _("Make custom launcher"): self.__menu_edit_launcher,
              _("_Pin application"): self.__menu_pin,
              _("_Launch application"): self.action_launch_application}
-        func = menu_funcs.get(name, None)
+        func = menu_funcs.get(identifier, None)
         if func:
             func()
 
@@ -2033,20 +2039,22 @@ class GroupMenu(gobject.GObject):
             self.menu.set_spacing(2)
         self.menu.show()
 
-    def add_item(self, name, submenu=None):
+    def add_item(self, name, submenu=None, identifier=None):
+        if not identifier:
+            identifier = name
         if self.gtk_menu:
             item = gtk.MenuItem(name)
             item.show()
             if submenu:
                 self.submenus[submenu].append(item)
                 item.connect("button-press-event",
-                             self.__on_item_activated, name)
+                             self.__on_item_activated, identifier)
             else:
                 self.menu.append(item)
-                item.connect("activate", self.__on_item_activated, name)
+                item.connect("activate", self.__on_item_activated, identifier)
         else:
             item = CairoMenuItem(name)
-            item.connect("clicked", self.__on_item_activated, name)
+            item.connect("clicked", self.__on_item_activated, identifier)
             item.show()
             if submenu:
                 self.submenus[submenu].add_item(item)
@@ -2087,8 +2095,8 @@ class GroupMenu(gobject.GObject):
         del self.submenus
 
     def __on_item_activated(self, *args):
-        name = args[-1]
-        self.emit("item-activated", name)
+        identifier = args[-1]
+        self.emit("item-activated", identifier)
 
     def __on_submenu_toggled(self, *args):
         self.emit("menu-resized")
