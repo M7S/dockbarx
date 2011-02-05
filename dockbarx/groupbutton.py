@@ -366,9 +366,9 @@ class GroupButton():
     def __update_popup_label(self, arg=None):
         if self.name is None:
             return
-        self.popup_label.set_text(
+        self.popup_label.set_label(
                     "<span foreground='%s'>"%self.globals.colors["color2"] + \
-                    "<big><b>%s</b></big></span>"%self.name
+                    "<big><b>%s</b></big></span>"%escape(self.name)
                                  )
         self.popup_label.set_use_markup(True)
 
@@ -1350,12 +1350,22 @@ class GroupButton():
     def __menu_get_zg_files(self):
         # Get information from zeitgeist
         appname = self.desktop_entry.getFileName().split("/")[-1]
-        recent_files = zg.get_recent_for_app(appname,
-                                             days=30,
-                                             number_of_results=8)
-        most_used_files = zg.get_most_used_for_app(appname,
-                                                   days=30,
-                                                   number_of_results=8)
+        try:
+            recent_files = zg.get_recent_for_app(appname,
+                                                 days=30,
+                                                 number_of_results=8)
+        except:
+            logger.exception("Couldn't get zeitgeist recent files for %s" % \
+                             self.name)
+            recent_files = []
+        try:
+            most_used_files = zg.get_most_used_for_app(appname,
+                                                       days=30,
+                                                       number_of_results=8)
+        except:
+            logger.exception("Couldn't get zeitgeist most used files" +
+                             " for %s" % self.name)
+            most_used_files = []
         # For programs that work badly with zeitgeist (openoffice for now),
         # mimetypes should be used to identify recent and most used as well.
         if self.identifier in zg.workrounds:
@@ -1381,15 +1391,19 @@ class GroupButton():
         except AttributeError:
             mimetypes = None
         if mimetypes:
-            related_candidates = zg.get_recent_for_mimetypes(mimetypes,
-                                                             days=1,
+            try:
+                related_candidates = zg.get_recent_for_mimetypes(mimetypes,
+                                                                 days=1,
                                                         number_of_results=20)
-            other_recent = zg.get_recent_for_app(appname,
-                                                 days=1,
-                                                 number_of_results=20)
-            related_files = [rf for rf in related_candidates \
-                             if not (rf in recent_files or \
-                                     rf in other_recent)]
+                other_recent = zg.get_recent_for_app(appname,
+                                                     days=1,
+                                                     number_of_results=20)
+                related_files = [rf for rf in related_candidates \
+                                 if not (rf in recent_files or \
+                                         rf in other_recent)]
+            except:
+                logger.exception("Couldn't get zeitgeist related" + \
+                                 " files for %s" % self.name)
             related_files = related_files[:3]
         return recent_files, most_used_files, related_files
 
