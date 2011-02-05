@@ -909,7 +909,8 @@ class GroupButton():
 
     #### DockManager
     def add_dockmanager(self):
-        if not self.dockmanager and self.globals.settings["dockmanager"]:
+        if not self.dockmanager and self.globals.settings["dockmanager"] and \
+           self.dockbar_r().dockmanager:
             try:
                 self.dockmanager = DockManagerItem(self)
             except:

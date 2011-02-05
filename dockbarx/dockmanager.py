@@ -25,6 +25,15 @@ from common import ODict, Globals
 from log import logger
 
 class DockManager(dbus.service.Object):
+    def __new__(cls, dockbar):
+        if "net.launchpad.DockManager" in dbus.SessionBus().list_names():
+            logger.debug("Name net.launchpad.DockManager is already" + \
+                         " in use. (This instance of) DockbarX will" + \
+                         " not use DockManager.")
+            return None
+        else:
+            return dbus.service.Object.__new__(cls)
+
     def __init__(self, dockbar):
         self.dockbar_r = weakref.ref(dockbar)
         bus_name = dbus.service.BusName("net.launchpad.DockManager",

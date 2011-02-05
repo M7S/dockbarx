@@ -1203,6 +1203,8 @@ class DockBar():
                 logger.exception("Couldn't start Dockmanager, is it " + \
                                  "prehaps already in use by some other dock?")
                 return
+        if not self.dockmanager:
+            return
         for group in self.groups:
             group.add_dockmanager()
         self.dockmanager.reset()
