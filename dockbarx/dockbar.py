@@ -359,8 +359,8 @@ class DockBar():
 
     def open_preference(self):
         # Starts the preference dialog
-        os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference.py",
-                    "/usr/bin/dbx_preference.py")
+        os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
+                    "/usr/bin/dbx_preference")
 
     #### Applet events
     def __on_ppm_pref(self,event=None,data=None):

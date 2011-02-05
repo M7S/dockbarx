@@ -92,7 +92,7 @@ data_files=[("/usr/share/dockbarx/themes", ["themes/default.tar.gz",
                                             "themes/minimalistic.tar.gz",
                                             "themes/sunny-c.tar.gz",
                                             "themes/new_theme.tar.gz", ]),
-            ("/usr/bin", ["dockbarx_factory.py", "dbx_preference.py"]),
+            ("/usr/bin", ["dockbarx_factory", "dbx_preference"]),
             ("/usr/lib/bonobo/servers", ["GNOME_DockBarXApplet.server"]),
             ("/usr/share/applications/", ["dbx_preference.desktop"]),
             ("share/icons/hicolor/128x128/apps", ["icons/hicolor/128x128/apps/dockbarx.png"]),
@@ -131,3 +131,25 @@ if len(sys.argv) == 2 and sys.argv[1] == "install":
         else:
             print "/usr/bin/dockbarx.py is not removed. " + \
                   "Please remove it or rename it manually."
+
+    if os.path.exists("/usr/bin/dockbarx_factory.py"):
+        print
+        print "There is a dockbarx_factory.py in /usr/bin. " + \
+              "This file is no longer used."
+        remove = raw_input("Remove /usr/bin/dockbarx_factory.py? (Y/n)")
+        if remove == "" or remove[0].lower() == "y":
+            os.remove("/usr/bin/dockbarx_factory.py")
+            print "/usr/bin/dockbarx_factory.py is removed. "
+        else:
+            print "/usr/bin/dockbarx_factory.py is not removed. "
+
+    if os.path.exists("/usr/bin/dbx_preference.py"):
+        print
+        print "There is a dbx_preference.py in /usr/bin. " + \
+              "This file is no longer used."
+        remove = raw_input("Remove /usr/bin/dbx_preference.py? (Y/n)")
+        if remove == "" or remove[0].lower() == "y":
+            os.remove("/usr/bin/dbx_preference.py")
+            print "/usr/bin/dbx_preference.py is removed. "
+        else:
+            print "/usr/bin/dbx_preference.py is not removed. "
