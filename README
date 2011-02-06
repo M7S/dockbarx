@@ -25,6 +25,9 @@ $ sudo ./setup.py install
 
 3. Add DockBarX applet to panel (kill gnome-panel first if necessary)
 
+DockManager helpers
+- To use DockManager helpers, you need to install dockmanager and dockmanager-daemon (available from dockbar ppa and awn-testing ppa) as well as libdesktop-agnostic-cfg-gconf and libdesktop-agnostic-vfs-gio (these two might not need to be installed separately on distributions that aren't Debian based). Then you need to activate DockManager and the helpers you like to use from DockbarX prefeference.
+
 
 NOTE! To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". (Alternatively you can use kwin as window manager instead of compiz. That will give you previews for minimized windows as well.)
 

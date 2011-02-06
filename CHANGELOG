@@ -1,9 +1,26 @@
 Changelog:
+0.43
+Features:
+- Media buttons. All music players that shows up in ubuntus sound menu (in other words mediaplayers that uses mpris2 - that includes Spotify Linux Preview that doesn't show up in ubuntus sound menu) has play/pause, previous and next buttons. You can disable them from preference window. 
+- DockbarX now supports helpers via DockManager. You have to install DockManager and enable it from dockbarx preference window before you can use it.
+- Prism applications are separated from each other instead of being grouped together now.
+- Small visual changes to window list and group menu. The look when using DockbarX without compositing is imporved a bit.
+- DockbarX uses it's own log now. When reporting bugs, include the file ~/.dockbarx/log/dockbarx.log (or any other of the numbered log files in that directory depending on how many times you restarted dockbarx since the bug last occurred). I hope this will help us catch a lot of small annoying bugs.
+
+Bug Fixes:
+- Bug 694866: Windows were reported as Needing attention while they didn't anymore.
+- Previews didn't move when windows were closed and were left outside of the window list.
+- DockbarX opened wrong file you had multiple files with the same name in recent or most used menu.
+
+Other changes:
+- The .py is removed from the files dockbarx_factory and dbx_preference. This is done because Debian rules says you shouldn't use file name extensions in /usr/bin.
+
 0.42.1
 End user features:
 - You can now choose if you want the close button on the window items or not.
 Bug fixes:
 - Close and Close all in group menu didn't work. 
+- A couple of other small bugs.
 
 0.42
 End user features:

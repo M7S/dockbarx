@@ -45,7 +45,7 @@ from log import logger
 import i18n
 _ = i18n.language.gettext
 
-VERSION = "0.42.1"
+VERSION = "0.43"
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")

@@ -498,7 +498,7 @@ class Globals(gobject.GObject):
           "select_next_use_lastest_active": False,
           "select_next_activate_immediately": False,
 
-          "dockmanager": True,
+          "dockmanager": False,
           "dockmanager_badge": False,
           "dockmanager_badge_font": "sans 10",
           "media_buttons": True,
