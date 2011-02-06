@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-10-03 22:50+0300\n"
-"PO-Revision-Date: 2010-11-18 22:23+0000\n"
-"Last-Translator: Matias Särs <Unknown>\n"
+"POT-Creation-Date: 2010-12-23 21:35+0200\n"
+"PO-Revision-Date: 2010-12-30 11:32+0000\n"
+"Last-Translator: 张海 <Unknown>\n"
 "Language-Team: Chinese (Simplified) <zh_CN@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-12-23 19:44+0000\n"
-"X-Generator: Launchpad (build 12138)\n"
+"X-Launchpad-Export-Date: 2011-02-05 17:52+0000\n"
+"X-Generator: Launchpad (build 12309)\n"
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
@@ -25,45 +25,45 @@ msgstr "DockBarX设置"
 msgid "Window item actions"
 msgstr "窗口项目动作"
 
-#: dbx_preference.py:237 dbx_preference.py:490
+#: dbx_preference.py:237 dbx_preference.py:499
 msgid "Left mouse button"
 msgstr "鼠标左键"
 
-#: dbx_preference.py:238 dbx_preference.py:491
+#: dbx_preference.py:238 dbx_preference.py:500
 msgid "Shift + left mouse button"
 msgstr "Shift + 鼠标左键"
 
-#: dbx_preference.py:240 dbx_preference.py:493
+#: dbx_preference.py:240 dbx_preference.py:502
 msgid "Middle mouse button"
 msgstr "鼠标中键"
 
-#: dbx_preference.py:242 dbx_preference.py:494
+#: dbx_preference.py:242 dbx_preference.py:503
 msgid "Shift + middle mouse button"
 msgstr "Shift + 鼠标中键"
 
-#: dbx_preference.py:244 dbx_preference.py:496
+#: dbx_preference.py:244 dbx_preference.py:505
 msgid "Right mouse button"
 msgstr "鼠标右键"
 
-#: dbx_preference.py:246 dbx_preference.py:497
+#: dbx_preference.py:246 dbx_preference.py:506
 msgid "Shift + right mouse button"
 msgstr "Shift + 鼠标右键"
 
-#: dbx_preference.py:248 dbx_preference.py:499
+#: dbx_preference.py:248 dbx_preference.py:508
 msgid "Scroll up"
 msgstr "向上滚动"
 
-#: dbx_preference.py:249 dbx_preference.py:500
+#: dbx_preference.py:249 dbx_preference.py:509
 msgid "Scroll down"
 msgstr "向下滚动"
 
-#: dbx_preference.py:254 dbx_preference.py:566 dbx_preference.py:892
-#: dbx_preference.py:1123
+#: dbx_preference.py:254 dbx_preference.py:575 dbx_preference.py:963
+#: dbx_preference.py:1202
 msgid "select or minimize window"
 msgstr "选择或最小化窗口"
 
-#: dbx_preference.py:255 dbx_preference.py:565 dbx_preference.py:891
-#: dbx_preference.py:1122
+#: dbx_preference.py:255 dbx_preference.py:574 dbx_preference.py:962
+#: dbx_preference.py:1201
 msgid "select window"
 msgstr "选择窗口"
 
@@ -75,7 +75,7 @@ msgstr "最大化窗口"
 msgid "close window"
 msgstr "关闭窗口"
 
-#: dbx_preference.py:258 dbx_preference.py:509
+#: dbx_preference.py:258 dbx_preference.py:518
 msgid "show menu"
 msgstr "显示菜单"
 
@@ -87,7 +87,7 @@ msgstr "收起窗口"
 msgid "unshade window"
 msgstr "展开窗口"
 
-#: dbx_preference.py:261 dbx_preference.py:518
+#: dbx_preference.py:261 dbx_preference.py:527
 msgid "no action"
 msgstr "无动作"
 
@@ -123,265 +123,305 @@ msgstr "静态"
 msgid "No effect"
 msgstr "无特效"
 
-#: dbx_preference.py:405
+#: dbx_preference.py:402
+msgid "Use gtk menu (old style) instead of DockbarX style menu."
+msgstr "使用gtk菜单(经典样式)取代DockbarX样式菜单."
+
+#: dbx_preference.py:414
 msgid "Show window list only if more than one window is open"
 msgstr "只有在多个窗口打开时才显示窗口列表"
 
-#: dbx_preference.py:411
+#: dbx_preference.py:420
 msgid "Show tooltip when no window is open"
 msgstr "在没有窗口打开时显示工具提示"
 
-#: dbx_preference.py:418
+#: dbx_preference.py:427
 msgid "Alignment"
 msgstr "对齐"
 
-#: dbx_preference.py:422
+#: dbx_preference.py:431
 msgid "Align left"
 msgstr "左对齐"
 
-#: dbx_preference.py:424
+#: dbx_preference.py:433
 msgid "Align center"
 msgstr "居中"
 
-#: dbx_preference.py:426
+#: dbx_preference.py:435
 msgid "Align right"
 msgstr "右对齐"
 
-#: dbx_preference.py:435 dbx_preference.py:440
+#: dbx_preference.py:444 dbx_preference.py:449
 msgid "Delay"
 msgstr "延迟"
 
-#: dbx_preference.py:450
+#: dbx_preference.py:459
 msgid "Delay for switching between window lists"
 msgstr "切换窗口列表时延迟"
 
-#: dbx_preference.py:463
+#: dbx_preference.py:472
 msgid "Previews"
 msgstr "预览"
 
-#: dbx_preference.py:467
+#: dbx_preference.py:476
 msgid "Show previews"
 msgstr "显示预览"
 
-#: dbx_preference.py:472
+#: dbx_preference.py:481
 msgid "Preview size"
 msgstr "预览大小"
 
-#: dbx_preference.py:484
+#: dbx_preference.py:493
 msgid "Group button actions"
 msgstr "窗口组按钮动作"
 
-#: dbx_preference.py:504
+#: dbx_preference.py:513
 msgid "select"
 msgstr "选择"
 
-#: dbx_preference.py:505
+#: dbx_preference.py:514
 msgid "close all windows"
 msgstr "关闭所有窗口"
 
-#: dbx_preference.py:506
+#: dbx_preference.py:515
 msgid "minimize all windows"
 msgstr "最小化所有窗口"
 
-#: dbx_preference.py:507
+#: dbx_preference.py:516
 msgid "maximize all windows"
 msgstr "最大化所有窗口"
 
-#: dbx_preference.py:508
+#: dbx_preference.py:517
 msgid "launch application"
 msgstr "运行程序"
 
-#: dbx_preference.py:510
+#: dbx_preference.py:519
 msgid "remove launcher"
 msgstr "删除启动器"
 
-#: dbx_preference.py:511
+#: dbx_preference.py:520
 msgid "select next window"
 msgstr "选择下一个窗口"
 
-#: dbx_preference.py:512
+#: dbx_preference.py:521
 msgid "select previous window"
 msgstr "选择上一个窗口"
 
-#: dbx_preference.py:513
+#: dbx_preference.py:522
 msgid "minimize all other groups"
 msgstr "最小化其他窗口组"
 
-#: dbx_preference.py:514
+#: dbx_preference.py:523
 msgid "compiz scale windows"
 msgstr "Compiz窗口缩放"
 
-#: dbx_preference.py:515
+#: dbx_preference.py:524
 msgid "compiz shift windows"
 msgstr "Compiz窗口切换"
 
-#: dbx_preference.py:516
+#: dbx_preference.py:525
 msgid "compiz scale all"
 msgstr "Compiz缩放所有窗口"
 
-#: dbx_preference.py:517
+#: dbx_preference.py:526
 msgid "show preference dialog"
 msgstr "打开设置窗口"
 
-#: dbx_preference.py:545
+#: dbx_preference.py:554
 msgid "Double click"
 msgstr "双击"
 
-#: dbx_preference.py:556
+#: dbx_preference.py:565
 msgid "\"Select\" action options"
 msgstr "\"选择\"动作选项"
 
-#: dbx_preference.py:562
+#: dbx_preference.py:571
 msgid "One window open"
 msgstr "打开一个窗口"
 
-#: dbx_preference.py:571
+#: dbx_preference.py:580
 msgid "Multiple windows open"
 msgstr "打开多个窗口"
 
-#: dbx_preference.py:574 dbx_preference.py:901 dbx_preference.py:1135
+#: dbx_preference.py:583 dbx_preference.py:972 dbx_preference.py:1214
 msgid "select all"
 msgstr "全选"
 
-#: dbx_preference.py:575 dbx_preference.py:902 dbx_preference.py:1136
+#: dbx_preference.py:584 dbx_preference.py:973 dbx_preference.py:1215
 msgid "select or minimize all"
 msgstr "选择或最小化所有窗口"
 
-#: dbx_preference.py:576 dbx_preference.py:903 dbx_preference.py:1137
+#: dbx_preference.py:585 dbx_preference.py:974 dbx_preference.py:1216
 msgid "compiz scale"
 msgstr "Compiz缩放"
 
-#: dbx_preference.py:577 dbx_preference.py:904 dbx_preference.py:1138
+#: dbx_preference.py:586 dbx_preference.py:975 dbx_preference.py:1217
 msgid "cycle through windows"
 msgstr "遍历窗口"
 
-#: dbx_preference.py:578 dbx_preference.py:905 dbx_preference.py:1139
+#: dbx_preference.py:587 dbx_preference.py:976 dbx_preference.py:1218
 msgid "show window list"
 msgstr "显示窗口列表"
 
-#: dbx_preference.py:583
+#: dbx_preference.py:592
 msgid "Workspace behavior"
 msgstr "工作区行为"
 
-#: dbx_preference.py:587 dbx_preference.py:1151
+#: dbx_preference.py:596 dbx_preference.py:1230
 msgid "Ignore windows on other workspaces"
 msgstr "忽略其他工作区的窗口"
 
-#: dbx_preference.py:588 dbx_preference.py:915 dbx_preference.py:1152
+#: dbx_preference.py:597 dbx_preference.py:986 dbx_preference.py:1231
 msgid "Switch workspace when needed"
 msgstr "在需要时切换工作区"
 
-#: dbx_preference.py:590 dbx_preference.py:916 dbx_preference.py:1153
+#: dbx_preference.py:599 dbx_preference.py:987 dbx_preference.py:1232
 msgid "Move windows from other workspaces"
 msgstr "移动其他工作区的窗口"
 
-#: dbx_preference.py:601
+#: dbx_preference.py:610
+msgid "\"Select next\" options"
+msgstr "\"选择下一个\"选项"
+
+#: dbx_preference.py:612
+msgid "\"Select next\" selects the most recently used window in the group"
+msgstr "\"选择下一个\"操作将选择窗口组中最近使用的窗口"
+
+#: dbx_preference.py:613
+msgid ""
+"If set, \"Select Next\" action selects the window that has been used most "
+"recently, otherwise it activates the next window in the window list."
+msgstr "如果该选项被激活,\"选择下一个\"操作将选择窗口组中最近使用的窗口,否则该操作将激活窗口列表中的下一个窗口."
+
+#: dbx_preference.py:619
+msgid "Use no delay with \"Select next\""
+msgstr "\"选择下一个\"操作不使用延时"
+
+#: dbx_preference.py:620
+msgid ""
+"If set, \"Select Next\" action selects the next window immediately without "
+"any delay"
+msgstr "如果该选项被激活,\"选择下一个\"操作将立即选择下一个窗口而不使用延时."
+
+#: dbx_preference.py:632
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "忽略其他视图或工作区上的窗口"
 
-#: dbx_preference.py:607
+#: dbx_preference.py:638
 msgid "Ignore windows on other monitors"
 msgstr "忽略其他监视器上的窗口"
 
-#: dbx_preference.py:614
+#: dbx_preference.py:645
 msgid "Give each wine application its own group button"
 msgstr "给每个Wine应用程序分配自己的窗口组按钮"
 
-#: dbx_preference.py:621
+#: dbx_preference.py:652
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "拆分Open Office应用程序的窗口"
 
-#: dbx_preference.py:628
+#: dbx_preference.py:659
 msgid "Delay on select all (Workaround for order problems)"
 msgstr "在全选时延迟(处理其他问题)"
 
-#: dbx_preference.py:629
+#: dbx_preference.py:660
 msgid ""
 "Compiz can't handle the order of multiple windows that are brought up at "
 "once. This problem can be solved by adding short delays between the "
 "activation of each window."
 msgstr "Compiz无法处理同时出现的多个窗口的顺序.这个问题可以通过添加一个在每个窗口激活间的延迟解决."
 
-#: dbx_preference.py:637 dbx_preference.py:641
+#: dbx_preference.py:668 dbx_preference.py:672
 msgid "Opacify"
 msgstr "不透明功能"
 
-#: dbx_preference.py:642
+#: dbx_preference.py:673
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
 msgstr "不透明功能可以在鼠标悬停在窗口组中窗口的名称或预览上方时使其他窗口不透明."
 
-#: dbx_preference.py:645
+#: dbx_preference.py:676
 msgid "Opacify group"
 msgstr "窗口组不透明功能"
 
-#: dbx_preference.py:646
+#: dbx_preference.py:677
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
 msgstr "窗口组不透明功能可以在鼠标悬停在窗口组按钮上方时使其他窗口组不透明."
 
-#: dbx_preference.py:651
+#: dbx_preference.py:681
+msgid "Use smooth fade in/out"
+msgstr "使用淡入/淡出"
+
+#: dbx_preference.py:687
 msgid "Opacity"
 msgstr "不透明度"
 
-#: dbx_preference.py:665
+#: dbx_preference.py:699
+msgid "Smoothness"
+msgstr "平滑"
+
+#: dbx_preference.py:708
+msgid "Duration"
+msgstr "持续时间"
+
+#: dbx_preference.py:722
 msgid "Global Keyboard Shortcuts"
 msgstr "全局快捷键"
 
-#: dbx_preference.py:670 dockbarx/dockbar.py:1066
+#: dbx_preference.py:727 dockbarx/./dockbar.py:1111
 msgid "Select next group"
 msgstr "选择下一个窗口组"
 
-#: dbx_preference.py:672 dockbarx/dockbar.py:1067
+#: dbx_preference.py:729 dockbarx/./dockbar.py:1112
 msgid "Select previous group"
 msgstr "选择上一个窗口组"
 
-#: dbx_preference.py:674 dockbarx/dockbar.py:1068
+#: dbx_preference.py:731 dockbarx/./dockbar.py:1113
 msgid "Select next window in group"
 msgstr "选择该窗口组中下一个窗口"
 
-#: dbx_preference.py:676 dockbarx/dockbar.py:1069
+#: dbx_preference.py:733 dockbarx/./dockbar.py:1114
 msgid "Select previous window in group"
 msgstr "选择该窗口组中上一个窗口"
 
-#: dbx_preference.py:719
+#: dbx_preference.py:776
 msgid "Appearance"
 msgstr "外观"
 
-#: dbx_preference.py:720
+#: dbx_preference.py:777
 msgid "Window List"
 msgstr "窗口列表"
 
-#: dbx_preference.py:721
+#: dbx_preference.py:778
 msgid "Group Button"
 msgstr "窗口组按钮"
 
-#: dbx_preference.py:722
+#: dbx_preference.py:779
 msgid "Window Item"
 msgstr "窗口项目"
 
-#: dbx_preference.py:723
+#: dbx_preference.py:780
 msgid "Advanced"
 msgstr "高级"
 
-#: dbx_preference.py:783 dockbarx/theme.py:168
+#: dbx_preference.py:840 dockbarx/./theme.py:168
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr "在 /usr/share/dockbarx/themes 或 ~/.dockbarx/themes 中无法找到可用的主题"
 
-#: dbx_preference.py:914
+#: dbx_preference.py:985
 msgid "Ignore windows on other workspace"
 msgstr "忽略其他工作区的窗口"
 
-#: dbx_preference.py:1013
+#: dbx_preference.py:1090
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr "窗口预览需要激活Compiz插件KDE Compability.您希望DockBarX激活它吗?"
 
-#: dbx_preference.py:1027
+#: dbx_preference.py:1104
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
@@ -390,122 +430,134 @@ msgstr ""
 "窗口预览需要的Compiz插件KDE Compability可能没有安装.如果您正在使用Ubuntu,您需要安装compiz-fusion-"
 "plugins-main."
 
-#: dbx_preference.py:1044
+#: dbx_preference.py:1122
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr "窗口预览需要激活KDE Compability插件中的Support Plasma Thumnails.您希望DockBarX激活它吗?"
 
-#: dbx_preference.py:1066
+#: dbx_preference.py:1145
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr "不透明度需要激活Compiz插件不透明度,亮度和饱和度.您希望DockBarX激活它吗?"
 
-#: dbx_preference.py:1227
+#: dbx_preference.py:1306
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr "您需要包含至少一个组合键."
 
-#: dockbarx/dockbar.py:872 dockbarx/groupbutton.py:186
-#: dockbarx/groupbutton.py:231
+#: dockbarx/./dockbar.py:917 dockbarx/./groupbutton.py:207
+#: dockbarx/./groupbutton.py:254
 msgid "Identifier"
 msgstr "标识"
 
-#: dockbarx/dockbar.py:873
+#: dockbarx/./dockbar.py:918
 msgid "Enter the identifier here"
 msgstr "请在这里输入标识"
 
-#: dockbarx/dockbar.py:875
+#: dockbarx/./dockbar.py:920
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr "您只应该在程序无法识别窗口时修改此内容. "
 
-#: dockbarx/dockbar.py:876
+#: dockbarx/./dockbar.py:921
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr "如果程序正在运行,您可以在下拉列表中找到此程序的标识."
 
-#: dockbarx/dockbar.py:894
+#: dockbarx/./dockbar.py:939
 msgid "Identifier:"
 msgstr "标识:"
 
-#: dockbarx/dockbar.py:1095
+#: dockbarx/./dockbar.py:1140
 msgid "The key is already bound elsewhere."
 msgstr "该键已被绑定在其他位置."
 
-#: dockbarx/dockbar.py:1097
+#: dockbarx/./dockbar.py:1142
 #, python-format
 msgid ""
 "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
 msgstr "错误:DockbarX无法为%(function)s设置全局按键绑定'%(keystr)s'."
 
-#: dockbarx/windowbutton.py:550 dockbarx/groupbutton.py:1207
+#: dockbarx/./windowbutton.py:410 dockbarx/./groupbutton.py:1264
+#: dockbarx/./groupbutton.py:1353 dockbarx/./groupbutton.py:1354
 msgid "_Minimize"
 msgstr "最小化(_M)"
 
-#: dockbarx/windowbutton.py:553 dockbarx/groupbutton.py:1199
+#: dockbarx/./windowbutton.py:413 dockbarx/./groupbutton.py:1262
+#: dockbarx/./groupbutton.py:1355 dockbarx/./groupbutton.py:1356
 msgid "Un_minimize"
 msgstr "取消最小化(_M)"
 
-#: dockbarx/windowbutton.py:562 dockbarx/groupbutton.py:1217
+#: dockbarx/./windowbutton.py:422 dockbarx/./groupbutton.py:1268
+#: dockbarx/./groupbutton.py:1349 dockbarx/./groupbutton.py:1350
 msgid "Ma_ximize"
 msgstr "最大化(_X)"
 
-#: dockbarx/windowbutton.py:565 dockbarx/groupbutton.py:1221
+#: dockbarx/./windowbutton.py:425 dockbarx/./groupbutton.py:1271
+#: dockbarx/./groupbutton.py:1351 dockbarx/./groupbutton.py:1352
 msgid "Unma_ximize"
 msgstr "取消最大化(_X)"
 
-#: dockbarx/windowbutton.py:571 dockbarx/groupbutton.py:1227
+#: dockbarx/./windowbutton.py:431 dockbarx/./groupbutton.py:1272
 msgid "_Close"
 msgstr "关闭(_C)"
 
-#: dockbarx/groupbutton.py:1107
+#: dockbarx/./groupbutton.py:878 dockbarx/./groupbutton.py:1226
+#: dockbarx/./groupbutton.py:1362
 msgid "_Launch application"
 msgstr "运行程序(_L)"
 
-#: dockbarx/groupbutton.py:1114
+#: dockbarx/./groupbutton.py:1228 dockbarx/./groupbutton.py:1361
 msgid "_Pin application"
 msgstr "将此程序锁定到任务栏(_P)"
 
-#: dockbarx/groupbutton.py:1120
+#: dockbarx/./groupbutton.py:1230 dockbarx/./groupbutton.py:1360
 msgid "Make custom launcher"
 msgstr "制作自定义启动器"
 
-#: dockbarx/groupbutton.py:1127
+#: dockbarx/./groupbutton.py:1232 dockbarx/./groupbutton.py:1359
 msgid "Unpin application"
 msgstr "将此程序从任务栏解锁"
 
-#: dockbarx/groupbutton.py:1134
+#: dockbarx/./groupbutton.py:1233 dockbarx/./groupbutton.py:1234
+#: dockbarx/./groupbutton.py:1235
 msgid "Properties"
 msgstr "属性"
 
-#: dockbarx/groupbutton.py:1138
+#: dockbarx/./groupbutton.py:1234 dockbarx/./groupbutton.py:1358
 msgid "Edit Identifier"
 msgstr "编辑标识"
 
-#: dockbarx/groupbutton.py:1144
+#: dockbarx/./groupbutton.py:1235 dockbarx/./groupbutton.py:1357
 msgid "Edit Launcher"
 msgstr "编辑启动器"
 
-#: dockbarx/groupbutton.py:1161
+#: dockbarx/./groupbutton.py:1242
 msgid "Recent"
 msgstr "最近使用"
 
-#: dockbarx/groupbutton.py:1162
+#: dockbarx/./groupbutton.py:1243
 msgid "Most used"
 msgstr "常用"
 
-#: dockbarx/groupbutton.py:1163
+#: dockbarx/./groupbutton.py:1244
 msgid "Related"
 msgstr "相关"
 
-#: dockbarx/groupbutton.py:1195
+#: dockbarx/./groupbutton.py:1260 dockbarx/./groupbutton.py:1348
+#: dockbarx/./groupbutton.py:1350 dockbarx/./groupbutton.py:1352
+#: dockbarx/./groupbutton.py:1354 dockbarx/./groupbutton.py:1356
 msgid " all windows"
 msgstr " 所有窗口"
+
+#: dockbarx/./groupbutton.py:1347 dockbarx/./groupbutton.py:1348
+msgid "Close"
+msgstr "关闭"
 
 #~ msgid "The launcher at path"
 #~ msgstr "该启动器指向的位置"

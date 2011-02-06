@@ -1,577 +1,555 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-02-05 19:44+0200\n"
+"POT-Creation-Date: 2010-12-23 21:35+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-02-05 17:52+0000\n"
+"X-Generator: Launchpad (build 12309)\n"
+"Language: \n"
 
 #: dbx_preference.py:212
 msgid "DockBarX preferences"
 msgstr ""
 
-#: dbx_preference.py:232
+#: dbx_preference.py:231
 msgid "Window item actions"
 msgstr ""
 
-#: dbx_preference.py:238 dbx_preference.py:508
+#: dbx_preference.py:237 dbx_preference.py:499
 msgid "Left mouse button"
 msgstr ""
 
-#: dbx_preference.py:239 dbx_preference.py:509
+#: dbx_preference.py:238 dbx_preference.py:500
 msgid "Shift + left mouse button"
 msgstr ""
 
-#: dbx_preference.py:241 dbx_preference.py:511
+#: dbx_preference.py:240 dbx_preference.py:502
 msgid "Middle mouse button"
 msgstr ""
 
-#: dbx_preference.py:243 dbx_preference.py:512
+#: dbx_preference.py:242 dbx_preference.py:503
 msgid "Shift + middle mouse button"
 msgstr ""
 
-#: dbx_preference.py:245 dbx_preference.py:514
+#: dbx_preference.py:244 dbx_preference.py:505
 msgid "Right mouse button"
 msgstr ""
 
-#: dbx_preference.py:247 dbx_preference.py:515
+#: dbx_preference.py:246 dbx_preference.py:506
 msgid "Shift + right mouse button"
 msgstr ""
 
-#: dbx_preference.py:249 dbx_preference.py:517
+#: dbx_preference.py:248 dbx_preference.py:508
 msgid "Scroll up"
 msgstr ""
 
-#: dbx_preference.py:250 dbx_preference.py:518
+#: dbx_preference.py:249 dbx_preference.py:509
 msgid "Scroll down"
 msgstr ""
 
-#: dbx_preference.py:255 dbx_preference.py:584 dbx_preference.py:1030
-#: dbx_preference.py:1269
+#: dbx_preference.py:254 dbx_preference.py:575 dbx_preference.py:963
+#: dbx_preference.py:1202
 msgid "select or minimize window"
 msgstr ""
 
-#: dbx_preference.py:256 dbx_preference.py:583 dbx_preference.py:1029
-#: dbx_preference.py:1268
+#: dbx_preference.py:255 dbx_preference.py:574 dbx_preference.py:962
+#: dbx_preference.py:1201
 msgid "select window"
 msgstr ""
 
-#: dbx_preference.py:257
+#: dbx_preference.py:256
 msgid "maximize window"
 msgstr ""
 
-#: dbx_preference.py:258
+#: dbx_preference.py:257
 msgid "close window"
 msgstr ""
 
-#: dbx_preference.py:259 dbx_preference.py:527
+#: dbx_preference.py:258 dbx_preference.py:518
 msgid "show menu"
 msgstr ""
 
-#: dbx_preference.py:260
+#: dbx_preference.py:259
 msgid "shade window"
 msgstr ""
 
-#: dbx_preference.py:261
+#: dbx_preference.py:260
 msgid "unshade window"
 msgstr ""
 
-#: dbx_preference.py:262 dbx_preference.py:536
+#: dbx_preference.py:261 dbx_preference.py:527
 msgid "no action"
 msgstr ""
 
-#: dbx_preference.py:291
+#: dbx_preference.py:290
 msgid "Close window list"
 msgstr ""
 
-#: dbx_preference.py:305
-msgid "Show close button"
-msgstr ""
-
-#: dbx_preference.py:315
+#: dbx_preference.py:306
 msgid "Theme:"
 msgstr ""
 
-#: dbx_preference.py:333
+#: dbx_preference.py:324
 msgid "Colors"
 msgstr ""
 
-#: dbx_preference.py:390
+#: dbx_preference.py:381
 msgid "Needs attention effect"
 msgstr ""
 
-#: dbx_preference.py:394
+#: dbx_preference.py:385
 msgid "Compiz water"
 msgstr ""
 
-#: dbx_preference.py:396
+#: dbx_preference.py:387
 msgid "Blinking"
 msgstr ""
 
-#: dbx_preference.py:398
+#: dbx_preference.py:389
 msgid "Static"
 msgstr ""
 
-#: dbx_preference.py:400
+#: dbx_preference.py:391
 msgid "No effect"
 msgstr ""
 
-#: dbx_preference.py:411
+#: dbx_preference.py:402
 msgid "Use gtk menu (old style) instead of DockbarX style menu."
 msgstr ""
 
-#: dbx_preference.py:423
+#: dbx_preference.py:414
 msgid "Show window list only if more than one window is open"
 msgstr ""
 
-#: dbx_preference.py:429
+#: dbx_preference.py:420
 msgid "Show tooltip when no window is open"
 msgstr ""
 
-#: dbx_preference.py:436
+#: dbx_preference.py:427
 msgid "Alignment"
 msgstr ""
 
-#: dbx_preference.py:440
+#: dbx_preference.py:431
 msgid "Align left"
 msgstr ""
 
-#: dbx_preference.py:442
+#: dbx_preference.py:433
 msgid "Align center"
 msgstr ""
 
-#: dbx_preference.py:444
+#: dbx_preference.py:435
 msgid "Align right"
 msgstr ""
 
-#: dbx_preference.py:453 dbx_preference.py:458
+#: dbx_preference.py:444 dbx_preference.py:449
 msgid "Delay"
 msgstr ""
 
-#: dbx_preference.py:468
+#: dbx_preference.py:459
 msgid "Delay for switching between window lists"
 msgstr ""
 
-#: dbx_preference.py:481
+#: dbx_preference.py:472
 msgid "Previews"
 msgstr ""
 
-#: dbx_preference.py:485
+#: dbx_preference.py:476
 msgid "Show previews"
 msgstr ""
 
-#: dbx_preference.py:490
+#: dbx_preference.py:481
 msgid "Preview size"
 msgstr ""
 
-#: dbx_preference.py:502
+#: dbx_preference.py:493
 msgid "Group button actions"
 msgstr ""
 
-#: dbx_preference.py:522
+#: dbx_preference.py:513
 msgid "select"
 msgstr ""
 
-#: dbx_preference.py:523
+#: dbx_preference.py:514
 msgid "close all windows"
 msgstr ""
 
-#: dbx_preference.py:524
+#: dbx_preference.py:515
 msgid "minimize all windows"
 msgstr ""
 
-#: dbx_preference.py:525
+#: dbx_preference.py:516
 msgid "maximize all windows"
 msgstr ""
 
-#: dbx_preference.py:526
+#: dbx_preference.py:517
 msgid "launch application"
 msgstr ""
 
-#: dbx_preference.py:528
+#: dbx_preference.py:519
 msgid "remove launcher"
 msgstr ""
 
-#: dbx_preference.py:529
+#: dbx_preference.py:520
 msgid "select next window"
 msgstr ""
 
-#: dbx_preference.py:530
+#: dbx_preference.py:521
 msgid "select previous window"
 msgstr ""
 
-#: dbx_preference.py:531
+#: dbx_preference.py:522
 msgid "minimize all other groups"
 msgstr ""
 
-#: dbx_preference.py:532
+#: dbx_preference.py:523
 msgid "compiz scale windows"
 msgstr ""
 
-#: dbx_preference.py:533
+#: dbx_preference.py:524
 msgid "compiz shift windows"
 msgstr ""
 
-#: dbx_preference.py:534
+#: dbx_preference.py:525
 msgid "compiz scale all"
 msgstr ""
 
-#: dbx_preference.py:535
+#: dbx_preference.py:526
 msgid "show preference dialog"
 msgstr ""
 
-#: dbx_preference.py:563
+#: dbx_preference.py:554
 msgid "Double click"
 msgstr ""
 
-#: dbx_preference.py:574
+#: dbx_preference.py:565
 msgid "\"Select\" action options"
 msgstr ""
 
-#: dbx_preference.py:580
+#: dbx_preference.py:571
 msgid "One window open"
 msgstr ""
 
-#: dbx_preference.py:589
+#: dbx_preference.py:580
 msgid "Multiple windows open"
 msgstr ""
 
-#: dbx_preference.py:592 dbx_preference.py:1039 dbx_preference.py:1281
+#: dbx_preference.py:583 dbx_preference.py:972 dbx_preference.py:1214
 msgid "select all"
 msgstr ""
 
-#: dbx_preference.py:593 dbx_preference.py:1040 dbx_preference.py:1282
+#: dbx_preference.py:584 dbx_preference.py:973 dbx_preference.py:1215
 msgid "select or minimize all"
 msgstr ""
 
-#: dbx_preference.py:594 dbx_preference.py:1041 dbx_preference.py:1283
+#: dbx_preference.py:585 dbx_preference.py:974 dbx_preference.py:1216
 msgid "compiz scale"
 msgstr ""
 
-#: dbx_preference.py:595 dbx_preference.py:1042 dbx_preference.py:1284
+#: dbx_preference.py:586 dbx_preference.py:975 dbx_preference.py:1217
 msgid "cycle through windows"
 msgstr ""
 
-#: dbx_preference.py:596 dbx_preference.py:1043 dbx_preference.py:1285
+#: dbx_preference.py:587 dbx_preference.py:976 dbx_preference.py:1218
 msgid "show window list"
 msgstr ""
 
-#: dbx_preference.py:601
+#: dbx_preference.py:592
 msgid "Workspace behavior"
 msgstr ""
 
-#: dbx_preference.py:605 dbx_preference.py:1297
+#: dbx_preference.py:596 dbx_preference.py:1230
 msgid "Ignore windows on other workspaces"
 msgstr ""
 
-#: dbx_preference.py:606 dbx_preference.py:1053 dbx_preference.py:1298
+#: dbx_preference.py:597 dbx_preference.py:986 dbx_preference.py:1231
 msgid "Switch workspace when needed"
 msgstr ""
 
-#: dbx_preference.py:608 dbx_preference.py:1054 dbx_preference.py:1299
+#: dbx_preference.py:599 dbx_preference.py:987 dbx_preference.py:1232
 msgid "Move windows from other workspaces"
 msgstr ""
 
-#: dbx_preference.py:619
+#: dbx_preference.py:610
 msgid "\"Select next\" options"
 msgstr ""
 
-#: dbx_preference.py:621
+#: dbx_preference.py:612
 msgid "\"Select next\" selects the most recently used window in the group"
 msgstr ""
 
-#: dbx_preference.py:622
+#: dbx_preference.py:613
 msgid ""
 "If set, \"Select Next\" action selects the window that has been used most "
 "recently, otherwise it activates the next window in the window list."
 msgstr ""
 
-#: dbx_preference.py:628
+#: dbx_preference.py:619
 msgid "Use no delay with \"Select next\""
 msgstr ""
 
-#: dbx_preference.py:629
+#: dbx_preference.py:620
 msgid ""
 "If set, \"Select Next\" action selects the next window immediately without "
 "any delay"
 msgstr ""
 
-#: dbx_preference.py:640
-msgid "Use media buttons"
-msgstr ""
-
-#: dbx_preference.py:647
-msgid "DockManager"
-msgstr ""
-
-#: dbx_preference.py:651
-msgid "Use DockManager"
-msgstr ""
-
-#: dbx_preference.py:655
-msgid "Allow DockManager to write badges on GroupButtons"
-msgstr ""
-
-#: dbx_preference.py:663 dbx_preference.py:669
-msgid "Badge font"
-msgstr ""
-
-#: dbx_preference.py:674
-msgid "Helpers"
-msgstr ""
-
-#: dbx_preference.py:683
+#: dbx_preference.py:632
 msgid "Ignore windows on other viewports/workspaces"
 msgstr ""
 
-#: dbx_preference.py:689
+#: dbx_preference.py:638
 msgid "Ignore windows on other monitors"
 msgstr ""
 
-#: dbx_preference.py:696
+#: dbx_preference.py:645
 msgid "Give each wine application its own group button"
 msgstr ""
 
-#: dbx_preference.py:703
+#: dbx_preference.py:652
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr ""
 
-#: dbx_preference.py:710
+#: dbx_preference.py:659
 msgid "Delay on select all (Workaround for order problems)"
 msgstr ""
 
-#: dbx_preference.py:711
+#: dbx_preference.py:660
 msgid ""
 "Compiz can't handle the order of multiple windows that are brought up at "
 "once. This problem can be solved by adding short delays between the "
 "activation of each window."
 msgstr ""
 
-#: dbx_preference.py:719 dbx_preference.py:723
+#: dbx_preference.py:668 dbx_preference.py:672
 msgid "Opacify"
 msgstr ""
 
-#: dbx_preference.py:724
+#: dbx_preference.py:673
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
 msgstr ""
 
-#: dbx_preference.py:727
+#: dbx_preference.py:676
 msgid "Opacify group"
 msgstr ""
 
-#: dbx_preference.py:728
+#: dbx_preference.py:677
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
 msgstr ""
 
-#: dbx_preference.py:732
+#: dbx_preference.py:681
 msgid "Use smooth fade in/out"
 msgstr ""
 
-#: dbx_preference.py:738
+#: dbx_preference.py:687
 msgid "Opacity"
 msgstr ""
 
-#: dbx_preference.py:750
+#: dbx_preference.py:699
 msgid "Smoothness"
 msgstr ""
 
-#: dbx_preference.py:759
+#: dbx_preference.py:708
 msgid "Duration"
 msgstr ""
 
-#: dbx_preference.py:773
+#: dbx_preference.py:722
 msgid "Global Keyboard Shortcuts"
 msgstr ""
 
-#: dbx_preference.py:778 dockbarx/./dockbar.py:1237
+#: dbx_preference.py:727 dockbarx/./dockbar.py:1111
 msgid "Select next group"
 msgstr ""
 
-#: dbx_preference.py:780 dockbarx/./dockbar.py:1238
+#: dbx_preference.py:729 dockbarx/./dockbar.py:1112
 msgid "Select previous group"
 msgstr ""
 
-#: dbx_preference.py:782 dockbarx/./dockbar.py:1239
+#: dbx_preference.py:731 dockbarx/./dockbar.py:1113
 msgid "Select next window in group"
 msgstr ""
 
-#: dbx_preference.py:784 dockbarx/./dockbar.py:1240
+#: dbx_preference.py:733 dockbarx/./dockbar.py:1114
 msgid "Select previous window in group"
 msgstr ""
 
-#: dbx_preference.py:827
+#: dbx_preference.py:776
 msgid "Appearance"
 msgstr ""
 
-#: dbx_preference.py:828
+#: dbx_preference.py:777
 msgid "Window List"
 msgstr ""
 
-#: dbx_preference.py:829
+#: dbx_preference.py:778
 msgid "Group Button"
 msgstr ""
 
-#: dbx_preference.py:830
+#: dbx_preference.py:779
 msgid "Window Item"
 msgstr ""
 
-#: dbx_preference.py:831
-msgid "Plugins"
-msgstr ""
-
-#: dbx_preference.py:832
+#: dbx_preference.py:780
 msgid "Advanced"
 msgstr ""
 
-#: dbx_preference.py:892 dockbarx/./theme.py:168
+#: dbx_preference.py:840 dockbarx/./theme.py:168
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 
-#: dbx_preference.py:1052
+#: dbx_preference.py:985
 msgid "Ignore windows on other workspace"
 msgstr ""
 
-#: dbx_preference.py:1157
+#: dbx_preference.py:1090
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference.py:1171
+#: dbx_preference.py:1104
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
 
-#: dbx_preference.py:1189
+#: dbx_preference.py:1122
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference.py:1212
+#: dbx_preference.py:1145
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference.py:1373
+#: dbx_preference.py:1306
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr ""
 
-#: dockbarx/./dockbar.py:1053 dockbarx/./groupbutton.py:186
-#: dockbarx/./groupbutton.py:239
+#: dockbarx/./dockbar.py:917 dockbarx/./groupbutton.py:207
+#: dockbarx/./groupbutton.py:254
 msgid "Identifier"
 msgstr ""
 
-#: dockbarx/./dockbar.py:1054
+#: dockbarx/./dockbar.py:918
 msgid "Enter the identifier here"
 msgstr ""
 
-#: dockbarx/./dockbar.py:1056
+#: dockbarx/./dockbar.py:920
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
 
-#: dockbarx/./dockbar.py:1057
+#: dockbarx/./dockbar.py:921
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr ""
 
-#: dockbarx/./dockbar.py:1074
+#: dockbarx/./dockbar.py:939
 msgid "Identifier:"
 msgstr ""
 
-#: dockbarx/./windowbutton.py:406 dockbarx/./groupbutton.py:1324
-#: dockbarx/./groupbutton.py:1436 dockbarx/./groupbutton.py:1437
+#: dockbarx/./dockbar.py:1140
+msgid "The key is already bound elsewhere."
+msgstr ""
+
+#: dockbarx/./dockbar.py:1142
+#, python-format
+msgid ""
+"Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
+msgstr ""
+
+#: dockbarx/./windowbutton.py:410 dockbarx/./groupbutton.py:1264
+#: dockbarx/./groupbutton.py:1353 dockbarx/./groupbutton.py:1354
 msgid "_Minimize"
 msgstr ""
 
-#: dockbarx/./windowbutton.py:409 dockbarx/./groupbutton.py:1322
-#: dockbarx/./groupbutton.py:1439 dockbarx/./groupbutton.py:1440
+#: dockbarx/./windowbutton.py:413 dockbarx/./groupbutton.py:1262
+#: dockbarx/./groupbutton.py:1355 dockbarx/./groupbutton.py:1356
 msgid "Un_minimize"
 msgstr ""
 
-#: dockbarx/./windowbutton.py:418 dockbarx/./groupbutton.py:1328
-#: dockbarx/./groupbutton.py:1430 dockbarx/./groupbutton.py:1431
+#: dockbarx/./windowbutton.py:422 dockbarx/./groupbutton.py:1268
+#: dockbarx/./groupbutton.py:1349 dockbarx/./groupbutton.py:1350
 msgid "Ma_ximize"
 msgstr ""
 
-#: dockbarx/./windowbutton.py:421 dockbarx/./groupbutton.py:1331
-#: dockbarx/./groupbutton.py:1433 dockbarx/./groupbutton.py:1434
+#: dockbarx/./windowbutton.py:425 dockbarx/./groupbutton.py:1271
+#: dockbarx/./groupbutton.py:1351 dockbarx/./groupbutton.py:1352
 msgid "Unma_ximize"
 msgstr ""
 
-#: dockbarx/./windowbutton.py:427 dockbarx/./groupbutton.py:1332
-#: dockbarx/./groupbutton.py:1428 dockbarx/./groupbutton.py:1429
+#: dockbarx/./windowbutton.py:431 dockbarx/./groupbutton.py:1272
 msgid "_Close"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:846 dockbarx/./groupbutton.py:1269
-#: dockbarx/./groupbutton.py:1447
+#: dockbarx/./groupbutton.py:878 dockbarx/./groupbutton.py:1226
+#: dockbarx/./groupbutton.py:1362
 msgid "_Launch application"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1271 dockbarx/./groupbutton.py:1446
+#: dockbarx/./groupbutton.py:1228 dockbarx/./groupbutton.py:1361
 msgid "_Pin application"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1273 dockbarx/./groupbutton.py:1445
+#: dockbarx/./groupbutton.py:1230 dockbarx/./groupbutton.py:1360
 msgid "Make custom launcher"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1275 dockbarx/./groupbutton.py:1444
+#: dockbarx/./groupbutton.py:1232 dockbarx/./groupbutton.py:1359
 msgid "Unpin application"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1276 dockbarx/./groupbutton.py:1277
-#: dockbarx/./groupbutton.py:1278
+#: dockbarx/./groupbutton.py:1233 dockbarx/./groupbutton.py:1234
+#: dockbarx/./groupbutton.py:1235
 msgid "Properties"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1277 dockbarx/./groupbutton.py:1443
+#: dockbarx/./groupbutton.py:1234 dockbarx/./groupbutton.py:1358
 msgid "Edit Identifier"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1278 dockbarx/./groupbutton.py:1442
+#: dockbarx/./groupbutton.py:1235 dockbarx/./groupbutton.py:1357
 msgid "Edit Launcher"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1297
+#: dockbarx/./groupbutton.py:1242
 msgid "Recent"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1298
+#: dockbarx/./groupbutton.py:1243
 msgid "Most used"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1299
+#: dockbarx/./groupbutton.py:1244
 msgid "Related"
 msgstr ""
 
-#: dockbarx/./groupbutton.py:1320 dockbarx/./groupbutton.py:1429
-#: dockbarx/./groupbutton.py:1431 dockbarx/./groupbutton.py:1434
-#: dockbarx/./groupbutton.py:1437 dockbarx/./groupbutton.py:1440
+#: dockbarx/./groupbutton.py:1260 dockbarx/./groupbutton.py:1348
+#: dockbarx/./groupbutton.py:1350 dockbarx/./groupbutton.py:1352
+#: dockbarx/./groupbutton.py:1354 dockbarx/./groupbutton.py:1356
 msgid " all windows"
+msgstr ""
+
+#: dockbarx/./groupbutton.py:1347 dockbarx/./groupbutton.py:1348
+msgid "Close"
 msgstr ""
