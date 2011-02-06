@@ -32,7 +32,7 @@ DockManager helpers
 NOTE! To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". (Alternatively you can use kwin as window manager instead of compiz. That will give you previews for minimized windows as well.)
 
 You can also run dockbarx in window (meant for debugging purposes, mostly):
-$dockbarx_factory.py run-in-window
+$dockbarx_factory run-in-window
 
 ===
 AWN
