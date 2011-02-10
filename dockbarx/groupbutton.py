@@ -50,6 +50,9 @@ try:
 except:
     WNCK_WINDOW_ACTION_MAXIMIZE = 1 << 14
 
+class GroupIdentifierError(Exception):
+    pass
+
 class WindowDict(ODict):
     def __init__(self, monitor=1, **kvargs):
         ODict.__init__(self, **kvargs)
@@ -111,9 +114,9 @@ class GroupButton():
         self.desktop_entry = desktop_entry
         self.monitor = monitor
         self.identifier = identifier
-        if identifier is None and desktop_entry is None:
-            raise Exception, \
-                "Can't initiate Group button without identifier or launcher."
+        if not identifier and desktop_entry is None:
+            raise GroupIdentifierError(
+                "Can't initiate Group button without identifier or launcher.")
 
 
 
@@ -232,6 +235,10 @@ class GroupButton():
 
 
     def set_identifier(self, identifier):
+        if not identifier:
+            raise GroupIdentifierError(
+                "Can't change identifier %s to \"%s\"." % (self.identifier,
+                                                           identifier))
         if self.identifier == get_opacifier():
             set_opacifier(identifier)
         self.identifier = identifier

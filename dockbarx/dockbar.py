@@ -590,8 +590,13 @@ class DockBar():
                 desktop_entry = self.__get_desktop_entry_for_id(app.get_id())
             else:
                 desktop_entry = None
-            group = self.__make_groupbutton(identifier=identifier,
-                                          desktop_entry=desktop_entry)
+            try:
+                group = self.__make_groupbutton(identifier=identifier,
+                                              desktop_entry=desktop_entry)
+            except GroupIdentifierError:
+                logger.exception("Couldn't make a new groupbutton.")
+                del self.windows[window]
+                return
             group.add_window(window)
 
     def __remove_window(self, window):
@@ -873,10 +878,13 @@ class DockBar():
             self.groups.remove(group)
         if index is None:
             index = self.groups.index(self.groups[calling_button]) + 1
-        self.__make_groupbutton(identifier=identifier,
-                              desktop_entry=desktop_entry,
-                              pinned=True,
-                              index=index, path=path)
+        try:
+            self.__make_groupbutton(identifier=identifier,
+                                  desktop_entry=desktop_entry,
+                                  pinned=True,
+                                  index=index, path=path)
+        except GroupIdentifierError:
+            logger.exception("Couldn't add the dropped launcher.")
         self.update_pinned_apps_list()
         for window in winlist:
             self.__on_window_opened(self.screen, window)
@@ -962,9 +970,13 @@ class DockBar():
                              "path %s doesn't exist" % path)
                 return
 
-        self.__make_groupbutton(identifier=identifier, \
-                              desktop_entry=desktop_entry, \
-                              pinned=True, path=path)
+        try:
+            self.__make_groupbutton(identifier=identifier, \
+                                  desktop_entry=desktop_entry, \
+                                  pinned=True, path=path)
+        except GroupIdentifierError:
+            logger.exception("Couldn't add a pinned application.")
+            return
         if identifier is None:
             id = path[path.rfind("/")+1:path.rfind(".")].lower()
             self.desktop_entry_by_id[id] = desktop_entry
