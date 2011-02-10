@@ -536,9 +536,7 @@ class DockBar():
         except:
             res_class = window.get_class_group().get_res_class().lower()
             res_name = window.get_class_group().get_name().lower()
-        identifier = res_class
-        if identifier == "":
-            identifier = res_name
+        identifier = res_class or res_name or window.get_name().lower()
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
             identifier = SPECIAL_RES_CLASSES[identifier]
@@ -551,7 +549,7 @@ class DockBar():
         if identifier == "prism" and \
            self.globals.settings["separate_prism_apps"]:
             identifier = self.__get_prism_app_name(window)
-        if identifier.startswith("openoffice.org") or \
+        elif identifier.startswith("openoffice.org") or \
            identifier.startswith("libreoffice"):
             identifier = self.__get_ooo_app_name(window)
             if self.globals.settings["separate_ooo_apps"]:
