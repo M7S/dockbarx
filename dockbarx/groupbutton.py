@@ -1289,11 +1289,11 @@ class GroupButton():
                     id = "dockmanager_%s" % id
                     self.menu.add_item(item["label"], submenu, identifier=id)
         # Recent and most used files
+        self.zg_files = {}
         if self.desktop_entry:
             recent, most_used, related = self.__menu_get_zg_files()
             if recent or most_used or related:
                 self.menu.add_separator()
-            self.zg_files = {}
             for files, name in ((recent, _("Recent")),
                                 (most_used, _("Most used")),
                                 (related, _("Related"))):

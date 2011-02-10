@@ -5,7 +5,7 @@ Features:
 - DockbarX now supports helpers via DockManager. You have to install DockManager and enable it from dockbarx preference window before you can use it.
 - Prism applications are separated from each other instead of being grouped together now.
 - Small visual changes to window list and group menu. The look when using DockbarX without compositing is imporved a bit.
-- DockbarX uses it's own log now. When reporting bugs, include the file ~/.dockbarx/log/dockbarx.log (or any other of the numbered log files in that directory depending on how many times you restarted dockbarx since the bug last occurred). I hope this will help us catch a lot of small annoying bugs.
+- DockbarX uses its own log now. When reporting bugs, include the file ~/.dockbarx/log/dockbarx.log (or any other of the numbered log files in that directory depending on how many times you restarted dockbarx since the bug last occurred). I hope this will help us catch a lot of small annoying bugs.
 
 Bug Fixes:
 - Bug 694866: Windows were reported as Needing attention while they didn't anymore.
