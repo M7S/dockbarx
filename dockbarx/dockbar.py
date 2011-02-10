@@ -1297,7 +1297,7 @@ class DockBar():
             self.nextlist = self.groups[:]
             if self.globals.settings["gkeys_select_next_group_skip_launchers"]:
                 for gr in self.groups:
-                    if gr.get_count() == 0:
+                    if gr.windows.get_count() == 0:
                         self.nextlist.remove(gr)
             for i in range(len(self.nextlist)):
                 if self.nextlist[0].has_active_window:
