@@ -40,16 +40,10 @@ class DockBarWindow():
         self.window.set_keep_above(True)
         self.window.connect ("destroy",self.__destroy)
 
-        self.dockbar = dockbarx.dockbar.DockBar(None)
-        hbox = gtk.HBox()
-        button = gtk.Button("Pref")
-        button.connect("clicked", self.__on_pref_clicked)
-        hbox.pack_start(button, False)
-        hbox.pack_start(self.dockbar.container, False)
-        eb = gtk.EventBox()
-        eb.add(hbox)
-        self.window.add(eb)
-        eb.show_all()
+        applet = gnomeapplet.Applet()
+        applet.reparent(self.window)
+        self.dockbar = dockbarx.dockbar.DockBar(applet,
+                                                parent_window=self.window)
 
     def __on_pref_clicked(self, *args):
         self.dockbar.open_preference()

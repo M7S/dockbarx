@@ -115,10 +115,12 @@ class GroupList(list):
 
 
 class DockBar():
-    def __init__(self, applet=None, as_awn_applet=False):
+    def __init__(self, applet=None, awn_applet=None, parent_window=None):
         logger.info("DockbarX %s"%VERSION)
         logger.info("DockbarX init")
         self.applet = applet
+        self.awn_applet = awn_applet
+        self.parent_window = parent_window
         self.groups = None
         self.windows = None
         self.container = None
@@ -183,15 +185,15 @@ class DockBar():
             self.globals.orient = "h"
 
         # Wait until the container is realized before adding anything to it.
-        if not as_awn_applet:
+        if not awn_applet:
             gobject.timeout_add(10, self.__reload_on_realized)
 
         if self.applet is not None:
-            self.applet.connect("size-allocate",self.__on_applet_size_alloc)
+            self.applet.connect("size-allocate", self.__on_applet_size_alloc)
             self.applet.connect("change_background",
                                 self.__on_change_background)
-            self.applet.connect("change-orient",self.__on_change_orient)
-            self.applet.connect("delete-event",self.__cleanup)
+            self.applet.connect("change-orient", self.__on_change_orient)
+            self.applet.connect("delete-event", self.__cleanup)
 
         self.__gkeys_changed(dialog=False)
         self.globals.connect("gkey-changed", self.__gkeys_changed)
@@ -799,7 +801,6 @@ class DockBar():
         else:
             logger.debug("name:  %s" % name)
         logger.debug("executable:  %s" % exe)
-        print
         for gb in self.groups:
             if gb.pinned:
                 continue
@@ -1234,15 +1235,13 @@ class DockBar():
 
     #### Keyboard actions
     def __gkeys_changed(self, arg=None, dialog=True):
-        functions = {
-                     "gkeys_select_next_group": self.__gkey_select_next_group,
+        functions = {"gkeys_select_next_group": self.__gkey_select_next_group,
                      "gkeys_select_previous_group": \
                                 self.__gkey_select_previous_group,
                      "gkeys_select_next_window": \
                                 self.__gkey_select_next_window_in_group,
                      "gkeys_select_previous_window": \
-                                self.__gkey_select_previous_window_in_group,
-                   }
+                                self.__gkey_select_previous_window_in_group}
         translations = {
            "gkeys_select_next_group": _("Select next group"),
            "gkeys_select_previous_group": _("Select previous group"),
@@ -1256,7 +1255,14 @@ class DockBar():
             if not self.globals.settings[s]:
                 # The global key is not in use
                 continue
-            keystr = self.globals.settings["%s_keystr"%s]
+            keystr = self.globals.settings["%s_keystr" % s]
+            # Fix for <Shift>Tab keybindings
+            if "<shift>" in keystr.lower() and "Tab" in keystr:
+                n = keystr.lower().find("<shift>")
+                keystr = keystr[:n] + keystr[(n + 7):]
+                if not "ISO_Left_Tab" in keystr:
+                    keystr = keystr.replace("Tab", "ISO_Left_Tab")
+
             try:
                 if keybinder.bind(keystr, f):
                     # Key succesfully bound.
@@ -1289,10 +1295,44 @@ class DockBar():
                     md.run()
                     md.destroy()
 
+    def __gkey_select_next_group(self):
+        self.__grab_keyboard("gkeys_select_next_group_keystr")
+        self.__select_next_group()
 
-    def __gkey_select_next_group(self, previous=False):
-        if self.nextlist_time is None or time() - self.nextlist_time > 2 or \
-           self.nextlist is None:
+    def __gkey_select_previous_group(self):
+        self.__grab_keyboard("gkeys_select_previous_group_keystr")
+        self.__select_previous_group()
+
+    def __gkey_select_next_window_in_group(self):
+        self.__grab_keyboard("gkeys_select_next_window_keystr")
+        self.__select_next_window_in_group()
+
+    def __gkey_select_previous_window_in_group(self):
+        self.__grab_keyboard("gkeys_select_previous_window_keystr")
+        self.__select_previous_window_in_group()
+
+    def __grab_keyboard(self, keystr):
+        applet = self.parent_window or self.applet or self.awn_applet
+        if applet:
+            gtk.gdk.keyboard_grab(applet.window)
+            connect(applet, "key-release-event", self.__key_released)
+            connect(applet, "key-press-event", self.__key_pressed)
+
+            # Find the mod key(s) which realse should finnish the selection.
+            mod_keys = ["Control", "Super", "Alt"]
+            mod_keys = [key for key in mod_keys \
+                    if key.lower() in self.globals.settings[keystr].lower()]
+            if "next" in keystr:
+                keystr = keystr.replace("next", "previous")
+            else:
+                keystr = keystr.replace("previous","next")
+            self.mod_keys = [key for key in mod_keys \
+                    if key.lower() in self.globals.settings[keystr].lower()]
+            if not self.mod_keys:
+                self.mod_keys = mod_keys
+
+    def __select_next_group(self, previous=False):
+        if self.nextlist is None:
             # Prepare the new list
             self.nextlist = self.groups[:]
             if self.globals.settings["gkeys_select_next_group_skip_launchers"]:
@@ -1313,24 +1353,74 @@ class DockBar():
             self.nextlist.append(gr)
         gr = self.nextlist[0]
         if gr.windows.get_count() > 0:
-            gr.action_select_next()
+            gr.action_select_next(keyboard_select=True)
         else:
             gr.show_launch_popup()
-            gr.action_launch_with_delay(delay=1500)
-        if not self.globals.settings["select_next_activate_immediately"]:
-            if self.scrollpeak_gr and not self.scrollpeak_gr == gr:
+        if not self.globals.settings["select_next_activate_immediately"] and \
+           self.scrollpeak_gr and not self.scrollpeak_gr == gr:
                 self.scrollpeak_gr.scrollpeak_abort()
-            self.scrollpeak_gr = gr
-        self.nextlist_time = time()
+        self.scrollpeak_gr = gr
 
 
-    def __gkey_select_previous_group(self):
-        self.__gkey_select_next_group(previous=True)
+    def __select_previous_group(self):
+        self.__select_next_group(previous=True)
 
-    def __gkey_select_next_window_in_group(self, previous=False):
+    def __select_next_window_in_group(self, previous=False):
         for gr in self.groups:
             if gr.has_active_window:
-                gr.action_select_next_with_popup(previous=previous)
+                gr.action_select_next(previous=previous, keyboard_select=True)
+                self.scrollpeak_gr = gr
+                break
 
-    def __gkey_select_previous_window_in_group(self):
-        self.__gkey_select_next_window_in_group(previous=True)
+    def __select_previous_window_in_group(self):
+        self.__select_next_window_in_group(previous=True)
+
+    def __key_pressed(self, widget, event):
+        functions = {"gkeys_select_next_group": self.__select_next_group,
+                     "gkeys_select_previous_group": \
+                                self.__select_previous_group,
+                     "gkeys_select_next_window": \
+                                self.__select_next_window_in_group,
+                     "gkeys_select_previous_window": \
+                                self.__select_previous_window_in_group}
+        keyname = gtk.gdk.keyval_name(event.keyval)
+        for name, func in functions.items():
+            if not self.globals.settings[name]:
+                continue
+            keystring = self.globals.settings["%s_keystr" % name]
+            mod_keys = {"super": gtk.gdk.SUPER_MASK,
+                        "alt": gtk.gdk.MOD1_MASK,
+                        "control": gtk.gdk.CONTROL_MASK,
+                        "shift": gtk.gdk.SHIFT_MASK}
+            if "ISO_Left_Tab" in keystring:
+                # ISO_Left_Tab implies that shift has been used in combination
+                # with tab so we don't need to check if shift is pressed
+                # or not.
+                del mod_keys["shift"]
+            elif "shift" in keystring.lower() and "Tab" in keystring:
+                keystring = keystring.replace("Tab", "ISO_Left_Tab")
+
+            for key, mask in mod_keys.items():
+                if (key in keystring.lower()) !=  bool(mask & event.state):
+                    break
+            else:
+                keystring = keystring.rsplit(">")[-1]
+                if keyname.lower() == keystring.lower():
+                    func()
+
+    def __key_released(self, widget, event):
+        keyname = gtk.gdk.keyval_name(event.keyval)
+        for key in self.mod_keys:
+            if key in keyname:
+                group = self.scrollpeak_gr
+                if group:
+                    if group.windows.get_count() > 0:
+                        group.scrollpeak_select()
+                    else:
+                        group.action_launch_application()
+                gtk.gdk.keyboard_ungrab()
+                applet = self.parent_window or self.applet or self.awn_applet
+                if applet:
+                    disconnect(applet)
+                self.nextlist = None
+                break

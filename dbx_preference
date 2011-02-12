@@ -816,9 +816,14 @@ class PrefDialog():
                          xoptions = gtk.FILL)
             table.attach(self.gkeys_clear_buttons[s], 3, 4, i, i + 1,
                          xoptions = gtk.FILL)
-        label = gtk.Label(
-                        "Note! Compiz keyboard shortcuts will override these.")
+        label = gtk.Label(_("Note! Compiz keyboard shortcuts will override these."))
         table.attach(label,0,4,i+1, i+2, xoptions = gtk.FILL)
+        self.gkeys_skip_launchers_cb = gtk.CheckButton(_("Skip pinned apps without open windows"))
+        self.gkeys_skip_launchers_cb.connect("toggled",
+                                    self.__checkbutton_toggled,
+                                    "gkeys_select_next_group_skip_launchers")
+        table.attach(self.gkeys_skip_launchers_cb, 0, 4, i + 3, i + 4,
+                     xoptions = gtk.FILL)
         table.set_border_width(5)
         frame.add(table)
         advanced_box.pack_start(frame, False, False, padding=5)
@@ -1090,6 +1095,8 @@ class PrefDialog():
             self.gkeys_checkbuttons[s].set_active(self.globals.settings[s])
             self.gkeys_entries[s].set_text(
                                     self.globals.settings["%s_keystr"%s])
+        self.gkeys_skip_launchers_cb.set_active(
+               self.globals.settings["gkeys_select_next_group_skip_launchers"])
 
 
 

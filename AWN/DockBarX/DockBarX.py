@@ -27,9 +27,6 @@ import gtk
 class DockBarApp (awn.AppletSimple):
     def __init__ (self, uid, panel_id):
         awn.AppletSimple.__init__(self, "DockbarX", uid, panel_id)
-        print "DockBarApp.__init__()"
-        print "dockbarx.__file__ = ",dockbarx.__file__
-        print " uid = ",uid,"\n panel_id= ", panel_id
         self.set_icon_name("gtk-apply")
         gobject.idle_add(self.__on_idle)
 
@@ -41,7 +38,7 @@ class DockBarApp (awn.AppletSimple):
         monitor = gdk_screen.get_monitor_at_window(window)
         self.icon = self.get_icon()
         self.remove(self.old_child)
-        self.db = dockbarx.dockbar.DockBar(as_awn_applet=True)
+        self.db = dockbarx.dockbar.DockBar(awn_applet=self)
         self.db.monitor = monitor
         self.db.reload()
         if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_TOP):
@@ -61,18 +58,19 @@ class DockBarApp (awn.AppletSimple):
             self.db.container.set_size_request(self.get_size() + \
                                                self.icon.get_offset() + 2, -1)
         self.add(self.box)
-        self.connect("size-changed",self.__on_size_changed)
+        self.connect("size-changed", self.__on_size_changed)
+        self.connect("offset-changed", self.__on_size_changed)
         self.connect("position-changed", self.__on_position_changed)
         self.box.show()
         self.db.container.show()
         self.show()
 
-    def __on_size_changed(self, arg1, new_size):
+    def __on_size_changed(self, *args):
         if self.db.globals.orient == "h":
-            self.db.container.set_size_request(-1, new_size + \
+            self.db.container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 2)
         else:
-            self.db.container.set_size_request(new_size + \
+            self.db.container.set_size_request(self.get_size() + \
                                                self.icon.get_offset() + 2, -1)
 
     def __on_position_changed(self, applet, position):

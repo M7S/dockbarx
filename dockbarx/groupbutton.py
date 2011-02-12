@@ -1777,7 +1777,8 @@ class GroupButton():
         self.deopacify()
 
 
-    def action_select_next(self, widget=None, event=None, previous=False):
+    def action_select_next(self, widget=None, event=None, previous=False,
+                           keyboard_select=False):
         if not self.windows.get_list():
             return
         if self.nextlist_time is None or time() - self.nextlist_time > 1.5 or \
@@ -1842,8 +1843,9 @@ class GroupButton():
             self.scrollpeak_wb.button.set_highlighted(True)
             if self.scrollpeak_sid is not None:
                 gobject.source_remove(self.scrollpeak_sid)
-            self.scrollpeak_sid = gobject.timeout_add(1500,
-                                                      self.scrollpeak_select)
+            if not keyboard_select:
+                self.scrollpeak_sid = gobject.timeout_add(1500,
+                                                        self.scrollpeak_select)
             while gtk.events_pending():
                     gtk.main_iteration(False)
             self.scrollpeak_wb.opacify()
@@ -1862,7 +1864,8 @@ class GroupButton():
                                                  self.hide_list_request)
 
     def scrollpeak_select(self):
-        self.scrollpeak_wb.action_select_window()
+        if self.scrollpeak_wb:
+            self.scrollpeak_wb.action_select_window()
         self.scrollpeak_abort()
 
     def scrollpeak_abort(self):
