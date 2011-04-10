@@ -93,11 +93,13 @@ class CairoAppButton(gtk.EventBox):
             font = self.globals.settings["dockmanager_badge_font"]
             self.badge.modify_font(pango.FontDescription(font))
 
-    def cleanup(self):
+    def destroy(self, *args, **kwargs):
         if self.bf_sid:
             self.globals.disconnect(self.bf_sid)
             self.bf_sid = None
-        del self.surface
+        if self.surface:
+            self.surface = None
+        gtk.EventBox.destroy(self, *args, **kwargs)
 
     def pointer_is_inside(self):
         b_m_x,b_m_y = self.get_pointer()
@@ -468,151 +470,8 @@ class CairoButton(gtk.EventBox):
         self.mousedown = False
         self.prevent_click = True
 
-class CairoWindowItem(CairoButton):
-    __gsignals__ = {"close-clicked": (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,())}
-    def __init__(self, name, icon, big_icon):
-        CairoButton.__init__(self)
-        self.globals = Globals()
-        self.window_name = name
-        self.icon = icon
-        self.big_icon = big_icon
-        self.minimized = False
-        self.is_active_window = False
-        self.needs_attention = False
-
-
-        self.close_button = CairoCloseButton()
-        self.close_button.set_no_show_all(True)
-        if self.globals.settings["show_close_button"]:
-            self.close_button.show()
-        self.label = gtk.Label()
-        self.label.set_ellipsize(pango.ELLIPSIZE_END)
-        self.label.set_alignment(0, 0.5)
-        self.__update_label_state()
-        hbox = gtk.HBox()
-        self.icon_image = gtk.image_new_from_pixbuf(self.icon)
-        hbox.pack_start(self.icon_image, False)
-        hbox.pack_start(self.label, True, True, padding = 4)
-        alignment = gtk.Alignment(1, 0.5, 0, 0)
-        alignment.add(self.close_button)
-        hbox.pack_start(alignment, False, False)
-
-        vbox = gtk.VBox()
-        vbox.pack_start(hbox, False)
-        self.preview_box = gtk.Alignment(0.5, 0.5, 0, 0)
-        self.preview_box.set_padding(4, 2, 0, 0)
-        self.preview =  gtk.Image()
-        self.preview_box.add(self.preview)
-        self.preview.show()
-        vbox.pack_start(self.preview_box, True, True)
-        self.add(vbox)
-        self.preview_box.set_no_show_all(True)
-        vbox.show_all()
-
-        self.close_button.connect("button-press-event", self.disable_click)
-        self.close_button.connect("clicked", self.__on_close_button_clicked)
-        connect(self.globals, "show-close-button-changed",
-                             self.__on_show_close_button_changed)
-        connect(self.globals, "color-changed", self.__update_label_state)
-
-    def __on_close_button_clicked(self, *args):
-        self.emit("close-clicked")
-
-    def __on_show_close_button_changed(self, *args):
-        if self.globals.settings["show_close_button"]:
-            self.close_button.show()
-        else:
-            self.close_button.hide()
-            self.label.queue_resize()
-
-    def __update_label_state(self, arg=None):
-        """Updates the style of the label according to window state."""
-        text = escape(str(self.window_name))
-        if self.needs_attention:
-            text = "<i>"+text+"</i>"
-        if self.is_active_window:
-            color = self.globals.colors["color3"]
-        elif self.minimized:
-            color = self.globals.colors["color4"]
-        else:
-            color = self.globals.colors["color2"]
-        text = "<span foreground=\"" + color + "\">" + text + "</span>"
-        self.label.set_text(text)
-        self.label.set_use_markup(True)
-        # The label should be 140px wide unless there are more room
-        # because the preview takes up more.
-        self.label.set_size_request(140, -1)
-
-    def __make_minimized_icon(self, icon):
-        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True,
-                                          8, icon.get_width(),
-                                          icon.get_height())
-        pixbuf.fill(0x00000000)
-        minimized_icon = pixbuf.copy()
-        icon.composite(pixbuf, 0, 0, pixbuf.get_width(),
-                         pixbuf.get_height(), 0, 0, 1, 1,
-                         gtk.gdk.INTERP_BILINEAR, 190)
-        pixbuf.saturate_and_pixelate(minimized_icon, 0.12, False)
-        return minimized_icon
-
-    def get_preview_allocation(self):
-        return self.preview.get_allocation()
-
-    def set_needs_attention(self, needs_attention):
-        self.needs_attention = needs_attention
-        self.__update_label_state()
-
-    def set_minimized(self, minimized):
-        self.minimized = minimized
-        if self.minimized:
-            pixbuf = self.__make_minimized_icon(self.icon)
-            self.icon_image.set_from_pixbuf(pixbuf)
-            self.preview.set_from_pixbuf(self.big_icon)
-        else:
-            self.icon_image.set_from_pixbuf(self.icon)
-            self.preview.clear()
-        self.__update_label_state()
-
-    def set_icon(self, icon, big_icon):
-        self.icon = icon
-        self.big_icon = big_icon
-        if self.minimized:
-            pixbuf = self.make_minimized_icon(icon)
-            self.icon_image.set_from_pixbuf(pixbuf)
-        else:
-            self.icon_image.set_from_pixbuf(self.icon)
-
-    def set_name(self, name):
-        self.window_name = name
-        self.__update_label_state()
-
-    def set_is_active_window(self, is_active):
-        self.is_active_window = is_active
-        self.__update_label_state()
-
-    def set_preview_aspect(self, width, height, ar=1.0):
-        size = self.globals.settings["preview_size"]
-        if width*ar < size and height < size:
-            pass
-        elif float(width) / height > ar:
-            height = int(size * ar * height / width)
-            width = int(size * ar)
-        else:
-            width = size * width / height
-            height = size
-        self.preview.set_size_request(width, height)
-        return width, height
-
-    def set_show_preview(self, show_preview):
-        if show_preview:
-            self.preview_box.show()
-        else:
-            self.preview_box.hide()
-
-    def set_highlighted(self, highlighted):
-        self.area.set_highlighted(highlighted)
-
+    def pointer_is_inside(self):
+        return self.area.pointer_is_inside()
 
 class CairoArea(gtk.Alignment):
     __gsignals__ = {"expose-event" : "override"}
@@ -750,6 +609,7 @@ class CairoToggleMenu(gtk.VBox):
         self.toggle_button.show()
         self.toggle_button.connect("clicked", self.toggle)
         self.menu = CairoVBox()
+        self.menu.set_no_show_all(True)
         self.pack_start(self.menu)
         self.menu.set_border_width(10)
         self.show_menu = show_menu

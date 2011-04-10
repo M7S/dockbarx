@@ -594,7 +594,7 @@ class Globals(gobject.GObject):
             self.orient = "h"
             self.theme_name = None
 
-            self.gb_showing_popup = None
+            self.shown_popup = lambda: None
 
             # Get gconf settings
             self.settings = self.DEFAULT_SETTINGS.copy()
@@ -754,6 +754,15 @@ class Globals(gobject.GObject):
     def set_pinned_apps_list(self, pinned_apps):
         GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", gconf.VALUE_STRING,
                              pinned_apps)
+
+    def set_shown_popup(self, popup):
+        if popup is None:
+            self.shown_popup = lambda: None
+        else:
+            self.shown_popup = weakref.ref(popup)
+
+    def get_shown_popup(self):
+        return self.shown_popup()
 
 
 __connector = Connector()
