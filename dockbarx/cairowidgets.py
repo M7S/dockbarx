@@ -32,7 +32,7 @@ from log import logger
 
 class CairoAppButton(gtk.EventBox):
     __gsignals__ = {"expose-event" : "override",}
-    def __init__(self, surface=None):
+    def __init__(self, surface=None, in_dock=False):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.area = gtk.Alignment(0, 0, 1, 1)
@@ -40,6 +40,7 @@ class CairoAppButton(gtk.EventBox):
         self.area.show()
         self.globals = Globals()
         self.surface = surface
+        self.in_dock = in_dock
         self.badge = None
         self.bf_sid = self.globals.connect("dockmanager-badge-font-changed",
                                     self.__on_dockmanager_badge_font_changed)
@@ -48,9 +49,11 @@ class CairoAppButton(gtk.EventBox):
         a = self.area.get_allocation()
         self.surface = surface
         if self.window is None:
-            # TODO: Find out why is window is None sometimes?
             return
-        self.area.window.clear_area(a.x, a.y, a.width, a.height)
+        if self.in_dock:
+            self.area.window.clear_area_e(a.x, a.y, a.width, a.height)
+        else:
+            self.area.window.clear_area(a.x, a.y, a.width, a.height)
         ctx = self.area.window.cairo_create()
         ctx.rectangle(a.x, a.y, a.width, a.height)
         ctx.clip()
@@ -665,6 +668,7 @@ class CairoVBox(gtk.VBox):
         ctx.set_source_rgba(r, g, b, 0.20)
         ctx.set_line_width(1)
         ctx.stroke()
+
 
 def make_path(ctx, x=0, y=0, w=0, h=0, r=6, b=0.5,
               arrow_size=0, arrow_direction=None, arrow_position=0):

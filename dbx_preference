@@ -226,6 +226,7 @@ class PrefDialog():
         plugins_box = gtk.VBox()
         advanced_box = gtk.VBox()
         popup_box = gtk.VBox()
+        dock_box = gtk.VBox()
 
         #--- Window item page
         hbox = gtk.HBox()
@@ -491,9 +492,9 @@ class PrefDialog():
         spinlabel.set_alignment(0,0.5)
         adj = gtk.Adjustment(200, 50, 800, 1, 50)
         self.preview_size_spin = gtk.SpinButton(adj, 0.5, 0)
-        adj.connect("value_changed", self.__adjustment_changed, "preview_size")
         spinbox.pack_start(spinlabel, False)
         spinbox.pack_start(self.preview_size_spin, False, padding=5)
+        adj.connect("value_changed", self.__adjustment_changed, "preview_size")
         vbox.pack_start(spinbox, False)
         popup_box.pack_start(vbox, False, padding=5)
 
@@ -828,12 +829,38 @@ class PrefDialog():
         frame.add(table)
         advanced_box.pack_start(frame, False, False, padding=5)
 
+        #--- Dock page
+        hbox = gtk.HBox()
+        hbox.set_border_width(5)
+        hbox.set_spacing(5)
+        label = gtk.Label(_("Position"))
+        hbox.pack_start(label, False, False)
+        self.dock_position_box = gtk.combo_box_new_text()
+        for pos in (_("left"), _("right"), _("top"), _("bottom")):
+            self.dock_position_box.append_text(pos)
+        self.dock_position_box.connect("changed", self.__cb_changed)
+        hbox.pack_start(self.dock_position_box, False)
+        dock_box.pack_start(hbox, False)
+
+        hbox = gtk.HBox()
+        hbox.set_border_width(5)
+        hbox.set_spacing(5)
+        label = gtk.Label(_("Size"))
+        hbox.pack_start(label, False)
+        adj = gtk.Adjustment(self.globals.settings["dock/size"],
+                             16, 100, 1, 0, 0)
+        adj.connect("value-changed", self.__adjustment_changed, "dock/size")
+        self.dock_size_spin = gtk.SpinButton(adj, 0.5, 0)
+        hbox.pack_start(self.dock_size_spin, False)
+        dock_box.pack_start(hbox, False)
+        
 
         notebook.append_page(appearance_box, gtk.Label(_("Appearance")))
         notebook.append_page(popup_box, gtk.Label(_("Window List")))
         notebook.append_page(groupbutton_box, gtk.Label(_("Group Button")))
         notebook.append_page(windowbutton_box, gtk.Label(_("Window Item")))
         notebook.append_page(plugins_box, gtk.Label(_("Plugins")))
+        notebook.append_page(dock_box, gtk.Label(_("Dock")))
         notebook.append_page(advanced_box, gtk.Label(_("Advanced")))
         ca.pack_start(notebook)
         self.__update()
@@ -1046,7 +1073,7 @@ class PrefDialog():
                 "compiz scale": _("compiz scale"),
                 "cycle through windows": _("cycle through windows"),
                 "show popup": _("show window list")
-              }[self.globals.settings["select_multiple_windows"].lower()]
+              }.get(self.globals.settings["select_multiple_windows"].lower())
         for i in range(len(self.select_multiple_cg.get_model())):
                 if model[i][0] == smw:
                     self.select_multiple_cg.set_active(i)
@@ -1057,7 +1084,7 @@ class PrefDialog():
                "ignore":_("Ignore windows on other workspace"),
                "switch":_("Switch workspace when needed"),
                "move":_("Move windows from other workspaces")
-              }[self.globals.settings["workspace_behavior"].lower()]
+              }.get(self.globals.settings["workspace_behavior"].lower())
         for i in range(len(self.select_workspace_cg.get_model())):
                 if model[i][0] == wso:
                     self.select_workspace_cg.set_active(i)
@@ -1097,6 +1124,15 @@ class PrefDialog():
                                     self.globals.settings["%s_keystr"%s])
         self.gkeys_skip_launchers_cb.set_active(
                self.globals.settings["gkeys_select_next_group_skip_launchers"])
+
+        # Dock page
+        self.dock_size_spin.set_value(self.globals.settings["dock/size"])
+        model = self.dock_position_box.get_model()
+        for i in range(len(model)):
+            pos = self.globals.settings["dock/position"].lower()
+            if model[i][0].lower() == pos:
+                self.dock_position_box.set_active(i)
+                break
 
 
 
@@ -1233,13 +1269,13 @@ class PrefDialog():
 
     def __cb_changed(self, combobox):
         # Read the value of the combo box and write to gconf
+        value = combobox.get_active_text()
+        if value is None:
+            return
         # Groupbutton settings
         for name, cb in self.gb_combos.items():
             if cb == combobox:
                 setting_name = self.gb_labels_and_settings[name]
-                value = combobox.get_active_text()
-                if value is None:
-                    return
                 for (action, translation) in self.gb_actions.items():
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
@@ -1252,9 +1288,6 @@ class PrefDialog():
         for name, cb in self.wb_combos.items():
             if cb == combobox:
                 setting_name = self.wb_labels_and_settings[name]
-                value = combobox.get_active_text()
-                if value is None:
-                    return
                 for (action, translation) in self.wb_actions.items():
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
@@ -1264,9 +1297,6 @@ class PrefDialog():
                 break
 
         if combobox == self.theme_combo:
-            value = combobox.get_active_text()
-            if value is None:
-                return
             if value != self.globals.settings["theme"]:
                 GCONF_CLIENT.set_string(GCONF_DIR+"/theme", value)
 
@@ -1275,9 +1305,6 @@ class PrefDialog():
                _("select window"): "select window",
                _("select or minimize window"): "select or minimize window"
               }
-            value = combobox.get_active_text()
-            if value is None:
-                return
             if sod[value] != self.globals.settings["select_one_window"]:
                 GCONF_CLIENT.set_string(GCONF_DIR+"/select_one_window",
                                         sod[value])
@@ -1291,25 +1318,25 @@ class PrefDialog():
                 _("cycle through windows"): "cycle through windows",
                 _("show window list"): "show popup"
               }
-            value = combobox.get_active_text()
-            if value is None:
-                return
             if smd[value] != self.globals.settings["select_multiple_windows"]:
                     GCONF_CLIENT.set_string(
                             GCONF_DIR+"/select_multiple_windows", smd[value])
 
         if combobox == self.select_workspace_cg:
-            value = combobox.get_active_text()
             wso={
                  _("Ignore windows on other workspaces"):"ignore",
                  _("Switch workspace when needed"):"switch",
                  _("Move windows from other workspaces"):"move"
                 }
-            if value is None:
-                return
             if wso[value] != self.globals.settings["workspace_behavior"]:
                 GCONF_CLIENT.set_string(GCONF_DIR+"/workspace_behavior",
                                         wso[value])
+
+        if combobox == self.dock_position_box:
+            pos = ("left", "right", "top", "bottom")
+            for p in pos:
+                if value == _(p) and p != self.globals.settings["dock/size"]:
+                    GCONF_CLIENT.set_string(GCONF_DIR+"/dock/position", p)
 
     def __adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf

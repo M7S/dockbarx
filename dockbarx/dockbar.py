@@ -125,12 +125,14 @@ class GroupList(list):
 
 
 class DockBar():
-    def __init__(self, applet=None, awn_applet=None, parent_window=None):
+    def __init__(self, applet=None, awn_applet=None,
+                 parent_window=None, run_as_dock=False):
         logger.info("DockbarX %s"%VERSION)
         logger.info("DockbarX init")
         self.applet = applet
         self.awn_applet = awn_applet
         self.parent_window = parent_window
+        self.is_dock = run_as_dock
         self.groups = None
         self.windows = None
         self.container = None
@@ -347,7 +349,8 @@ class DockBar():
             self.applet.add(self.container)
         for group in self.groups:
             self.container.pack_start(group.button, False)
-            group.set_show_previews(self.globals.settings["preview"])
+            group.window_list.set_show_previews(
+                                              self.globals.settings["preview"])
             if orient == "h":
                 # The direction of the pointer isn't important here, we only
                 # need the right amount of padding so that the popup has right
@@ -385,7 +388,7 @@ class DockBar():
                     for group in self.groups:
                         group.button.dockbar_moved()
 
-    def __on_change_orient(self,arg1,data):
+    def __on_change_orient(self, arg1, data):
         if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
         or self.applet.get_orient() == gnomeapplet.ORIENT_UP:
             self.set_orient("h")

@@ -279,8 +279,7 @@ class WindowItem(CairoButton):
                     "leave-notify-event": "override",
                     "button-press-event": "override",
                     "scroll-event": "override",
-                    "clicked": "override",
-                    "scroll-event": "override"}
+                    "clicked": "override"}
     def __init__(self, window, group):
         CairoButton.__init__(self)
         self.set_no_show_all(True)

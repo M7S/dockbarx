@@ -1257,7 +1257,7 @@ class GroupButton(CairoAppButton):
                     }
 
     def __init__(self, group, monitor=0):
-        CairoAppButton.__init__(self)
+        CairoAppButton.__init__(self, None, group.dockbar_r().is_dock)
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.group_r = weakref.ref(group)
         self.monitor = monitor
@@ -2115,7 +2115,7 @@ class WindowList(gtk.VBox):
                 if width > mgeo.width:
                     show_previews = False
             else:
-                height = 12 + self.popup_label.size_request()[1]
+                height = 12 + self.title.size_request()[1]
                 for window in group.get_windows():
                     height += window.item.update_preview()[1]
                     height += 24 + window.item.label.size_request()[1]

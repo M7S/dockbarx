@@ -474,7 +474,11 @@ class Globals(gobject.GObject):
         "preference-update": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "gkey-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "show-close-button-changed": (gobject.SIGNAL_RUN_FIRST,
-                                      gobject.TYPE_NONE,())
+                                      gobject.TYPE_NONE,()),
+        "dock-size-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "dock-position-changed": (gobject.SIGNAL_RUN_FIRST,
+                                      gobject.TYPE_NONE,()),
+        "dock-mode-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
     }
 
     DEFAULT_SETTINGS = {
@@ -558,7 +562,11 @@ class Globals(gobject.GObject):
           "gkeys_select_next_window_keystr": "<super><control>Tab",
           "gkeys_select_previous_window": False,
           "gkeys_select_previous_window_keystr": "<super><control><shift>Tab",
-          "gkeys_select_next_group_skip_launchers": False}
+          "gkeys_select_next_group_skip_launchers": False,
+                      
+          "dock/position": "left",
+          "dock/size": 42,
+          "dock/mode":"panel"}
 
     DEFAULT_COLORS={
                       "color1": "#333333",
@@ -597,21 +605,8 @@ class Globals(gobject.GObject):
             self.shown_popup = lambda: None
 
             # Get gconf settings
-            self.settings = self.DEFAULT_SETTINGS.copy()
-            gconf_set = { str: GCONF_CLIENT.set_string,
-                          bool: GCONF_CLIENT.set_bool,
-                          int: GCONF_CLIENT.set_int }
-            for name, value in self.settings.items():
-                gc_value = None
-                try:
-                    gc_value = GCONF_CLIENT.get_value(GCONF_DIR + "/" + name)
-                except:
-                    gconf_set[type(value)](GCONF_DIR + "/" + name , value)
-                else:
-                    if type(gc_value) != type(value):
-                        gconf_set[type(value)](GCONF_DIR + "/" + name , value)
-                    else:
-                        self.settings[name] = gc_value
+            self.settings = self.__get_gconf_settings(GCONF_DIR,
+                                                      self.DEFAULT_SETTINGS)
 
             # Set gconf notifiers
             GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
@@ -644,13 +639,15 @@ class Globals(gobject.GObject):
                       bool: entry.get_value().get_bool,
                       int: entry.get_value().get_int }
         key = entry.get_key().split("/")[-1]
+        if entry.get_key().split("/")[-2] == "dock":
+            key = "dock/" + key
         if key in self.settings:
             value = self.settings[key]
             if entry_get[type(value)]() != value:
                 changed_settings.append(key)
                 self.settings[key] = entry_get[type(value)]()
                 pref_update = True
-
+                
         if self.theme_name:
             theme_name = self.theme_name.replace(" ", "_").encode()
             try:
@@ -670,6 +667,12 @@ class Globals(gobject.GObject):
                             pref_update = True
 
         #TODO: Add check for sane values for critical settings.
+        if "dock/size" in changed_settings:
+            self.emit("dock-size-changed")
+        if "dock/position" in changed_settings:
+            self.emit("dock-position-changed")
+        if "dock/mode" in changed_settings:
+            self.emit("dock-mode-changed")
         if "color2" in changed_settings:
             self.emit("color2-changed")
         if "show_only_current_desktop" in changed_settings:
@@ -700,6 +703,24 @@ class Globals(gobject.GObject):
 
         if pref_update == True:
             self.emit("preference-update")
+
+    def __get_gconf_settings(self, gdir, default):
+        settings = default.copy()
+        gconf_set = { str: GCONF_CLIENT.set_string,
+                      bool: GCONF_CLIENT.set_bool,
+                      int: GCONF_CLIENT.set_int }
+        for name, value in settings.items():
+            gc_value = None
+            try:
+                gc_value = GCONF_CLIENT.get_value(gdir + "/" + name)
+            except:
+                gconf_set[type(value)](gdir+ "/" + name , value)
+            else:
+                if type(gc_value) != type(value):
+                    gconf_set[type(value)](Ggdir + "/" + name , value)
+                else:
+                    settings[name] = gc_value
+        return settings
 
     def update_colors(self, theme_name, theme_colors=None, theme_alphas=None):
         # Updates the colors when the theme calls for an update.
