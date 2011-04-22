@@ -423,8 +423,6 @@ class WindowItem(CairoButton):
     def update_preview(self):
         window = self.window_r()
         group = self.group_r()
-        if not group.window_list.show_previews:
-            return
         width = window.wnck.get_geometry()[2]
         height = window.wnck.get_geometry()[3]
         ar = group.button.monitor_aspect_ratio
