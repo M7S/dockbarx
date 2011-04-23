@@ -167,6 +167,7 @@ class Group(ListOfWindows):
         self.popup = GroupPopup(self)
         self.window_list = WindowList(self)
         self.popup.set_child_(self.window_list)
+        self.locked_popup = None
 
         #--- Dockmanager
         self.dockmanager = None
@@ -296,6 +297,22 @@ class Group(ListOfWindows):
         self.popup.set_child_(self.launch_menu)
         self.popup.show()
 
+    def add_locked_popup(self):
+        if self.locked_popup:
+            return
+        locked_popup = self.globals.get_locked_popup()
+        if locked_popup:
+            locked_popup.destroy()
+        self.locked_popup = LockedPopup(self)
+        self.popup.hide()
+        self.globals.set_locked_popup(self.locked_popup)
+        self.locked_popup.show()
+
+    def remove_locked_popup(self):
+        if self.locked_popup:
+            self.locked_popup.destroy()
+            self.popup.hide()
+        
     #### Window handling
     def add_window(self, wnck_window):
         if wnck_window in self:
@@ -353,6 +370,11 @@ class Group(ListOfWindows):
                 self.popup.resize(10, 10)
             else:
                 self.popup.hide()
+        if self.locked_popup:
+            if self.get_count() >= 1:
+                self.locked_popup.resize(10, 10)
+            else:
+                self.locked_popup.destroy()
 
     def set_active_window(self, wnck_window=None):
         has_active = False
@@ -506,7 +528,10 @@ class Group(ListOfWindows):
         if self.menu_is_shown and not self.globals.settings["old_menu"]:
             # The menu is already shown, show the window list instead.
             self.menu_is_shown = False
-            self.popup.set_child_(self.window_list)
+            if self.locked_popup:
+                self.popup.hide()
+            else:
+                self.popup.set_child_(self.window_list)
             return
         if self.globals.settings["old_menu"]:
             self.popup.hide()
@@ -560,8 +585,15 @@ class Group(ListOfWindows):
                             id = "zg_%s%s" % (label, n)
                         self.zg_files[id] = uri
                         self.menu.add_item(label, name, identifier=id)
-        # Windows stuff
         win_nr = self.get_count()
+        # Minilist
+        if self.locked_popup:
+            self.menu.add_separator()
+            self.menu.add_item(_("Remove locked list"))
+        elif win_nr > 1:
+            self.menu.add_separator()
+            self.menu.add_item(_("Show locked list"))
+        # Windows stuff
         if win_nr:
             self.menu.add_separator()
             if win_nr == 1:
@@ -592,7 +624,7 @@ class Group(ListOfWindows):
             menu.connect("selection-done", self.__menu_closed)
         else:
             self.popup.set_child_(self.menu.get_menu())
-            self.popup.show()
+            self.popup.show(force=True)
 
     def __menu_get_zg_files(self):
         # Get information from zeitgeist
@@ -684,7 +716,9 @@ class Group(ListOfWindows):
              _("Unpin application"): self.action_remove_pinned_app,
              _("Make custom launcher"): self.__menu_edit_launcher,
              _("_Pin application"): self.__menu_pin,
-             _("_Launch application"): self.action_launch_application}
+             _("_Launch application"): self.action_launch_application,
+             _("Show locked list"): self.action_toggle_locked_list,
+             _("Remove locked list"): self.action_toggle_locked_list}
         func = menu_funcs.get(identifier, None)
         if func:
             func()
@@ -694,8 +728,8 @@ class Group(ListOfWindows):
 
     def __menu_position(self, menu):
         # Used only with the gtk menu
-        x, y = self.window.get_origin()
-        a = self.get_allocation()
+        x, y = self.button.window.get_origin()
+        a = self.button.get_allocation()
         x += a.x
         y += a.y
         w, h = menu.size_request()
@@ -774,7 +808,7 @@ class Group(ListOfWindows):
                 self.action_select_or_minimize_group(widget, event,
                                                      minimize=True)
             elif smw == "compiz scale":
-                umw = selfget_unminimized()
+                umw = self.get_unminimized()
                 if len(umw) == 1:
                     sow = self.globals.settings["select_one_window"]
                     if sow == "select window":
@@ -1016,9 +1050,9 @@ class Group(ListOfWindows):
                 for window in windows_stacked:
                         if window in windows:
                             if window.is_minimized():
-                                minimized_list.append(window)
+                                minimized_list.append(self.windows[window])
                             else:
-                                self.nextlist.append(window)
+                                self.nextlist.append(self.windows[window])
                 # Reverse -> topmost window first
                 self.nextlist.reverse()
                 # Add minimized windows last.
@@ -1028,7 +1062,7 @@ class Group(ListOfWindows):
                 for i in range(1, len(windows_stacked)+1):
                         if windows_stacked[-i] in windows and \
                            not windows_stacked[-i].is_minimized():
-                            topwindow = windows_stacked[-i]
+                            topwindow = self.windows[windows_stacked[-i]]
                             break
                 self.nextlist = windows
                 if topwindow:
@@ -1204,6 +1238,12 @@ class Group(ListOfWindows):
                             #~ self.popup.hide)
         self.popup.hide()
         self.deopacify()
+
+    def action_toggle_locked_list(self, widget=None, event=None):
+        if self.locked_popup:
+            self.remove_locked_popup()
+        else:
+            self.add_locked_popup()
 
     def action_dbpref(self,widget=None, event=None):
         # Preferences dialog
@@ -1790,6 +1830,7 @@ class GroupPopup(CairoPopup):
         self.show_sid = None
         self.hide_if_not_hovered_sid = None
         self.popup_showing = False
+        self.locked = False
 
         # The popup needs to have a drag_dest just to check
         # if the mouse is hovering it during a drag-drop.
@@ -1903,13 +1944,18 @@ class GroupPopup(CairoPopup):
         CairoPopup.do_leave_notify_event(self, event)
         self.hide_if_not_hovered()
 
-    def show(self, delay=None):
+    def show(self, delay=None, force=False):
         group = self.group_r()
         if delay:
             if self.show_sid is not None:
                 gobject.source_remove(self.show_sid)
             self.show_sid = gobject.timeout_add(delay, self.show)
             return
+        if group.locked_popup:
+            if force:
+                group.locked_popup.hide()
+            else:
+                return
         if self.globals.gtkmenu_showing:
             return
         try:
@@ -1921,22 +1967,14 @@ class GroupPopup(CairoPopup):
         CairoPopup.show_all(self)
         self.popup_showing = True
 
-##        win_cnt = self.windows.get_count()
-##        if self.globals.settings["preview"]:
-##            # Set hint type so that previews can be used.
-##            if not self.popup.get_property("visible"):
-##                self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
-##        else:
-##            if not self.popup.get_property("visible"):
-##                self.popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
-
-
+        # Hide locked popup.
+        if self.globals.get_locked_popup():
+            self.globals.get_locked_popup().hide()
         # Hide other popup if open.
         shown_popup = self.globals.get_shown_popup()
+        self.globals.set_shown_popup(self)
         if shown_popup is not None and shown_popup is not self:
             shown_popup.hide()
-        self.globals.set_shown_popup(self)
-
         self.resize(10,10)
         return False
 
@@ -1952,14 +1990,19 @@ class GroupPopup(CairoPopup):
             gobject.source_remove(self.show_sid)
             self.show_sid = None
         self.cancel_hide_request()
-        if self.globals.get_shown_popup() == self:
+        shown_popup = self.globals.get_shown_popup()
+        if self.globals.get_locked_popup() and \
+           (shown_popup is None or shown_popup is self):
+            self.globals.get_locked_popup().show()
+        if shown_popup is self:
             self.globals.set_shown_popup(None)
         if group.menu is not None:
             group.menu.delete_menu()
             group.menu = None
         # Set window list as the child so that it's ready next time
         # the popup is shown.
-        self.set_child_(group.window_list)
+        if not group.locked_popup:
+            self.set_child_(group.window_list)
         group.menu_is_shown = False
 
     def __hide_if_not_hovered(self):
@@ -2009,12 +2052,39 @@ class GroupPopup(CairoPopup):
         self.popup.send_expose(event)
 
     #### D'N'D
-    def do_popup_drag_motion(self, drag_context, x, y, t):
+    def do_drag_motion(self, drag_context, x, y, t):
         drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
         return True
 
-    def do_popup_drag_leave(self, drag_context, t):
+    def do_drag_leave(self, drag_context, t):
         self.hide_if_not_hovered(100)
+
+class LockedPopup(GroupPopup):
+    def __init__(self, group):
+        GroupPopup.__init__(self, group)
+        child = group.popup.alignment.get_child()
+        if child:
+            group.popup.alignment.remove(child)
+        self.set_child_(group.window_list)
+        group.window_list.apply_mini_mode()
+        self.show_all()
+
+    def show(self):
+        CairoPopup.show(self)
+
+    def hide(self):
+        CairoPopup.hide(self)
+
+    def hide_if_not_hovered(self):
+        pass
+
+    def destroy(self):
+        group = self.group_r()
+        group.locked_popup = None
+        self.alignment.remove(group.window_list)
+        group.popup.set_child_(group.window_list)
+        group.window_list.apply_normal_mode()
+        GroupPopup.destroy(self)
 
 
 class WindowList(gtk.VBox):
@@ -2022,7 +2092,8 @@ class WindowList(gtk.VBox):
         self.globals = Globals()
         self.group_r = weakref.ref(group)
         self.window_box = None
-        self.show_previews = None
+        self.show_previews = False
+        self.mini_mode = False
 
         gtk.VBox.__init__(self)
         self.set_border_width(0)
@@ -2104,6 +2175,8 @@ class WindowList(gtk.VBox):
 
     def set_show_previews(self, show_previews):
         group = self.group_r()
+        if self.mini_mode:
+            return
         if show_previews:
             mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
                                                         group.button.monitor)
@@ -2132,7 +2205,10 @@ class WindowList(gtk.VBox):
 
     def __rebuild_list(self):
         oldbox = self.window_box
-        if self.show_previews and self.globals.orient == "h":
+        if self.mini_mode:
+            self.window_box = gtk.HBox()
+            self.window_box.set_spacing(2)
+        elif self.show_previews and self.globals.orient == "h":
             self.window_box = gtk.HBox()
             self.window_box.set_spacing(4)
         else:
@@ -2161,6 +2237,25 @@ class WindowList(gtk.VBox):
     def remove_plugin(self, plugin):
         self.remove(plugin)
 
+    #### Mini list
+    def apply_mini_mode(self):
+        group = self.group_r()
+        self.set_spacing(0)
+        self.title.set_no_show_all(True)
+        self.title.hide()
+        self.show_previews = False
+        for window in group.get_windows():
+            window.item.set_show_preview(False)
+        self.mini_mode = True
+        self.__rebuild_list()
+
+    def apply_normal_mode(self):
+        self.set_spacing(2)
+        self.title.set_no_show_all(False)
+        self.title.show()
+        self.mini_mode = False
+        self.set_show_previews(self.globals.settings["preview"])
+        self.__rebuild_list()
 
 
 class GroupMenu(gobject.GObject):

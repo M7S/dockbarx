@@ -24,7 +24,6 @@ import gtk
 import gobject
 import sys
 import wnck
-import gnomeapplet
 import os
 import dbus
 import gio
@@ -165,6 +164,8 @@ class DockBar():
 
         #--- Applet / Window container
         if self.applet is not None:
+            global gnomeapplet
+            import gnomeapplet
             self.applet.set_applet_flags(
                             gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
             if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \

@@ -602,7 +602,8 @@ class Globals(gobject.GObject):
             self.orient = "h"
             self.theme_name = None
 
-            self.shown_popup = lambda: None
+            self.set_shown_popup(None)
+            self.set_locked_popup(None)
 
             # Get gconf settings
             self.settings = self.__get_gconf_settings(GCONF_DIR,
@@ -784,6 +785,16 @@ class Globals(gobject.GObject):
 
     def get_shown_popup(self):
         return self.shown_popup()
+
+    def set_locked_popup(self, popup):
+        if popup is None:
+            self.locked_popup = lambda: None
+        else:
+            self.locked_popup = weakref.ref(popup)
+
+    def get_locked_popup(self):
+        return self.locked_popup()
+        
 
 
 __connector = Connector()

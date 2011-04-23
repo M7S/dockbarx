@@ -298,15 +298,11 @@ class CairoPopup(gtk.Window):
         else:
             self.point("left")
 
-
-
     def add(self, child):
         self.alignment.add(child)
 
-
     def remove(self, child):
         self.alignment.remove(child)
-
 
     def point(self, new_pointer, ap=0):
         self.ap = ap
@@ -319,7 +315,6 @@ class CairoPopup(gtk.Window):
                        "left":(p, p, p+a, p),
                        "right":(p, p, p, p+a)}[self.pointer]
             self.alignment.set_padding(*padding)
-
 
     def do_expose_event(self, event):
         self.set_shape_mask()
