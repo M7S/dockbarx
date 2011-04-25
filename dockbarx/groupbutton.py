@@ -822,7 +822,7 @@ class Group(ListOfWindows):
                 self.action_select_or_minimize_group(widget, event,
                                                      minimize=True)
             elif smw == "compiz scale":
-                umw = self.get_unminimized()
+                umw = self.get_unminimized_windows()
                 if len(umw) == 1:
                     sow = self.globals.settings["select_one_window"]
                     if sow == "select window":
@@ -1022,7 +1022,7 @@ class Group(ListOfWindows):
         self.action_select_or_minimize_group(widget, event, False)
 
     def action_select_or_compiz_scale(self, widget, event):
-        windows = self.get_unminimized()
+        windows = self.get_unminimized_windows()
         if  len(windows) > 1:
             self.action_compiz_scale_windows(widget, event)
         elif len(windows) == 1:
