@@ -1823,7 +1823,7 @@ class GroupButton(CairoAppButton):
                 # Go ahead and do the action.
                 action = self.globals.settings[
                                 "groupbutton_%s%s_click_action"%(mod, button)]
-                sgroup.action_function_dict[action](group, self, event)
+                group.action_function_dict[action](group, self, event)
 
         elif event.button == 1:
             self.pressed = True
