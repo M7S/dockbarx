@@ -324,6 +324,8 @@ class WindowItem(CairoButton):
 
         self.close_button.connect("button-press-event", self.disable_click)
         self.close_button.connect("clicked", self.__on_close_button_clicked)
+        self.close_button.connect("leave-notify-event",
+                                  self.__on_close_button_leave)
         connect(self.globals, "show-close-button-changed",
                              self.__on_show_close_button_changed)
         connect(self.globals, "color-changed", self.__update_label)
@@ -337,6 +339,7 @@ class WindowItem(CairoButton):
             gobject.source_remove(self.opacify_sid)
         if self.press_sid:
             gobject.source_remove(self.press_sid)
+        self.close_button.destroy()
 
     def show(self):
         self.update_preview()
@@ -525,6 +528,10 @@ class WindowItem(CairoButton):
         if self.globals.settings["opacify"]:
             window.deopacify()
         window.action_close_window()
+
+    def __on_close_button_leave(self, widget, event):
+        if not self.pointer_is_inside():
+            self.do_leave_notify_event(event)
 
     #### D'n'D
     def __on_drag_motion(self, widget, drag_context, x, y, t):

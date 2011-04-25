@@ -471,6 +471,10 @@ class Globals(gobject.GObject):
                                  gobject.TYPE_NONE,()),
         "show-previews-changed": (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,()),
+        "locked-list-in-menu-changed": (gobject.SIGNAL_RUN_FIRST,
+                                         gobject.TYPE_NONE,()),
+        "locked-list-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
+                                         gobject.TYPE_NONE,()),
         "preference-update": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "gkey-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "show-close-button-changed": (gobject.SIGNAL_RUN_FIRST,
@@ -495,6 +499,8 @@ class Globals(gobject.GObject):
           "preview_size": 150,
           "old_menu": False,
           "show_close_button": True,
+          "locked_list_in_menu": True,
+          "locked_list_no_overlap": False,
 
           "select_one_window": "select or minimize window",
           "select_multiple_windows": "select or minimize all",
@@ -674,6 +680,10 @@ class Globals(gobject.GObject):
             self.emit("dock-position-changed")
         if "dock/mode" in changed_settings:
             self.emit("dock-mode-changed")
+        if "locked_list_no_overlap" in changed_settings:
+            self.emit("locked-list-overlap-changed")
+        if "locked_list_in_menu" in changed_settings:
+            self.emit("locked-list-in-menu-changed")
         if "color2" in changed_settings:
             self.emit("color2-changed")
         if "show_only_current_desktop" in changed_settings:

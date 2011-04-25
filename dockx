@@ -212,7 +212,7 @@ class DockX(CairoDockX):
             prop2 = w.get_full_property(strut_atom, 0)
             if prop1 is not None:
                 cl = w.get_wm_class()
-                if cl and cl[0] == "dockx":
+                if cl and cl[0] in ("dockx", "dockbarx_factory"):
                     continue
                 if self.globals.settings["dock/position"] == "left":
                     strut[0] = max(strut[0], prop1.value[0])
@@ -246,7 +246,7 @@ class DockX(CairoDockX):
                 continue
             if prop2 is not None:
                 cl = w.get_wm_class()
-                if cl and cl[0] == "dockx":
+                if cl and cl[0] in ("dockx", "dockbarx_factory"):
                     continue
                 for i in range(4):
                     strut[i] = max(strut[i], prop2.value[i])

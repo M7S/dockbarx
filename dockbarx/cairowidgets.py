@@ -274,7 +274,7 @@ class CairoPopup(gtk.Window):
     __gsignals__ = {"expose-event": "override",
                     "enter-notify-event": "override",
                     "leave-notify-event": "override"}
-    def __init__(self):
+    def __init__(self, arrow_size=9):
         gtk.Window.__init__(self, gtk.WINDOW_POPUP)
         self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         gtk_screen = gtk.gdk.screen_get_default()
@@ -290,6 +290,7 @@ class CairoPopup(gtk.Window):
         gtk.Window.add(self, self.alignment)
         self.alignment.show()
         self.pointer = ""
+        self.arrow_size = arrow_size
         if self.globals.orient == "h":
             # The direction of the pointer isn't important here we only need
             # the right amount of padding so that the popup has right width and
@@ -307,7 +308,7 @@ class CairoPopup(gtk.Window):
     def point(self, new_pointer, ap=0):
         self.ap = ap
         p = 7
-        a = 10
+        a = self.arrow_size
         if new_pointer != self.pointer:
             self.pointer = new_pointer
             padding = {"up":(p+a, p, p, p),
@@ -346,10 +347,12 @@ class CairoPopup(gtk.Window):
         ctx.set_operator (cairo.OPERATOR_SOURCE)
         ctx.paint()
         if self.is_composited():
-            make_path(ctx, 0, 0, w, h, 6, 0, 9, self.pointer, self.ap)
+            make_path(ctx, 0, 0, w, h, 6, 0,
+                      self.arrow_size, self.pointer, self.ap)
             ctx.set_source_rgba(1, 1, 1, 1)
         else:
-            make_path(ctx, 0, 0, w, h, 6, 1, 9, self.pointer, self.ap)
+            make_path(ctx, 0, 0, w, h, 6, 1,
+                      self.arrow_size, self.pointer, self.ap)
             ctx.set_source_rgb(0, 0, 0)
         ctx.fill()
         self.shape_combine_mask(pixmap, 0, 0)
@@ -361,7 +364,8 @@ class CairoPopup(gtk.Window):
         green = float(int(color[3:5], 16))/255
         blue = float(int(color[5:7], 16))/255
         alpha= float(self.globals.colors["color1_alpha"]) / 255
-        make_path(ctx, 0, 0, w, h, 6, 2.5, 9, self.pointer, self.ap)
+        make_path(ctx, 0, 0, w, h, 6, 2.5,
+                  self.arrow_size, self.pointer, self.ap)
         if self.is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:

@@ -336,6 +336,8 @@ class DockBar():
         self.__on_active_window_changed(self.screen, None)
 
     def set_orient(self, orient):
+        if orient == self.globals.orient:
+            return
         for group in self.groups:
             self.container.remove(group.button)
         if self.applet:
@@ -365,6 +367,10 @@ class DockBar():
             self.__on_desktop_changed()
         else:
             self.container.show_all()
+        if self.globals.get_locked_popup():
+            group = self.globals.get_locked_popup().group_r()
+            group.remove_locked_popup()
+            group.add_locked_popup()
 
     def open_preference(self):
         # Starts the preference dialog
