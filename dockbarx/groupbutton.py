@@ -1195,8 +1195,8 @@ class Group(ListOfWindows):
         self.deopacify()
 
     def action_compiz_scale_windows(self, widget, event):
-        windows = self.get_unminimized()
-        if not wins:
+        windows = self.get_unminimized_windows()
+        if not windows:
             return
         self.popup.hide()
         if len(windows) == 1:
@@ -1219,7 +1219,7 @@ class Group(ListOfWindows):
 
     def action_compiz_shift_windows(self, widget, event):
         windows = self.get_unminimized_windows()
-        if not wins:
+        if not windows:
             return
         self.popup.hide()
         if len(windows) == 1:
