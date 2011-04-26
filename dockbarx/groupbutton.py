@@ -17,7 +17,6 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-import traceback
 
 import pygtk
 pygtk.require("2.0")
@@ -2327,7 +2326,7 @@ class WindowList(gtk.VBox):
                     height += 24 + window.item.label.size_request()[1]
                 if height > mgeo.height:
                     show_previews = False
-        if show_previews != self.show_previews:
+        if show_previews != self.show_previews or not self.window_box:
             self.show_previews = show_previews
             self.__rebuild_list()
             for window in group:
