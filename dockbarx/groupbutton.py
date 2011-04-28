@@ -2326,11 +2326,10 @@ class WindowList(gtk.VBox):
                     height += 24 + window.item.label.size_request()[1]
                 if height > mgeo.height:
                     show_previews = False
-        if show_previews != self.show_previews or not self.window_box:
-            self.show_previews = show_previews
-            self.__rebuild_list()
-            for window in group:
-                window.item.set_show_preview(show_previews)
+        self.show_previews = show_previews
+        self.__rebuild_list()
+        for window in group:
+            window.item.set_show_preview(show_previews)
 
     def __on_show_previews_changed(self, arg=None):
         self.set_show_previews(self.globals.settings["preview"])

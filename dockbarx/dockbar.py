@@ -215,6 +215,7 @@ class DockBar():
         self.app_ids_by_exec = {}
         self.app_ids_by_name = {}
         self.app_ids_by_longname = {}
+        self.app_ids_by_cmd = {}
         self.wine_app_ids_by_program = {}
         for app in gio.app_info_get_all():
             id = app.get_id()
@@ -223,16 +224,18 @@ class DockBar():
             exe = app.get_executable()
             if exe:
                 self.apps_by_id[id] = app
+                try:
+                    cmd = u""+app.get_commandline().lower()
+                except AttributeError:
+                    # Older versions of gio doesn't have get_comandline.
+                    cmd = u""
                 if id[:5] == "wine-":
-                    try:
-                        cmd = u""+app.get_commandline().lower()
-                    except AttributeError:
-                        # Older versions of gio doesn't have get_comandline.
-                        cmd = u""
                     if cmd.find(".exe") > 0:
                         program = cmd[:cmd.rfind(".exe")+4]
                         program = program[program.rfind("\\")+1:]
                         self.wine_app_ids_by_program[program] = id
+                if cmd:
+                    self.app_ids_by_cmd[cmd] = id
                 if name.find(" ")>-1:
                     self.app_ids_by_longname[name] = id
                 else:
@@ -304,6 +307,7 @@ class DockBar():
         self.d_e_ids_by_name = {}
         self.d_e_ids_by_longname = {}
         self.d_e_ids_by_wine_program = {}
+        self.d_e_ids_by_chromium_cmd = {}
 
         gconf_pinned_apps = self.globals.get_pinned_apps_from_gconf()
 
@@ -527,12 +531,16 @@ class DockBar():
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
             identifier = SPECIAL_RES_CLASSES[identifier]
+        wine = False
+        chromium = False
         if identifier == "wine" and \
            self.globals.settings["separate_wine_apps"]:
             identifier = res_name
             wine = True
-        else:
-            wine = False
+        if identifier in ("chromium-browser", "chrome-browser"):
+            identifier = self.__get_chromium_id(window)
+            if not identifier in ("chromium-browser", "chrome-browser"):
+                chromium = True
         if identifier == "prism" and \
            self.globals.settings["separate_prism_apps"]:
             identifier = self.__get_prism_app_name(window)
@@ -552,6 +560,8 @@ class DockBar():
                 desktop_entry_id = self.d_e_ids_by_wine_program[identifier]
             else:
                 desktop_entry_id = None
+        elif chromium:
+            desktop_entry_id = self.__find_chromium_d_e_id(identifier)
         else:
             desktop_entry_id = self.__find_desktop_entry_id(identifier)
         if desktop_entry_id:
@@ -568,6 +578,8 @@ class DockBar():
                 if res_name in self.wine_app_ids_by_program:
                     app_id = self.wine_app_ids_by_program[res_name]
                     app = self.apps_by_id[app_id]
+            elif chromium:
+                app = self.__find_chromium_gio_app(identifier)
             else:
                 app = self.__find_gio_app(identifier)
             if app:
@@ -689,6 +701,40 @@ class DockBar():
     def __get_prism_app_name(self, window):
         return window.get_name()
 
+    def __get_chromium_id(self, window):
+        resclass = window.get_class_group().get_res_class().lower()
+        pid = window.get_pid()
+        try:
+            f = open("/proc/"+str(pid)+"/cmdline", "r")
+        except:
+            raise
+        cmd = f.readline()
+        if "--app=" in cmd:
+            # Get the app address, remove trailing null char and remove '"'
+            app = cmd.split("--app=")[-1][:-1].translate(None, "\"")
+            return "%s-%s" % (resclass, app)
+        else:
+            return resclass
+
+    def __find_chromium_gio_app(self, identifier):
+        app = identifier.split("-browser-", 1)[-1]
+        name = identifier.split("-browser-", 1)[0] + "-browser"
+        for cmd in self.app_ids_by_cmd:
+            if name in cmd and "--app=" in cmd:
+                a = str(cmd.split("--app=")[-1][:-1]).translate(None, "\"")
+                if app == a:
+                    id = self.app_ids_by_cmd[cmd]
+                    return self.apps_by_id[id]
+
+    def __find_chromium_d_e_id(self, identifier):
+        app = identifier.split("-browser-", 1)[-1]
+        for cmd in self.d_e_ids_by_chromium_cmd:
+            if "--app=" in cmd:
+                a = str(cmd.split("--app=")[-1][:-1]).translate(None, "\"")
+                if app == a:
+                    return self.d_e_ids_by_chromium_cmd[cmd]
+        return None
+        
     def __on_ooo_window_name_changed(self, window):
         identifier = None
         for group in self.groups:
@@ -733,14 +779,20 @@ class DockBar():
         id = path[path.rfind("/")+1:path.rfind(".")].lower()
         name = u"" + desktop_entry.getName()
         exe = desktop_entry.getExec()
-        if self.globals.settings["separate_wine_apps"] \
+        wine = False
+        chromium = False
+        if ("chromium-browser" in exe or "chrome-browser" in exe) and \
+           "--app=" in exe:
+            cmd = exe
+            app = cmd.split("--app=")[-1][:-1].translate(None, "\"")
+            chromium = True
+        elif self.globals.settings["separate_wine_apps"] \
         and "wine" in exe and ".exe" in exe.lower():
                 exe = exe.lower()
                 exe = exe[:exe.rfind(".exe")+4]
                 exe = exe[exe.rfind("\\")+1:]
                 wine = True
         else:
-            wine = False
             l= exe.split()
             if l and l[0] in ("sudo","gksudo", "gksu",
                               "java","mono",
@@ -769,6 +821,13 @@ class DockBar():
                 continue
             if wine:
                 if rc == exe:
+                    break
+                else:
+                    continue
+            if chromium and ("chromium-browser" in identifier or \
+               "chrome-browser" in identifier):
+                a = identifier.split("-browser-", 1)[-1]
+                if a == app:
                     break
                 else:
                     continue
@@ -806,6 +865,8 @@ class DockBar():
             self.desktop_entry_by_id[id] = desktop_entry
             if wine:
                 self.d_e_ids_by_wine_program[exe] = id
+            elif chromium:
+                self.d_e_ids_by_chromium_cmd[cmd] = id
             else:
                 if lname:
                     self.d_e_ids_by_longname[name] = id
@@ -934,6 +995,10 @@ class DockBar():
                 # executable.
                 exe = exe[:exe.rfind(".exe")+4][exe.rfind("\\")+1:].lower()
                 self.d_e_ids_by_wine_program[exe] = id
+                return
+            elif ("chromium-browser" in exe or "chrome-browser" in exe) and \
+                 "--app=" in exe:
+                self.d_e_ids_by_chromium_cmd[exe] = id
                 return
             l = exe.split()
             if l and l[0] in ("sudo","gksudo", "gksu",
