@@ -26,7 +26,6 @@ import sys
 import pygtk
 pygtk.require("2.0")
 import gtk
-import gnomeapplet
 import cairo
 import dockbarx.dockbar
 import wnck

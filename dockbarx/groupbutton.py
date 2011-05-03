@@ -52,6 +52,15 @@ try:
 except:
     WNCK_WINDOW_ACTION_MAXIMIZE = 1 << 14
 
+def load_ccm():
+    global ccm
+    try:
+        import ccm
+    except:
+        pass
+
+load_ccm()
+
 class GroupIdentifierError(Exception):
     pass
 
@@ -1031,20 +1040,20 @@ class Group(ListOfWindows):
 
     def action_minimize_all_windows(self, widget=None, event=None):
         for window in self.get_windows():
-            window.minimize()
+            window.wnck.minimize()
         self.popup.hide()
         self.deopacify()
 
     def action_maximize_all_windows(self, widget=None, event=None):
         maximized = False
         for window in self.get_windows():
-            if not window.is_maximized() \
-            and window.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
-                window.maximize()
+            if not window.wnck.is_maximized() \
+            and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
+                window.wnck.maximize()
                 maximized = True
         if not maximized:
             for window in self:
-                window.unmaximize()
+                window.wnck.unmaximize()
         self.popup.hide()
         self.deopacify()
 
@@ -1195,16 +1204,23 @@ class Group(ListOfWindows):
 
     def action_compiz_scale_windows(self, widget, event):
         windows = self.get_unminimized_windows()
+        
         if not windows:
             return
         self.popup.hide()
         if len(windows) == 1:
             self[0].action_select_window(widget, event)
             return
-        if self.globals.settings["show_only_current_desktop"]:
-            path = "scale/allscreens/initiate_key"
+            
+        if ccm and ccm.Version >= '0.9.4':
+            screen_path = 'screen0'
         else:
-            path = "scale/allscreens/initiate_all_key"
+            screen_path = 'allscreens'
+            
+        if self.globals.settings["show_only_current_desktop"]:
+            path = "scale/%s/initiate_key"%screen_path
+        else:
+            path = "scale/%s/initiate_all_key"%screen_path
         try:
             compiz_call_async(path, "activate","root", self.root_xid,"match", \
                 "iclass=%s"%windows[0].wnck.get_class_group().get_res_class())
@@ -1225,10 +1241,15 @@ class Group(ListOfWindows):
             self[0].action_select_window(widget, event)
             return
 
-        if self.globals.settings["show_only_current_desktop"]:
-            path = "shift/allscreens/initiate_key"
+        if ccm and ccm.Version >= '0.9.4':
+            screen_path = 'screen0'
         else:
-            path = "shift/allscreens/initiate_all_key"
+            screen_path = 'allscreens'
+
+        if self.globals.settings["show_only_current_desktop"]:
+            path = "shift/%s/initiate_key"%screen_path
+        else:
+            path = "shift/%s/initiate_all_key"%screen_path
         try:
             compiz_call_async(path, "activate","root", self.root_xid,"match", \
                 "iclass=%s"%windows[0].wnck.get_class_group().get_res_class())
@@ -1241,8 +1262,13 @@ class Group(ListOfWindows):
         #~ self.deopacify()
 
     def action_compiz_scale_all(self, widget, event):
+        if ccm and ccm.Version >= '0.9.4':
+            screen_path = 'screen0'
+        else:
+            screen_path = 'allscreens'
+            
         try:
-            compiz_call_async("scale/allscreens/initiate_key", "activate",
+            compiz_call_async("scale/%s/initiate_key"%screen_path, "activate",
                         "root", self.root_xid)
         except:
             return
@@ -1450,7 +1476,12 @@ class GroupButton(CairoAppButton):
                 x = x + alloc.x + alloc.width/2
                 y = y + alloc.y + alloc.height/2
                 try:
-                    compiz_call_async("water/allscreens/point", "activate",
+                    if ccm and ccm.Version >= '0.9.4':
+                        screen_path = 'screen0'
+                    else:
+                        screen_path = 'allscreens'
+                
+                    compiz_call_async("water/%s/point"%screen_path, "activate",
                                 "root", group.root_xid, "x", x, "y", y)
                 except:
                     pass
