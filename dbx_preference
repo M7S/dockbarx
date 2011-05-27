@@ -653,7 +653,6 @@ class PrefDialog():
                                             "select_next_activate_immediately")
         vbox.pack_start(self.select_next_activate_immediately_cb, False)
 
-
         frame.add(vbox)
         groupbutton_box.pack_start(frame, False)
 
@@ -850,6 +849,18 @@ class PrefDialog():
         advanced_box.pack_start(frame, False, False, padding=5)
 
         #--- Dock page
+        hbox = gtk.HBox()
+        hbox.set_border_width(5)
+        hbox.set_spacing(5)
+        label = gtk.Label(_("Mode"))
+        hbox.pack_start(label, False, False)
+        self.dock_mode_box = gtk.combo_box_new_text()
+        for pos in (_("panel"), _("centered")):
+            self.dock_mode_box.append_text(pos)
+        self.dock_mode_box.connect("changed", self.__cb_changed)
+        hbox.pack_start(self.dock_mode_box, False)
+        dock_box.pack_start(hbox, False)
+        
         hbox = gtk.HBox()
         hbox.set_border_width(5)
         hbox.set_spacing(5)
@@ -1153,6 +1164,12 @@ class PrefDialog():
 
         # Dock page
         self.dock_size_spin.set_value(self.globals.settings["dock/size"])
+        model = self.dock_mode_box.get_model()
+        for i in range(len(model)):
+            pos = self.globals.settings["dock/mode"].lower()
+            if model[i][0].lower() == pos:
+                self.dock_mode_box.set_active(i)
+                break
         model = self.dock_position_box.get_model()
         for i in range(len(model)):
             pos = self.globals.settings["dock/position"].lower()
@@ -1363,6 +1380,12 @@ class PrefDialog():
             for p in pos:
                 if value == _(p) and p != self.globals.settings["dock/size"]:
                     GCONF_CLIENT.set_string(GCONF_DIR+"/dock/position", p)
+                    
+        if combobox == self.dock_mode_box:
+            pos = ("panel", "centered")
+            for p in pos:
+                if value == _(p) and p != self.globals.settings["dock/mode"]:
+                    GCONF_CLIENT.set_string(GCONF_DIR+"/dock/mode", p)
 
     def __adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf

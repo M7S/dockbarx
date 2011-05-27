@@ -31,6 +31,8 @@ import dockbarx.dockbar
 import wnck
 from dockbarx.common import Globals
 from Xlib import display
+from math import pi
+import weakref
 
 class CairoDockX(gtk.Window):
     """The Dock Window for running DockbarX as a standalone dock"""
@@ -40,6 +42,7 @@ class CairoDockX(gtk.Window):
         self.globals = globals()
         self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         self.set_decorated(False)
+        self.set_resizable(False)
         gtk_screen = gtk.gdk.screen_get_default()
         colormap = gtk_screen.get_rgba_colormap()
         if colormap is None:
@@ -98,32 +101,74 @@ class CairoDockX(gtk.Window):
         green = float(int(color[3:5], 16))/255
         blue = float(int(color[5:7], 16))/255
         alpha= float(self.globals.colors["color1_alpha"]) / 255
+
+        corners = [(0.5, 0.5), (w - 0.5, 0.5),
+                   (w - 0.5, h - 0.5), (0.5, h - 0.5)]
+        angles = [-pi, -pi/2.0, 0, pi/2.0]
         if self.globals.settings["dock/position"] == "left":
-            x0, y0, x1, y1 = (w - 0.5, 0.5, w - 0.5, h - 0.5)
+            pass
         elif self.globals.settings["dock/position"] == "right":
-            x0, y0, x1, y1 = (0.5, 0.5, 0.5, h - 0.5)
+            corners = shift(corners, 2)
+            angles = shift(angles, 2)
         elif self.globals.settings["dock/position"] == "top":
-            x0, y0, x1, y1 = (0.5, h - 0.5, w - 0.5, h - 0.5)
+            corners = shift(corners, 1)
+            angles = shift(angles, 1)
         else:
-            x0, y0, x1, y1 = (0.5, 0.5, w - 0.5, 0.5)
-            
-        if self.is_composited():
-            ctx.set_source_rgba(red, green, blue, alpha)
-        else:
-            ctx.set_source_rgb(red, green, blue)
-        ctx.paint()
-        if self.is_composited():
-            ctx.set_source_rgba(red*0.5, green*0.5, blue*0.5, 0.8)
-        else:
-            ctx.set_source_rgb(0, 0, 0)
+            corners = shift(corners, 3)
+            angles = shift(angles, 3)
         ctx.set_line_width(1)
-        ctx.move_to(x0, y0)
-        ctx.line_to(x1, y1)
-        ctx.stroke()
+        if self.globals.settings["dock/mode"] == "centered":
+            ctx.move_to(*corners[0])
+            r = 6
+            for i in (1, 2):
+                x, y = corners[i]
+                a = 0
+                if x > (w >> 1):
+                    s0 = -1
+                else:
+                    s0 = 1
+                if y > (h >> 1):
+                    s1 = -1
+                else:
+                    s1 = 1
+                ctx.arc(x + s0*r, y + s1*r, r, angles[i], angles[i]+pi/2.0)
+            ctx.line_to(*corners[3])
+            stroke_path = ctx.copy_path()
+            ctx.close_path()
+            if self.is_composited():
+                ctx.set_source_rgba(red, green, blue, alpha)
+            else:
+                ctx.set_source_rgb(red, green, blue)
+            ctx.fill()
+            # Fill the line closest to screen border
+            ctx.move_to(*corners[3])
+            ctx.line_to(*corners[0])
+            ctx.stroke()
+            # Stroke the outer border
+            ctx.append_path(stroke_path)
+            if self.is_composited():
+                ctx.set_source_rgba(red*0.5, green*0.5, blue*0.5, 0.8)
+            else:
+                ctx.set_source_rgb(red*0.5, green*0.5, blue*0.5)
+            ctx.stroke()
+        else:
+            if self.is_composited():
+                ctx.set_source_rgba(red, green, blue, alpha)
+            else:
+                ctx.set_source_rgb(red, green, blue)
+            ctx.paint()
+            ctx.move_to(*corners[1])
+            ctx.line_to(*corners[2])
+            if self.is_composited():
+                ctx.set_source_rgba(red*0.5, green*0.5, blue*0.5, 0.8)
+            else:
+                ctx.set_source_rgb(red*0.5, green*0.5, blue*0.5)
+            ctx.stroke()
 
         
 class DockX(CairoDockX):
-    __gsignals__ = {"destroy": "override"}
+    __gsignals__ = {"destroy": "override",
+                    "size-allocate": "override"}
     def __init__(self):
         self.globals = Globals()
         self.dockbar = dockbarx.dockbar.DockBar(None,
@@ -133,60 +178,72 @@ class DockX(CairoDockX):
         self.dockbar.reload()
         CairoDockX.__init__(self)
         self.box = gtk.HBox()
+        self.event_box1 = EventPadding(self)
+        self.event_box2 = EventPadding(self)
         self.add(self.box)
-        self.event_box = gtk.EventBox()
-        self.event_box.set_visible_window(False)
-        self.box.pack_start(self.dockbar.container, False, False)
-        self.box.pack_end(self.event_box, True, True)
-        self.position_dock()
-        self.show_all()
-        size = self.globals.settings["dock/size"]
-        # For the strut. Window isn't realised first time.
         self.position_dock()
         self.globals.connect("dock-size-changed", self.position_dock)
         self.globals.connect("dock-position-changed", self.position_dock)
-        #~ self.globals.connect("dock-mode-changed", self.position_dock)
-        self.event_box.connect("button-release-event", self.__show_menu)
+        self.globals.connect("dock-mode-changed", self.__on_mode_changed)
 
     def position_dock(self, *args):
         monitor = self.get_screen().get_monitor_geometry(0)
         size = self.globals.settings["dock/size"]
+        centered = self.globals.settings["dock/mode"] == "centered"
+        pos = self.globals.settings["dock/position"]
         mx, my, mw, mh = monitor
         l, r, t, b = self.__get_strut()
         if self.globals.settings["dock/position"] in ("left", "right"):
-            if self.globals.orient != "v":
+            if self.globals.orient != "v" or not self.box.get_children():
                 self.dockbar.set_orient("v")
-                self.box.remove(self.event_box)
+                for child in self.box.get_children():
+                    self.box.remove(child)
                 self.box.destroy()
                 self.box = gtk.VBox()
                 self.add(self.box)
+                if centered:
+                    self.box.pack_start(self.event_box1, False, False)
                 self.box.pack_start(self.dockbar.container, False, False)
-                self.box.pack_start(self.event_box, True, True)
+                if centered:
+                    self.box.pack_start(self.event_box2, False, False)
+                else:
+                    self.box.pack_start(self.event_box1, True, True)
                 self.show_all()
         else:
-            if self.globals.orient != "h":
+            if self.globals.orient != "h" or not self.box.get_children():
                 self.dockbar.set_orient("h")
-                self.box.remove(self.event_box)
+                for child in self.box.get_children():
+                    self.box.remove(child)
                 self.box.destroy()
                 self.box = gtk.HBox()
                 self.add(self.box)
+                if centered:
+                    self.box.pack_start(self.event_box1, False, False)
                 self.box.pack_start(self.dockbar.container, False, False)
-                self.box.pack_start(self.event_box, True, True)
+                if centered:
+                    self.box.pack_start(self.event_box2, False, False)
+                else:
+                    self.box.pack_start(self.event_box1, True, True)
                 self.show_all()
-        if self.globals.settings["dock/position"] == "left":
+        if pos == "left":
             x,y, w, h = (mx + l, my + t, size, mh - t - b)
             strut = [size, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
-        elif self.globals.settings["dock/position"] == "right":
+        elif pos == "right":
             x,y, w, h = (mx + mw - size - r, my - t, size, mh - t - b)
             strut = [0, size, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
-        elif self.globals.settings["dock/position"] == "top":
+        elif pos == "top":
             x,y, w, h = (mx + l, my + t, mw - l - r, size)
             strut = [0, 0, size, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
         else:
             x,y, w, h = (mx + l, my + mh - size - b, mw - l - r, size)
             strut = [0, 0, 0, size, 0, 0, 0, 0, 0, 0, x, x + w - 1]
-        self.move(x, y)
-        self.resize(w, h)
+        if centered and pos in ("left", "right"):
+            self.set_size_request(w, -1)
+        elif centered:
+            self.set_size_request(-1, h)
+        else:
+            self.move(x, y)
+            self.set_size_request(w, h)
         if self.window:
             self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
                                         gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
@@ -251,13 +308,54 @@ class DockX(CairoDockX):
                     strut[i] = max(strut[i], prop2.value[i])
         return strut
 
-    def __reload(self, *args):
-        self.dockbar.reload()
-                
-    def __show_menu(self, widget, event):
+    def do_size_allocate(self, allocation):
+        CairoDockX.do_size_allocate(self, allocation)
+        if self.globals.settings["dock/mode"] != "centered":
+            return
+        monitor = self.get_screen().get_monitor_geometry(0)
+        mx, my, mw, mh = monitor
+            
+        if self.globals.settings["dock/position"] == "left":
+            x = mx
+            y = my + mh / 2 - allocation.height / 2
+        elif self.globals.settings["dock/position"] == "right":
+            x = mx + mw - allocation.width
+            y = my + mh / 2 - allocation.height / 2
+        elif self.globals.settings["dock/position"] == "top":
+            x = mx + mw / 2 - allocation.width / 2
+            y = 0
+        else:
+            x = mx + mw / 2 - allocation.width / 2
+            y = my + mh - allocation.height
+        self.move(x, y)
+        self.queue_draw()
+
+    def __on_mode_changed(self, *args):
+        for child in self.box.get_children():
+            self.box.remove(child)
+        self.position_dock()
+
+    def reload(self, *args):
+        self.dockbar.reload() 
+
+    def do_destroy(self, *args):
+        CairoDockX.do_destroy(self)
+        gtk.main_quit()
+        
+
+class EventPadding(gtk.EventBox):
+    __gsignals__ = {"button-release-event": "override"}
+    def __init__(self, dock):
+        gtk.EventBox.__init__(self)
+        self.globals = Globals()
+        self.dock_r = weakref.ref(dock)
+        self.set_visible_window(False)
+        self.set_size_request(6, 6)
+
+    def do_button_release_event(self, event):
         if event.button != 3:
             return
-        #Creates a popup menu
+        #Create popup menu
         menu = gtk.Menu()
         menu.connect("selection-done", self.__menu_closed)
         preference_item = gtk.ImageMenuItem("gtk-properties", "Preference")
@@ -270,27 +368,32 @@ class DockX(CairoDockX):
         reload_item.show()
         about_item = gtk.ImageMenuItem("gtk-about", "About Item")
         menu.append(about_item)
-        about_item.connect("activate", lambda e: dockbarx.dockbar.AboutDialog())
+        about_item.connect("activate",
+                           lambda e: dockbarx.dockbar.AboutDialog())
         about_item.show()
         close_item = gtk.ImageMenuItem("gtk-close", "Close")
         menu.append(close_item)
-        close_item.connect("activate", self.do_destroy)
+        close_item.connect("activate", self.__close_selected)
         close_item.show()
         menu.popup(None, None, None, event.button, event.time)
         self.globals.gtkmenu_showing = True
-
+        
     def __menu_closed(self, menushell):
         self.globals.gtkmenu_showing = False
         menushell.destroy()
-        
-    def do_destroy(self, *args):
-        CairoDockX.do_destroy(self)
-        gtk.main_quit()
 
+    def __close_selected(self, *args):
+        self.dock_r().destroy()
+        
     def __open_preference(self, *args):
         os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
                    "/usr/bin/dbx_preference")
 
+    def __reload(self, *args):
+        self.dock_r().reload()
+
+def shift(l, n=1):
+    return l[n:] + l[:n]
 dockx = DockX()
 gtk.main()
         
