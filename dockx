@@ -102,19 +102,21 @@ class CairoDockX(gtk.Window):
         blue = float(int(color[5:7], 16))/255
         alpha= float(self.globals.colors["color1_alpha"]) / 255
 
-        corners = [(0.5, 0.5), (w - 0.5, 0.5),
-                   (w - 0.5, h - 0.5), (0.5, h - 0.5)]
         angles = [-pi, -pi/2.0, 0, pi/2.0]
         if self.globals.settings["dock/position"] == "left":
-            pass
+            corners = [(0, 0.5), (w - 0.5, 0.5),
+                       (w - 0.5, h - 0.5), (0, h - 0.5)]
         elif self.globals.settings["dock/position"] == "right":
-            corners = shift(corners, 2)
+            corners = [(w, h - 0.5), (0.5, h - 0.5),
+                       (0.5, 0.5), (w, 0.5)]
             angles = shift(angles, 2)
         elif self.globals.settings["dock/position"] == "top":
-            corners = shift(corners, 1)
+            corners = [(w - 0.5, 0), (w - 0.5, h - 0.5),
+                       (0.5, h - 0.5), (0.5, 0)]
             angles = shift(angles, 1)
         else:
-            corners = shift(corners, 3)
+            corners = [(0.5, h), (0.5, 0.5), 
+                       (w - 0.5, 0.5), (w - 0.5, h)]
             angles = shift(angles, 3)
         ctx.set_line_width(1)
         if self.globals.settings["dock/mode"] == "centered":
@@ -140,10 +142,6 @@ class CairoDockX(gtk.Window):
             else:
                 ctx.set_source_rgb(red, green, blue)
             ctx.fill()
-            # Fill the line closest to screen border
-            ctx.move_to(*corners[3])
-            ctx.line_to(*corners[0])
-            ctx.stroke()
             # Stroke the outer border
             ctx.append_path(stroke_path)
             if self.is_composited():
