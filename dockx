@@ -101,67 +101,84 @@ class CairoDockX(gtk.Window):
         green = float(int(color[3:5], 16))/255
         blue = float(int(color[5:7], 16))/255
         alpha= float(self.globals.colors["color1_alpha"]) / 255
-
-        angles = [-pi, -pi/2.0, 0, pi/2.0]
-        if self.globals.settings["dock/position"] == "left":
-            corners = [(0, 0.5), (w - 0.5, 0.5),
-                       (w - 0.5, h - 0.5), (0, h - 0.5)]
-        elif self.globals.settings["dock/position"] == "right":
-            corners = [(w, h - 0.5), (0.5, h - 0.5),
-                       (0.5, 0.5), (w, 0.5)]
-            angles = shift(angles, 2)
-        elif self.globals.settings["dock/position"] == "top":
-            corners = [(w - 0.5, 0), (w - 0.5, h - 0.5),
-                       (0.5, h - 0.5), (0.5, 0)]
-            angles = shift(angles, 1)
-        else:
-            corners = [(0.5, h), (0.5, 0.5), 
-                       (w - 0.5, 0.5), (w - 0.5, h)]
-            angles = shift(angles, 3)
-        ctx.set_line_width(1)
-        if self.globals.settings["dock/mode"] == "centered":
-            ctx.move_to(*corners[0])
-            r = 6
-            for i in (1, 2):
-                x, y = corners[i]
-                a = 0
-                if x > (w >> 1):
-                    s0 = -1
-                else:
-                    s0 = 1
-                if y > (h >> 1):
-                    s1 = -1
-                else:
-                    s1 = 1
-                ctx.arc(x + s0*r, y + s1*r, r, angles[i], angles[i]+pi/2.0)
-            ctx.line_to(*corners[3])
+        mode = self.globals.settings["dock/mode"]
+        pos = self.globals.settings["dock/position"]
+        r = 6
+        # Create the stroke and fill paths
+        if pos == "left":
+            if mode == "centered":
+                ctx.move_to(0, 0.5)
+                ctx.arc(w - r - 0.5, r + 0.5, r, -pi/2, 0)
+            else:
+                ctx.move_to(w - 0.5, 0)
+            if mode == "centered" or mode == "corner":
+                ctx.arc(w - r - 0.5, h - r - 0.5, r, 0, pi/2)
+                ctx.line_to(0, h - 0.5)
+            else:
+                ctx.line_to(w - 0.5, h)
             stroke_path = ctx.copy_path()
+            ctx.line_to(0, h)
+            ctx.line_to(0, 0)
             ctx.close_path()
-            if self.is_composited():
-                ctx.set_source_rgba(red, green, blue, alpha)
+        elif pos == "right":
+            if mode == "centered":
+                ctx.move_to(w, 0.5)
+                ctx.arc_negative(r + 0.5, r + 0.5, r, -pi/2, -pi)
             else:
-                ctx.set_source_rgb(red, green, blue)
-            ctx.fill()
-            # Stroke the outer border
-            ctx.append_path(stroke_path)
-            if self.is_composited():
-                ctx.set_source_rgba(red*0.5, green*0.5, blue*0.5, 0.8)
+                ctx.move_to(0.5, 0)
+            if mode == "centered" or mode == "corner":
+                ctx.arc_negative(r + 0.5, h - r - 0.5, r, pi, pi/2)
+                ctx.line_to(w, h - 0.5)
             else:
-                ctx.set_source_rgb(red*0.5, green*0.5, blue*0.5)
-            ctx.stroke()
+                ctx.line_to(0.5, h)
+            stroke_path = ctx.copy_path()
+            ctx.line_to(w, h)
+            ctx.line_to(w, 0)
+            ctx.close_path()
+        elif pos == "top":
+            if mode == "centered":
+                ctx.move_to(0.5, 0)
+                ctx.arc_negative(r + 0.5, h - r - 0.5, r, pi, pi/2)
+            else:
+                ctx.move_to(0, h - 0.5)
+            if mode == "centered" or mode == "corner":
+                ctx.arc_negative(w - r - 0.5, h - r - 0.5, r, pi/2, 0)
+                ctx.line_to(w - 0.5, 0)
+            else:
+                ctx.line_to(w, h - 0.5)
+            stroke_path = ctx.copy_path()
+            ctx.line_to(w, 0)
+            ctx.line_to(0, 0)
+            ctx.close_path()
         else:
-            if self.is_composited():
-                ctx.set_source_rgba(red, green, blue, alpha)
+            if mode == "centered":
+                ctx.move_to(0.5, h)
+                ctx.arc(r + 0.5, r + 0.5, r, -pi, -pi/2)
             else:
-                ctx.set_source_rgb(red, green, blue)
-            ctx.paint()
-            ctx.move_to(*corners[1])
-            ctx.line_to(*corners[2])
-            if self.is_composited():
-                ctx.set_source_rgba(red*0.5, green*0.5, blue*0.5, 0.8)
+                ctx.move_to(0, 0.5)
+            if mode == "centered" or mode == "corner":
+                ctx.arc(w - r - 0.5, r + 0.5, r, -pi/2, 0)
+                ctx.line_to(w - 0.5, h)
             else:
-                ctx.set_source_rgb(red*0.5, green*0.5, blue*0.5)
-            ctx.stroke()
+                ctx.line_to(w, 0.5)
+            stroke_path = ctx.copy_path()
+            ctx.line_to(w, h)
+            ctx.line_to(0, h)
+            ctx.close_path()
+        # Fill with background color
+        if self.is_composited():
+            ctx.set_source_rgba(red, green, blue, alpha)
+        else:
+            ctx.set_source_rgb(red, green, blue)
+        ctx.fill()
+        # Stroke the outer border
+        ctx.append_path(stroke_path)
+        if self.is_composited():
+            ctx.set_source_rgba(red*0.5, green*0.5, blue*0.5, 0.8)
+        else:
+            ctx.set_source_rgb(red*0.5, green*0.5, blue*0.5)
+        ctx.set_line_width(1)
+        ctx.stroke()
 
         
 class DockX(CairoDockX):
@@ -181,13 +198,15 @@ class DockX(CairoDockX):
         self.add(self.box)
         self.position_dock()
         self.globals.connect("dock-size-changed", self.position_dock)
-        self.globals.connect("dock-position-changed", self.position_dock)
+        self.globals.connect("dock-position-changed",
+                             self.__on_position_changed)
         self.globals.connect("dock-mode-changed", self.__on_mode_changed)
 
     def position_dock(self, *args):
         monitor = self.get_screen().get_monitor_geometry(0)
         size = self.globals.settings["dock/size"]
         centered = self.globals.settings["dock/mode"] == "centered"
+        cornered = self.globals.settings["dock/mode"] == "corner"
         pos = self.globals.settings["dock/position"]
         mx, my, mw, mh = monitor
         l, r, t, b = self.__get_strut()
@@ -202,10 +221,10 @@ class DockX(CairoDockX):
                 if centered:
                     self.box.pack_start(self.event_box1, False, False)
                 self.box.pack_start(self.dockbar.container, False, False)
-                if centered:
+                if centered or cornered:
                     self.box.pack_start(self.event_box2, False, False)
                 else:
-                    self.box.pack_start(self.event_box1, True, True)
+                    self.box.pack_start(self.event_box2, True, True)
                 self.show_all()
         else:
             if self.globals.orient != "h" or not self.box.get_children():
@@ -218,10 +237,10 @@ class DockX(CairoDockX):
                 if centered:
                     self.box.pack_start(self.event_box1, False, False)
                 self.box.pack_start(self.dockbar.container, False, False)
-                if centered:
+                if centered or cornered:
                     self.box.pack_start(self.event_box2, False, False)
                 else:
-                    self.box.pack_start(self.event_box1, True, True)
+                    self.box.pack_start(self.event_box2, True, True)
                 self.show_all()
         if pos == "left":
             x,y, w, h = (mx + l, my + t, size, mh - t - b)
@@ -235,13 +254,20 @@ class DockX(CairoDockX):
         else:
             x,y, w, h = (mx + l, my + mh - size - b, mw - l - r, size)
             strut = [0, 0, 0, size, 0, 0, 0, 0, 0, 0, x, x + w - 1]
-        if centered and pos in ("left", "right"):
+        if (centered or cornered) and pos in ("left", "right"):
             self.set_size_request(w, -1)
-        elif centered:
+        elif (centered or cornered):
             self.set_size_request(-1, h)
         else:
-            self.move(x, y)
             self.set_size_request(w, h)
+        if centered and pos in ("left", "right"):
+            a = self.get_allocation()
+            self.move(x, my + mh / 2 - a.height / 2)
+        elif centered:
+            a = self.get_allocation()
+            self.move(mx + mw / 2 - a.width / 2, y)
+        else:
+            self.move(x, y)
         if self.window:
             self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
                                         gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
@@ -332,6 +358,11 @@ class DockX(CairoDockX):
         for child in self.box.get_children():
             self.box.remove(child)
         self.position_dock()
+        self.queue_draw()
+
+    def __on_position_changed(self, *args):
+        self.position_dock()
+        self.queue_draw()
 
     def reload(self, *args):
         self.dockbar.reload() 

@@ -855,7 +855,7 @@ class PrefDialog():
         label = gtk.Label(_("Mode"))
         hbox.pack_start(label, False, False)
         self.dock_mode_box = gtk.combo_box_new_text()
-        for pos in (_("panel"), _("centered")):
+        for pos in (_("panel"), _("corner"), _("centered")):
             self.dock_mode_box.append_text(pos)
         self.dock_mode_box.connect("changed", self.__cb_changed)
         hbox.pack_start(self.dock_mode_box, False)
@@ -1382,7 +1382,7 @@ class PrefDialog():
                     GCONF_CLIENT.set_string(GCONF_DIR+"/dock/position", p)
                     
         if combobox == self.dock_mode_box:
-            pos = ("panel", "centered")
+            pos = ("panel", "centered", "corner")
             for p in pos:
                 if value == _(p) and p != self.globals.settings["dock/mode"]:
                     GCONF_CLIENT.set_string(GCONF_DIR+"/dock/mode", p)
