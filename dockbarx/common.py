@@ -28,6 +28,7 @@ from urllib import unquote
 from time import time
 import gtk
 import weakref
+import locale
 from log import logger
 
 GCONF_CLIENT = gconf.client_get_default()
@@ -197,6 +198,28 @@ class ODict():
 class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
     def __init__(self, file_name):
         xdg.DesktopEntry.DesktopEntry.__init__(self, file_name)
+        # Quicklist
+        self.quicklist = {}
+        if not "X-Ayatana-Desktop-Shortcuts" in self.content["Desktop Entry"]:
+            return
+        entries = self.content["Desktop Entry"]["X-Ayatana-Desktop-Shortcuts"]
+        entries = entries.split(";")
+        for entry in entries:
+            sg = self.content.get("%s Shortcut Group" % entry)
+            if not sg:
+                continue
+            lo = locale.getlocale()[0]
+            n = "Name[%s]"
+            name = sg.get(n % lo) or sg.get(n % lo[:2])
+            if name is None:
+                for s in sg:
+                    if s.startswith("Name[" + lo[:2]):
+                        name = sg[s]
+                else:
+                    sg.get("Name")
+            exe = sg.get("Exec")
+            if name and exe:
+                self.quicklist[name] = exe
 
     def launch(self, uri=None):
         os.chdir(os.path.expanduser("~"))
@@ -275,6 +298,24 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
 
             logger.info("Executing: %s"%cmd)
             os.system("/bin/sh -c '%s' &"%cmd)
+
+    def get_quicklist(self):
+        return self.quicklist
+
+    def launch_quicklist_entry(self, entry):
+        if not entry in self.quicklist:
+            return
+        cmd = self.quicklist[entry]
+
+        # Nautilus and zeitgeist don't encode ' and " in uris and
+        # that's needed if we should launch with /bin/sh -c
+        cmd = cmd.replace("'", "%27")
+        cmd = cmd.replace('"', "%22")
+        cmd = unquote(cmd)
+        logger.info("Executing: %s"%cmd)
+        os.system("/bin/sh -c '%s' &"%cmd)
+            
+            
 
 
 class Opacify():

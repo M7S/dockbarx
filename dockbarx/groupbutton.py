@@ -587,6 +587,14 @@ class Group(ListOfWindows):
                 if item["label"]:
                     id = "dockmanager_%s" % id
                     self.menu.add_item(item["label"], submenu, identifier=id)
+        # Unity quicklists
+        if self.desktop_entry:
+            quicklist = self.desktop_entry.get_quicklist()
+            if quicklist:
+                self.menu.add_separator()
+            for label in quicklist:
+                id = "quicklist_%s" % label
+                self.menu.add_item(label, identifier=id)
         # Recent and most used files
         self.zg_files = {}
         if self.desktop_entry:
@@ -713,6 +721,12 @@ class Group(ListOfWindows):
     def __on_menuitem_activated(self, arg, identifier):
         if identifier in self.zg_files:
             self.launch(None, None, self.zg_files[identifier])
+            return
+        if self.desktop_entry:
+            quicklist = self.desktop_entry.get_quicklist()
+        if identifier.startswith("quicklist_") and \
+           quicklist.get(identifier[10:]) is not None:
+            self.desktop_entry.launch_quicklist_entry(identifier[10:])
             return
         if self.dockmanager:
             for id, menu_item in self.dockmanager.get_menu_items().items():
