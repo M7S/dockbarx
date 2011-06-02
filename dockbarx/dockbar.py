@@ -138,7 +138,6 @@ class DockBar():
         self.theme = None
         self.skip_tasklist_windows = None
         self.next_group = None
-        self.nextlist = None
         self.dockmanager = None
         self.media_controls = {}
         self.mpris = Mpris2Watch(self)
@@ -271,7 +270,6 @@ class DockBar():
         del self.skip_tasklist_windows
         del self.groups
         del self.windows
-        del self.nextlist
         if self.theme:
             self.theme.remove()
         gc.collect()
@@ -282,7 +280,6 @@ class DockBar():
         self.groups = GroupList()
         self.windows = {}
         self.globals.set_shown_popup(None)
-        self.nextlist = None
         self.next_group = None
         # Get the monitor on which dockbarx is.
         gdk_screen = gtk.gdk.screen_get_default()
@@ -474,11 +471,9 @@ class DockBar():
         self.groups.remove(group)
         group.destroy()
         self.update_pinned_apps_list()
-        if self.nextlist:
-            self.nextlist = None
-            if self.next_group and \
-               self.next_group in self.groups:
-                self.next_group.scrollpeak_abort()
+        if self.next_group and \
+           self.next_group in self.groups:
+            self.next_group.scrollpeak_abort()
             self.next_group = None
 
     def groupbutton_moved(self, name, drop_point):
@@ -1342,46 +1337,53 @@ class DockBar():
                 self.mod_keys = mod_keys
 
     def __select_next_group(self, previous=False):
-        if self.nextlist is None:
-            # Prepare the new list
-            self.nextlist = self.groups[:]
-            if self.globals.settings["gkeys_select_next_group_skip_launchers"]:
-                for group in self.groups:
-                    if group.get_count() == 0:
-                        self.nextlist.remove(group)
-            for i in range(len(self.nextlist)):
-                if self.nextlist[0].has_active_window:
+        if len(self.groups) == 0:
+            return
+        if self.next_group is None or not (self.next_group in self.groups):
+            for group in self.groups:
+                if group.has_active_window:
+                    self.next_group = group
                     break
-                group = self.nextlist.pop(0)
-                self.nextlist.append(group)
-            self.next_group = None
-        if previous:
-            group = self.nextlist.pop(-1)
-            self.nextlist.insert(0, group)
+            else:
+                self.next_group = self.groups[0]
+            old_next_group = None
         else:
-            group = self.nextlist.pop(0)
-            self.nextlist.append(group)
-        group = self.nextlist[0]
+            old_next_group = self.next_group
+            i = self.groups.index(self.next_group)
+            print i
+            groups = self.groups[i+1:] + self.groups[:i]
+            if previous:
+                groups.reverse()
+            if self.globals.settings["gkeys_select_next_group_skip_launchers"]:
+                for group in groups:
+                    if group.get_count() != 0:
+                        self.next_group = group
+                        break
+                else:
+                    return
+            else:
+                self.next_group = groups[0]
+        group = self.next_group
         if group.get_count() > 0:
             group.action_select_next(keyboard_select=True)
         else:
             group.show_launch_popup()
         if not self.globals.settings["select_next_activate_immediately"] and \
-           self.next_group and not self.next_group == group:
-                self.next_group.scrollpeak_abort()
-        self.next_group = group
+           old_next_group and old_next_group != group:
+                old_next_group.scrollpeak_abort()
 
 
     def __select_previous_group(self):
         self.__select_next_group(previous=True)
 
     def __select_next_window_in_group(self, previous=False):
-        for group in self.groups:
-            if group.has_active_window:
-                group.action_select_next(previous=previous,
-                                         keyboard_select=True)
-                self.next_group = group
-                break
+        if not self.next_group:
+            for group in self.groups:
+                if group.has_active_window:
+                    self.next_group = group
+                    break
+        self.next_group.action_select_next(previous=previous,
+                                           keyboard_select=True)
 
     def __select_previous_window_in_group(self):
         self.__select_next_window_in_group(previous=True)
@@ -1435,12 +1437,17 @@ class DockBar():
                     if group.get_count() > 0:
                         group.scrollpeak_select()
                     else:
-                        group.action_launch_application()
+                        if group.media_controls:
+                            success = group.media_controls.show_player()
+                            if success:
+                                group.scrollpeak_abort()
+                        if not group.media_controls or not success:
+                            group.action_launch_application()
+                self.next_group = None
                 gtk.gdk.keyboard_ungrab()
                 applet = self.parent_window or self.applet or self.awn_applet
                 if applet:
                     disconnect(applet)
-                self.nextlist = None
                 break
 
     def __init_number_shortcuts(self):
@@ -1469,12 +1476,14 @@ class DockBar():
         applet = self.parent_window or self.applet or self.awn_applet
         if len(windows) > 1:
             group.action_select_next(keyboard_select=True)
+            if self.next_group is not None and self.next_group != group:
+                self.next_group.scrollpeak_abort()
+            self.next_group = group
             if applet and not keyboard_grabbed:
                 gtk.gdk.keyboard_grab(applet.window)
                 connect(applet, "key-release-event", self.__key_released)
                 connect(applet, "key-press-event", self.__key_pressed)
                 self.mod_keys = ["Super"]
-                self.next_group = group
         else:
             gtk.gdk.keyboard_ungrab()
             if self.next_group:
@@ -1482,12 +1491,11 @@ class DockBar():
             if applet:
                 disconnect(applet)
             self.next_group = None
-            self.nextlist = None
         if not windows:
-            sucess = False
+            success = False
             if group.media_controls:
-                sucess = self.media_controls.show_player()
-            if not self.media_controls or not sucess:
+                success = group.media_controls.show_player()
+            if not group.media_controls or not success:
                 group.action_launch_application()
         if len(windows) == 1:
             windows[0].action_select_window()

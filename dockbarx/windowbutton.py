@@ -24,7 +24,6 @@ import gtk
 import gobject
 import pango
 import weakref
-import time
 import gc
 gc.enable()
 
@@ -209,7 +208,7 @@ class Window():
         if event:
             t = event.time
         else:
-            t = int(time.time())
+            t = 0
         if self.wnck.get_workspace() is not None \
         and self.screen.get_active_workspace() != self.wnck.get_workspace():
             self.wnck.get_workspace().activate(t)
@@ -239,7 +238,7 @@ class Window():
         if event:
             t = event.time
         else:
-            t = int(time.time())
+            t = 0
         self.wnck.close(t)
 
     def action_maximize_window(self, widget=None, event=None):
@@ -262,7 +261,7 @@ class Window():
             if event:
                 t = event.time
             else:
-                t = int(time.time())
+                t = 0
             self.wnck.unminimize(t)
         else:
             self.wnck.minimize()
