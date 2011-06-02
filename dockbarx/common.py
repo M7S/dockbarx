@@ -215,8 +215,9 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
                 for s in sg:
                     if s.startswith("Name[" + lo[:2]):
                         name = sg[s]
+                        break
                 else:
-                    sg.get("Name")
+                    name = sg.get("Name")
             exe = sg.get("Exec")
             if name and exe:
                 self.quicklist[name] = exe
