@@ -664,6 +664,13 @@ class PrefDialog():
                                       "media_buttons")
         plugins_box.pack_start(self.media_buttons_cb, False)
 
+        self.quicklist_cb = gtk.CheckButton(_("Use Unity quicklists"))
+        self.quicklist_cb.set_border_width(5)
+        self.quicklist_cb.connect("toggled",
+                                      self.__checkbutton_toggled,
+                                      "quicklist")
+        plugins_box.pack_start(self.quicklist_cb, False)
+
         dockmanager_frame = gtk.Frame(_("DockManager"))
         dockmanager_frame.set_border_width(5)
         dockmanager_box = gtk.VBox()
@@ -1060,6 +1067,8 @@ class PrefDialog():
         # Plugins
         self.media_buttons_cb.set_active(
                             self.globals.settings["media_buttons"])
+        self.quicklist_cb.set_active(
+                            self.globals.settings["quicklist"])
         dockmanager = self.globals.settings["dockmanager"]
         badge = self.globals.settings["dockmanager_badge"]
         self.dockmanager_cb.set_active(dockmanager)

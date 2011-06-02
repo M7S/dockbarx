@@ -509,6 +509,8 @@ class Globals(gobject.GObject):
                                            gobject.TYPE_NONE,()),
         "media-buttons-changed": (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,()),
+        "quicklist-changed": (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,()),
         "show-tooltip-changed": (gobject.SIGNAL_RUN_FIRST,
                                  gobject.TYPE_NONE,()),
         "show-previews-changed": (gobject.SIGNAL_RUN_FIRST,
@@ -554,6 +556,7 @@ class Globals(gobject.GObject):
           "dockmanager_badge": False,
           "dockmanager_badge_font": "sans 10",
           "media_buttons": True,
+          "quicklist": True,
 
           "opacify": False,
           "opacify_group": False,
@@ -740,6 +743,8 @@ class Globals(gobject.GObject):
             self.emit("show-close-button-changed")
         if "media_buttons" in changed_settings:
             self.emit("media-buttons-changed")
+        if "mquicklist" in changed_settings:
+            self.emit("quicklist-changed")
         if "dockmanager" in changed_settings:
             self.emit("dockmanager-changed")
         if "dockmanager_badge" in changed_settings:

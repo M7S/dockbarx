@@ -588,7 +588,7 @@ class Group(ListOfWindows):
                     id = "dockmanager_%s" % id
                     self.menu.add_item(item["label"], submenu, identifier=id)
         # Unity quicklists
-        if self.desktop_entry:
+        if self.desktop_entry and self.globals.settings["quicklist"]:
             quicklist = self.desktop_entry.get_quicklist()
             if quicklist:
                 self.menu.add_separator()
