@@ -794,7 +794,10 @@ class Group(ListOfWindows):
         self.menu = None
 
     def __menu_unminimize_all_windows(self, widget=None, event=None):
-        t = gtk.get_current_event_time()
+        if event:
+            t = event.time
+        else:
+            t = int(time.time())
         for window in self.get_minimized_windows():
                 window.unminimize(t)
         self.popup.hide()
@@ -821,6 +824,7 @@ class Group(ListOfWindows):
     def action_select(self, widget, event):
         wins = self.get_windows()
         if (self.pinned and not wins):
+            sucess = False
             if self.media_controls:
                 sucess = self.media_controls.show_player()
             if not self.media_controls or not sucess:
@@ -1071,7 +1075,6 @@ class Group(ListOfWindows):
         self.popup.hide()
         self.deopacify()
 
-
     def action_select_next(self, widget=None, event=None, previous=False,
                            keyboard_select=False):
         if not self.get_windows():
@@ -1173,7 +1176,7 @@ class Group(ListOfWindows):
         if event:
             t = event.time
         else:
-            t = gtk.get_current_event_time()
+            t = int(time.time())
         for window in self.get_windows():
             window.wnck.close(t)
         self.popup.hide()

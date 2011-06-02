@@ -209,6 +209,7 @@ class DockBar():
             self.applet.connect("delete-event", self.__cleanup)
 
         self.__gkeys_changed(dialog=False)
+        self.__init_number_shortcuts()
         self.globals.connect("gkey-changed", self.__gkeys_changed)
         #--- Generate Gio apps
         self.apps_by_id = {}
@@ -1394,6 +1395,14 @@ class DockBar():
                      "gkeys_select_previous_window": \
                                 self.__select_previous_window_in_group}
         keyname = gtk.gdk.keyval_name(event.keyval)
+        # Check if it's a number shortcut.
+        if gtk.gdk.SUPER_MASK & event.state:
+            keys = [str(n) for n in range(10)]
+            if keyname in keys:
+                self.__on_number_shortcut_pressed(int(keyname),
+                                                  keyboard_grabbed=True)
+                return
+        # Check if it's any other global shortcut.
         for name, func in functions.items():
             if not self.globals.settings[name]:
                 continue
@@ -1409,7 +1418,6 @@ class DockBar():
                 del mod_keys["shift"]
             elif "shift" in keystring.lower() and "Tab" in keystring:
                 keystring = keystring.replace("Tab", "ISO_Left_Tab")
-
             for key, mask in mod_keys.items():
                 if (key in keystring.lower()) !=  bool(mask & event.state):
                     break
@@ -1434,3 +1442,54 @@ class DockBar():
                     disconnect(applet)
                 self.nextlist = None
                 break
+
+    def __init_number_shortcuts(self):
+        for i in range(10):
+            key = "<super>%s" % i
+            if keybinder.bind(key, self.__on_number_shortcut_pressed, i):
+                # Key succesfully bound.
+                pass
+            else:
+                # Keybinder sometimes doesn't unbind faulty binds.
+                # We have to do it manually.
+                try:
+                    keybinder.unbind(key)
+                except:
+                    pass
+
+    def __on_number_shortcut_pressed(self, n, keyboard_grabbed=False):
+        if n == 0:
+            n = 10
+        n -= 1
+        try:
+            group = self.groups[n]
+        except IndexError:
+            return
+        windows = group.get_windows()
+        applet = self.parent_window or self.applet or self.awn_applet
+        if len(windows) > 1:
+            group.action_select_next(keyboard_select=True)
+            if applet and not keyboard_grabbed:
+                gtk.gdk.keyboard_grab(applet.window)
+                connect(applet, "key-release-event", self.__key_released)
+                connect(applet, "key-press-event", self.__key_pressed)
+                self.mod_keys = ["Super"]
+                self.next_group = group
+        else:
+            gtk.gdk.keyboard_ungrab()
+            if self.next_group:
+                self.next_group.scrollpeak_abort()
+            if applet:
+                disconnect(applet)
+            self.next_group = None
+            self.nextlist = None
+        if not windows:
+            sucess = False
+            if group.media_controls:
+                sucess = self.media_controls.show_player()
+            if not self.media_controls or not sucess:
+                group.action_launch_application()
+        if len(windows) == 1:
+            windows[0].action_select_window()
+
+        

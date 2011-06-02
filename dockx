@@ -19,9 +19,9 @@
 
 from dockbarx.log import *
 import sys
-#log_to_file()
-#sys.stderr = StdErrWrapper()
-#sys.stdout = StdOutWrapper()
+log_to_file()
+sys.stderr = StdErrWrapper()
+sys.stdout = StdOutWrapper()
 
 import pygtk
 pygtk.require("2.0")
