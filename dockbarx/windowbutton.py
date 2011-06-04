@@ -436,7 +436,7 @@ class WindowItem(CairoButton):
         group = self.group_r()
         width = window.wnck.get_geometry()[2]
         height = window.wnck.get_geometry()[3]
-        ar = group.button.monitor_aspect_ratio
+        ar = group.monitor_aspect_ratio
         size = self.globals.settings["preview_size"]
         if width*ar < size and height < size:
             pass

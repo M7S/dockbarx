@@ -20,6 +20,7 @@
 from tarfile import open as taropen
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
+import gtk
 import gobject
 import cairo
 import os

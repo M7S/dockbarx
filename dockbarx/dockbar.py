@@ -257,7 +257,6 @@ class DockBar():
 
 
     def reload(self, event=None, data=None):
-        del self.next_group
         if self.windows:
             # Removes windows and unpinned group buttons
             for win in self.screen.get_windows():
@@ -281,11 +280,6 @@ class DockBar():
         self.windows = {}
         self.globals.set_shown_popup(None)
         self.next_group = None
-        # Get the monitor on which dockbarx is.
-        gdk_screen = gtk.gdk.screen_get_default()
-        window = self.container.window
-        if window is not None:
-            self.monitor = gdk_screen.get_monitor_at_window(window)
         try:
             if self.theme is None:
                 self.theme = Theme()
@@ -502,7 +496,7 @@ class DockBar():
 
     def __make_groupbutton(self, identifier=None, desktop_entry=None,
                          pinned=False, index=None):
-        group = Group(self, identifier, desktop_entry, pinned, self.monitor)
+        group = Group(self, identifier, desktop_entry, pinned)
         self.container.pack_start(group.button, False)
         if index is not None:
             self.container.reorder_child(group.button, index)

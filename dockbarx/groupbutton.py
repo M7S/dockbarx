@@ -101,7 +101,7 @@ class ListOfWindows(list):
                not window.is_on_current_desktop():
                 continue
             if self.globals.settings["show_only_current_monitor"] and \
-               self.button.monitor != window.monitor:
+               self.get_monitor() != window.monitor:
                 continue
             windows.append(window)
         return ListOfWindows(windows)
@@ -133,7 +133,7 @@ class Group(ListOfWindows):
     the popup window, the window list and other stuff."""
 
     def __init__(self, dockbar, identifier=None, desktop_entry=None,
-                 pinned=False, monitor=0):
+                 pinned=False):
         ListOfWindows.__init__(self)
         self.dockbar_r = weakref.ref(dockbar)
         self.globals = Globals()
@@ -171,9 +171,13 @@ class Group(ListOfWindows):
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.update_name()
+        
+        monitor = self.get_monitor()
+        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(monitor)
+        self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
 
 
-        self.button = GroupButton(self, monitor)
+        self.button = GroupButton(self)
         self.popup = GroupPopup(self)
         self.window_list = WindowList(self)
         self.popup.set_child_(self.window_list)
@@ -222,6 +226,11 @@ class Group(ListOfWindows):
         if self.window_list:
             self.window_list.destroy()
 
+    def get_monitor(self):
+        window = self.dockbar_r().container.window
+        gdk_screen = gtk.gdk.screen_get_default()
+        if window is not None:
+            return(gdk_screen.get_monitor_at_window(window))
 
     def desktop_changed(self):
         self.button.update_state()
@@ -360,7 +369,7 @@ class Group(ListOfWindows):
         if (self.globals.settings["show_only_current_desktop"] and \
            not window.is_on_current_desktop()) and \
            (self.globals.settings["show_only_current_monitor"] and \
-           self.button.monitor != window.monitor):
+           self.get_monitor() != window.monitor):
             window.item.hide()
         else:
             window.item.show()
@@ -1353,11 +1362,10 @@ class GroupButton(CairoAppButton):
                     "drag-end" : "override",
                     }
 
-    def __init__(self, group, monitor=0):
+    def __init__(self, group):
         CairoAppButton.__init__(self, None, group.dockbar_r().is_dock)
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.group_r = weakref.ref(group)
-        self.monitor = monitor
         self.mouse_over = False
         self.pressed = False
         self.attention_effect_running = False
@@ -1365,8 +1373,6 @@ class GroupButton(CairoAppButton):
         self.state_type = None
         self.icon_factory = IconFactory(identifier=group.identifier,
                                         desktop_entry=group.desktop_entry)
-        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(self.monitor)
-        self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
         
         self.show()
         self.old_alloc = self.get_allocation()
@@ -1519,10 +1525,11 @@ class GroupButton(CairoAppButton):
             return False
 
     def set_icongeo(self, window=None):
+        group = self.group_r()
         if window:
             list_ = [window]
         else:
-            list_ = self.group_r()
+            list_ = group
         for window in list_:
             #~ if self.globals.settings["show_only_current_desktop"] and \
                #~ not window.is_on_current_desktop():
@@ -1530,7 +1537,7 @@ class GroupButton(CairoAppButton):
                 #~ window.wnck.set_icon_geometry(0, 0, 0, 0)
                 #~ continue
             if self.globals.settings["show_only_current_desktop"] and \
-               window.monitor != self.monitor:
+               window.monitor != group.get_monitor():
                 continue
             alloc = self.get_allocation()
             if self.window:
@@ -1939,7 +1946,7 @@ class GroupPopup(CairoPopup):
         b_alloc = group.button.get_allocation()
         width, height = self.get_size()
         mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
-                                                        group.button.monitor)
+                                                        group.get_monitor())
         if width > mgeo.width or height > mgeo.height:
             # The popup is too big to fit. Tell the child it needs to shrink.
             try:
@@ -2137,7 +2144,7 @@ class LockedPopup(GroupPopup):
     def __init__(self, group):
         self.globals = Globals()
         mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
-                                                        group.button.monitor)
+                                                        group.get_monitor())
         button_window = group.button.window
         if button_window:
             wx, wy = button_window.get_origin()
@@ -2176,7 +2183,7 @@ class LockedPopup(GroupPopup):
             return
         group = self.group_r()
         mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
-                                                        group.button.monitor)
+                                                        group.get_monitor())
         
         width, height = self.get_size()
         if self.globals.orient == "h":
@@ -2213,7 +2220,7 @@ class LockedPopup(GroupPopup):
             a = self.get_allocation()
             x, y = self.get_position()
             mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
-                                                        group.button.monitor)
+                                                        group.get_monitor())
             height = mgeo.y + mgeo.height - y
             x1 = mgeo.x + x 
             x2 = mgeo.x + x + a.width
@@ -2300,7 +2307,7 @@ class WindowList(gtk.VBox):
             if (self.globals.settings["show_only_current_desktop"] and \
                not window.is_on_current_desktop()) or \
                (self.globals.settings["show_only_current_monitor"] and \
-               group.button.monitor != window.get_monitor()):
+               group.get_monitor() != window.get_monitor()):
                 window.item.hide()
             else:
                 window.item.show()
@@ -2359,7 +2366,7 @@ class WindowList(gtk.VBox):
             return
         if show_previews:
             mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
-                                                        group.button.monitor)
+                                                        group.get_monitor())
             if self.globals.orient == "h":
                 width = 10
                 for window in group.get_windows():
