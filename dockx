@@ -189,7 +189,6 @@ class DockX(CairoDockX):
         self.dockbar = dockbarx.dockbar.DockBar(None,
                                                 parent_window=self,
                                                 run_as_dock=True)
-        self.dockbar.monitor = 0
         self.dockbar.reload()
         CairoDockX.__init__(self)
         self.box = gtk.HBox()

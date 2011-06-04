@@ -231,6 +231,8 @@ class Group(ListOfWindows):
         gdk_screen = gtk.gdk.screen_get_default()
         if window is not None:
             return(gdk_screen.get_monitor_at_window(window))
+        else:
+            return 0
 
     def desktop_changed(self):
         self.button.update_state()

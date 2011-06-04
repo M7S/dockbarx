@@ -196,10 +196,6 @@ class DockBar():
             self.container = gtk.HBox()
             self.globals.orient = "h"
 
-        # Wait until the container is realized before adding anything to it.
-        if not awn_applet:
-            gobject.timeout_add(10, self.__reload_on_realized)
-
         if self.applet is not None:
             self.applet.connect("size-allocate", self.__on_applet_size_alloc)
             self.applet.connect("change_background",
@@ -248,10 +244,14 @@ class DockBar():
                         self.app_ids_by_exec[exe] = id
                     else:
                         self.app_ids_by_exec[exe] = id
+                        
+        # Wait until the container is realized before adding anything to it.
+        if not awn_applet and not run_as_dock:
+            gobject.idle_add(self.__reload_on_realized)
 
     def __reload_on_realized(self):
-        if self.container.window is None:
-            return True
+        while gtk.events_pending():
+                    gtk.main_iteration(False)
         self.reload()
         return False
 
