@@ -189,7 +189,7 @@ class DockX(CairoDockX):
         self.dockbar = dockbarx.dockbar.DockBar(None,
                                                 parent_window=self,
                                                 run_as_dock=True)
-        self.dockbar.reload()
+        self.dockbar.load()
         CairoDockX.__init__(self)
         self.box = gtk.HBox()
         self.event_box1 = EventPadding(self)

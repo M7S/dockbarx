@@ -34,13 +34,10 @@ class DockBarApp (awn.AppletSimple):
     def __on_idle(self):
         self.old_child = self.get_child()
         gdk_screen = gtk.gdk.screen_get_default()
-        window = self.old_child.window
-        monitor = gdk_screen.get_monitor_at_window(window)
         self.icon = self.get_icon()
         self.remove(self.old_child)
         self.db = dockbarx.dockbar.DockBar(awn_applet=self)
-        self.db.monitor = monitor
-        self.db.reload()
+        self.db.load()
         if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_TOP):
             self.box = gtk.VBox()
             self.db.set_orient("h")

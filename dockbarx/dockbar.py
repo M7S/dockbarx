@@ -23,22 +23,14 @@ pygtk.require("2.0")
 import gtk
 import gobject
 import sys
-import wnck
 import os
 import dbus
-import gio
-import keybinder
 import gc
-import subprocess
 from time import time
 gc.enable()
 
-from groupbutton import Group, GroupIdentifierError
-from cairowidgets import *
-from theme import Theme, NoThemesError
+
 from common import *
-from mediabuttons import Mpris2Watch, MediaButtons
-from dockmanager import DockManager
 from log import logger
 
 import i18n
@@ -139,20 +131,6 @@ class DockBar():
         self.skip_tasklist_windows = None
         self.next_group = None
         self.dockmanager = None
-        self.media_controls = {}
-        self.mpris = Mpris2Watch(self)
-
-        self.gkeys = {
-                        "gkeys_select_next_group": None,
-                        "gkeys_select_previous_group": None,
-                        "gkeys_select_next_window": None,
-                        "gkeys_select_previous_window": None
-                     }
-
-        wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
-        self.screen = wnck.screen_get_default()
-        self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
-        self.screen.force_update()
 
         self.globals = Globals()
         self.globals.connect("theme-changed", self.reload)
@@ -192,20 +170,66 @@ class DockBar():
             # background bug workaround
             self.applet.set_background_widget(applet)
             self.applet.show_all()
+            self.applet.connect("delete-event", self.__cleanup)
         else:
             self.container = gtk.HBox()
             self.globals.orient = "h"
 
+                        
+        # Most of initializion must happen after dockbarx is
+        # realized since python gnomeapplets crash if they
+        # take too much time to realize.
+        if not awn_applet and not run_as_dock:
+            gobject.idle_add(self.__load_on_realized)
+
+    def __load_on_realized(self):
+        while gtk.events_pending():
+                    gtk.main_iteration(False)
+        self.load()
+
+    def load(self):
+        global subprocess
+        import subprocess
+        global gio
+        import gio
+        global keybinder
+        import keybinder
+        global wnck
+        import wnck
+        global Group
+        global GroupIdentifierError
+        from groupbutton import Group, GroupIdentifierError
+        global Theme
+        global NoThemesError
+        from theme import Theme, NoThemesError
+        global Mpris2Watch
+        global MediaButtons
+        from mediabuttons import Mpris2Watch, MediaButtons
+        global DockManager
+        from dockmanager import DockManager
+        self.media_controls = {}
+        self.mpris = Mpris2Watch(self)
+
+        self.gkeys = {
+                        "gkeys_select_next_group": None,
+                        "gkeys_select_previous_group": None,
+                        "gkeys_select_next_window": None,
+                        "gkeys_select_previous_window": None
+                     }
+
+        wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
+        self.screen = wnck.screen_get_default()
+        self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
+        self.screen.force_update()
         if self.applet is not None:
             self.applet.connect("size-allocate", self.__on_applet_size_alloc)
             self.applet.connect("change_background",
                                 self.__on_change_background)
             self.applet.connect("change-orient", self.__on_change_orient)
-            self.applet.connect("delete-event", self.__cleanup)
-
         self.__gkeys_changed(dialog=False)
         self.__init_number_shortcuts()
         self.globals.connect("gkey-changed", self.__gkeys_changed)
+        
         #--- Generate Gio apps
         self.apps_by_id = {}
         self.app_ids_by_exec = {}
@@ -244,14 +268,6 @@ class DockBar():
                         self.app_ids_by_exec[exe] = id
                     else:
                         self.app_ids_by_exec[exe] = id
-                        
-        # Wait until the container is realized before adding anything to it.
-        if not awn_applet and not run_as_dock:
-            gobject.idle_add(self.__reload_on_realized)
-
-    def __reload_on_realized(self):
-        while gtk.events_pending():
-                    gtk.main_iteration(False)
         self.reload()
         return False
 
