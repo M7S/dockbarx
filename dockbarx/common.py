@@ -521,6 +521,8 @@ class Globals(gobject.GObject):
                                          gobject.TYPE_NONE,()),
         "preference-update": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "gkey-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "use-number-shortcuts-changed": (gobject.SIGNAL_RUN_FIRST,
+                                         gobject.TYPE_NONE,()),
         "show-close-button-changed": (gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,()),
         "dock-size-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
@@ -614,6 +616,7 @@ class Globals(gobject.GObject):
           "gkeys_select_previous_window": False,
           "gkeys_select_previous_window_keystr": "<super><control><shift>Tab",
           "gkeys_select_next_group_skip_launchers": False,
+          "use_number_shortcuts": True,
                       
           "dock/position": "left",
           "dock/size": 42,
@@ -751,6 +754,8 @@ class Globals(gobject.GObject):
             self.emit("dockmanager-badge-changed")
         if "dockmanager_badge_font" in changed_settings:
             self.emit("dockmanager-badge-font-changed")
+        if "use_number_shortcuts" in changed_settings:
+            self.emit("use-number-shortcuts-changed")
         for key in changed_settings:
             if key == "theme":
                 self.emit("theme-changed")

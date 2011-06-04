@@ -851,6 +851,12 @@ class PrefDialog():
                                     "gkeys_select_next_group_skip_launchers")
         table.attach(self.gkeys_skip_launchers_cb, 0, 4, i + 3, i + 4,
                      xoptions = gtk.FILL)
+        self.number_shortcuts_cb = gtk.CheckButton(_("Use Unity style number shortcuts (Super+number)"))
+        self.number_shortcuts_cb.connect("toggled",
+                                             self.__checkbutton_toggled,
+                                             "use_number_shortcuts")
+        table.attach(self.number_shortcuts_cb, 0, 4, i + 4, i + 5,
+                     xoptions = gtk.FILL)
         table.set_border_width(5)
         frame.add(table)
         advanced_box.pack_start(frame, False, False, padding=5)
@@ -1170,6 +1176,8 @@ class PrefDialog():
                                     self.globals.settings["%s_keystr"%s])
         self.gkeys_skip_launchers_cb.set_active(
                self.globals.settings["gkeys_select_next_group_skip_launchers"])
+        self.number_shortcuts_cb.set_active(
+                                self.globals.settings["use_number_shortcuts"])
 
         # Dock page
         self.dock_size_spin.set_value(self.globals.settings["dock/size"])

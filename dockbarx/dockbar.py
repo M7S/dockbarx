@@ -229,6 +229,8 @@ class DockBar():
         self.__gkeys_changed(dialog=False)
         self.__init_number_shortcuts()
         self.globals.connect("gkey-changed", self.__gkeys_changed)
+        self.globals.connect("use-number-shortcuts-changed",
+                             self.__init_number_shortcuts)
         
         #--- Generate Gio apps
         self.apps_by_id = {}
@@ -1460,15 +1462,23 @@ class DockBar():
                     disconnect(applet)
                 break
 
-    def __init_number_shortcuts(self):
+    def __init_number_shortcuts(self, *args):
         for i in range(10):
             key = "<super>%s" % i
-            if keybinder.bind(key, self.__on_number_shortcut_pressed, i):
-                # Key succesfully bound.
-                pass
+            if self.globals.settings["use_number_shortcuts"]:
+                try:
+                    success = keybinder.bind(key,
+                                         self.__on_number_shortcut_pressed, i)
+                except:
+                    success = False
+                if not success:
+                    # Keybinder sometimes doesn't unbind faulty binds.
+                    # We have to do it manually.
+                    try:
+                        keybinder.unbind(key)
+                    except:
+                        pass
             else:
-                # Keybinder sometimes doesn't unbind faulty binds.
-                # We have to do it manually.
                 try:
                     keybinder.unbind(key)
                 except:
