@@ -192,8 +192,8 @@ class DockX(CairoDockX):
         self.dockbar.load()
         CairoDockX.__init__(self)
         self.box = gtk.HBox()
-        self.event_box1 = EventPadding(self)
-        self.event_box2 = EventPadding(self)
+        self.padding1 = EventPadding(self, "before")
+        self.padding2 = EventPadding(self, "after")
         self.add(self.box)
         self.position_dock()
         self.globals.connect("dock-size-changed", self.position_dock)
@@ -202,12 +202,11 @@ class DockX(CairoDockX):
         self.globals.connect("dock-mode-changed", self.__on_mode_changed)
 
     def position_dock(self, *args):
-        monitor = self.get_screen().get_monitor_geometry(0)
+        mx, my, mw, mh = self.get_monitor_geometry()
         size = self.globals.settings["dock/size"]
         centered = self.globals.settings["dock/mode"] == "centered"
         cornered = self.globals.settings["dock/mode"] == "corner"
         pos = self.globals.settings["dock/position"]
-        mx, my, mw, mh = monitor
         l, r, t, b = self.__get_strut()
         if self.globals.settings["dock/position"] in ("left", "right"):
             if self.globals.orient != "v" or not self.box.get_children():
@@ -217,13 +216,13 @@ class DockX(CairoDockX):
                 self.box.destroy()
                 self.box = gtk.VBox()
                 self.add(self.box)
-                if centered:
-                    self.box.pack_start(self.event_box1, False, False)
+                if centered or cornered:
+                    self.box.pack_start(self.padding1, False, False)
                 self.box.pack_start(self.dockbar.container, False, False)
                 if centered or cornered:
-                    self.box.pack_start(self.event_box2, False, False)
+                    self.box.pack_start(self.padding2, False, False)
                 else:
-                    self.box.pack_start(self.event_box2, True, True)
+                    self.box.pack_start(self.padding2, True, True)
                 self.show_all()
         else:
             if self.globals.orient != "h" or not self.box.get_children():
@@ -233,13 +232,13 @@ class DockX(CairoDockX):
                 self.box.destroy()
                 self.box = gtk.HBox()
                 self.add(self.box)
-                if centered:
-                    self.box.pack_start(self.event_box1, False, False)
+                if centered or cornered:
+                    self.box.pack_start(self.padding1, False, False)
                 self.box.pack_start(self.dockbar.container, False, False)
                 if centered or cornered:
-                    self.box.pack_start(self.event_box2, False, False)
+                    self.box.pack_start(self.padding2, False, False)
                 else:
-                    self.box.pack_start(self.event_box2, True, True)
+                    self.box.pack_start(self.padding2, True, True)
                 self.show_all()
         if pos == "left":
             x,y, w, h = (mx + l, my + t, size, mh - t - b)
@@ -333,25 +332,42 @@ class DockX(CairoDockX):
 
     def do_size_allocate(self, allocation):
         CairoDockX.do_size_allocate(self, allocation)
-        if self.globals.settings["dock/mode"] != "centered":
+        if self.globals.settings["dock/mode"] == "panel":
             return
-        monitor = self.get_screen().get_monitor_geometry(0)
-        mx, my, mw, mh = monitor
-            
+        
+        w = allocation.width
+        h = allocation.height
+        if self.globals.settings["dock/mode"] == "centered":
+            mx, my, mw, mh = self.get_monitor_geometry()
+            if self.globals.settings["dock/position"] == "left":
+                x = mx
+                y = my + mh / 2 - h / 2
+            elif self.globals.settings["dock/position"] == "right":
+                x = mx + mw - allocation.width
+                y = my + mh / 2 - h / 2
+            elif self.globals.settings["dock/position"] == "top":
+                x = mx + mw / 2 - w / 2
+                y = 0
+            else:
+                x = mx + mw / 2 - w / 2
+                y = my + mh - allocation.height
+            self.move(x, y)
+            self.queue_draw()
+        if self.globals.settings["dock/mode"] == "corner":
+            x, y = self.get_position()
         if self.globals.settings["dock/position"] == "left":
-            x = mx
-            y = my + mh / 2 - allocation.height / 2
+            strut = [w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
         elif self.globals.settings["dock/position"] == "right":
-            x = mx + mw - allocation.width
-            y = my + mh / 2 - allocation.height / 2
+            strut = [0, w, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
         elif self.globals.settings["dock/position"] == "top":
-            x = mx + mw / 2 - allocation.width / 2
-            y = 0
+            strut = [0, 0, h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
         else:
-            x = mx + mw / 2 - allocation.width / 2
-            y = my + mh - allocation.height
-        self.move(x, y)
-        self.queue_draw()
+            strut = [0, 0, 0, h, 0, 0, 0, 0, 0, 0, x, x + w - 1]
+        if self.window:
+            self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
+                                        gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
+            self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
+                                        32, gtk.gdk.PROP_MODE_REPLACE, strut)
 
     def __on_mode_changed(self, *args):
         for child in self.box.get_children():
@@ -363,6 +379,14 @@ class DockX(CairoDockX):
         self.position_dock()
         self.queue_draw()
 
+    def get_monitor_geometry(self):
+        gdk_screen = gtk.gdk.screen_get_default()
+        if self.window is not None:
+            mnr = gdk_screen.get_monitor_at_window(self.window)
+        else:
+            mnr = 0
+        return self.get_screen().get_monitor_geometry(mnr)
+
     def reload(self, *args):
         self.dockbar.reload() 
 
@@ -372,13 +396,21 @@ class DockX(CairoDockX):
         
 
 class EventPadding(gtk.EventBox):
-    __gsignals__ = {"button-release-event": "override"}
-    def __init__(self, dock):
+    __gsignals__ = {"button-release-event": "override",
+                    "drag-motion" : "override",
+                    "drag-leave" : "override",
+                    "drag-drop" : "override",
+                    "drag-data-received" : "override"}
+    def __init__(self, dock, position="after"):
         gtk.EventBox.__init__(self)
         self.globals = Globals()
         self.dock_r = weakref.ref(dock)
         self.set_visible_window(False)
         self.set_size_request(6, 6)
+
+        self.position = position
+        self.drag_dest_set(0, [], 0)
+        self.drag_entered = False
 
     def do_button_release_event(self, event):
         if event.button != 3:
@@ -419,6 +451,47 @@ class EventPadding(gtk.EventBox):
 
     def __reload(self, *args):
         self.dock_r().reload()
+
+    def do_drag_drop(self, drag_context, x, y, t):
+        if "text/groupbutton_name" in drag_context.targets:
+            self.drag_get_data(drag_context, "text/groupbutton_name", t)
+            drag_context.finish(True, False, t)
+        elif "text/uri-list" in drag_context.targets:
+            self.drag_get_data(drag_context, "text/uri-list", t)
+            drag_context.finish(True, False, t)
+        else:
+            drag_context.finish(False, False, t)
+        return True
+
+    def do_drag_data_received(self, context, x, y, selection, targetType, t):
+        if selection.target == "text/groupbutton_name":
+            self.dock_r().dockbar.groupbutton_moved(selection.data,
+                                                    self.position)
+        elif selection.target == "text/uri-list":
+            if ".desktop" in selection.data:
+                # .desktop file! This is a potential launcher.
+                #remove "file://" and "/n" from the URI
+                # Todo: What if the uri doesn't start with "file://"?
+                path = selection.data[7:-2]
+                path = path.replace("%20"," ")
+                self.dock_r().dockbar.launcher_dropped(path, self.position)
+
+    def do_drag_motion(self, drag_context, x, y, t):
+        if not self.drag_entered:
+            self.do_drag_enter(drag_context, x, y, t)
+        if "text/groupbutton_name" in drag_context.targets:
+            drag_context.drag_status(gtk.gdk.ACTION_MOVE, t)
+        elif "text/uri-list" in drag_context.targets:
+            drag_context.drag_status(gtk.gdk.ACTION_COPY, t)
+        else:
+            drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
+        return True
+
+    def do_drag_enter(self, drag_context, x, y, t):
+        self.drag_entered = True
+
+    def do_drag_leave(self, drag_context, t):
+        self.drag_entered = False
 
 def shift(l, n=1):
     return l[n:] + l[:n]

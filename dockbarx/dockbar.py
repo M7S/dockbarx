@@ -492,8 +492,14 @@ class DockBar():
         # Moves the button to the right of the drop point.
         group = self.groups[name]
 
-        index = self.groups.index(drop_point)
-        index += (index < self.groups.index(group))
+        if drop_point == "after":
+            index = len(self.groups) - 1
+        elif drop_point == "before":
+            index = 0
+        else:
+            # Dropped on a group button
+            index = self.groups.index(drop_point)
+            index += (index < self.groups.index(group))
         self.container.reorder_child(group.button, index)
         self.groups.move(group, index)
         self.update_pinned_apps_list()
@@ -516,9 +522,8 @@ class DockBar():
                          pinned=False, index=None):
         group = Group(self, identifier, desktop_entry, pinned)
         self.container.pack_start(group.button, False)
-        if index is not None:
+        if index is not None and index != -1:
             self.container.reorder_child(group.button, index)
-        if index is not None:
             self.groups.insert(index, group)
         else:
             self.groups.append(group)
@@ -886,10 +891,16 @@ class DockBar():
         # Remove existing groupbutton for the same program
         window_list = []
         index = None
-        drop_identifier = drop_point.identifier or \
-                          drop_point.desktop_entry.getFileName()
-        if drop_identifier in (identifier, path):
-            index = self.groups.index(drop_point)
+            
+        if drop_point == "after":
+            index = -1
+        elif drop_point == "before":
+            index = 0
+        else:
+            drop_identifier = drop_point.identifier or \
+                              drop_point.desktop_entry.getFileName()
+            if drop_identifier in (identifier, path):
+                index = self.groups.index(drop_point)
         group = self.groups.get(identifier) or self.groups.get(path)
         if group is not None:
             # Get the windows for repopulation of the new button
