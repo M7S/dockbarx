@@ -202,20 +202,14 @@ class DockX(CairoDockX):
         self.globals.connect("dock-position-changed",
                              self.__on_position_changed)
         self.globals.connect("dock-mode-changed", self.__on_mode_changed)
+        self.globals.connect("dock-offset-changed", self.__on_offset_changed)
         self.globals.connect("dock-overlap-changed",
                              self.__on_overlap_changed)
 
     def position_dock(self, *args):
-        mx, my, mw, mh = self.get_monitor_geometry()
-        sw = self.get_screen().get_width()
-        sh = self.get_screen().get_height()
-        print mx, my, mw, mh, sw, sh
-        size = self.globals.settings["dock/size"]
         centered = self.globals.settings["dock/mode"] == "centered"
         cornered = self.globals.settings["dock/mode"] == "corner"
         pos = self.globals.settings["dock/position"]
-        l, r, t, b = self.__get_strut()
-        print l, r, t, b
         if self.globals.settings["dock/position"] in ("left", "right"):
             if self.globals.orient != "v" or not self.box.get_children():
                 self.dockbar.set_orient("v")
@@ -247,17 +241,23 @@ class DockX(CairoDockX):
                 else:
                     self.box.pack_start(self.padding2, True, True)
                 self.show_all()
+        mx, my, mw, mh = self.get_monitor_geometry()
+        l, r, t, b = self.__get_strut()
+        sw = self.get_screen().get_width()
+        sh = self.get_screen().get_height()
+        size = self.globals.settings["dock/size"]
+        o = self.globals.settings["dock/offset"]
         if pos == "left":
-            x,y, w, h = (l, t, size, sh - t - b)
+            x,y, w, h = (l, t + o, size, sh - t - b - o)
             strut = [x + w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
         elif pos == "right":
-            x,y, w, h = (sw - size - r, t, size, sh - t - b)
+            x,y, w, h = (sw - size - r, t + o, size, sh - t - b - o)
             strut = [0, sw - x, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
         elif pos == "top":
-            x,y, w, h = (l, t, sw - l - r, size)
+            x,y, w, h = (l + o, t, sw - l - r - o, size)
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
         else:
-            x,y, w, h = (l, sh - size - b, sw - l - r, size)
+            x,y, w, h = (l + o, sh - size - b, sw - l - r - o, size)
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
         if (centered or cornered) and pos in ("left", "right"):
             self.set_size_request(w, -1)
@@ -437,6 +437,9 @@ class DockX(CairoDockX):
         a = self.get_allocation()
         x, y = self.get_position()
         self.__set_dock_strut(x, y, a.width, a.height)
+
+    def __on_offset_changed(self, *args):
+        self.position_dock()
 
     def get_monitor_geometry(self):
         return self.get_screen().get_monitor_geometry(self.monitor)

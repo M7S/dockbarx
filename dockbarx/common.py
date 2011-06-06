@@ -529,6 +529,8 @@ class Globals(gobject.GObject):
         "dock-position-changed": (gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,()),
         "dock-mode-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "dock-offset-changed": (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,()),
         "dock-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
                                    gobject.TYPE_NONE,())
     }
@@ -622,6 +624,7 @@ class Globals(gobject.GObject):
                       
           "dock/position": "left",
           "dock/size": 42,
+          "dock/offset":0,
           "dock/mode":"panel",
           "dock/overlap": False}
 
@@ -727,6 +730,8 @@ class Globals(gobject.GObject):
         #TODO: Add check for sane values for critical settings.
         if "dock/size" in changed_settings:
             self.emit("dock-size-changed")
+        if "dock/offset" in changed_settings:
+            self.emit("dock-offset-changed")
         if "dock/position" in changed_settings:
             self.emit("dock-position-changed")
         if "dock/mode" in changed_settings:

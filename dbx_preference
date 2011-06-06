@@ -898,6 +898,19 @@ class PrefDialog():
         hbox.pack_start(self.dock_size_spin, False)
         dock_box.pack_start(hbox, False)
 
+        hbox = gtk.HBox()
+        hbox.set_border_width(5)
+        hbox.set_spacing(5)
+        label = gtk.Label(_("Offset"))
+        label.set_tooltip_text(_("Use this if the dock isn't able to automatically aviod overlapping with other panels"))
+        hbox.pack_start(label, False)
+        adj = gtk.Adjustment(self.globals.settings["dock/offset"],
+                             0, 500, 1, 0, 0)
+        adj.connect("value-changed", self.__adjustment_changed, "dock/offset")
+        self.dock_offset_spin = gtk.SpinButton(adj, 0.5, 0)
+        hbox.pack_start(self.dock_offset_spin, False)
+        dock_box.pack_start(hbox, False)
+
         self.dock_strut_cb = gtk.CheckButton(_("Allow maximized windows behind the dock"))
         self.dock_strut_cb.set_border_width(5)
         self.dock_strut_cb.connect("toggled",
@@ -1188,6 +1201,11 @@ class PrefDialog():
 
         # Dock page
         self.dock_size_spin.set_value(self.globals.settings["dock/size"])
+        self.dock_offset_spin.set_value(self.globals.settings["dock/offset"])
+        if self.globals.settings["dock/mode"].lower() == "centered":
+            self.dock_offset_spin.set_sensitive(False)
+        else:
+            self.dock_offset_spin.set_sensitive(True)
         model = self.dock_mode_box.get_model()
         for i in range(len(model)):
             pos = self.globals.settings["dock/mode"].lower()
