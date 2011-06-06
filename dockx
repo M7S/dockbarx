@@ -409,14 +409,14 @@ class DockX(CairoDockX):
                 x = mx
                 y = my + mh / 2 - h / 2
             elif self.globals.settings["dock/position"] == "right":
-                x = mx + mw - allocation.width
+                x = mx + mw - w
                 y = my + mh / 2 - h / 2
             elif self.globals.settings["dock/position"] == "top":
                 x = mx + mw / 2 - w / 2
-                y = 0
+                y = my
             else:
                 x = mx + mw / 2 - w / 2
-                y = my + mh - allocation.height
+                y = my + mh - h
             self.move(x, y)
             self.queue_draw()
         if self.globals.settings["dock/mode"] == "corner":
