@@ -184,13 +184,15 @@ class CairoDockX(gtk.Window):
 class DockX(CairoDockX):
     __gsignals__ = {"destroy": "override",
                     "size-allocate": "override"}
-    def __init__(self):
+    def __init__(self, monitor=0):
         self.globals = Globals()
         self.dockbar = dockbarx.dockbar.DockBar(None,
                                                 parent_window=self,
                                                 run_as_dock=True)
         self.dockbar.load()
         CairoDockX.__init__(self)
+        self.set_keep_above(True)
+        self.monitor = monitor
         self.box = gtk.HBox()
         self.padding1 = EventPadding(self, "before")
         self.padding2 = EventPadding(self, "after")
@@ -200,14 +202,20 @@ class DockX(CairoDockX):
         self.globals.connect("dock-position-changed",
                              self.__on_position_changed)
         self.globals.connect("dock-mode-changed", self.__on_mode_changed)
+        self.globals.connect("dock-overlap-changed",
+                             self.__on_overlap_changed)
 
     def position_dock(self, *args):
         mx, my, mw, mh = self.get_monitor_geometry()
+        sw = self.get_screen().get_width()
+        sh = self.get_screen().get_height()
+        print mx, my, mw, mh, sw, sh
         size = self.globals.settings["dock/size"]
         centered = self.globals.settings["dock/mode"] == "centered"
         cornered = self.globals.settings["dock/mode"] == "corner"
         pos = self.globals.settings["dock/position"]
         l, r, t, b = self.__get_strut()
+        print l, r, t, b
         if self.globals.settings["dock/position"] in ("left", "right"):
             if self.globals.orient != "v" or not self.box.get_children():
                 self.dockbar.set_orient("v")
@@ -216,8 +224,7 @@ class DockX(CairoDockX):
                 self.box.destroy()
                 self.box = gtk.VBox()
                 self.add(self.box)
-                if centered or cornered:
-                    self.box.pack_start(self.padding1, False, False)
+                self.box.pack_start(self.padding1, False, False)
                 self.box.pack_start(self.dockbar.container, False, False)
                 if centered or cornered:
                     self.box.pack_start(self.padding2, False, False)
@@ -241,17 +248,17 @@ class DockX(CairoDockX):
                     self.box.pack_start(self.padding2, True, True)
                 self.show_all()
         if pos == "left":
-            x,y, w, h = (mx + l, my + t, size, mh - t - b)
-            strut = [size, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
+            x,y, w, h = (l, t, size, sh - t - b)
+            strut = [x + w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
         elif pos == "right":
-            x,y, w, h = (mx + mw - size - r, my - t, size, mh - t - b)
-            strut = [0, size, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
+            x,y, w, h = (sw - size - r, t, size, sh - t - b)
+            strut = [0, sw - x, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
         elif pos == "top":
-            x,y, w, h = (mx + l, my + t, mw - l - r, size)
-            strut = [0, 0, size, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
+            x,y, w, h = (l, t, sw - l - r, size)
+            strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
         else:
-            x,y, w, h = (mx + l, my + mh - size - b, mw - l - r, size)
-            strut = [0, 0, 0, size, 0, 0, 0, 0, 0, 0, x, x + w - 1]
+            x,y, w, h = (l, sh - size - b, sw - l - r, size)
+            strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
         if (centered or cornered) and pos in ("left", "right"):
             self.set_size_request(w, -1)
         elif (centered or cornered):
@@ -266,25 +273,42 @@ class DockX(CairoDockX):
             self.move(mx + mw / 2 - a.width / 2, y)
         else:
             self.move(x, y)
-        if self.window:
-            self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                        gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
-            self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
-                                        32, gtk.gdk.PROP_MODE_REPLACE, strut)
+        self.__set_dock_strut(x, y, w, h)
         for group in self.dockbar.groups:
             group.button.icon_factory.set_size(size)
             group.button.update_state(force_update=True)
 
+    def __set_dock_strut(self, x, y, w, h):
+        sw = self.get_screen().get_width()
+        sh = self.get_screen().get_height()
+        if self.globals.settings["dock/position"] == "left":
+            strut = [x + w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
+        elif self.globals.settings["dock/position"] == "right":
+            strut = [0, sw - x, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
+        elif self.globals.settings["dock/position"] == "top":
+            strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
+        else:
+            strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
+        if self.window and not self.globals.settings["dock/overlap"]:
+            self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
+                                        gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
+            self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
+                                        32, gtk.gdk.PROP_MODE_REPLACE, strut)
+        elif self.window:
+            self.window.property_delete("_NET_WM_STRUT")
+            self.window.property_delete("_NET_WM_STRUT_PARTIAL")
+            
     def __get_strut(self):
-        monitor = self.get_screen().get_monitor_geometry(0)
         size = self.globals.settings["dock/size"]
-        mx, my, mw, mh = monitor
+        mx, my, mw, mh = self.get_monitor_geometry()
+        sw = self.get_screen().get_width()
+        sh = self.get_screen().get_height()
         d = display.Display()
         root = d.screen().root
         windows = root.query_tree()._data['children']
         strut_atom = d.get_atom('_NET_WM_STRUT')
         strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
-        strut = [0, 0, 0, 0]
+        strut = [mx, my, sw - (mx + mw),  sh - (my + mh)]
         for w in windows:
             prop1 = w.get_full_property(strut_partial_atom, 0)
             prop2 = w.get_full_property(strut_atom, 0)
@@ -293,36 +317,61 @@ class DockX(CairoDockX):
                 if cl and cl[0] in ("dockx", "dockbarx_factory"):
                     continue
                 if self.globals.settings["dock/position"] == "left":
-                    strut[0] = max(strut[0], prop1.value[0])
-                    strut[1] = max(strut[1], prop1.value[1])
-                    if prop1.value[8] <= size:
+                    if prop1.value[4] < my + mh and \
+                       prop1.value[5] >= my:
+                        strut[0] = max(strut[0], prop1.value[0])
+                    if prop1.value[6] < my + mh and \
+                       prop1.value[7] >= my:
+                        strut[1] = max(strut[1], prop1.value[1])
+                    if prop1.value[8] <= mx + size and \
+                       prop1.value[9] >= mx:
                         strut[2] = max(strut[2], prop1.value[2])
-                    if prop1.value[10] <= size:
+                    if prop1.value[10] <= mx + size and \
+                       prop1.value[11] >= mx:
                         strut[3] = max(strut[3], prop1.value[3])
                 elif self.globals.settings["dock/position"] == "right":
-                    strut[0] = max(strut[0], prop1.value[0])
-                    strut[1] = max(strut[1], prop1.value[1])
-                    if prop1.value[9] >= mw - size:
+                    if prop1.value[4] < my + mh and \
+                       prop1.value[5] >= my:
+                        strut[0] = max(strut[0], prop1.value[0])
+                    if prop1.value[6] < my + mh and \
+                       prop1.value[7] >= my:
+                        strut[1] = max(strut[1], prop1.value[1])
+                    if prop1.value[8] < mx + mw and \
+                       prop1.value[9] >= mx + mw - size:
                         strut[2] = max(strut[2], prop1.value[2])
-                    if prop1.value[11] >= mw - size:
-                        strut[3] = max(strut[3], prop1.value[3])
+                    if prop1.value[10] < mx + mw and \
+                       prop1.value[11] >= mx + mw - size:
                         strut[3] = max(strut[3], prop1.value[3])
                 elif self.globals.settings["dock/position"] == "top":
-                    if prop1.value[4] <= size:
+                    if prop1.value[4] <= my + size and \
+                       prop1.value[5] >= my:
                         strut[0] = max(strut[0], prop1.value[0])
-                    if prop1.value[6] <= size:
+                    if prop1.value[6] <= my + size and \
+                       prop1.value[7] >= my:
                         strut[1] = max(strut[1], prop1.value[1])
-                    strut[2] = max(strut[2], prop1.value[2])
-                    strut[3] = max(strut[3], prop1.value[3])
+                    if prop1.value[8] < mx + mw and \
+                       prop1.value[9] >= mx:
+                        strut[2] = max(strut[2], prop1.value[2])
+                    if prop1.value[10] < mx + mw and \
+                       prop1.value[11] >= mx:
+                        strut[3] = max(strut[3], prop1.value[3])
                 else:
-                    if prop1.value[5] >= mh - size:
+                    if prop1.value[4] < my + mh and \
+                       prop1.value[5] >= my + mh - size:
                         strut[0] = max(strut[0], prop1.value[0])
-                    if prop1.value[7] >= mh - size:
+                    if prop1.value[6] < my + mh and \
+                       prop1.value[7] >= my + mh - size:
                         strut[1] = max(strut[1], prop1.value[1])
-                    strut[2] = max(strut[2], prop1.value[2])
-                    strut[3] = max(strut[3], prop1.value[3])
+                    if prop1.value[8] < mx + mw and \
+                       prop1.value[9] >= mx:
+                        strut[2] = max(strut[2], prop1.value[2])
+                    if prop1.value[10] < mx + mw and \
+                       prop1.value[11] >= mx:
+                        strut[3] = max(strut[3], prop1.value[3])
                 continue
             if prop2 is not None:
+                # Hopefully this one is never needed because
+                # it won't work well with dualscreens.
                 cl = w.get_wm_class()
                 if cl and cl[0] in ("dockx", "dockbarx_factory"):
                     continue
@@ -337,6 +386,8 @@ class DockX(CairoDockX):
         
         w = allocation.width
         h = allocation.height
+        sw = self.get_screen().get_width()
+        sh = self.get_screen().get_height()
         if self.globals.settings["dock/mode"] == "centered":
             mx, my, mw, mh = self.get_monitor_geometry()
             if self.globals.settings["dock/position"] == "left":
@@ -355,19 +406,7 @@ class DockX(CairoDockX):
             self.queue_draw()
         if self.globals.settings["dock/mode"] == "corner":
             x, y = self.get_position()
-        if self.globals.settings["dock/position"] == "left":
-            strut = [w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
-        elif self.globals.settings["dock/position"] == "right":
-            strut = [0, w, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
-        elif self.globals.settings["dock/position"] == "top":
-            strut = [0, 0, h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
-        else:
-            strut = [0, 0, 0, h, 0, 0, 0, 0, 0, 0, x, x + w - 1]
-        if self.window:
-            self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                        gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
-            self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
-                                        32, gtk.gdk.PROP_MODE_REPLACE, strut)
+        self.__set_dock_strut(x, y, w, h)
 
     def __on_mode_changed(self, *args):
         for child in self.box.get_children():
@@ -379,13 +418,13 @@ class DockX(CairoDockX):
         self.position_dock()
         self.queue_draw()
 
+    def __on_overlap_changed(self, *args):
+        a = self.get_allocation()
+        x, y = self.get_position()
+        self.__set_dock_strut(x, y, a.width, a.height)
+
     def get_monitor_geometry(self):
-        gdk_screen = gtk.gdk.screen_get_default()
-        if self.window is not None:
-            mnr = gdk_screen.get_monitor_at_window(self.window)
-        else:
-            mnr = 0
-        return self.get_screen().get_monitor_geometry(mnr)
+        return self.get_screen().get_monitor_geometry(self.monitor)
 
     def reload(self, *args):
         self.dockbar.reload() 
@@ -495,7 +534,16 @@ class EventPadding(gtk.EventBox):
 
 def shift(l, n=1):
     return l[n:] + l[:n]
-dockx = DockX()
+
+monitor = 0
+if "--monitor" in sys.argv:
+    i = sys.argv.index("--monitor") + 1
+    try:
+        monitor = int(sys.argv[i])
+    except:
+        raise
+dockx = DockX(monitor)
+del monitor
 gtk.main()
         
 

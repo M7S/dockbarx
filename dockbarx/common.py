@@ -528,7 +528,9 @@ class Globals(gobject.GObject):
         "dock-size-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "dock-position-changed": (gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,()),
-        "dock-mode-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())
+        "dock-mode-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "dock-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
+                                   gobject.TYPE_NONE,())
     }
 
     DEFAULT_SETTINGS = {
@@ -620,7 +622,8 @@ class Globals(gobject.GObject):
                       
           "dock/position": "left",
           "dock/size": 42,
-          "dock/mode":"panel"}
+          "dock/mode":"panel",
+          "dock/overlap": False}
 
     DEFAULT_COLORS={
                       "color1": "#333333",
@@ -728,6 +731,8 @@ class Globals(gobject.GObject):
             self.emit("dock-position-changed")
         if "dock/mode" in changed_settings:
             self.emit("dock-mode-changed")
+        if "dock/overlap" in changed_settings:
+            self.emit("dock-overlap-changed")
         if "locked_list_no_overlap" in changed_settings:
             self.emit("locked-list-overlap-changed")
         if "locked_list_in_menu" in changed_settings:

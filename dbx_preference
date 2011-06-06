@@ -897,6 +897,13 @@ class PrefDialog():
         self.dock_size_spin = gtk.SpinButton(adj, 0.5, 0)
         hbox.pack_start(self.dock_size_spin, False)
         dock_box.pack_start(hbox, False)
+
+        self.dock_strut_cb = gtk.CheckButton(_("Allow maximized windows behind the dock"))
+        self.dock_strut_cb.set_border_width(5)
+        self.dock_strut_cb.connect("toggled",
+                                   self.__checkbutton_toggled,
+                                   "dock/overlap")
+        dock_box.pack_start(self.dock_strut_cb, False)
         
 
         notebook.append_page(appearance_box, gtk.Label(_("Appearance")))
@@ -1193,8 +1200,7 @@ class PrefDialog():
             if model[i][0].lower() == pos:
                 self.dock_position_box.set_active(i)
                 break
-
-
+        self.dock_strut_cb.set_active(self.globals.settings["dock/overlap"])
 
     def __dialog_close(self,par1,par2):
         self.dialog.destroy()
