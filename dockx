@@ -279,22 +279,37 @@ class DockX(CairoDockX):
             group.button.update_state(force_update=True)
 
     def __set_dock_strut(self, x, y, w, h):
-        sw = self.get_screen().get_width()
-        sh = self.get_screen().get_height()
+        if not self.window:
+            return
+        s = self.get_screen()
+        sw = s.get_width()
+        sh = s.get_height()
+        
+        mx, my, mw, mh = s.get_monitor_geometry(self.monitor)
+        set_strut = not self.globals.settings["dock/overlap"]
         if self.globals.settings["dock/position"] == "left":
             strut = [x + w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
+            # Make sure that there's no monitor on the left side of this one.
+            if s.get_monitor_at_point(mx - 5, y + h / 2) != self.monitor:
+                set_strut = False
         elif self.globals.settings["dock/position"] == "right":
             strut = [0, sw - x, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
+            if s.get_monitor_at_point(mx + mw + 5, y + h / 2) != self.monitor:
+                set_strut = False
         elif self.globals.settings["dock/position"] == "top":
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
+            if s.get_monitor_at_point(x + w / 2, my - 5) != self.monitor:
+                set_strut = False
         else:
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
-        if self.window and not self.globals.settings["dock/overlap"]:
+            if s.get_monitor_at_point(x + w / 2, my + mh + 5) != self.monitor:
+                set_strut = False
+        if set_strut:
             self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
                                         gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
             self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
                                         32, gtk.gdk.PROP_MODE_REPLACE, strut)
-        elif self.window:
+        else:
             self.window.property_delete("_NET_WM_STRUT")
             self.window.property_delete("_NET_WM_STRUT_PARTIAL")
             
