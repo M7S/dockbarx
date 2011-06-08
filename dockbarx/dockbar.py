@@ -1373,7 +1373,6 @@ class DockBar():
         else:
             old_next_group = self.next_group
             i = self.groups.index(self.next_group)
-            print i
             groups = self.groups[i+1:] + self.groups[:i]
             if previous:
                 groups.reverse()
