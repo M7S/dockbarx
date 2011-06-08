@@ -7,423 +7,532 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-12-23 21:35+0200\n"
+"POT-Creation-Date: 2011-06-05 19:38+0300\n"
 "PO-Revision-Date: 2011-01-15 17:30+0000\n"
 "Last-Translator: Marcel <marceliqq@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-02-05 17:52+0000\n"
-"X-Generator: Launchpad (build 12309)\n"
+"X-Launchpad-Export-Date: 2011-06-08 20:44+0000\n"
+"X-Generator: Launchpad (build 13144)\n"
 
-#: dbx_preference.py:212
+#: dbx_preference:212
 msgid "DockBarX preferences"
 msgstr "DockBarX nastavenia"
 
-#: dbx_preference.py:231
+#: dbx_preference:233
 msgid "Window item actions"
 msgstr ""
 
-#: dbx_preference.py:237 dbx_preference.py:499
+#: dbx_preference:239 dbx_preference:529
 msgid "Left mouse button"
 msgstr "Ľavé tlačidlo myši"
 
-#: dbx_preference.py:238 dbx_preference.py:500
+#: dbx_preference:240 dbx_preference:530
 msgid "Shift + left mouse button"
 msgstr "Shift + ľavé tlačidlo myši"
 
-#: dbx_preference.py:240 dbx_preference.py:502
+#: dbx_preference:242 dbx_preference:532
 msgid "Middle mouse button"
 msgstr "Prostredné tlačidlo myši"
 
-#: dbx_preference.py:242 dbx_preference.py:503
+#: dbx_preference:244 dbx_preference:533
 msgid "Shift + middle mouse button"
 msgstr "Shift + Prostredné tlačidlo myši"
 
-#: dbx_preference.py:244 dbx_preference.py:505
+#: dbx_preference:246 dbx_preference:535
 msgid "Right mouse button"
 msgstr "Pravé tlačidlo myši"
 
-#: dbx_preference.py:246 dbx_preference.py:506
+#: dbx_preference:248 dbx_preference:536
 msgid "Shift + right mouse button"
 msgstr "Shift + Pravé tlačidlo myši"
 
-#: dbx_preference.py:248 dbx_preference.py:508
+#: dbx_preference:250 dbx_preference:538
 msgid "Scroll up"
 msgstr "Rolovať hore"
 
-#: dbx_preference.py:249 dbx_preference.py:509
+#: dbx_preference:251 dbx_preference:539
 msgid "Scroll down"
 msgstr "Rolovať dole"
 
-#: dbx_preference.py:254 dbx_preference.py:575 dbx_preference.py:963
-#: dbx_preference.py:1202
+#: dbx_preference:256 dbx_preference:605 dbx_preference:1114
+#: dbx_preference:1366
 msgid "select or minimize window"
 msgstr "vybrať alebo minimalizovať okno"
 
-#: dbx_preference.py:255 dbx_preference.py:574 dbx_preference.py:962
-#: dbx_preference.py:1201
+#: dbx_preference:257 dbx_preference:604 dbx_preference:1113
+#: dbx_preference:1365
 msgid "select window"
 msgstr "vybrať okno"
 
-#: dbx_preference.py:256
+#: dbx_preference:258
 msgid "maximize window"
 msgstr "maximalizovať okno"
 
-#: dbx_preference.py:257
+#: dbx_preference:259
 msgid "close window"
 msgstr "zatvoriť okno"
 
-#: dbx_preference.py:258 dbx_preference.py:518
+#: dbx_preference:260 dbx_preference:548
 msgid "show menu"
 msgstr "zobraziť menu"
 
-#: dbx_preference.py:259
+#: dbx_preference:261
 msgid "shade window"
 msgstr "tieňovanie okna"
 
-#: dbx_preference.py:260
+#: dbx_preference:262
 msgid "unshade window"
 msgstr "zrušiť tieňovanie okna"
 
-#: dbx_preference.py:261 dbx_preference.py:527
+#: dbx_preference:263 dbx_preference:557
 msgid "no action"
 msgstr "žiadna akcia"
 
-#: dbx_preference.py:290
+#: dbx_preference:292
 msgid "Close window list"
 msgstr "Zatvoriť zoznam okien"
 
-#: dbx_preference.py:306
+#: dbx_preference:306
+msgid "Show close button"
+msgstr ""
+
+#: dbx_preference:316
 msgid "Theme:"
 msgstr "Motív vzhľadu:"
 
-#: dbx_preference.py:324
+#: dbx_preference:334
 msgid "Colors"
 msgstr "Farby"
 
-#: dbx_preference.py:381
+#: dbx_preference:391
 msgid "Needs attention effect"
 msgstr "Potrebná pozornosť efekt"
 
-#: dbx_preference.py:385
+#: dbx_preference:395
 msgid "Compiz water"
 msgstr "Compiz voda"
 
-#: dbx_preference.py:387
+#: dbx_preference:397
 msgid "Blinking"
 msgstr "Blikanie"
 
-#: dbx_preference.py:389
+#: dbx_preference:399
 msgid "Static"
 msgstr "Statický"
 
-#: dbx_preference.py:391
+#: dbx_preference:401
 msgid "No effect"
 msgstr "Žiadny efekt"
 
-#: dbx_preference.py:402
+#: dbx_preference:412
 msgid "Use gtk menu (old style) instead of DockbarX style menu."
 msgstr "Použije sa gtk menu (starý vzhľad) namiesto DockbarX štýlového menu."
 
-#: dbx_preference.py:414
+#: dbx_preference:424
 msgid "Show window list only if more than one window is open"
 msgstr "Ukázať zoznam okien iba ak je otvorených viacero okien"
 
-#: dbx_preference.py:420
+#: dbx_preference:430
 msgid "Show tooltip when no window is open"
 msgstr "Ukázať tipy ak nie je otvorené žiadne okno"
 
-#: dbx_preference.py:427
+#: dbx_preference:437
 msgid "Alignment"
 msgstr "Zarovnanie"
 
-#: dbx_preference.py:431
+#: dbx_preference:441
 msgid "Align left"
 msgstr "Zarovnať vľavo"
 
-#: dbx_preference.py:433
+#: dbx_preference:443
 msgid "Align center"
 msgstr "Zarovnať na stred"
 
-#: dbx_preference.py:435
+#: dbx_preference:445
 msgid "Align right"
 msgstr "Zarovnať vpravo"
 
-#: dbx_preference.py:444 dbx_preference.py:449
+#: dbx_preference:454 dbx_preference:459
 msgid "Delay"
 msgstr "Oneskorenie"
 
-#: dbx_preference.py:459
+#: dbx_preference:469
 msgid "Delay for switching between window lists"
 msgstr "Oneskorenie  prepínania zoznamu okien"
 
-#: dbx_preference.py:472
+#: dbx_preference:482
 msgid "Previews"
 msgstr "Náhľady"
 
-#: dbx_preference.py:476
+#: dbx_preference:486
 msgid "Show previews"
 msgstr "Zobraziť náhľady"
 
-#: dbx_preference.py:481
+#: dbx_preference:491
 msgid "Preview size"
 msgstr "Veľkosť náhľadu"
 
-#: dbx_preference.py:493
+#: dbx_preference:503
+msgid "Locked list"
+msgstr ""
+
+#: dbx_preference:508
+msgid "Show \"locked list\" option in menu"
+msgstr ""
+
+#: dbx_preference:509
+msgid ""
+"The option is only shown when a program has more than one window opened."
+msgstr ""
+
+#: dbx_preference:514
+msgid "Maximized windows should not overlap the locked list"
+msgstr ""
+
+#: dbx_preference:523
 msgid "Group button actions"
 msgstr ""
 
-#: dbx_preference.py:513
+#: dbx_preference:543
 msgid "select"
 msgstr "Vybrať"
 
-#: dbx_preference.py:514
+#: dbx_preference:544
 msgid "close all windows"
 msgstr "Zatvoriť všetky okná"
 
-#: dbx_preference.py:515
+#: dbx_preference:545
 msgid "minimize all windows"
 msgstr "Minimalizovať všetky okná"
 
-#: dbx_preference.py:516
+#: dbx_preference:546
 msgid "maximize all windows"
 msgstr "Maximalizovať všetky okná"
 
-#: dbx_preference.py:517
+#: dbx_preference:547
 msgid "launch application"
 msgstr "Spustiť aplikáciu"
 
-#: dbx_preference.py:519
+#: dbx_preference:549
 msgid "remove launcher"
 msgstr "Zmazať spúšťač"
 
-#: dbx_preference.py:520
+#: dbx_preference:550
 msgid "select next window"
 msgstr "Vybrať ďalšie okno"
 
-#: dbx_preference.py:521
+#: dbx_preference:551
 msgid "select previous window"
 msgstr "Vybrať predchádzajúce okno"
 
-#: dbx_preference.py:522
+#: dbx_preference:552
 msgid "minimize all other groups"
 msgstr "Minimalizovať všetky ostatné skupiny"
 
-#: dbx_preference.py:523
+#: dbx_preference:553
 msgid "compiz scale windows"
 msgstr "compiz určuje mierku okien"
 
-#: dbx_preference.py:524
+#: dbx_preference:554
 msgid "compiz shift windows"
 msgstr "compiz prepína okná"
 
-#: dbx_preference.py:525
+#: dbx_preference:555
 msgid "compiz scale all"
 msgstr "compiz určuje mierku všetkého"
 
-#: dbx_preference.py:526
+#: dbx_preference:556
 msgid "show preference dialog"
 msgstr "Zobraziť dialóg nastavení"
 
-#: dbx_preference.py:554
+#: dbx_preference:584
 msgid "Double click"
 msgstr "Dvojité kliknutie"
 
-#: dbx_preference.py:565
+#: dbx_preference:595
 msgid "\"Select\" action options"
 msgstr "\"Vybrať\" možnosti akcie"
 
-#: dbx_preference.py:571
+#: dbx_preference:601
 msgid "One window open"
 msgstr "Otvorené jedno okno"
 
-#: dbx_preference.py:580
+#: dbx_preference:610
 msgid "Multiple windows open"
 msgstr "Otvorených viacero okein"
 
-#: dbx_preference.py:583 dbx_preference.py:972 dbx_preference.py:1214
+#: dbx_preference:613 dbx_preference:1123 dbx_preference:1375
 msgid "select all"
 msgstr "Vybrať všetko"
 
-#: dbx_preference.py:584 dbx_preference.py:973 dbx_preference.py:1215
+#: dbx_preference:614 dbx_preference:1124 dbx_preference:1376
 msgid "select or minimize all"
 msgstr "Vybrať alebo minimalizovať všetko"
 
-#: dbx_preference.py:585 dbx_preference.py:974 dbx_preference.py:1216
+#: dbx_preference:615 dbx_preference:1125 dbx_preference:1377
 msgid "compiz scale"
 msgstr "compiz určuje"
 
-#: dbx_preference.py:586 dbx_preference.py:975 dbx_preference.py:1217
+#: dbx_preference:616 dbx_preference:1126 dbx_preference:1378
 msgid "cycle through windows"
 msgstr "Cyklovať medzi oknami"
 
-#: dbx_preference.py:587 dbx_preference.py:976 dbx_preference.py:1218
+#: dbx_preference:617 dbx_preference:1127 dbx_preference:1379
 msgid "show window list"
 msgstr "ukázať zoznam okien"
 
-#: dbx_preference.py:592
+#: dbx_preference:622
 msgid "Workspace behavior"
 msgstr "Správanie pracovných plôch"
 
-#: dbx_preference.py:596 dbx_preference.py:1230
+#: dbx_preference:626 dbx_preference:1387
 msgid "Ignore windows on other workspaces"
 msgstr "Ignorovať okná na iných plochách"
 
-#: dbx_preference.py:597 dbx_preference.py:986 dbx_preference.py:1231
+#: dbx_preference:627 dbx_preference:1137 dbx_preference:1388
 msgid "Switch workspace when needed"
 msgstr "Prepnúť pracovnú plochu ak je to potrebné"
 
-#: dbx_preference.py:599 dbx_preference.py:987 dbx_preference.py:1232
+#: dbx_preference:629 dbx_preference:1138 dbx_preference:1389
 msgid "Move windows from other workspaces"
 msgstr "Presunúť okná z iných plôch"
 
-#: dbx_preference.py:610
+#: dbx_preference:640
 msgid "\"Select next\" options"
 msgstr ""
 
-#: dbx_preference.py:612
+#: dbx_preference:642
 msgid "\"Select next\" selects the most recently used window in the group"
 msgstr ""
 
-#: dbx_preference.py:613
+#: dbx_preference:643
 msgid ""
 "If set, \"Select Next\" action selects the window that has been used most "
 "recently, otherwise it activates the next window in the window list."
 msgstr ""
 
-#: dbx_preference.py:619
+#: dbx_preference:649
 msgid "Use no delay with \"Select next\""
 msgstr ""
 
-#: dbx_preference.py:620
+#: dbx_preference:650
 msgid ""
 "If set, \"Select Next\" action selects the next window immediately without "
 "any delay"
 msgstr ""
 
-#: dbx_preference.py:632
+#: dbx_preference:660
+msgid "Use media buttons"
+msgstr ""
+
+#: dbx_preference:667
+msgid "Use Unity quicklists"
+msgstr ""
+
+#: dbx_preference:674
+msgid "DockManager"
+msgstr ""
+
+#: dbx_preference:678
+msgid "Use DockManager"
+msgstr ""
+
+#: dbx_preference:682
+msgid "Allow DockManager to write badges on GroupButtons"
+msgstr ""
+
+#: dbx_preference:690 dbx_preference:696
+msgid "Badge font"
+msgstr ""
+
+#: dbx_preference:701
+msgid "Helpers"
+msgstr ""
+
+#: dbx_preference:710
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Ignorovať okná na iných plochách"
 
-#: dbx_preference.py:638
+#: dbx_preference:716
 msgid "Ignore windows on other monitors"
 msgstr "Ignorovať okná na ostatných monitoroch"
 
-#: dbx_preference.py:645
+#: dbx_preference:723
 msgid "Give each wine application its own group button"
 msgstr "Zobraziť každú wine aplikáciu vo vlastnom skupinovom tlačidle"
 
-#: dbx_preference.py:652
+#: dbx_preference:730
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "Zobraziť open office aplikácie (Writer, Calc, atď.) oddelene"
 
-#: dbx_preference.py:659
+#: dbx_preference:737
 msgid "Delay on select all (Workaround for order problems)"
 msgstr ""
 
-#: dbx_preference.py:660
+#: dbx_preference:738
 msgid ""
 "Compiz can't handle the order of multiple windows that are brought up at "
 "once. This problem can be solved by adding short delays between the "
 "activation of each window."
 msgstr ""
 
-#: dbx_preference.py:668 dbx_preference.py:672
+#: dbx_preference:746 dbx_preference:750
 msgid "Opacify"
 msgstr "Zakalenie"
 
-#: dbx_preference.py:673
+#: dbx_preference:751
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
 msgstr ""
 
-#: dbx_preference.py:676
+#: dbx_preference:754
 msgid "Opacify group"
 msgstr "Zakalenie skupiny"
 
-#: dbx_preference.py:677
+#: dbx_preference:755
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
 msgstr ""
 
-#: dbx_preference.py:681
+#: dbx_preference:759
 msgid "Use smooth fade in/out"
 msgstr ""
 
-#: dbx_preference.py:687
+#: dbx_preference:765
 msgid "Opacity"
 msgstr "Priehľadnosť"
 
-#: dbx_preference.py:699
+#: dbx_preference:777
 msgid "Smoothness"
 msgstr ""
 
-#: dbx_preference.py:708
+#: dbx_preference:786
 msgid "Duration"
 msgstr ""
 
-#: dbx_preference.py:722
+#: dbx_preference:800
 msgid "Global Keyboard Shortcuts"
 msgstr "Globálne klávesové skratky"
 
-#: dbx_preference.py:727 dockbarx/./dockbar.py:1111
+#: dbx_preference:805 dockbarx/dockbar.py:1269
 msgid "Select next group"
 msgstr "Vybrať ďalšiu skupinu"
 
-#: dbx_preference.py:729 dockbarx/./dockbar.py:1112
+#: dbx_preference:807 dockbarx/dockbar.py:1270
 msgid "Select previous group"
 msgstr "Vybrať predchádzajúcu skupinu"
 
-#: dbx_preference.py:731 dockbarx/./dockbar.py:1113
+#: dbx_preference:809 dockbarx/dockbar.py:1271
 msgid "Select next window in group"
 msgstr "Vybrať ďalšie okno v skupine"
 
-#: dbx_preference.py:733 dockbarx/./dockbar.py:1114
+#: dbx_preference:811 dockbarx/dockbar.py:1272
 msgid "Select previous window in group"
 msgstr "Vybrať predchádzajúce okno v skupine"
 
-#: dbx_preference.py:776
+#: dbx_preference:846
+msgid "Note! Compiz keyboard shortcuts will override these."
+msgstr ""
+
+#: dbx_preference:848
+msgid "Skip pinned apps without open windows"
+msgstr ""
+
+#: dbx_preference:854
+msgid "Use Unity style number shortcuts (Super+number)"
+msgstr ""
+
+#: dbx_preference:868
+msgid "Mode"
+msgstr ""
+
+#: dbx_preference:871
+msgid "panel"
+msgstr ""
+
+#: dbx_preference:871
+msgid "corner"
+msgstr ""
+
+#: dbx_preference:871
+msgid "centered"
+msgstr ""
+
+#: dbx_preference:880
+msgid "Position"
+msgstr ""
+
+#: dbx_preference:883
+msgid "left"
+msgstr ""
+
+#: dbx_preference:883
+msgid "right"
+msgstr ""
+
+#: dbx_preference:883
+msgid "top"
+msgstr ""
+
+#: dbx_preference:883
+msgid "bottom"
+msgstr ""
+
+#: dbx_preference:892
+msgid "Size"
+msgstr ""
+
+#: dbx_preference:902
 msgid "Appearance"
 msgstr "Vzhľad"
 
-#: dbx_preference.py:777
+#: dbx_preference:903
 msgid "Window List"
 msgstr "Zoznam Okien"
 
-#: dbx_preference.py:778
+#: dbx_preference:904
 msgid "Group Button"
 msgstr "Tlačidlo skupiny"
 
-#: dbx_preference.py:779
+#: dbx_preference:905
 msgid "Window Item"
 msgstr ""
 
-#: dbx_preference.py:780
+#: dbx_preference:906
+msgid "Plugins"
+msgstr ""
+
+#: dbx_preference:907
+msgid "Dock"
+msgstr ""
+
+#: dbx_preference:908
 msgid "Advanced"
 msgstr "Pokročilé"
 
-#: dbx_preference.py:840 dockbarx/./theme.py:168
+#: dbx_preference:968 dockbarx/theme.py:169
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 "Žiadne fungujúce schémy v /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 
-#: dbx_preference.py:985
+#: dbx_preference:1136
 msgid "Ignore windows on other workspace"
 msgstr "Ignorovať okná na iných plochách"
 
-#: dbx_preference.py:1090
+#: dbx_preference:1260
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
 "Náhľad vyžaduje aktivované Compiz KDE Compability. Má to dockbarx aktivovať?"
 
-#: dbx_preference.py:1104
+#: dbx_preference:1274
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
@@ -432,7 +541,7 @@ msgstr ""
 "Compiz KDE Compability pravdepodobne nie je nainštalovaný. Ak používate "
 "Ubuntu, potrebujete nainštalovať balík compiz-fusion-plugins-main."
 
-#: dbx_preference.py:1122
+#: dbx_preference:1292
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
@@ -440,7 +549,7 @@ msgstr ""
 "Náhľad vyžaduje aktivované Support Plasma Thumnails v KDE. Má to dockbarx "
 "aktivovať?"
 
-#: dbx_preference.py:1145
+#: dbx_preference:1315
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
@@ -448,7 +557,7 @@ msgstr ""
 "Zakalenie vyžaduje Compiz plugin Opacity, Brightness and Saturation. Má to "
 "dockbarx aktivovať?"
 
-#: dbx_preference.py:1306
+#: dbx_preference:1473
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
@@ -456,16 +565,15 @@ msgstr ""
 "Musíte mať aspoň jeden mód kláves (<control>, <alt> or <super>) v klávesovom "
 "reťazci."
 
-#: dockbarx/./dockbar.py:917 dockbarx/./groupbutton.py:207
-#: dockbarx/./groupbutton.py:254
+#: dockbarx/dockbar.py:1091 dockbarx/groupbutton.py:2331
 msgid "Identifier"
 msgstr "Identifikátor"
 
-#: dockbarx/./dockbar.py:918
+#: dockbarx/dockbar.py:1092
 msgid "Enter the identifier here"
 msgstr "Zadajte identifikátor tu"
 
-#: dockbarx/./dockbar.py:920
+#: dockbarx/dockbar.py:1094
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
@@ -473,7 +581,7 @@ msgstr ""
 "Mali by ste to spraviť iba v prípade, že programu sa nepodarí rozpoznať jeho "
 "okná. "
 
-#: dockbarx/./dockbar.py:921
+#: dockbarx/dockbar.py:1095
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
@@ -481,97 +589,90 @@ msgstr ""
 "Ak program beží,mali by ste byť schopný nájsť identifikátor programu z "
 "rozbaľovacieho zoznamu."
 
-#: dockbarx/./dockbar.py:939
+#: dockbarx/dockbar.py:1112
 msgid "Identifier:"
 msgstr "Identifikátor:"
 
-#: dockbarx/./dockbar.py:1140
-msgid "The key is already bound elsewhere."
-msgstr "Klávesa je už viazaná inde."
-
-#: dockbarx/./dockbar.py:1142
-#, python-format
-msgid ""
-"Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
-msgstr ""
-"Chyba: DockbarX nemôže nastaviť globálnu klávesovú skratku '%(keystr)s' pre "
-"%(function)s."
-
-#: dockbarx/./windowbutton.py:410 dockbarx/./groupbutton.py:1264
-#: dockbarx/./groupbutton.py:1353 dockbarx/./groupbutton.py:1354
+#: dockbarx/windowbutton.py:602 dockbarx/groupbutton.py:649
+#: dockbarx/groupbutton.py:757 dockbarx/groupbutton.py:758
 msgid "_Minimize"
 msgstr "_Minimalizovať"
 
-#: dockbarx/./windowbutton.py:413 dockbarx/./groupbutton.py:1262
-#: dockbarx/./groupbutton.py:1355 dockbarx/./groupbutton.py:1356
+#: dockbarx/windowbutton.py:605 dockbarx/groupbutton.py:647
+#: dockbarx/groupbutton.py:760 dockbarx/groupbutton.py:761
 msgid "Un_minimize"
 msgstr "Od_minimalizovať"
 
-#: dockbarx/./windowbutton.py:422 dockbarx/./groupbutton.py:1268
-#: dockbarx/./groupbutton.py:1349 dockbarx/./groupbutton.py:1350
+#: dockbarx/windowbutton.py:614 dockbarx/groupbutton.py:653
+#: dockbarx/groupbutton.py:751 dockbarx/groupbutton.py:752
 msgid "Ma_ximize"
 msgstr "Ma_ximalizovať"
 
-#: dockbarx/./windowbutton.py:425 dockbarx/./groupbutton.py:1271
-#: dockbarx/./groupbutton.py:1351 dockbarx/./groupbutton.py:1352
+#: dockbarx/windowbutton.py:617 dockbarx/groupbutton.py:656
+#: dockbarx/groupbutton.py:754 dockbarx/groupbutton.py:755
 msgid "Unma_ximize"
 msgstr "Zrušiť ma_ximalizáciu"
 
-#: dockbarx/./windowbutton.py:431 dockbarx/./groupbutton.py:1272
+#: dockbarx/windowbutton.py:623 dockbarx/groupbutton.py:657
+#: dockbarx/groupbutton.py:749 dockbarx/groupbutton.py:750
 msgid "_Close"
 msgstr "_Zatvoriť"
 
-#: dockbarx/./groupbutton.py:878 dockbarx/./groupbutton.py:1226
-#: dockbarx/./groupbutton.py:1362
+#: dockbarx/groupbutton.py:328 dockbarx/groupbutton.py:579
+#: dockbarx/groupbutton.py:768
 msgid "_Launch application"
 msgstr "_Spustiť aplikáciu"
 
-#: dockbarx/./groupbutton.py:1228 dockbarx/./groupbutton.py:1361
+#: dockbarx/groupbutton.py:581 dockbarx/groupbutton.py:767
 msgid "_Pin application"
 msgstr "_Pripnúť aplikáciu"
 
-#: dockbarx/./groupbutton.py:1230 dockbarx/./groupbutton.py:1360
+#: dockbarx/groupbutton.py:583 dockbarx/groupbutton.py:766
 msgid "Make custom launcher"
 msgstr "Vytvoriť vlastný spúšťač"
 
-#: dockbarx/./groupbutton.py:1232 dockbarx/./groupbutton.py:1359
+#: dockbarx/groupbutton.py:585 dockbarx/groupbutton.py:765
 msgid "Unpin application"
 msgstr "Odopnúť aplikáciu"
 
-#: dockbarx/./groupbutton.py:1233 dockbarx/./groupbutton.py:1234
-#: dockbarx/./groupbutton.py:1235
+#: dockbarx/groupbutton.py:586 dockbarx/groupbutton.py:587
+#: dockbarx/groupbutton.py:588
 msgid "Properties"
 msgstr "Vlastnosti"
 
-#: dockbarx/./groupbutton.py:1234 dockbarx/./groupbutton.py:1358
+#: dockbarx/groupbutton.py:587 dockbarx/groupbutton.py:764
 msgid "Edit Identifier"
 msgstr "Editovať Indikátor"
 
-#: dockbarx/./groupbutton.py:1235 dockbarx/./groupbutton.py:1357
+#: dockbarx/groupbutton.py:588 dockbarx/groupbutton.py:763
 msgid "Edit Launcher"
 msgstr "Editovať Spúšťač"
 
-#: dockbarx/./groupbutton.py:1242
+#: dockbarx/groupbutton.py:615
 msgid "Recent"
 msgstr "Nedávne"
 
-#: dockbarx/./groupbutton.py:1243
+#: dockbarx/groupbutton.py:616
 msgid "Most used"
 msgstr "Najviac používané"
 
-#: dockbarx/./groupbutton.py:1244
+#: dockbarx/groupbutton.py:617
 msgid "Related"
 msgstr "Príbuzné"
 
-#: dockbarx/./groupbutton.py:1260 dockbarx/./groupbutton.py:1348
-#: dockbarx/./groupbutton.py:1350 dockbarx/./groupbutton.py:1352
-#: dockbarx/./groupbutton.py:1354 dockbarx/./groupbutton.py:1356
+#: dockbarx/groupbutton.py:635 dockbarx/groupbutton.py:770
+msgid "Remove locked list"
+msgstr ""
+
+#: dockbarx/groupbutton.py:638 dockbarx/groupbutton.py:769
+msgid "Show locked list"
+msgstr ""
+
+#: dockbarx/groupbutton.py:645 dockbarx/groupbutton.py:750
+#: dockbarx/groupbutton.py:752 dockbarx/groupbutton.py:755
+#: dockbarx/groupbutton.py:758 dockbarx/groupbutton.py:761
 msgid " all windows"
 msgstr " všetky okná"
-
-#: dockbarx/./groupbutton.py:1347 dockbarx/./groupbutton.py:1348
-msgid "Close"
-msgstr ""
 
 #~ msgid "Show popup only if more than one window is open"
 #~ msgstr "Ukázať vyskakovacie okno iba v prípade, že je otvorených viac okien"
@@ -608,6 +709,16 @@ msgstr ""
 
 #~ msgid "cant be found. Did you perhaps delete the file?"
 #~ msgstr "nemôže byť nájdený. Zmazali ste súbor?"
+
+#, python-format
+#~ msgid ""
+#~ "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
+#~ msgstr ""
+#~ "Chyba: DockbarX nemôže nastaviť globálnu klávesovú skratku '%(keystr)s' pre "
+#~ "%(function)s."
+
+#~ msgid "The key is already bound elsewhere."
+#~ msgstr "Klávesa je už viazaná inde."
 
 #~ msgid "Groupbutton actions"
 #~ msgstr "Skupinatlačidlo akcia"

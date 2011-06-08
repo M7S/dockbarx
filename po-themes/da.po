@@ -1,16 +1,16 @@
-# Slovak translation for dockbar
-# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# Danish translation for dockbar
+# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
 # This file is distributed under the same license as the dockbar package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-06-09 13:23+0300\n"
-"PO-Revision-Date: 2011-01-15 17:28+0000\n"
-"Last-Translator: Marcel <marceliqq@gmail.com>\n"
-"Language-Team: Slovak <sk@li.org>\n"
+"PO-Revision-Date: 2011-02-20 02:59+0000\n"
+"Last-Translator: Glenn Dufke <Unknown>\n"
+"Language-Team: Danish <da@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,46 +18,43 @@ msgstr ""
 "X-Generator: Launchpad (build 13144)\n"
 
 msgid "Window list background"
-msgstr "Pozadie zoznamu okien"
+msgstr "Vinduesliste baggrund"
 
 msgid "Normal text"
-msgstr "Normálny text"
+msgstr "Normal tekst"
 
 msgid "Active window text"
-msgstr "Text aktívneho okna"
+msgstr "Aktive vindues tekst"
 
 msgid "Minimized window text"
-msgstr "Text minimalizovaného okna"
+msgstr "Minimeret vindues tekst"
 
 msgid "Active color"
-msgstr "Aktívna farba"
+msgstr "Aktive farve"
 
 msgid "Not used"
-msgstr "Nepoužíva sa"
+msgstr "Ikke brugt"
 
 msgid "Active"
-msgstr "Aktívne"
+msgstr "Aktiv"
 
 msgid "Launching color"
-msgstr "Farba pri spúšťaní"
+msgstr "Farve ved opstart"
 
 msgid "Attention color"
-msgstr "Farba pozornosť"
+msgstr "Farve ved opmærksomhed"
 
 msgid "Minimized color"
-msgstr "Farba minimalizované"
+msgstr "Farve ved minimeret"
 
 msgid "Active glow"
-msgstr "Aktivovať žiaru"
+msgstr "Aktive glød"
 
 msgid "Button color"
-msgstr "Farba tlačidla"
+msgstr "Knap farve"
 
 msgid "Active + indicator color"
-msgstr "Aktívne + farba indikátora"
+msgstr "Aktive + indikator farve"
 
 msgid "Active + dots color"
-msgstr "Aktívne + farba bodiek"
-
-#~ msgid "Popup background"
-#~ msgstr "Pozadie vyskakovacieho okna"
+msgstr "Aktive + prik farve"

@@ -1,16 +1,16 @@
-# Brazilian Portuguese translation for dockbar
-# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# Danish translation for dockbar
+# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
 # This file is distributed under the same license as the dockbar package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2011-06-05 19:38+0300\n"
-"PO-Revision-Date: 2011-06-04 21:25+0000\n"
-"Last-Translator: Celio Alves <dreamcelio@gmail.com>\n"
-"Language-Team: Brazilian Portuguese <pt_BR@li.org>\n"
+"PO-Revision-Date: 2011-02-20 02:56+0000\n"
+"Last-Translator: Glenn Dufke <Unknown>\n"
+"Language-Team: Danish <da@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,85 +19,85 @@ msgstr ""
 
 #: dbx_preference:212
 msgid "DockBarX preferences"
-msgstr "Preferências do DockBarX"
+msgstr "DockbarX Egenskaber"
 
 #: dbx_preference:233
 msgid "Window item actions"
-msgstr "Ações de itens da janela"
+msgstr "Handlinger for vinduesobjekter"
 
 #: dbx_preference:239 dbx_preference:529
 msgid "Left mouse button"
-msgstr "Botão esquerdo do mouse"
+msgstr "Venstre musetast"
 
 #: dbx_preference:240 dbx_preference:530
 msgid "Shift + left mouse button"
-msgstr "Shift + Botão esquerdo do mouse"
+msgstr "Shift + venstre musetast"
 
 #: dbx_preference:242 dbx_preference:532
 msgid "Middle mouse button"
-msgstr "Botão do meio do mouse"
+msgstr "Midterste musetast"
 
 #: dbx_preference:244 dbx_preference:533
 msgid "Shift + middle mouse button"
-msgstr "Shift + Botão do meio do mouse"
+msgstr "Shift + midterste musetast"
 
 #: dbx_preference:246 dbx_preference:535
 msgid "Right mouse button"
-msgstr "Botão direito do mouse"
+msgstr "Højre musetat"
 
 #: dbx_preference:248 dbx_preference:536
 msgid "Shift + right mouse button"
-msgstr "Shift + Botão direito do mouse"
+msgstr "Shift ? højre musetast"
 
 #: dbx_preference:250 dbx_preference:538
 msgid "Scroll up"
-msgstr "Rolar para cima"
+msgstr "Rul op"
 
 #: dbx_preference:251 dbx_preference:539
 msgid "Scroll down"
-msgstr "Rolar para baixo"
+msgstr "Rul ned"
 
 #: dbx_preference:256 dbx_preference:605 dbx_preference:1114
 #: dbx_preference:1366
 msgid "select or minimize window"
-msgstr "Selecionar ou minimizar janela"
+msgstr "vælg eller minimér vindue"
 
 #: dbx_preference:257 dbx_preference:604 dbx_preference:1113
 #: dbx_preference:1365
 msgid "select window"
-msgstr "Selecionar janela"
+msgstr "vælg vindue"
 
 #: dbx_preference:258
 msgid "maximize window"
-msgstr "Maximizar janela"
+msgstr "maksimér"
 
 #: dbx_preference:259
 msgid "close window"
-msgstr "Fechar janela"
+msgstr "luk vindue"
 
 #: dbx_preference:260 dbx_preference:548
 msgid "show menu"
-msgstr "Exibir menu"
+msgstr "vis menu"
 
 #: dbx_preference:261
 msgid "shade window"
-msgstr "Sombrear janela"
+msgstr "nedton vindue"
 
 #: dbx_preference:262
 msgid "unshade window"
-msgstr "Remover sombreamento da janela"
+msgstr "fjern nedtoning fra vindue"
 
 #: dbx_preference:263 dbx_preference:557
 msgid "no action"
-msgstr "Sem ação"
+msgstr "ingen handling"
 
 #: dbx_preference:292
 msgid "Close window list"
-msgstr "Fechar lista de janelas"
+msgstr "Luk vinduesliste"
 
 #: dbx_preference:306
 msgid "Show close button"
-msgstr "Mostrar botão de fechar"
+msgstr "Vis luk knap"
 
 #: dbx_preference:316
 msgid "Theme:"
@@ -105,77 +105,75 @@ msgstr "Tema:"
 
 #: dbx_preference:334
 msgid "Colors"
-msgstr "Cores"
+msgstr "Farver"
 
 #: dbx_preference:391
 msgid "Needs attention effect"
-msgstr "Efeito para chamar atenção"
+msgstr "Brug for opmærksomheds effekt"
 
 #: dbx_preference:395
 msgid "Compiz water"
-msgstr "Efeito água do Compiz"
+msgstr "Compiz vand effekt"
 
 #: dbx_preference:397
 msgid "Blinking"
-msgstr "Piscando"
+msgstr "Blinke effekt"
 
 #: dbx_preference:399
 msgid "Static"
-msgstr "Estático"
+msgstr "Statisk effekt"
 
 #: dbx_preference:401
 msgid "No effect"
-msgstr "Sem efeito"
+msgstr "Ingen effekt"
 
 #: dbx_preference:412
 msgid "Use gtk menu (old style) instead of DockbarX style menu."
-msgstr ""
-"Utilize o menu gtk (estilo antigo) em vez do estilo de menu do DockbarX."
+msgstr "Brug gtk menu (gammelt udseende) i stedet for en DockbarX menu."
 
 #: dbx_preference:424
 msgid "Show window list only if more than one window is open"
-msgstr ""
-"Mostrar lista de janelas somente se mais de uma janela estiver aberta"
+msgstr "Vis kun vinduesliste hvis mere end et vindue er åbent"
 
 #: dbx_preference:430
 msgid "Show tooltip when no window is open"
-msgstr "Exibir dica quando nenhuma janela estiver aberta"
+msgstr "Vis værktøjstip når der ikke er nogen vinduer åbne"
 
 #: dbx_preference:437
 msgid "Alignment"
-msgstr "Alinhamento"
+msgstr "Justering"
 
 #: dbx_preference:441
 msgid "Align left"
-msgstr "Alinhar à esquerda"
+msgstr "Juster til venstre"
 
 #: dbx_preference:443
 msgid "Align center"
-msgstr "Centralizar"
+msgstr "Centreret"
 
 #: dbx_preference:445
 msgid "Align right"
-msgstr "Alinha à direita"
+msgstr "Juster til højre"
 
 #: dbx_preference:454 dbx_preference:459
 msgid "Delay"
-msgstr "Atraso"
+msgstr "Forsinkelse"
 
 #: dbx_preference:469
 msgid "Delay for switching between window lists"
-msgstr "Atraso para alternar entre as listas de janelas"
+msgstr "Forsinkelse for at skifte imellem vindueslister"
 
 #: dbx_preference:482
 msgid "Previews"
-msgstr "Pré-visualizações"
+msgstr "Forhåndsvisning"
 
 #: dbx_preference:486
 msgid "Show previews"
-msgstr "Mostrar pré-visualizações"
+msgstr "Vis forhåndsvisning"
 
 #: dbx_preference:491
 msgid "Preview size"
-msgstr "Tamanho da visualização"
+msgstr "Størrelse på forhåndsvisning"
 
 #: dbx_preference:503
 msgid "Locked list"
@@ -189,7 +187,6 @@ msgstr ""
 msgid ""
 "The option is only shown when a program has more than one window opened."
 msgstr ""
-"Esta opção é exibida apenas quando um programa tem mais de uma janela aberta."
 
 #: dbx_preference:514
 msgid "Maximized windows should not overlap the locked list"
@@ -197,145 +194,143 @@ msgstr ""
 
 #: dbx_preference:523
 msgid "Group button actions"
-msgstr "Agrupar botões de ação"
+msgstr "Handlinger for gruppering"
 
 #: dbx_preference:543
 msgid "select"
-msgstr "Selecionar"
+msgstr "vælg"
 
 #: dbx_preference:544
 msgid "close all windows"
-msgstr "Fechar todas as janelas"
+msgstr "luk alle vinduer"
 
 #: dbx_preference:545
 msgid "minimize all windows"
-msgstr "Minimizar todas as janelas"
+msgstr "minimér alle vinduer"
 
 #: dbx_preference:546
 msgid "maximize all windows"
-msgstr "Maximizar todas as janelas"
+msgstr "maksimér alle vinduer"
 
 #: dbx_preference:547
 msgid "launch application"
-msgstr "Lançar aplicativo"
+msgstr "start program"
 
 #: dbx_preference:549
 msgid "remove launcher"
-msgstr "Remover lançador"
+msgstr "fjern programgenvej"
 
 #: dbx_preference:550
 msgid "select next window"
-msgstr "Selecionar próxima janela"
+msgstr "vælg næste vindue"
 
 #: dbx_preference:551
 msgid "select previous window"
-msgstr "Selecionar janela anterior"
+msgstr "vælg forige vindue"
 
 #: dbx_preference:552
 msgid "minimize all other groups"
-msgstr "Minimizar todos os outros grupos"
+msgstr "minimér alle andre grupper"
 
 #: dbx_preference:553
 msgid "compiz scale windows"
-msgstr "Efeito escala do Compiz nas janelas"
+msgstr "compiz skalér vinduer"
 
 #: dbx_preference:554
 msgid "compiz shift windows"
-msgstr "Efeito janelas saltadas do Compiz"
+msgstr "compiz skift imellem vinduer"
 
 #: dbx_preference:555
 msgid "compiz scale all"
-msgstr "Efeito escala do Compiz em tudo"
+msgstr "compiz skalér alle"
 
 #: dbx_preference:556
 msgid "show preference dialog"
-msgstr "Exibir diálogo de preferências"
+msgstr "vis præference dialogen"
 
 #: dbx_preference:584
 msgid "Double click"
-msgstr "Duplo clique"
+msgstr "Dobbeltklik"
 
 #: dbx_preference:595
 msgid "\"Select\" action options"
-msgstr "Opções da ação \"select\""
+msgstr "\"Vælg\" handlings indstillinger"
 
 #: dbx_preference:601
 msgid "One window open"
-msgstr "Uma janela aberta"
+msgstr "Et vindue åbent"
 
 #: dbx_preference:610
 msgid "Multiple windows open"
-msgstr "Multiplas janelas abertas"
+msgstr "Flere vinduer åbne"
 
 #: dbx_preference:613 dbx_preference:1123 dbx_preference:1375
 msgid "select all"
-msgstr "Selecionar tudo"
+msgstr "vælg alle"
 
 #: dbx_preference:614 dbx_preference:1124 dbx_preference:1376
 msgid "select or minimize all"
-msgstr "Selecionar ou minimizar tudo"
+msgstr "vælg eller minimér alle"
 
 #: dbx_preference:615 dbx_preference:1125 dbx_preference:1377
 msgid "compiz scale"
-msgstr "Efeito escala do Compiz"
+msgstr "compiz skalér"
 
 #: dbx_preference:616 dbx_preference:1126 dbx_preference:1378
 msgid "cycle through windows"
-msgstr "Percorrer as janelas"
+msgstr "naviger gennem vinduer"
 
 #: dbx_preference:617 dbx_preference:1127 dbx_preference:1379
 msgid "show window list"
-msgstr "Exibir lista de janelas"
+msgstr "vis vinduesliste"
 
 #: dbx_preference:622
 msgid "Workspace behavior"
-msgstr "Comportamento do espaço de trabalho"
+msgstr "Arbejdsområde opførsel"
 
 #: dbx_preference:626 dbx_preference:1387
 msgid "Ignore windows on other workspaces"
-msgstr "Ignorar janelas em outros espaços de trabalho"
+msgstr "Ignorer vinduer på andre arbejdsområder"
 
 #: dbx_preference:627 dbx_preference:1137 dbx_preference:1388
 msgid "Switch workspace when needed"
-msgstr "Mudar de espaço de trabalho quando necessário"
+msgstr "Skift til arbejdsområde når det er nødvendigt"
 
 #: dbx_preference:629 dbx_preference:1138 dbx_preference:1389
 msgid "Move windows from other workspaces"
-msgstr "Mover janelas de outros espaços de trabalho"
+msgstr "Flyt vinduer fra andre arbejdsområder"
 
 #: dbx_preference:640
 msgid "\"Select next\" options"
-msgstr "opções \"Selecionar o próximo\""
+msgstr "\"Vælg næste\" indstillinger"
 
 #: dbx_preference:642
 msgid "\"Select next\" selects the most recently used window in the group"
-msgstr ""
-"\"Selecionar o próximo\" seleciona a janela, mais recentemente utilizada no "
-"grupo"
+msgstr "\"Vælg Næste\" vælger det senest brugte vindue i gruppen"
 
 #: dbx_preference:643
 msgid ""
 "If set, \"Select Next\" action selects the window that has been used most "
 "recently, otherwise it activates the next window in the window list."
 msgstr ""
-"Se for definido, a ação \"Selecionar Próxima\" seleciona a janela que foi "
-"usada mais recentemente, do contrário, ela ativa a próxima janela da lista."
+"Hvis aktiveret, vil \"Vælg Næste\" handlinge vælge det senest brugte vindue, "
+"ellers aktiveres det næste vindue i vinduet"
 
 #: dbx_preference:649
 msgid "Use no delay with \"Select next\""
-msgstr ""
+msgstr "Brug ingen forsinkelse ved  \"Vælg næste\""
 
 #: dbx_preference:650
 msgid ""
 "If set, \"Select Next\" action selects the next window immediately without "
 "any delay"
 msgstr ""
-"Se for definido, \"Selecione Next\" ação seleciona a janela seguinte "
-"imediatamente, sem qualquer atraso"
+"Hvis aktiveret, vil \"Vælg Næste\" handlingen vælge det næste vindue med det "
+"samme uden nogen forsinkelse"
 
 #: dbx_preference:660
 msgid "Use media buttons"
-msgstr "Use os botões de mídia"
+msgstr "Brug multimedieknapper"
 
 #: dbx_preference:667
 msgid "Use Unity quicklists"
@@ -343,43 +338,45 @@ msgstr ""
 
 #: dbx_preference:674
 msgid "DockManager"
-msgstr ""
+msgstr "DockManager"
 
 #: dbx_preference:678
 msgid "Use DockManager"
-msgstr ""
+msgstr "Brug DockManager"
 
 #: dbx_preference:682
 msgid "Allow DockManager to write badges on GroupButtons"
-msgstr ""
+msgstr "Tillad DockManager at tegne emblemer på Gruppe Knapper"
 
 #: dbx_preference:690 dbx_preference:696
 msgid "Badge font"
-msgstr ""
+msgstr "Emblem skriftype"
 
 #: dbx_preference:701
 msgid "Helpers"
-msgstr "Ajudantes"
+msgstr "Hjælpere"
 
 #: dbx_preference:710
 msgid "Ignore windows on other viewports/workspaces"
-msgstr "Ignorar janelas em outros espaços de trabalho"
+msgstr "Ignorer vinduer på andre arbejdsområder/synsflader"
 
 #: dbx_preference:716
 msgid "Ignore windows on other monitors"
-msgstr "Ignore janelas em outros monitores"
+msgstr "Ignorer vinduer på andre skærme"
 
 #: dbx_preference:723
 msgid "Give each wine application its own group button"
-msgstr "Dar a cada aplicativo do Wine o seu botão de agrupamento"
+msgstr "Giv hver wine program sin egen gruppe knap"
 
 #: dbx_preference:730
 msgid "Keep open office application (Writer, Calc, etc.) separated"
-msgstr "Manter os aplicativos do OpenOffice (Writer, Calc, etc.) separados"
+msgstr "Behold open office programmerne (Writer, Calc, osv.) sepereret"
 
 #: dbx_preference:737
 msgid "Delay on select all (Workaround for order problems)"
-msgstr "Atrasar ao selecionar tudo (Solução para problemas de ordem)"
+msgstr ""
+"Forsinkelse ved vælg alle (Midlertidig rettelse for problemer med "
+"rækkefølgen af vinduer)"
 
 #: dbx_preference:738
 msgid ""
@@ -387,69 +384,69 @@ msgid ""
 "once. This problem can be solved by adding short delays between the "
 "activation of each window."
 msgstr ""
-"Compiz não consegue lidar com a ordem de múltiplas janelas manipuladas ao "
-"mesmo tempo. Este problema pode ser resolvido com a adição de pequenos "
-"atrasos entre a ativação de cada janela."
+"Compiz kan ikke håndtere rækkefølgen af flere vinduer der bragt frem på "
+"samme tid. Dette problem kan løses ved at tilføje en kort forsinkelse "
+"imellem aktiveringen af hvert vindue."
 
 #: dbx_preference:746 dbx_preference:750
 msgid "Opacify"
-msgstr "Opacidade"
+msgstr "Gennemsigtighed"
 
 #: dbx_preference:751
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
 msgstr ""
-"Opacidade tornará transparente todas as outras janelas ao se passar o mouse "
-"em um nome ou previsão de uma janela na lista da janelas."
+"Gennemsigtighed vil gøre alle andre vinduer transparente når musen svæver "
+"over et navn eller en forhåndsvisning af vinduer i vindueslisten."
 
 #: dbx_preference:754
 msgid "Opacify group"
-msgstr "Opacidade em grupo"
+msgstr "Synliggør gruppe"
 
 #: dbx_preference:755
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
 msgstr ""
-"Opacidade em grupo tornará transparentes todos os outros grupos ao se passar "
-"o mouse em um botão de agrupamento."
+"Synliggør gruppe vil gøre alle andre grupper transparente når musen svæver "
+"over en gruppe knap"
 
 #: dbx_preference:759
 msgid "Use smooth fade in/out"
-msgstr ""
+msgstr "Brug flydene fade ind/ud"
 
 #: dbx_preference:765
 msgid "Opacity"
-msgstr "Opacidade"
+msgstr "Gennemsigtighed"
 
 #: dbx_preference:777
 msgid "Smoothness"
-msgstr "Suavidade"
+msgstr "Renhed"
 
 #: dbx_preference:786
 msgid "Duration"
-msgstr "Duração"
+msgstr "Varighed"
 
 #: dbx_preference:800
 msgid "Global Keyboard Shortcuts"
-msgstr "Atalhos de teclado globais"
+msgstr "Globale Tastetur Genveje"
 
 #: dbx_preference:805 dockbarx/dockbar.py:1269
 msgid "Select next group"
-msgstr "Seleciona o pŕoximo grupo"
+msgstr "Vælg næste gruppe"
 
 #: dbx_preference:807 dockbarx/dockbar.py:1270
 msgid "Select previous group"
-msgstr "Seleciona o grupo anterior"
+msgstr "Vælg forige gruppe"
 
 #: dbx_preference:809 dockbarx/dockbar.py:1271
 msgid "Select next window in group"
-msgstr "Seleciona a próxima janela no grupo"
+msgstr "Vælg næste vindue i gruppe"
 
 #: dbx_preference:811 dockbarx/dockbar.py:1272
 msgid "Select previous window in group"
-msgstr "Seleciona a janela anterior no grupo"
+msgstr "Vælg forige vindue i gruppe"
 
 #: dbx_preference:846
 msgid "Note! Compiz keyboard shortcuts will override these."
@@ -465,11 +462,11 @@ msgstr ""
 
 #: dbx_preference:868
 msgid "Mode"
-msgstr "Modo"
+msgstr ""
 
 #: dbx_preference:871
 msgid "panel"
-msgstr "painel"
+msgstr ""
 
 #: dbx_preference:871
 msgid "corner"
@@ -477,23 +474,23 @@ msgstr ""
 
 #: dbx_preference:871
 msgid "centered"
-msgstr "centralizado"
+msgstr ""
 
 #: dbx_preference:880
 msgid "Position"
-msgstr "Posição"
+msgstr ""
 
 #: dbx_preference:883
 msgid "left"
-msgstr "esquerdo"
+msgstr ""
 
 #: dbx_preference:883
 msgid "right"
-msgstr "direito"
+msgstr ""
 
 #: dbx_preference:883
 msgid "top"
-msgstr "em cima"
+msgstr ""
 
 #: dbx_preference:883
 msgid "bottom"
@@ -501,54 +498,54 @@ msgstr ""
 
 #: dbx_preference:892
 msgid "Size"
-msgstr "Tamanho"
+msgstr ""
 
 #: dbx_preference:902
 msgid "Appearance"
-msgstr "Aparência"
+msgstr "Udseende"
 
 #: dbx_preference:903
 msgid "Window List"
-msgstr "Lista de janelas"
+msgstr "Vinduesliste"
 
 #: dbx_preference:904
 msgid "Group Button"
-msgstr "Botão de agrupamento'"
+msgstr "Gruppe knap"
 
 #: dbx_preference:905
 msgid "Window Item"
-msgstr "Item da janela"
+msgstr "Vinduesobjekt"
 
 #: dbx_preference:906
 msgid "Plugins"
-msgstr "Plugins"
+msgstr "Udviddelser"
 
 #: dbx_preference:907
 msgid "Dock"
-msgstr "Dock"
+msgstr ""
 
 #: dbx_preference:908
 msgid "Advanced"
-msgstr "Avançado"
+msgstr "Avanceret"
 
 #: dbx_preference:968 dockbarx/theme.py:169
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
-"Não foram encontrados temas em /usr/share/dockbarx/themes ou "
+"Ingen funktionsdygtige temaer fundet i  /usr/share/dockbarx/themes eller "
 "~/.dockbarx/themes"
 
 #: dbx_preference:1136
 msgid "Ignore windows on other workspace"
-msgstr "Ignorar janelas em outros espaços de trabalho"
+msgstr "Ignorer vinduer på andre arbejdsområder"
 
 #: dbx_preference:1260
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
-"Pré-visualizações requerem que o plugin de compatibilidade com KDE do Compiz "
-"esteja ativado. Gostaria que a DockBarX ative pra você?"
+"Forhåndsvisning kræver at compiz udviddelsen KDE Compatabillity er "
+"aktiveret. Skal DockBarX aktivere det for dig?"
 
 #: dbx_preference:1274
 msgid ""
@@ -556,128 +553,129 @@ msgid ""
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
-"O plugin de compatibilidade com KDE do Compiz que é necessário para pré-"
-"visualizações parece não estar instalado. Se você utiliza o Ubuntu, você "
-"deve instalar o pacote compiz-fusion-plugins-main."
+"Compiz udviddelsen KDE Compability der er nødvendig for forhåndsvisning, ser "
+"ikke ud til at være installeret. Hvis du bruger Ubuntu skal du installere "
+"pakken compiz-fusion-plugins-main."
 
 #: dbx_preference:1292
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
-"Pré-visualizações requerem que o Suporte a Thumbnails do Plasma deva estar "
-"ativado no plugin de compatibilidade com KDE. Dockbarx deve ativá-lo para "
-"você?"
+"Forhåndsvisning kræver at undersøttelse for Support Plasma Thumnails er "
+"aktiveret i  KDE Compability compiz udviddelsen. Skal DockBarX aktivere det "
+"for dig?"
 
 #: dbx_preference:1315
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
-"Opacidade requer que o plugin Opacidade, Brilho e Saturação do Compiz esteja "
-"ativado. DockBarX deve ativá-lo para você?"
+"Synliggøring kræver at compiz udviddelsen Opacity, Brightness and Saturation "
+"er aktiveret. Skal DockBarX aktivere det for dig?"
 
 #: dbx_preference:1473
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr ""
-"Você precisa ter ao menos uma tecla especial (<control>, <alt> ou <super>) "
-"na sequência do teclado."
+"Du skal bruge mindst een modulator tast (<control>, <alt> or <super>) i "
+"tasteturstrengen."
 
 #: dockbarx/dockbar.py:1091 dockbarx/groupbutton.py:2331
 msgid "Identifier"
-msgstr "Identificador"
+msgstr "Identifikator"
 
 #: dockbarx/dockbar.py:1092
 msgid "Enter the identifier here"
-msgstr "Entre com o identificador aqui"
+msgstr "Indtast identifikatoren her"
 
 #: dockbarx/dockbar.py:1094
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
-"Você deve fazer isso somente se o programa falhar em reconhecer sua janela. "
+"Det er kun nødvendigt at gøre dette hvis programmet ikke kan finde sine "
+"vinduer. "
 
 #: dockbarx/dockbar.py:1095
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr ""
-"Se o programa já estiver rodando você deverá ser capaz de encontrar o "
-"identificador do programa na lista de opções suspensa."
+"Hvis programmet allerede kører skulle du kunne finde dens identifikator fra "
+"dropdown listen."
 
 #: dockbarx/dockbar.py:1112
 msgid "Identifier:"
-msgstr "Identificador:"
+msgstr "Identifikator:"
 
 #: dockbarx/windowbutton.py:602 dockbarx/groupbutton.py:649
 #: dockbarx/groupbutton.py:757 dockbarx/groupbutton.py:758
 msgid "_Minimize"
-msgstr "_Minimizar"
+msgstr "_Minimér"
 
 #: dockbarx/windowbutton.py:605 dockbarx/groupbutton.py:647
 #: dockbarx/groupbutton.py:760 dockbarx/groupbutton.py:761
 msgid "Un_minimize"
-msgstr "_Restaurar"
+msgstr "_Gendan"
 
 #: dockbarx/windowbutton.py:614 dockbarx/groupbutton.py:653
 #: dockbarx/groupbutton.py:751 dockbarx/groupbutton.py:752
 msgid "Ma_ximize"
-msgstr "Ma_ximizar"
+msgstr "Ma_skimér"
 
 #: dockbarx/windowbutton.py:617 dockbarx/groupbutton.py:656
 #: dockbarx/groupbutton.py:754 dockbarx/groupbutton.py:755
 msgid "Unma_ximize"
-msgstr "_Restaurar"
+msgstr "G_endan"
 
 #: dockbarx/windowbutton.py:623 dockbarx/groupbutton.py:657
 #: dockbarx/groupbutton.py:749 dockbarx/groupbutton.py:750
 msgid "_Close"
-msgstr "_Fechar"
+msgstr "_Luk"
 
 #: dockbarx/groupbutton.py:328 dockbarx/groupbutton.py:579
 #: dockbarx/groupbutton.py:768
 msgid "_Launch application"
-msgstr "_Iniciar o aplicativo"
+msgstr "_Start program"
 
 #: dockbarx/groupbutton.py:581 dockbarx/groupbutton.py:767
 msgid "_Pin application"
-msgstr "_Fixar o aplicativo"
+msgstr "_Fastgør program"
 
 #: dockbarx/groupbutton.py:583 dockbarx/groupbutton.py:766
 msgid "Make custom launcher"
-msgstr "Crie um lançador personalizado"
+msgstr "Opret brugerdefineret programgenvej"
 
 #: dockbarx/groupbutton.py:585 dockbarx/groupbutton.py:765
 msgid "Unpin application"
-msgstr "Remover aplicativo"
+msgstr "Frigør program"
 
 #: dockbarx/groupbutton.py:586 dockbarx/groupbutton.py:587
 #: dockbarx/groupbutton.py:588
 msgid "Properties"
-msgstr "Propriedades"
+msgstr "Egenskaber"
 
 #: dockbarx/groupbutton.py:587 dockbarx/groupbutton.py:764
 msgid "Edit Identifier"
-msgstr "Editar identificador"
+msgstr "Rediger Identifikator"
 
 #: dockbarx/groupbutton.py:588 dockbarx/groupbutton.py:763
 msgid "Edit Launcher"
-msgstr "Editar Lançador"
+msgstr "Rediger Programgenvej"
 
 #: dockbarx/groupbutton.py:615
 msgid "Recent"
-msgstr "Recente"
+msgstr "Seneste"
 
 #: dockbarx/groupbutton.py:616
 msgid "Most used"
-msgstr "Mais utilizados"
+msgstr "Mest brugte"
 
 #: dockbarx/groupbutton.py:617
 msgid "Related"
-msgstr "Relacionado"
+msgstr "Relaterede"
 
 #: dockbarx/groupbutton.py:635 dockbarx/groupbutton.py:770
 msgid "Remove locked list"
@@ -691,70 +689,4 @@ msgstr ""
 #: dockbarx/groupbutton.py:752 dockbarx/groupbutton.py:755
 #: dockbarx/groupbutton.py:758 dockbarx/groupbutton.py:761
 msgid " all windows"
-msgstr " Todas as janelas"
-
-#~ msgid "Cannot load icon for launcher"
-#~ msgstr "Não foi possível carregar o ícone"
-
-#~ msgid "cant be found. Did you perhaps delete the file?"
-#~ msgstr "Não foi encontrado. Você por acaso deletou o arquivo?"
-
-#~ msgid "Opacity:"
-#~ msgstr "Opacidade:"
-
-#~ msgid "show popup"
-#~ msgstr "Exibir popup"
-
-#~ msgid "Workspace behavior:"
-#~ msgstr "Comportamento do espaço de trabalho"
-
-#~ msgid "Delay:"
-#~ msgstr "Atraso:"
-
-#~ msgid "Popup"
-#~ msgstr "Popup"
-
-#~ msgid "Preview size:"
-#~ msgstr "Tamanho da pré-visualização"
-
-#~ msgid "Show popup only if more than one window is open"
-#~ msgstr "Apenas exibir popup se houver mais de uma janela aberta"
-
-#~ msgid "Popup Settings"
-#~ msgstr "Configurações da popup"
-
-#~ msgid "One window open:"
-#~ msgstr "Uma janela aberta:"
-
-#~ msgid "Multiple windows open:"
-#~ msgstr "Múltiplas janelas abertas:"
-
-#~ msgid "Groupbutton actions"
-#~ msgstr "Ações do botão de grupo"
-
-#~ msgid "Window Button"
-#~ msgstr "Botão de janela"
-
-#~ msgid "Windowbutton actions"
-#~ msgstr "Ações de botões de janela"
-
-#~ msgid "The launcher at path"
-#~ msgstr "Caminho do aplicativo"
-
-#, python-format
-#~ msgid ""
-#~ "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
-#~ msgstr ""
-#~ "Erro: DockbarX não pôde definir atalho global '%(keystr)s' para %(function)s."
-
-#~ msgid "Popup Window"
-#~ msgstr "Janela popup"
-
-#~ msgid "Close popup"
-#~ msgstr "Fechar popup"
-
-#~ msgid "Delay for switching between popups"
-#~ msgstr "Atraso para alternar entre popups"
-
-#~ msgid "The key is already bound elsewhere."
-#~ msgstr "A tecla já está sendo utilizada em outro lugar."
+msgstr " alle vinduer"
