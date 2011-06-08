@@ -1,4 +1,19 @@
 Changelog:
+0.44
+Features:
+- DockbarX can run as a stand alone dock now. It is very basic and isn't meant to be an alround dock. It's meant to be used together with gnome-shell, wing-panel or other similar set-ups. For now the dock doesn't even have features autohide but it's light-weight compared to running AWN with DockbarX and the dock can avoid overlapping with other panels (unless you use compiz 0.9.x or gnome-shell) and it should behave correctly even with multiple monitors.
+- Improved keyboard shortcut handling. Groups or windows are not selected until the modkey (eg. super key) is released.
+- Number shortcuts similar to Unity's number shortcuts (but it handles multiple windows of a group in a better way than unity does IMHO). Use super+1 to select the first group, super+2 for the second and so on. (Opposed to unity, the number of the groups does not show when pressing the super key, you have to count for yourself.)
+- Locked lists is another attempt to solve DockbarX Achilles heel: switching between windows in the same group is feels too slow when using programs like gimp. Locked lists offers a one click switch solution as long as you are prepared to sacrifice some screen real-estate. By selecting "Use locked list" from the group menu of a group with more than one window, you'll get a window list that stays open indefinitely. A mini panel for windows of that group, if you like.
+- DockbarX supports Unity's quicklists (the static ones).
+
+Bug Fixes:
+Large parts of the code has been rewritten since 0.43 so many bugs has been fixed unknowingly and some new has bugs has probaly appeared instead. Some important bug fixes are:
+- Bug #540950: The long lasting bug where DockbarX crashes on login is probably fixed now.
+- Bug #688442: Popup windows appearing on the wrong monitor in multi-monitor set-ups should be fixed as well. 
+- Compiz scale and swith actions works compiz 0.9 thanks to a patch by BlackDex
+
+
 0.43
 Features:
 - Media buttons. All music players that shows up in ubuntus sound menu (in other words mediaplayers that uses mpris2 - that includes Spotify Linux Preview that doesn't show up in ubuntus sound menu) has play/pause, previous and next buttons. You can disable them from preference window. 

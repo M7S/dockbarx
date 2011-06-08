@@ -17,8 +17,8 @@ Dockbar and DockbarX are licensed under GPL3.
 INSTALL
 =======
 
-1. Install zeitgeist, python-wnck, python-gnomeapplet, python-keybinder and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt to install it). 
-$ sudo apt-get install python-gnomeapplet python-wnck python-keybinder python-numpy zeitgeist
+1. Install zeitgeist, python-wnck, python-gnomeapplet, python-keybinder, python-xlib and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt to install it). 
+$ sudo apt-get install python-gnomeapplet python-wnck python-keybinder python-numpy python-xlib zeitgeist
 
 2. Download and extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install
 $ sudo ./setup.py install
@@ -29,7 +29,7 @@ DockManager helpers
 - To use DockManager helpers, you need to install dockmanager and dockmanager-daemon (available from dockbar ppa and awn-testing ppa) as well as libdesktop-agnostic-cfg-gconf and libdesktop-agnostic-vfs-gio (these two might not need to be installed separately on distributions that aren't Debian based). Then you need to activate DockManager and the helpers you like to use from DockbarX prefeference.
 
 
-NOTE! To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". (Alternatively you can use kwin as window manager instead of compiz. That will give you previews for minimized windows as well.)
+NOTE! To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". (Alternatively you can use kwin as window manager instead of compiz. That will give you previews for minimized windows as well.) There's a bug in compiz 0.9.x that makes the preview show behind the popup instead of ontop of it, so you might have to decrease the opacity of the popup to see it.
 
 You can also run dockbarx in window (meant for debugging purposes, mostly):
 $dockbarx_factory run-in-window
