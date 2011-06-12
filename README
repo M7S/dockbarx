@@ -17,8 +17,8 @@ Dockbar and DockbarX are licensed under GPL3.
 INSTALL
 =======
 
-1. Install zeitgeist, python-wnck, python-gnomeapplet, python-keybinder, python-xlib and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt to install it). 
-$ sudo apt-get install python-gnomeapplet python-wnck python-keybinder python-numpy python-xlib zeitgeist
+1. Install zeitgeist, python-wnck, python-gnomeapplet, python-imaging, python-keybinder, python-xlib and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt to install it). 
+$ sudo apt-get install python-gnomeapplet python-imaging python-wnck python-keybinder python-numpy python-xlib zeitgeist
 
 2. Download and extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install
 $ sudo ./setup.py install

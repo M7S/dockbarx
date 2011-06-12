@@ -157,7 +157,7 @@ class Theme(gobject.GObject):
             try:
                 name = self.check(theme_path)
             except Exception, detail:
-                logger.exeption("Error loading theme from %s"%theme_path)
+                logger.exception("Error loading theme from %s"%theme_path)
                 name = None
             if name is not None:
                 name = str(name)
