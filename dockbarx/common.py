@@ -199,7 +199,7 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
     def __init__(self, file_name):
         xdg.DesktopEntry.DesktopEntry.__init__(self, file_name)
         # Quicklist
-        self.quicklist = {}
+        self.quicklist = ODict()
         if not "X-Ayatana-Desktop-Shortcuts" in self.content["Desktop Entry"]:
             return
         entries = self.content["Desktop Entry"]["X-Ayatana-Desktop-Shortcuts"]

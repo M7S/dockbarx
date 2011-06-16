@@ -880,7 +880,7 @@ class Group(ListOfWindows):
                 self.action_select_popup(widget, event)
 
     def action_select_popup(self, widget, event):
-        if self.popup_showing is True:
+        if self.popup.popup_showing is True:
             self.popup.hide()
         else:
             self.popup.show()
@@ -1605,7 +1605,7 @@ class GroupButton(CairoAppButton):
             gobject.source_remove(self.opacify_sid)
             self.opacify_sid = None
 
-    def deopacify(self, delay):
+    def deopacify(self, delay=None):
         if delay:
             self.cancel_deopacify_request()
             self.deopacify_sid = gobject.timeout_add(delay, self.deopacify)

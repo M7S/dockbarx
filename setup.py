@@ -27,6 +27,8 @@ import msgfmt
 import os
 import sys
 
+VERSION = "0.4.4"
+
 class build_trans(cmd.Command):
     description = "Compile .po files into .mo files"
     def initialize_options(self):
@@ -107,7 +109,7 @@ data_files=[("/usr/share/dockbarx/themes", ["themes/default.tar.gz",
          ]
 
 setup(name="Dockbarx",
-      version="0.3.1",
+      version=VERSION,
       description="A dock-ish gnome-applet",
       author="Aleksey Shaferov and Matias Sars",
       url="http://launchpad.net/dockbar/",
