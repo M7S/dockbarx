@@ -782,14 +782,14 @@ class Group(ListOfWindows):
         x += a.x
         y += a.y
         w, h = menu.size_request()
-        if self.globals.orient == "v":
+        if self.dockbar_r().orient == "v":
             if x < (self.screen.get_width() / 2):
                 x += a.width
             else:
                 x -= w
             if y + h > self.screen.get_height():
                 y -= h - a.height
-        if self.globals.orient == "h":
+        if self.dockbar_r().orient == "h":
             if y < (self.screen.get_height() / 2):
                 y += a.height
             else:
@@ -1373,7 +1373,8 @@ class GroupButton(CairoAppButton):
         self.attention_effect_running = False
         self.launch_effect = False
         self.state_type = None
-        self.icon_factory = IconFactory(identifier=group.identifier,
+        self.icon_factory = IconFactory(group,
+                                        identifier=group.identifier,
                                         desktop_entry=group.desktop_entry)
         
         self.show()
@@ -1756,15 +1757,15 @@ class GroupButton(CairoAppButton):
         # size can be found. The icon is then updated.
         CairoAppButton.do_size_allocate(self, allocation)
         if self.old_alloc != self.get_allocation():
-            if self.globals.orient == "v" \
+            if self.dockbar_r().orient == "v" \
             and allocation.width > 10 and allocation.width < 220 \
             and allocation.width != self.old_alloc.width:
                 # A minimium size on 11 is set to stop unnecessary calls
                 # work when the button is created
                 self.icon_factory.set_size(allocation.width)
-                self.update_state()
-            elif self.globals.orient == "h" \
-            and allocation.height>10 and allocation.height<220\
+                self.update_state(force_update=True)
+            elif self.dockbar_r().orient == "h" \
+            and allocation.height > 10 and allocation.height < 220\
             and allocation.height != self.old_alloc.height:
                 self.icon_factory.set_size(allocation.height)
                 self.update_state(force_update=True)
@@ -1900,9 +1901,9 @@ class GroupPopup(CairoPopup):
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.globals = Globals()
         if arrow_size is not None:
-            CairoPopup.__init__(self, arrow_size)
+            CairoPopup.__init__(self, arrow_size, self.dockbar_r().orient)
         else:
-            CairoPopup.__init__(self)
+            CairoPopup.__init__(self, orient=self.dockbar_r().orient)
         self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
 
         self.show_sid = None
@@ -1959,7 +1960,7 @@ class GroupPopup(CairoPopup):
                 child_func()
             gobject.idle_add(self.resize, 10, 10)
             return
-        if self.globals.orient == "h":
+        if self.dockbar_r().orient == "h":
             if self.globals.settings["popup_align"] == "left":
                 x = b_alloc.x + wx
             if self.globals.settings["popup_align"] == "center":
@@ -2152,7 +2153,7 @@ class LockedPopup(GroupPopup):
             wx, wy = button_window.get_origin()
         else:
             wx, wy = (0, 0)
-        if self.globals.orient == "v" or wy < mgeo.height / 2:
+        if self.dockbar_r().orient == "v" or wy < mgeo.height / 2:
             GroupPopup.__init__(self, group, 0)
             self.point("down", 20)
         else:
@@ -2188,7 +2189,7 @@ class LockedPopup(GroupPopup):
                                                         group.get_monitor())
         
         width, height = self.get_size()
-        if self.globals.orient == "h":
+        if self.dockbar_r().orient == "h":
             button_window = group.button.window
             if button_window:
                 wx, wy = button_window.get_origin()
@@ -2369,7 +2370,7 @@ class WindowList(gtk.VBox):
         if show_previews:
             mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
                                                         group.get_monitor())
-            if self.globals.orient == "h":
+            if self.dockbar_r().orient == "h":
                 width = 10
                 for window in group.get_windows():
                     width += max(190, window.item.update_preview()[0])
@@ -2396,7 +2397,7 @@ class WindowList(gtk.VBox):
         if self.mini_mode:
             self.window_box = gtk.HBox()
             self.window_box.set_spacing(2)
-        elif self.show_previews and self.globals.orient == "h":
+        elif self.show_previews and self.dockbar_r().orient == "h":
             self.window_box = gtk.HBox()
             self.window_box.set_spacing(4)
         else:

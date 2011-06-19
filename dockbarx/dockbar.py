@@ -147,10 +147,10 @@ class DockBar():
                             gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
             if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
             or applet.get_orient() == gnomeapplet.ORIENT_UP:
-                self.globals.orient = "h"
+                self.orient = "h"
                 self.container = gtk.HBox()
             else:
-                self.globals.orient = "v"
+                self.orient = "v"
                 self.container = gtk.VBox()
             self.applet.add(self.container)
             self.pp_menu_xml = """
@@ -173,7 +173,7 @@ class DockBar():
             self.applet.connect("delete-event", self.__cleanup)
         else:
             self.container = gtk.HBox()
-            self.globals.orient = "h"
+            self.orient = "h"
 
                         
         # Most of initializion must happen after dockbarx is
@@ -350,14 +350,14 @@ class DockBar():
         self.__on_active_window_changed(self.screen, None)
 
     def set_orient(self, orient):
-        if orient == self.globals.orient:
+        if orient == self.orient:
             return
         for group in self.groups:
             self.container.remove(group.button)
         if self.applet:
             self.applet.remove(self.container)
         self.container.destroy()
-        self.globals.orient = orient
+        self.orient = orient
         if orient == "h":
             self.container = gtk.HBox()
         else:

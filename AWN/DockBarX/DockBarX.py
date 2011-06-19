@@ -48,7 +48,7 @@ class DockBarApp (awn.AppletSimple):
             self.box.pack_end(self.db.container, False, False)
         else:
             self.box.pack_start(self.db.container, False, False)
-        if self.db.globals.orient == "h":
+        if self.db.orient == "h":
             self.db.container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 2)
         else:
@@ -63,7 +63,7 @@ class DockBarApp (awn.AppletSimple):
         self.show()
 
     def __on_size_changed(self, *args):
-        if self.db.globals.orient == "h":
+        if self.db.orient == "h":
             self.db.container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 2)
         else:
@@ -83,7 +83,7 @@ class DockBarApp (awn.AppletSimple):
             self.box.pack_end(self.db.container, False, False)
         else:
             self.box.pack_start(self.db.container, False, False)
-        if self.db.globals.orient == "h":
+        if self.db.orient == "h":
             self.db.container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 2)
         else:

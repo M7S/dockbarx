@@ -659,7 +659,6 @@ class Globals(gobject.GObject):
             self.opacity_values = None
             self.opacity_matches = None
             self.dragging = False
-            self.orient = "h"
             self.theme_name = None
 
             self.set_shown_popup(None)

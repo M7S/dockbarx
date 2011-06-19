@@ -211,7 +211,7 @@ class DockX(CairoDockX):
         cornered = self.globals.settings["dock/mode"] == "corner"
         pos = self.globals.settings["dock/position"]
         if self.globals.settings["dock/position"] in ("left", "right"):
-            if self.globals.orient != "v" or not self.box.get_children():
+            if self.dockbar.orient != "v" or not self.box.get_children():
                 self.dockbar.set_orient("v")
                 for child in self.box.get_children():
                     self.box.remove(child)
@@ -226,7 +226,7 @@ class DockX(CairoDockX):
                     self.box.pack_start(self.padding2, True, True)
                 self.show_all()
         else:
-            if self.globals.orient != "h" or not self.box.get_children():
+            if self.dockbar.orient != "h" or not self.box.get_children():
                 self.dockbar.set_orient("h")
                 for child in self.box.get_children():
                     self.box.remove(child)

@@ -27,6 +27,7 @@ import array
 import cairo
 import gio
 import os
+import weakref
 from cStringIO import StringIO
 
 from theme import Theme
@@ -64,8 +65,9 @@ class IconFactory():
                  "launching":LAUNCH_EFFECT,
                  "mouse_button_down":MOUSE_BUTTON_DOWN}
 
-    def __init__(self, class_group=None,
+    def __init__(self, group, class_group=None,
                  desktop_entry=None, identifier=None):
+        self.dockbar_r = weakref.ref(group.dockbar_r())
         self.theme = Theme()
         self.globals = Globals()
         connect(self.globals, "color-changed", self.reset_surfaces)
@@ -160,7 +162,7 @@ class IconFactory():
             del self.temp
             gc.collect()
         if dnd:
-            surface = self.__dd_highlight(surface, self.globals.orient)
+            surface = self.__dd_highlight(surface, self.dockbar_r().orient)
             gc.collect()
         return surface
 
@@ -559,7 +561,7 @@ class IconFactory():
     #### Other commands
     def __command_get_pixmap(self, surface, name, size=0):
         if surface is None:
-            if self.globals.orient == "h":
+            if self.dockbar_r().orient == "h":
                 width = int(self.size * ar)
                 height = self.size
             else:
@@ -731,7 +733,7 @@ class IconFactory():
     def __command_correct_size(self, surface):
         if surface is None:
             return
-        if self.globals.orient == "v":
+        if self.dockbar_r().orient == "v":
             width = self.size
             height = int(self.size * self.ar)
         else:
