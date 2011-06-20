@@ -315,6 +315,13 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
         cmd = unquote(cmd)
         logger.info("Executing: %s"%cmd)
         os.system("/bin/sh -c '%s' &"%cmd)
+
+    def getIcon(self, *args):
+        try:
+            return xdg.DesktopEntry.DesktopEntry.getIcon(self, *args)
+        except:
+            logger.warning("Couldn't get icon name from a DesktopEntry")
+            return None
             
             
 

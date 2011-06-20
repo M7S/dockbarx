@@ -477,7 +477,7 @@ class IconFactory():
         icon_name = None
         if self.desktop_entry:
             icon_name = self.desktop_entry.getIcon()
-            if os.path.isfile(icon_name):
+            if icon_name is not None and os.path.isfile(icon_name):
                 pixbuf = self.__icon_from_file_name(icon_name, size)
                 if pixbuf is not None:
                     return pixbuf
