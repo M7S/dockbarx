@@ -2281,6 +2281,7 @@ class WindowList(gtk.VBox):
     def __init__(self, group):
         self.globals = Globals()
         self.group_r = weakref.ref(group)
+        self.dockbar_r = weakref.ref(group.dockbar_r())
         self.window_box = None
         self.show_previews = False
         self.mini_mode = False
