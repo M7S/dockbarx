@@ -961,7 +961,7 @@ class DockBar():
         for group in self.groups:
             if not group.pinned:
                 continue
-            identifier = group.identifier
+            identifier = str(group.identifier)
             if identifier is None:
                 identifier = ""
             path = group.desktop_entry.getFileName()
