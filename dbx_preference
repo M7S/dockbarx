@@ -917,6 +917,13 @@ class PrefDialog():
                                    self.__checkbutton_toggled,
                                    "dock/overlap")
         dock_box.pack_start(self.dock_strut_cb, False)
+
+        self.dock_autohide_cb = gtk.CheckButton(_("Autohide dock (might reduce battery life a little bit on laptops)"))
+        self.dock_autohide_cb.set_border_width(5)
+        self.dock_autohide_cb.connect("toggled",
+                                      self.__checkbutton_toggled,
+                                      "dock/autohide")
+        dock_box.pack_start(self.dock_autohide_cb, False)
         
 
         notebook.append_page(appearance_box, gtk.Label(_("Appearance")))
@@ -1219,6 +1226,10 @@ class PrefDialog():
                 self.dock_position_box.set_active(i)
                 break
         self.dock_strut_cb.set_active(self.globals.settings["dock/overlap"])
+        self.dock_strut_cb.set_sensitive(
+                                    not self.globals.settings["dock/autohide"])
+        self.dock_autohide_cb.set_active(
+                                        self.globals.settings["dock/autohide"])
 
     def __dialog_close(self,par1,par2):
         self.dialog.destroy()

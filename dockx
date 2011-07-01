@@ -29,6 +29,7 @@ import gtk
 import cairo
 import dockbarx.dockbar
 import wnck
+import gobject
 from dockbarx.common import Globals
 from Xlib import display
 from math import pi
@@ -193,6 +194,9 @@ class DockX(CairoDockX):
         CairoDockX.__init__(self)
         self.set_keep_above(True)
         self.monitor = monitor
+        self.autohide_sid = None
+        self.autounhide_sid = None
+        self.autounhide_sid = None
         self.box = gtk.HBox()
         self.padding1 = EventPadding(self, "before")
         self.padding2 = EventPadding(self, "after")
@@ -205,6 +209,10 @@ class DockX(CairoDockX):
         self.globals.connect("dock-offset-changed", self.__on_offset_changed)
         self.globals.connect("dock-overlap-changed",
                              self.__on_overlap_changed)
+        self.globals.connect("dock-autohide-changed",
+                             self.__on_autohide_changed)
+        if self.globals.settings["dock/autohide"]:
+            self.show_dock()
 
     def position_dock(self, *args):
         centered = self.globals.settings["dock/mode"] == "centered"
@@ -281,12 +289,16 @@ class DockX(CairoDockX):
     def __set_dock_strut(self, x, y, w, h):
         if not self.window:
             return
+        set_strut = not self.globals.settings["dock/overlap"] \
+                    and not self.globals.settings["dock/autohide"]
+        if not set_strut:
+            self.window.property_delete("_NET_WM_STRUT")
+            self.window.property_delete("_NET_WM_STRUT_PARTIAL")
+            return
         s = self.get_screen()
         sw = s.get_width()
         sh = s.get_height()
-        
         mx, my, mw, mh = s.get_monitor_geometry(self.monitor)
-        set_strut = not self.globals.settings["dock/overlap"]
         if self.globals.settings["dock/position"] == "left":
             strut = [x + w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
             # Make sure that there's no monitor on the left side of this one.
@@ -304,14 +316,10 @@ class DockX(CairoDockX):
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
             if s.get_monitor_at_point(x + w / 2, my + mh + 5) != self.monitor:
                 set_strut = False
-        if set_strut:
-            self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                        gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
-            self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
-                                        32, gtk.gdk.PROP_MODE_REPLACE, strut)
-        else:
-            self.window.property_delete("_NET_WM_STRUT")
-            self.window.property_delete("_NET_WM_STRUT_PARTIAL")
+        self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
+                                    gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
+        self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
+                                    32, gtk.gdk.PROP_MODE_REPLACE, strut)
             
     def __get_strut(self):
         size = self.globals.settings["dock/size"]
@@ -423,6 +431,61 @@ class DockX(CairoDockX):
             x, y = self.get_position()
         self.__set_dock_strut(x, y, w, h)
 
+    def show_dock(self):
+        self.show()
+        if self.autohide_sid is not None:
+            gobject.source_remove(self.autohide_sid)
+        if self.autounhide_sid is not None:
+            gobject.source_remove(self.autounhide_sid)
+            self.autounhide_sid = None
+        self.autohide_sid = gobject.timeout_add(200, self.__hide_check)
+                                                  
+    def hide_dock(self):
+        self.hide()
+        if self.autohide_sid is not None:
+            gobject.source_remove(self.autohide_sid)
+            self.autohide_sid = None
+        if self.autounhide_sid is not None:
+            gobject.source_remove(self.autounhide_sid)
+        display = gtk.gdk.display_get_default()
+        mx, my, mw, mh = self.get_monitor_geometry()
+        if self.globals.settings["dock/position"] == "left":
+            x1 = x2 = mx
+            y1 = my
+            y2 = my + mh -1
+        elif self.globals.settings["dock/position"] == "right":
+            x1 = x2 = mx + mw - 1
+            y1 = my
+            y2 = my + mh - 1
+        elif self.globals.settings["dock/position"] == "top":
+            x1 = mx
+            x2 = mx + mh - 1
+            y1 = y2 = my
+        else:
+            x1 = mx
+            x2 = mx + mh - 1
+            y1 = y2 = my + mh - 1
+        self.autounhide_sid = gobject.timeout_add(200, self.__unhide_check,
+                                                  display, x1, x2, y1, y2)
+
+    def __unhide_check(self, display, x1, x2, y1, y2):
+        s, x, y, mod = display.get_pointer()
+        if y >= y1 and y <= y2 and x >= x1 and x <= x2:
+            self.show_dock()
+            return False
+        return True
+
+    def __hide_check(self):
+        if self.globals.shown_popup() is not None:
+            return True
+        x, y = self.get_pointer()
+        a = self.get_allocation()
+        if x >= 0 and x < a.width and y >= 0 and y < a.height:
+            return True
+        self.hide_dock()
+        return False
+        
+
     def __on_mode_changed(self, *args):
         for child in self.box.get_children():
             self.box.remove(child)
@@ -432,6 +495,8 @@ class DockX(CairoDockX):
     def __on_position_changed(self, *args):
         self.position_dock()
         self.queue_draw()
+        if self.globals.settings["dock/autohide"]:
+            self.hide_dock()
 
     def __on_overlap_changed(self, *args):
         a = self.get_allocation()
@@ -440,6 +505,21 @@ class DockX(CairoDockX):
 
     def __on_offset_changed(self, *args):
         self.position_dock()
+
+    def __on_autohide_changed(self, *args):
+        if self.globals.settings["dock/autohide"]:
+            self.hide_dock()
+        else:
+            if self.autohide_sid is not None:
+                gobject.source_remove(self.autohide_sid)
+                self.autohide_sid = None
+            if self.autounhide_sid is not None:
+                gobject.source_remove(self.autounhide_sid)
+                self.autounhide_sid = None
+            self.show()
+        a = self.get_allocation()
+        x, y = self.get_position()
+        self.__set_dock_strut(x, y, a.width, a.height)
 
     def get_monitor_geometry(self):
         return self.get_screen().get_monitor_geometry(self.monitor)
