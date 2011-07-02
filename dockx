@@ -478,9 +478,15 @@ class DockX(CairoDockX):
     def __hide_check(self):
         if self.globals.shown_popup() is not None:
             return True
+        pos = self.globals.settings["dock/position"]
         x, y = self.get_pointer()
         a = self.get_allocation()
         if x >= 0 and x < a.width and y >= 0 and y < a.height:
+            return True
+        if (pos == "left" and x == 0) or \
+           (pos == "right" and x == a.width - 1) or \
+           (pos == "top" and y == 0)  or \
+           (pos == "bottom" and y == a.height - 1):
             return True
         self.hide_dock()
         return False
