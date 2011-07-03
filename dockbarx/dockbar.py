@@ -954,12 +954,13 @@ class DockBar():
         for group in self.groups:
             if not group.pinned:
                 continue
-            identifier = str(group.identifier)
+            identifier = group.identifier
             if identifier is None:
                 identifier = ""
             path = group.desktop_entry.getFileName()
             # Todo: Is there any drawbacks from using encode("utf-8") here?
-            gconf_pinned_apps.append(identifier.encode("utf-8") + ";" + path)
+            gconf_pinned_apps.append(identifier.encode("utf-8") + ";" +
+                                     path.encode("utf-8"))
         self.globals.set_pinned_apps_list(gconf_pinned_apps)
 
     def __add_launcher(self, identifier, path):

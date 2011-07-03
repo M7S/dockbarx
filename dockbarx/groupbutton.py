@@ -306,7 +306,7 @@ class Group(ListOfWindows):
     def __on_show_only_current_desktop_changed(self, arg):
         self.button.update_state()
         self.nextlist = None
-        self.button.button.set_icongeo()
+        self.button.set_icongeo()
         if self.locked_popup():
             self.locked_popup.get_child_().show_all()
             self.locked_popup.resize(10, 10)
