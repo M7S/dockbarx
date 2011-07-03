@@ -691,18 +691,11 @@ class DockBar():
         # Separates the differnt openoffice applications from each other
         # The names are chosen to match the gio app ids.
         name = window.get_name().lower()
-        if "libreoffice" in name:
+        resclass = window.get_class_group().get_res_class().lower()
+        if "libreoffice" in resclass:
             office = "libreoffice"
-        elif "openoffice.org" in name:
+        elif "openoffice.org" in resclass:
             office = "openoffice.org"
-        else:
-            for identifier in self.groups.get_identifiers():
-                if "libreoffice" in identifier:
-                    office = "libreoffice"
-                    break
-                if "openoffice.org" in identifier:
-                    office = "openoffice.org"
-                    break
         if not self.globals.settings["separate_ooo_apps"]:
             return "%s-writer" % office
         for app in ["calc", "impress", "draw", "math"]:
