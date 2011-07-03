@@ -1588,7 +1588,7 @@ class GroupButton(CairoAppButton):
 
 
     #### Opacify
-    def opacify(self, delay):
+    def opacify(self, delay=None):
         group = self.group_r()
         if delay:
             if not self.opacify_sid:
