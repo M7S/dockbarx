@@ -1,4 +1,12 @@
 Changelog:
+0.45
+Features:
+- Autohide option for the dock.
+
+Bug Fixes:
+- Quicklists no longer shows the menu items in random order.
+- A few small bugs that caused either weird behavior or chrashes fixed. (Bug #801580, #801361, #743749, #784307 and others)
+
 0.44
 Features:
 - DockbarX can run as a stand alone dock now. It is very basic and isn't meant to be an alround dock. It's meant to be used together with gnome-shell, wing-panel or other similar set-ups. For now the dock doesn't even have features autohide but it's light-weight compared to running AWN with DockbarX and the dock can avoid overlapping with other panels (unless you use compiz 0.9.x or gnome-shell) and it should behave correctly even with multiple monitors.

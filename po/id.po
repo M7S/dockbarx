@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-06-05 19:38+0300\n"
+"POT-Creation-Date: 2011-06-08 20:22+0300\n"
 "PO-Revision-Date: 2010-12-07 19:48+0000\n"
 "Last-Translator: Fakhrul Rijal <frijal@gmail.com>\n"
 "Language-Team: Indonesian <id@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-06-08 20:44+0000\n"
-"X-Generator: Launchpad (build 13144)\n"
+"X-Launchpad-Export-Date: 2011-07-04 13:16+0000\n"
+"X-Generator: Launchpad (build 13333)\n"
 
 #: dbx_preference:212
 msgid "DockBarX preferences"
@@ -57,13 +57,13 @@ msgstr "Menggeser keatas"
 msgid "Scroll down"
 msgstr "Menggeser kebawah"
 
-#: dbx_preference:256 dbx_preference:605 dbx_preference:1114
-#: dbx_preference:1366
+#: dbx_preference:256 dbx_preference:605 dbx_preference:1134
+#: dbx_preference:1390
 msgid "select or minimize window"
 msgstr "pilih atau mengecilkan jendela"
 
-#: dbx_preference:257 dbx_preference:604 dbx_preference:1113
-#: dbx_preference:1365
+#: dbx_preference:257 dbx_preference:604 dbx_preference:1133
+#: dbx_preference:1389
 msgid "select window"
 msgstr "pilih jendela"
 
@@ -265,23 +265,23 @@ msgstr "Sebuah jendela terbuka"
 msgid "Multiple windows open"
 msgstr "Sejumlah jendela terbuka"
 
-#: dbx_preference:613 dbx_preference:1123 dbx_preference:1375
+#: dbx_preference:613 dbx_preference:1143 dbx_preference:1399
 msgid "select all"
 msgstr "pilih semua"
 
-#: dbx_preference:614 dbx_preference:1124 dbx_preference:1376
+#: dbx_preference:614 dbx_preference:1144 dbx_preference:1400
 msgid "select or minimize all"
 msgstr "pilih atau perkecil semua"
 
-#: dbx_preference:615 dbx_preference:1125 dbx_preference:1377
+#: dbx_preference:615 dbx_preference:1145 dbx_preference:1401
 msgid "compiz scale"
 msgstr ""
 
-#: dbx_preference:616 dbx_preference:1126 dbx_preference:1378
+#: dbx_preference:616 dbx_preference:1146 dbx_preference:1402
 msgid "cycle through windows"
 msgstr ""
 
-#: dbx_preference:617 dbx_preference:1127 dbx_preference:1379
+#: dbx_preference:617 dbx_preference:1147 dbx_preference:1403
 msgid "show window list"
 msgstr "tampilkan daftar jendela"
 
@@ -289,15 +289,15 @@ msgstr "tampilkan daftar jendela"
 msgid "Workspace behavior"
 msgstr ""
 
-#: dbx_preference:626 dbx_preference:1387
+#: dbx_preference:626 dbx_preference:1411
 msgid "Ignore windows on other workspaces"
 msgstr "Abaikan jendela di workspace lainnya"
 
-#: dbx_preference:627 dbx_preference:1137 dbx_preference:1388
+#: dbx_preference:627 dbx_preference:1157 dbx_preference:1412
 msgid "Switch workspace when needed"
 msgstr "Tukar workspace jika diperlukan"
 
-#: dbx_preference:629 dbx_preference:1138 dbx_preference:1389
+#: dbx_preference:629 dbx_preference:1158 dbx_preference:1413
 msgid "Move windows from other workspaces"
 msgstr "Pindakhan jendela dari workspace lain"
 
@@ -420,19 +420,19 @@ msgstr ""
 msgid "Global Keyboard Shortcuts"
 msgstr ""
 
-#: dbx_preference:805 dockbarx/dockbar.py:1269
+#: dbx_preference:805 dockbarx/dockbar.py:1274
 msgid "Select next group"
 msgstr "Pilih grup berikutnya"
 
-#: dbx_preference:807 dockbarx/dockbar.py:1270
+#: dbx_preference:807 dockbarx/dockbar.py:1275
 msgid "Select previous group"
 msgstr "Pilih grup sebelumnya"
 
-#: dbx_preference:809 dockbarx/dockbar.py:1271
+#: dbx_preference:809 dockbarx/dockbar.py:1276
 msgid "Select next window in group"
 msgstr "Pilih jendela berikutnya pada grup"
 
-#: dbx_preference:811 dockbarx/dockbar.py:1272
+#: dbx_preference:811 dockbarx/dockbar.py:1277
 msgid "Select previous window in group"
 msgstr ""
 
@@ -488,95 +488,109 @@ msgstr ""
 msgid "Size"
 msgstr ""
 
-#: dbx_preference:902
-msgid "Appearance"
-msgstr ""
-
-#: dbx_preference:903
-msgid "Window List"
-msgstr ""
-
 #: dbx_preference:904
-msgid "Group Button"
+msgid "Offset"
 msgstr ""
 
 #: dbx_preference:905
+msgid ""
+"Use this if the dock isn't able to automatically aviod overlapping with "
+"other panels"
+msgstr ""
+
+#: dbx_preference:914
+msgid "Allow maximized windows behind the dock"
+msgstr ""
+
+#: dbx_preference:922
+msgid "Appearance"
+msgstr ""
+
+#: dbx_preference:923
+msgid "Window List"
+msgstr ""
+
+#: dbx_preference:924
+msgid "Group Button"
+msgstr ""
+
+#: dbx_preference:925
 msgid "Window Item"
 msgstr ""
 
-#: dbx_preference:906
+#: dbx_preference:926
 msgid "Plugins"
 msgstr ""
 
-#: dbx_preference:907
+#: dbx_preference:927
 msgid "Dock"
 msgstr ""
 
-#: dbx_preference:908
+#: dbx_preference:928
 msgid "Advanced"
 msgstr ""
 
-#: dbx_preference:968 dockbarx/theme.py:169
+#: dbx_preference:988 dockbarx/theme.py:169
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 
-#: dbx_preference:1136
+#: dbx_preference:1156
 msgid "Ignore windows on other workspace"
 msgstr ""
 
-#: dbx_preference:1260
+#: dbx_preference:1284
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1274
+#: dbx_preference:1298
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
 
-#: dbx_preference:1292
+#: dbx_preference:1316
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1315
+#: dbx_preference:1339
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1473
+#: dbx_preference:1497
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr ""
 
-#: dockbarx/dockbar.py:1091 dockbarx/groupbutton.py:2331
+#: dockbarx/dockbar.py:1096 dockbarx/groupbutton.py:2331
 msgid "Identifier"
 msgstr "Penanda"
 
-#: dockbarx/dockbar.py:1092
+#: dockbarx/dockbar.py:1097
 msgid "Enter the identifier here"
 msgstr "Masukkan tandanya disini"
 
-#: dockbarx/dockbar.py:1094
+#: dockbarx/dockbar.py:1099
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
 
-#: dockbarx/dockbar.py:1095
+#: dockbarx/dockbar.py:1100
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr ""
 
-#: dockbarx/dockbar.py:1112
+#: dockbarx/dockbar.py:1117
 msgid "Identifier:"
 msgstr "Penanda:"
 

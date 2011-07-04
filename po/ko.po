@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-05 19:38+0300\n"
-"PO-Revision-Date: 2011-06-06 17:25+0000\n"
+"POT-Creation-Date: 2011-06-08 20:22+0300\n"
+"PO-Revision-Date: 2011-06-09 09:01+0000\n"
 "Last-Translator: Ernesto2k <boramism@gmail.com>\n"
 "Language-Team: Kim Boram <boramism@gmail.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-06-08 20:44+0000\n"
-"X-Generator: Launchpad (build 13144)\n"
+"X-Launchpad-Export-Date: 2011-07-04 13:16+0000\n"
+"X-Generator: Launchpad (build 13333)\n"
 "Language: \n"
 
 #: dbx_preference:212
@@ -58,13 +58,13 @@ msgstr "위로 스크롤"
 msgid "Scroll down"
 msgstr "아래로 스크롤"
 
-#: dbx_preference:256 dbx_preference:605 dbx_preference:1114
-#: dbx_preference:1366
+#: dbx_preference:256 dbx_preference:605 dbx_preference:1134
+#: dbx_preference:1390
 msgid "select or minimize window"
 msgstr "창 선택 또는 최소화"
 
-#: dbx_preference:257 dbx_preference:604 dbx_preference:1113
-#: dbx_preference:1365
+#: dbx_preference:257 dbx_preference:604 dbx_preference:1133
+#: dbx_preference:1389
 msgid "select window"
 msgstr "창 선택"
 
@@ -265,23 +265,23 @@ msgstr "하나의 창이 열림"
 msgid "Multiple windows open"
 msgstr "다수의 창이 열림"
 
-#: dbx_preference:613 dbx_preference:1123 dbx_preference:1375
+#: dbx_preference:613 dbx_preference:1143 dbx_preference:1399
 msgid "select all"
 msgstr "모두 선택"
 
-#: dbx_preference:614 dbx_preference:1124 dbx_preference:1376
+#: dbx_preference:614 dbx_preference:1144 dbx_preference:1400
 msgid "select or minimize all"
 msgstr "선택 또는 모두 최소화"
 
-#: dbx_preference:615 dbx_preference:1125 dbx_preference:1377
+#: dbx_preference:615 dbx_preference:1145 dbx_preference:1401
 msgid "compiz scale"
 msgstr "컴피즈 스케일"
 
-#: dbx_preference:616 dbx_preference:1126 dbx_preference:1378
+#: dbx_preference:616 dbx_preference:1146 dbx_preference:1402
 msgid "cycle through windows"
 msgstr "창 전환"
 
-#: dbx_preference:617 dbx_preference:1127 dbx_preference:1379
+#: dbx_preference:617 dbx_preference:1147 dbx_preference:1403
 msgid "show window list"
 msgstr "창 목록 보이기"
 
@@ -289,15 +289,15 @@ msgstr "창 목록 보이기"
 msgid "Workspace behavior"
 msgstr "작업 공간 동작"
 
-#: dbx_preference:626 dbx_preference:1387
+#: dbx_preference:626 dbx_preference:1411
 msgid "Ignore windows on other workspaces"
 msgstr "다른 작업 공간 위의 창 무시하기"
 
-#: dbx_preference:627 dbx_preference:1137 dbx_preference:1388
+#: dbx_preference:627 dbx_preference:1157 dbx_preference:1412
 msgid "Switch workspace when needed"
 msgstr "필요할 때 작업 공간 바꾸기"
 
-#: dbx_preference:629 dbx_preference:1138 dbx_preference:1389
+#: dbx_preference:629 dbx_preference:1158 dbx_preference:1413
 msgid "Move windows from other workspaces"
 msgstr "다른 작업 공간에서 창 옮기기"
 
@@ -422,19 +422,19 @@ msgstr "지속 시간"
 msgid "Global Keyboard Shortcuts"
 msgstr "글로벌 키보드 바로 가기"
 
-#: dbx_preference:805 dockbarx/dockbar.py:1269
+#: dbx_preference:805 dockbarx/dockbar.py:1274
 msgid "Select next group"
 msgstr "다음 그룹 선택"
 
-#: dbx_preference:807 dockbarx/dockbar.py:1270
+#: dbx_preference:807 dockbarx/dockbar.py:1275
 msgid "Select previous group"
 msgstr "이전 그룹 선택"
 
-#: dbx_preference:809 dockbarx/dockbar.py:1271
+#: dbx_preference:809 dockbarx/dockbar.py:1276
 msgid "Select next window in group"
 msgstr "그룹 안의 다음 창 선택"
 
-#: dbx_preference:811 dockbarx/dockbar.py:1272
+#: dbx_preference:811 dockbarx/dockbar.py:1277
 msgid "Select previous window in group"
 msgstr "그룹 안의 이전 창 선택"
 
@@ -490,52 +490,66 @@ msgstr "맨 아래"
 msgid "Size"
 msgstr "크기"
 
-#: dbx_preference:902
+#: dbx_preference:904
+msgid "Offset"
+msgstr "위치"
+
+#: dbx_preference:905
+msgid ""
+"Use this if the dock isn't able to automatically aviod overlapping with "
+"other panels"
+msgstr "독이 다른 자동으로 다른 패널 위에 겹쳐지는 것을 막지 못하면 이 것을 사용하십시오."
+
+#: dbx_preference:914
+msgid "Allow maximized windows behind the dock"
+msgstr "독 뒤에 최대화 한  창이 있을 수 있게합니다."
+
+#: dbx_preference:922
 msgid "Appearance"
 msgstr "모양"
 
-#: dbx_preference:903
+#: dbx_preference:923
 msgid "Window List"
 msgstr "창 목록"
 
-#: dbx_preference:904
+#: dbx_preference:924
 msgid "Group Button"
 msgstr "그룹 단추"
 
-#: dbx_preference:905
+#: dbx_preference:925
 msgid "Window Item"
 msgstr "창 항목"
 
-#: dbx_preference:906
+#: dbx_preference:926
 msgid "Plugins"
 msgstr "플러그인"
 
-#: dbx_preference:907
+#: dbx_preference:927
 msgid "Dock"
 msgstr "독"
 
-#: dbx_preference:908
+#: dbx_preference:928
 msgid "Advanced"
 msgstr "고급"
 
-#: dbx_preference:968 dockbarx/theme.py:169
+#: dbx_preference:988 dockbarx/theme.py:169
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 "/usr/share/dockbarx/themes 또는 ~/.dockbarx/themes 경로에서 사용 가능한 테마를 찾을 수 없습니다."
 
-#: dbx_preference:1136
+#: dbx_preference:1156
 msgid "Ignore windows on other workspace"
 msgstr "다른 작업 공간 위의 창 무시하기"
 
-#: dbx_preference:1260
+#: dbx_preference:1284
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
 "미리 보기 기능을 사용하시려면 컴피즈 플러그인 중 KDE Compability을 사용해야 합니다. 지금부터 사용하시겠습니까?"
 
-#: dbx_preference:1274
+#: dbx_preference:1298
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
@@ -544,7 +558,7 @@ msgstr ""
 "미리 보기 기능에 필요한 KDE Compability 컴피즈 플러그인이 설치되어있지 않습니다. 우분투를 사용 중이시라면 compiz-"
 "fusion-plugins-main 패키지를 설치해 주십시오."
 
-#: dbx_preference:1292
+#: dbx_preference:1316
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
@@ -552,39 +566,39 @@ msgstr ""
 "미리 보기 기능은 KDE Compability 플러그인 기능 중 Support Plasma Thumnails 기능을 사용합니다. 지금부터 "
 "사용하시겠습니까?"
 
-#: dbx_preference:1315
+#: dbx_preference:1339
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr "투명화 기능을 사용하려면 투명, 밝기, 채도 컴피즈 플러그인을 사용하야 합니다. 지금부터 사용하시겠습니까?"
 
-#: dbx_preference:1473
+#: dbx_preference:1497
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr "키보드 문자열 안에 적어도 하나 이상의 모드 키(<컨트롤> 또는 <알트>, <윈도우 키>)가 필요합니다."
 
-#: dockbarx/dockbar.py:1091 dockbarx/groupbutton.py:2331
+#: dockbarx/dockbar.py:1096 dockbarx/groupbutton.py:2331
 msgid "Identifier"
 msgstr "식별 이름"
 
-#: dockbarx/dockbar.py:1092
+#: dockbarx/dockbar.py:1097
 msgid "Enter the identifier here"
 msgstr "여기에 식별 이름을 입력하세요"
 
-#: dockbarx/dockbar.py:1094
+#: dockbarx/dockbar.py:1099
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr "프로그램이 그 것의 창을 인식하지 못했을 때만 사용해야 합니다. "
 
-#: dockbarx/dockbar.py:1095
+#: dockbarx/dockbar.py:1100
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr "프로그램이 이미 실행 중인 경우 드롭 다운 목록에서 프로그램 식별 이름을 찾을 수 있을 것입니다."
 
-#: dockbarx/dockbar.py:1112
+#: dockbarx/dockbar.py:1117
 msgid "Identifier:"
 msgstr "식별 이름:"
 

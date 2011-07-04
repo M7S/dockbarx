@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-08 20:22+0300\n"
+"POT-Creation-Date: 2011-07-04 16:28+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,13 +57,13 @@ msgstr ""
 msgid "Scroll down"
 msgstr ""
 
-#: dbx_preference:256 dbx_preference:605 dbx_preference:1134
-#: dbx_preference:1390
+#: dbx_preference:256 dbx_preference:605 dbx_preference:1141
+#: dbx_preference:1401
 msgid "select or minimize window"
 msgstr ""
 
-#: dbx_preference:257 dbx_preference:604 dbx_preference:1133
-#: dbx_preference:1389
+#: dbx_preference:257 dbx_preference:604 dbx_preference:1140
+#: dbx_preference:1400
 msgid "select window"
 msgstr ""
 
@@ -264,23 +264,23 @@ msgstr ""
 msgid "Multiple windows open"
 msgstr ""
 
-#: dbx_preference:613 dbx_preference:1143 dbx_preference:1399
+#: dbx_preference:613 dbx_preference:1150 dbx_preference:1410
 msgid "select all"
 msgstr ""
 
-#: dbx_preference:614 dbx_preference:1144 dbx_preference:1400
+#: dbx_preference:614 dbx_preference:1151 dbx_preference:1411
 msgid "select or minimize all"
 msgstr ""
 
-#: dbx_preference:615 dbx_preference:1145 dbx_preference:1401
+#: dbx_preference:615 dbx_preference:1152 dbx_preference:1412
 msgid "compiz scale"
 msgstr ""
 
-#: dbx_preference:616 dbx_preference:1146 dbx_preference:1402
+#: dbx_preference:616 dbx_preference:1153 dbx_preference:1413
 msgid "cycle through windows"
 msgstr ""
 
-#: dbx_preference:617 dbx_preference:1147 dbx_preference:1403
+#: dbx_preference:617 dbx_preference:1154 dbx_preference:1414
 msgid "show window list"
 msgstr ""
 
@@ -288,15 +288,15 @@ msgstr ""
 msgid "Workspace behavior"
 msgstr ""
 
-#: dbx_preference:626 dbx_preference:1411
+#: dbx_preference:626 dbx_preference:1422
 msgid "Ignore windows on other workspaces"
 msgstr ""
 
-#: dbx_preference:627 dbx_preference:1157 dbx_preference:1412
+#: dbx_preference:627 dbx_preference:1164 dbx_preference:1423
 msgid "Switch workspace when needed"
 msgstr ""
 
-#: dbx_preference:629 dbx_preference:1158 dbx_preference:1413
+#: dbx_preference:629 dbx_preference:1165 dbx_preference:1424
 msgid "Move windows from other workspaces"
 msgstr ""
 
@@ -419,19 +419,19 @@ msgstr ""
 msgid "Global Keyboard Shortcuts"
 msgstr ""
 
-#: dbx_preference:805 dockbarx/dockbar.py:1274
+#: dbx_preference:805 dockbarx/dockbar.py:1268
 msgid "Select next group"
 msgstr ""
 
-#: dbx_preference:807 dockbarx/dockbar.py:1275
+#: dbx_preference:807 dockbarx/dockbar.py:1269
 msgid "Select previous group"
 msgstr ""
 
-#: dbx_preference:809 dockbarx/dockbar.py:1276
+#: dbx_preference:809 dockbarx/dockbar.py:1270
 msgid "Select next window in group"
 msgstr ""
 
-#: dbx_preference:811 dockbarx/dockbar.py:1277
+#: dbx_preference:811 dockbarx/dockbar.py:1271
 msgid "Select previous window in group"
 msgstr ""
 
@@ -501,95 +501,99 @@ msgstr ""
 msgid "Allow maximized windows behind the dock"
 msgstr ""
 
-#: dbx_preference:922
+#: dbx_preference:921
+msgid "Autohide dock"
+msgstr ""
+
+#: dbx_preference:929
 msgid "Appearance"
 msgstr ""
 
-#: dbx_preference:923
+#: dbx_preference:930
 msgid "Window List"
 msgstr ""
 
-#: dbx_preference:924
+#: dbx_preference:931
 msgid "Group Button"
 msgstr ""
 
-#: dbx_preference:925
+#: dbx_preference:932
 msgid "Window Item"
 msgstr ""
 
-#: dbx_preference:926
+#: dbx_preference:933
 msgid "Plugins"
 msgstr ""
 
-#: dbx_preference:927
+#: dbx_preference:934
 msgid "Dock"
 msgstr ""
 
-#: dbx_preference:928
+#: dbx_preference:935
 msgid "Advanced"
 msgstr ""
 
-#: dbx_preference:988 dockbarx/theme.py:169
+#: dbx_preference:995 dockbarx/theme.py:169
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 
-#: dbx_preference:1156
+#: dbx_preference:1163
 msgid "Ignore windows on other workspace"
 msgstr ""
 
-#: dbx_preference:1284
+#: dbx_preference:1295
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1298
+#: dbx_preference:1309
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
 
-#: dbx_preference:1316
+#: dbx_preference:1327
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1339
+#: dbx_preference:1350
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1497
+#: dbx_preference:1508
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr ""
 
-#: dockbarx/dockbar.py:1096 dockbarx/groupbutton.py:2331
+#: dockbarx/dockbar.py:1090 dockbarx/groupbutton.py:2333
 msgid "Identifier"
 msgstr ""
 
-#: dockbarx/dockbar.py:1097
+#: dockbarx/dockbar.py:1091
 msgid "Enter the identifier here"
 msgstr ""
 
-#: dockbarx/dockbar.py:1099
+#: dockbarx/dockbar.py:1093
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
 
-#: dockbarx/dockbar.py:1100
+#: dockbarx/dockbar.py:1094
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr ""
 
-#: dockbarx/dockbar.py:1117
+#: dockbarx/dockbar.py:1111
 msgid "Identifier:"
 msgstr ""
 

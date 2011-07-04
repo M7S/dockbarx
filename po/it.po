@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-06-05 19:38+0300\n"
-"PO-Revision-Date: 2011-04-24 21:50+0000\n"
-"Last-Translator: Matteo Manchi <Unknown>\n"
+"POT-Creation-Date: 2011-06-08 20:22+0300\n"
+"PO-Revision-Date: 2011-06-12 21:22+0000\n"
+"Last-Translator: Vincenzo Salmena <Unknown>\n"
 "Language-Team: Italian <it@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-06-08 20:44+0000\n"
-"X-Generator: Launchpad (build 13144)\n"
+"X-Launchpad-Export-Date: 2011-07-04 13:16+0000\n"
+"X-Generator: Launchpad (build 13333)\n"
 
 #: dbx_preference:212
 msgid "DockBarX preferences"
@@ -57,13 +57,13 @@ msgstr "Scorri verso l'alto"
 msgid "Scroll down"
 msgstr "Scorri verso il basso"
 
-#: dbx_preference:256 dbx_preference:605 dbx_preference:1114
-#: dbx_preference:1366
+#: dbx_preference:256 dbx_preference:605 dbx_preference:1134
+#: dbx_preference:1390
 msgid "select or minimize window"
 msgstr "Seleziona o minimizza la finestra"
 
-#: dbx_preference:257 dbx_preference:604 dbx_preference:1113
-#: dbx_preference:1365
+#: dbx_preference:257 dbx_preference:604 dbx_preference:1133
+#: dbx_preference:1389
 msgid "select window"
 msgstr "Seleziona la finestra"
 
@@ -177,20 +177,21 @@ msgstr "Dimensione delle anteprime"
 
 #: dbx_preference:503
 msgid "Locked list"
-msgstr ""
+msgstr "Lista bloccati"
 
 #: dbx_preference:508
 msgid "Show \"locked list\" option in menu"
-msgstr ""
+msgstr "Mostra l'opzione \"lista bloccati\" nel menu"
 
 #: dbx_preference:509
 msgid ""
 "The option is only shown when a program has more than one window opened."
 msgstr ""
+"L'opzione è mostrata solo quando un programma ha più di una finestra aperta"
 
 #: dbx_preference:514
 msgid "Maximized windows should not overlap the locked list"
-msgstr ""
+msgstr "Le finestre massimizzate non si sovrappongono alla lista bloccati"
 
 #: dbx_preference:523
 msgid "Group button actions"
@@ -264,23 +265,23 @@ msgstr "Una finestra aperta"
 msgid "Multiple windows open"
 msgstr "Più finestre aperte"
 
-#: dbx_preference:613 dbx_preference:1123 dbx_preference:1375
+#: dbx_preference:613 dbx_preference:1143 dbx_preference:1399
 msgid "select all"
 msgstr "seleziona tutto"
 
-#: dbx_preference:614 dbx_preference:1124 dbx_preference:1376
+#: dbx_preference:614 dbx_preference:1144 dbx_preference:1400
 msgid "select or minimize all"
 msgstr "seleziona o minimizza tutto"
 
-#: dbx_preference:615 dbx_preference:1125 dbx_preference:1377
+#: dbx_preference:615 dbx_preference:1145 dbx_preference:1401
 msgid "compiz scale"
 msgstr "effetto scala di compiz"
 
-#: dbx_preference:616 dbx_preference:1126 dbx_preference:1378
+#: dbx_preference:616 dbx_preference:1146 dbx_preference:1402
 msgid "cycle through windows"
 msgstr "ciclo attraverso le finestre"
 
-#: dbx_preference:617 dbx_preference:1127 dbx_preference:1379
+#: dbx_preference:617 dbx_preference:1147 dbx_preference:1403
 msgid "show window list"
 msgstr "Mostra lista delle finestre"
 
@@ -288,15 +289,15 @@ msgstr "Mostra lista delle finestre"
 msgid "Workspace behavior"
 msgstr "Comportamento dell'area di lavoro"
 
-#: dbx_preference:626 dbx_preference:1387
+#: dbx_preference:626 dbx_preference:1411
 msgid "Ignore windows on other workspaces"
 msgstr "Ignora le finestre negli altri workspace"
 
-#: dbx_preference:627 dbx_preference:1137 dbx_preference:1388
+#: dbx_preference:627 dbx_preference:1157 dbx_preference:1412
 msgid "Switch workspace when needed"
 msgstr "Cambia workspace quando è necessario"
 
-#: dbx_preference:629 dbx_preference:1138 dbx_preference:1389
+#: dbx_preference:629 dbx_preference:1158 dbx_preference:1413
 msgid "Move windows from other workspaces"
 msgstr "Muovi finestra da un altro workspace"
 
@@ -336,7 +337,7 @@ msgstr "Usa i pulsanti media"
 
 #: dbx_preference:667
 msgid "Use Unity quicklists"
-msgstr ""
+msgstr "Usa le quicklist di Unity"
 
 #: dbx_preference:674
 msgid "DockManager"
@@ -348,11 +349,11 @@ msgstr "Usa DockManager"
 
 #: dbx_preference:682
 msgid "Allow DockManager to write badges on GroupButtons"
-msgstr ""
+msgstr "Permetti a DockManager di scriver informazioni su GroupButtons"
 
 #: dbx_preference:690 dbx_preference:696
 msgid "Badge font"
-msgstr ""
+msgstr "Font delle info"
 
 #: dbx_preference:701
 msgid "Helpers"
@@ -433,49 +434,49 @@ msgstr "Durata"
 msgid "Global Keyboard Shortcuts"
 msgstr "Scorciatoie da tastiera globali"
 
-#: dbx_preference:805 dockbarx/dockbar.py:1269
+#: dbx_preference:805 dockbarx/dockbar.py:1274
 msgid "Select next group"
 msgstr "Seleziona il gruppo successivo"
 
-#: dbx_preference:807 dockbarx/dockbar.py:1270
+#: dbx_preference:807 dockbarx/dockbar.py:1275
 msgid "Select previous group"
 msgstr "Seleziona il gruppo precedente"
 
-#: dbx_preference:809 dockbarx/dockbar.py:1271
+#: dbx_preference:809 dockbarx/dockbar.py:1276
 msgid "Select next window in group"
 msgstr "Seleziona la finestra successiva nel gruppo"
 
-#: dbx_preference:811 dockbarx/dockbar.py:1272
+#: dbx_preference:811 dockbarx/dockbar.py:1277
 msgid "Select previous window in group"
 msgstr "Seleziona la finestra precedente nel gruppo"
 
 #: dbx_preference:846
 msgid "Note! Compiz keyboard shortcuts will override these."
-msgstr ""
+msgstr "Nota! Le scorciatoie di Compiz si sovrappongono a queste"
 
 #: dbx_preference:848
 msgid "Skip pinned apps without open windows"
-msgstr ""
+msgstr "Evita le applicazioni pinnate senza finestre aperte"
 
 #: dbx_preference:854
 msgid "Use Unity style number shortcuts (Super+number)"
-msgstr ""
+msgstr "Usa scorciatoie in stile Unity (Super+number)"
 
 #: dbx_preference:868
 msgid "Mode"
-msgstr ""
+msgstr "Modalità"
 
 #: dbx_preference:871
 msgid "panel"
-msgstr ""
+msgstr "pannello"
 
 #: dbx_preference:871
 msgid "corner"
-msgstr ""
+msgstr "angolo"
 
 #: dbx_preference:871
 msgid "centered"
-msgstr ""
+msgstr "centrato"
 
 #: dbx_preference:880
 msgid "Position"
@@ -501,46 +502,60 @@ msgstr "basso"
 msgid "Size"
 msgstr "Dimesione"
 
-#: dbx_preference:902
+#: dbx_preference:904
+msgid "Offset"
+msgstr "Margine"
+
+#: dbx_preference:905
+msgid ""
+"Use this if the dock isn't able to automatically aviod overlapping with "
+"other panels"
+msgstr "Usa se la dock non evita la sovrapposizione con gli altri pannelli"
+
+#: dbx_preference:914
+msgid "Allow maximized windows behind the dock"
+msgstr "Permetti le finestre massimizzate sotto la dock"
+
+#: dbx_preference:922
 msgid "Appearance"
 msgstr "Aspetto"
 
-#: dbx_preference:903
+#: dbx_preference:923
 msgid "Window List"
 msgstr "Lista finestre"
 
-#: dbx_preference:904
+#: dbx_preference:924
 msgid "Group Button"
 msgstr "Pulsante del gruppo"
 
-#: dbx_preference:905
+#: dbx_preference:925
 msgid "Window Item"
 msgstr "FInestra"
 
-#: dbx_preference:906
+#: dbx_preference:926
 msgid "Plugins"
 msgstr "Plugin"
 
-#: dbx_preference:907
+#: dbx_preference:927
 msgid "Dock"
 msgstr "Dock"
 
-#: dbx_preference:908
+#: dbx_preference:928
 msgid "Advanced"
 msgstr "Modalità avanzata"
 
-#: dbx_preference:968 dockbarx/theme.py:169
+#: dbx_preference:988 dockbarx/theme.py:169
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 "Non sono stati trovati temi funzionanti in /usr/share/dockbarx/themes o in "
 "~/.dockbarx/themes"
 
-#: dbx_preference:1136
+#: dbx_preference:1156
 msgid "Ignore windows on other workspace"
 msgstr "Ignora le finestre in altri workspace"
 
-#: dbx_preference:1260
+#: dbx_preference:1284
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
@@ -548,7 +563,7 @@ msgstr ""
 "Le anteprime richiedono che il plugin di compiz KDE Compatibility sia "
 "attivo. Vuoi che dockbarx lo attivi per te?"
 
-#: dbx_preference:1274
+#: dbx_preference:1298
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
@@ -558,7 +573,7 @@ msgstr ""
 "anteprime sembra non essere installato. Se usi Ubuntu, devi installare il "
 "pacchetto compiz-fusion-plugins-main."
 
-#: dbx_preference:1292
+#: dbx_preference:1316
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
@@ -566,7 +581,7 @@ msgstr ""
 "Le anteprime richiedono che il supporto alle miniature di Plasma nel plugin "
 "KDE Compatibility sia attivo. Vuoi che dockbarx lo attivi per te?"
 
-#: dbx_preference:1315
+#: dbx_preference:1339
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
@@ -574,7 +589,7 @@ msgstr ""
 "Opacizza richiede che il plugin Opacità, luminosità e saturazione di compiz "
 "sia attivo. Vuoi che dockbarx lo attivi per te?"
 
-#: dbx_preference:1473
+#: dbx_preference:1497
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
@@ -582,15 +597,15 @@ msgstr ""
 "Devi avere almeno un modificatore (<control>, <alt> o <super>) nella "
 "combinazione di tasti"
 
-#: dockbarx/dockbar.py:1091 dockbarx/groupbutton.py:2331
+#: dockbarx/dockbar.py:1096 dockbarx/groupbutton.py:2331
 msgid "Identifier"
 msgstr "Identificatore"
 
-#: dockbarx/dockbar.py:1092
+#: dockbarx/dockbar.py:1097
 msgid "Enter the identifier here"
 msgstr "Scrivere l'identificatore qui"
 
-#: dockbarx/dockbar.py:1094
+#: dockbarx/dockbar.py:1099
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
@@ -598,7 +613,7 @@ msgstr ""
 "Dovresti fare questo solo se il programma fallisce nel riconoscimento delle "
 "sue finestre. "
 
-#: dockbarx/dockbar.py:1095
+#: dockbarx/dockbar.py:1100
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
@@ -606,7 +621,7 @@ msgstr ""
 "Se il programma è già in esecuzione, dovresti essere in grado di trovare "
 "l'identificatore del programma dalla lista a scomparsa"
 
-#: dockbarx/dockbar.py:1112
+#: dockbarx/dockbar.py:1117
 msgid "Identifier:"
 msgstr "Identificatore:"
 
@@ -679,11 +694,11 @@ msgstr "Correlato"
 
 #: dockbarx/groupbutton.py:635 dockbarx/groupbutton.py:770
 msgid "Remove locked list"
-msgstr ""
+msgstr "Rimuovi la lista bloccata"
 
 #: dockbarx/groupbutton.py:638 dockbarx/groupbutton.py:769
 msgid "Show locked list"
-msgstr ""
+msgstr "Mostra la lista bloccata"
 
 #: dockbarx/groupbutton.py:645 dockbarx/groupbutton.py:750
 #: dockbarx/groupbutton.py:752 dockbarx/groupbutton.py:755

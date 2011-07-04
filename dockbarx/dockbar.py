@@ -36,7 +36,7 @@ from log import logger
 import i18n
 _ = i18n.language.gettext
 
-VERSION = "0.44+bzr"
+VERSION = "0.45"
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -1352,6 +1352,9 @@ class DockBar():
                     if key.lower() in self.globals.settings[keystr].lower()]
             if not self.mod_keys:
                 self.mod_keys = mod_keys
+            
+            if self.is_dock:
+                applet.show_dock()
 
     def __select_next_group(self, previous=False):
         if len(self.groups) == 0:
@@ -1515,6 +1518,9 @@ class DockBar():
             if applet:
                 disconnect(applet)
             self.next_group = None
+            if self.is_dock:
+                self.parent_window.show()
+                gobject.timeout_add(600, self.parent_window.show_dock)
         if not windows:
             success = False
             if group.media_controls:
