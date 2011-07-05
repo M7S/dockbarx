@@ -386,6 +386,8 @@ class Group(ListOfWindows):
 
     def del_window(self, wnck_window):
         window = self[wnck_window]
+        if window == self.scrollpeak_window:
+            self.scrollpeak_abort()
         self.remove(window)
         if self.nextlist and window in self.nextlist:
             self.nextlist.remove(window)
