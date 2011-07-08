@@ -31,7 +31,7 @@ import dockbarx.dockbar
 import wnck
 import gobject
 from dockbarx.common import Globals
-from Xlib import display, error
+from Xlib import display
 from math import pi
 import weakref
 
@@ -332,11 +332,11 @@ class DockX(CairoDockX):
         strut_atom = d.get_atom('_NET_WM_STRUT')
         strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
         strut = [mx, sw - (mx + mw), my,  sh - (my + mh)]
-        ec = error.CatchError(error.BadWindow)
         for w in windows:
-            prop1 = w.get_full_property(strut_partial_atom, 0, onerror=ec)
-            prop2 = w.get_full_property(strut_atom, 0, onerror=ec)
-            if ec.get_error():
+            try:
+                prop1 = w.get_full_property(strut_partial_atom, 0)
+                prop2 = w.get_full_property(strut_atom, 0)
+            except:
                 continue
             if prop1 is not None:
                 cl = w.get_wm_class()
