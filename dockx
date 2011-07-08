@@ -326,12 +326,13 @@ class DockX(CairoDockX):
         mx, my, mw, mh = self.get_monitor_geometry()
         sw = self.get_screen().get_width()
         sh = self.get_screen().get_height()
+        strut = [mx, sw - (mx + mw), my,  sh - (my + mh)]
         d = display.Display()
-        root = d.screen().root
-        windows = root.query_tree()._data['children']
         strut_atom = d.get_atom('_NET_WM_STRUT')
         strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
-        strut = [mx, sw - (mx + mw), my,  sh - (my + mh)]
+        root = d.screen().root
+        d.sync()
+        windows = root.query_tree()._data['children']
         for w in windows:
             try:
                 prop1 = w.get_full_property(strut_partial_atom, 0)
