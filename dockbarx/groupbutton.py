@@ -2238,9 +2238,9 @@ class LockedPopup(GroupPopup):
                                         32, gtk.gdk.PROP_MODE_REPLACE, strut)
 
     def __get_other_strut(self, x1, x2):
-        global display
+        global display, error
         if display is None:
-            from Xlib import display
+            from Xlib import display, error
         monitor = self.get_screen().get_monitor_geometry(0)
         mx, my, mw, mh = monitor
         d = display.Display()
@@ -2249,9 +2249,12 @@ class LockedPopup(GroupPopup):
         strut_atom = d.get_atom('_NET_WM_STRUT')
         strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
         strut = 0
+        ec = error.CatchError(error.BadWindow)
         for w in windows:
-            prop1 = w.get_full_property(strut_partial_atom, 0)
-            prop2 = w.get_full_property(strut_atom, 0)
+            prop1 = w.get_full_property(strut_partial_atom, 0, onerror=ec)
+            prop2 = w.get_full_property(strut_atom, 0, onerror=ec)
+            if ec.get_error():
+                continue
             if prop1 is not None:
                 cl = w.get_wm_class()
                 if cl and cl[0] in ("dockx", "dockbarx_factory"):
