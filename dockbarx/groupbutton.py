@@ -1559,6 +1559,7 @@ class GroupButton(CairoAppButton):
                 length = 2000
             else:
                 length = 10000
+        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.launch_effect_timeout = gobject.timeout_add(length,
                                                 self.remove_launch_effect)
                                                 
@@ -1566,6 +1567,7 @@ class GroupButton(CairoAppButton):
         if self.launch_effect_timeout:
             gobject.source_remove(self.launch_effect_timeout)
             self.launch_effect_timeout = None
+        self.window.set_cursor(None)
         self.launch_effect = False
         self.update_state()
         return False
