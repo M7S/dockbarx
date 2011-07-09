@@ -1560,14 +1560,19 @@ class GroupButton(CairoAppButton):
             else:
                 length = 10000
         self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        if group.popup.window is not None:
+            group.popup.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.launch_effect_timeout = gobject.timeout_add(length,
                                                 self.remove_launch_effect)
                                                 
     def remove_launch_effect(self):
+        group = self.group_r()
         if self.launch_effect_timeout:
             gobject.source_remove(self.launch_effect_timeout)
             self.launch_effect_timeout = None
         self.window.set_cursor(None)
+        if group.popup.window is not None:
+            group.popup.window.set_cursor(None)
         self.launch_effect = False
         self.update_state()
         return False
