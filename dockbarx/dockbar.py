@@ -532,14 +532,8 @@ class DockBar():
         return group
 
     def __add_window(self, window):
-        try:
-            gdkw = gtk.gdk.window_foreign_new(window.get_xid())
-            wm_class_property = gdkw.property_get(ATOM_WM_CLASS)[2].split("\0")
-            res_class = u"" + wm_class_property[1].lower()
-            res_name  = u"" + wm_class_property[0].lower()
-        except:
-            res_class = window.get_class_group().get_res_class().lower()
-            res_name = window.get_class_group().get_name().lower()
+        res_class = window.get_class_group().get_res_class().lower()
+        res_name = window.get_class_group().get_name().lower()
         identifier = res_class or res_name or window.get_name().lower()
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:

@@ -331,7 +331,6 @@ class DockX(CairoDockX):
         strut_atom = d.get_atom('_NET_WM_STRUT')
         strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
         root = d.screen().root
-        d.sync()
         windows = root.query_tree()._data['children']
         for w in windows:
             try:
