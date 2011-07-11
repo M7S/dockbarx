@@ -446,6 +446,8 @@ class DockBar():
 
     def __on_window_closed(self, screen, window):
         if window in self.windows:
+            if self.is_dock:
+                self.parent_window.remove_window(window)
             disconnect(window)
             self.__remove_window(window)
         if window in self.skip_tasklist_windows:
@@ -460,14 +462,20 @@ class DockBar():
             self.skip_tasklist_windows.append(window)
             return
         self.__add_window(window)
+        if self.is_dock:
+            self.parent_window.add_window(window)
 
     def __on_window_state_changed(self, window, changed_mask, new_state):
         if window in self.skip_tasklist_windows and \
            not window.is_skip_tasklist():
             self.__add_window(window)
             self.skip_tasklist_windows.remove(window)
+            if self.is_dock:
+                self.parent_window.add_window(window)
         if window.is_skip_tasklist() and \
            not window in self.skip_tasklist_windows:
+            if self.is_dock:
+                self.parent_window.remove_window(window)
             self.__remove_window(window)
             self.skip_tasklist_windows.append(window)
 
