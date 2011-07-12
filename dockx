@@ -362,9 +362,9 @@ class DockX(CairoDockX):
                 if cl and cl[0] in ("dockx", "dockbarx_factory"):
                     continue
                 if self.globals.settings["dock/position"] == "left":
-                    if prop1.value[4] < my + mh and \
-                       prop1.value[5] >= my:
-                        strut[0] = max(strut[0], prop1.value[0])
+                    #~ if prop1.value[4] < my + mh and \
+                       #~ prop1.value[5] >= my:
+                        #~ strut[0] = max(strut[0], prop1.value[0])
                     if prop1.value[6] < my + mh and \
                        prop1.value[7] >= my:
                         strut[1] = max(strut[1], prop1.value[1])
@@ -378,9 +378,9 @@ class DockX(CairoDockX):
                     if prop1.value[4] < my + mh and \
                        prop1.value[5] >= my:
                         strut[0] = max(strut[0], prop1.value[0])
-                    if prop1.value[6] < my + mh and \
-                       prop1.value[7] >= my:
-                        strut[1] = max(strut[1], prop1.value[1])
+                    #~ if prop1.value[6] < my + mh and \
+                       #~ prop1.value[7] >= my:
+                        #~ strut[1] = max(strut[1], prop1.value[1])
                     if prop1.value[8] < mx + mw and \
                        prop1.value[9] >= mx + mw - size:
                         strut[2] = max(strut[2], prop1.value[2])
@@ -394,9 +394,9 @@ class DockX(CairoDockX):
                     if prop1.value[6] <= my + size and \
                        prop1.value[7] >= my:
                         strut[1] = max(strut[1], prop1.value[1])
-                    if prop1.value[8] < mx + mw and \
-                       prop1.value[9] >= mx:
-                        strut[2] = max(strut[2], prop1.value[2])
+                    #~ if prop1.value[8] < mx + mw and \
+                       #~ prop1.value[9] >= mx:
+                        #~ strut[2] = max(strut[2], prop1.value[2])
                     if prop1.value[10] < mx + mw and \
                        prop1.value[11] >= mx:
                         strut[3] = max(strut[3], prop1.value[3])
@@ -410,9 +410,9 @@ class DockX(CairoDockX):
                     if prop1.value[8] < mx + mw and \
                        prop1.value[9] >= mx:
                         strut[2] = max(strut[2], prop1.value[2])
-                    if prop1.value[10] < mx + mw and \
-                       prop1.value[11] >= mx:
-                        strut[3] = max(strut[3], prop1.value[3])
+                    #~ if prop1.value[10] < mx + mw and \
+                       #~ prop1.value[11] >= mx:
+                        #~ strut[3] = max(strut[3], prop1.value[3])
                 continue
             if prop2 is not None:
                 # Hopefully this one is never needed because
