@@ -263,7 +263,7 @@ class DockX(CairoDockX):
                     self.box.pack_start(self.padding2, True, True)
                 self.show_all()
         mx, my, mw, mh = self.get_monitor_geometry()
-        l, r, t, b = self.__get_strut()
+        l, r, t, b = self.__get_monitor_and_strut_borders()
         sw = self.get_screen().get_width()
         sh = self.get_screen().get_height()
         size = self.globals.settings["dock/size"]
@@ -274,6 +274,7 @@ class DockX(CairoDockX):
         elif pos == "right":
             x,y, w, h = (sw - size - r, t + o, size, sh - t - b - o)
             strut = [0, sw - x, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
+            print x,y,w,h
         elif pos == "top":
             x,y, w, h = (l + o, t, sw - l - r - o, size)
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
@@ -334,7 +335,9 @@ class DockX(CairoDockX):
         self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
                                     32, gtk.gdk.PROP_MODE_REPLACE, strut)
             
-    def __get_strut(self):
+    def __get_monitor_and_strut_borders(self):
+        # This function returns the distance from screen edges to
+        # the monitor edges including strut.
         size = self.globals.settings["dock/size"]
         mx, my, mw, mh = self.get_monitor_geometry()
         sw = self.get_screen().get_width()
@@ -522,7 +525,9 @@ class DockX(CairoDockX):
         if self.db_loaded and calc_overlap:
             self.__calc_window_overlaps()
             
-    def remove_window(self, window, calc_overlap=True):
+    def remove_window(self, window, calc_overlap=True, forced=False):
+        if not self.globals.settings["dock/autohide"] and not forced:
+            return
         del self.border_distances[window]
         sids = self.windows.pop(window)
         if sids is not None:
@@ -620,10 +625,12 @@ class DockX(CairoDockX):
                 self.autounhide_sid = None
             self.show()
             for window in self.dockbar.windows:
-                self.remove_window(window, calc_overlap=False)
-        a = self.get_allocation()
-        x, y = self.get_position()
-        self.__set_dock_strut(x, y, a.width, a.height)
+                self.remove_window(window, calc_overlap=False, forced=True)
+        self.position_dock()
+        if self.globals.settings["dock/mode"] in ("centered", "corner"):
+            a = self.get_allocation()
+            x, y = self.get_position()
+            self.__set_dock_strut(x, y, a.width, a.height)
 
     def get_monitor_geometry(self):
         screen = self.get_screen()
