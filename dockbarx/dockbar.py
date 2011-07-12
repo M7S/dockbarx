@@ -207,8 +207,12 @@ class DockBar():
         from mediabuttons import Mpris2Watch, MediaButtons
         global DockManager
         from dockmanager import DockManager
+        global DockbarDBus
+        from dbx_dbus import DockbarDBus
+        
         self.media_controls = {}
         self.mpris = Mpris2Watch(self)
+        self.dbus = DockbarDBus(self)
 
         self.gkeys = {
                         "gkeys_select_next_group": None,
@@ -1531,5 +1535,3 @@ class DockBar():
                 group.action_launch_application()
         if len(windows) == 1:
             windows[0].action_select_window()
-
-        

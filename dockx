@@ -35,6 +35,8 @@ from Xlib import display
 from math import pi
 import weakref
 import time
+import dbus
+import dbus.service
 
 WNCK_WINDOW_STATE_MINIMIZED = 1
 
@@ -226,6 +228,7 @@ class DockX(CairoDockX):
         self.__calc_window_overlaps()
         if self.globals.settings["dock/autohide"]:
             self.show_dock()
+        self.dbus_obj = DockXDBus(self)
 
     def position_dock(self, *args):
         centered = self.globals.settings["dock/mode"] == "centered"
@@ -748,6 +751,53 @@ class EventPadding(gtk.EventBox):
     def do_drag_leave(self, drag_context, t):
         self.drag_entered = False
 
+class DockXDBus(dbus.service.Object):
+
+    def __init__(self, dockx):
+        self.bus_name = "org.dockbar.DockX"
+        if "org.dockbar.DockX" in dbus.SessionBus().list_names():
+            for n in range(1, 100):
+                name = "org.dockbar.DockX%s" % n
+                if not name in dbus.SessionBus().list_names():
+                    self.bus_name = name
+                    break
+        self.dockx_r = weakref.ref(dockx)
+        bus_name = dbus.service.BusName(self.bus_name,
+                                        bus = dbus.SessionBus())
+        dbus.service.Object.__init__(self, bus_name,
+                                     "/org/dockbar/DockX")
+
+    @dbus.service.method(dbus_interface="org.dockbar.DockX",
+                         in_signature="", out_signature="",)
+    def Reload(self):
+        self.dockx_r().reload()
+
+    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
+                         in_signature='ss', out_signature='v')
+    def Get(self, interface_name, property_name):
+        return self.GetAll(interface_name)[property_name]
+
+    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
+                         in_signature='s', out_signature='a{sv}')
+    def GetAll(self, interface_name):
+        if interface_name == "org.dockbar.DockX":
+            return {}
+        else:
+            raise dbus.exceptions.DBusException(
+                'com.example.UnknownInterface',
+                'The Foo object does not implement the %s interface'
+                    % interface_name)
+
+    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
+                         in_signature='ssv', out_signature='')
+    def Set(self, interface_name, property_name, property_value):
+        pass
+
+    @dbus.service.signal(dbus_interface=dbus.PROPERTIES_IFACE,
+                         signature='sa{sv}as')
+    def PropertiesChanged(self, interface_name, changed_properties,
+                          invalidated_properties):
+        pass
 
 monitor = 0
 if "--monitor" in sys.argv:

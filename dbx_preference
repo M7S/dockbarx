@@ -926,17 +926,22 @@ class PrefDialog():
         dock_box.pack_start(self.dock_autohide_cb, False)
         
 
+        notebook.append_page(dock_box, gtk.Label(_("Dock")))
         notebook.append_page(appearance_box, gtk.Label(_("Appearance")))
         notebook.append_page(popup_box, gtk.Label(_("Window List")))
         notebook.append_page(groupbutton_box, gtk.Label(_("Group Button")))
         notebook.append_page(windowbutton_box, gtk.Label(_("Window Item")))
         notebook.append_page(plugins_box, gtk.Label(_("Plugins")))
-        notebook.append_page(dock_box, gtk.Label(_("Dock")))
         notebook.append_page(advanced_box, gtk.Label(_("Advanced")))
         ca.pack_start(notebook)
         self.__update()
         self.dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.dialog.show_all()
+        for name in dbus.SessionBus().list_names():
+            if str(name).startswith("org.dockbar.DockX"):
+                break
+        else:
+            dock_box.hide()
 
     def __load_theme(self):
         self.themes = self.__find_themes()
