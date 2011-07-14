@@ -51,7 +51,8 @@ class DockManager(dbus.service.Object):
         capabilities = ["menu-item-container-title",
                         "menu-item-icon-file",
                         "menu-item-icon-name",
-                        "menu-item-with-label"]
+                        "menu-item-with-label",
+                        "dock-item-progress"]
         if self.globals.settings["dockmanager_badge"]:
             capabilities.append("dock-item-badge")
         return capabilities
@@ -188,9 +189,16 @@ class DockManagerItem(dbus.service.Object):
     @dbus.service.method(dbus_interface="net.launchpad.DockItem",
                          in_signature="a{sv}", out_signature="")
     def UpdateDockItem(self, properties):
+        group = groupbutton_r()
         if self.globals.settings["dockmanager_badge"]:
             badge = properties.get("badge", None)
-            self.groupbutton_r().button.set_badge(badge)
+            group.button.make_badge(badge)
+            group.button.update()
+        progress = properties.get("progress", None)
+        if progress is not None:
+            progress = float(progress)/100
+            group.button.make_progress_bar(progress)
+            group.button.update()
 
     @dbus.service.signal(dbus_interface='net.launchpad.DockItem',
                          signature='i')

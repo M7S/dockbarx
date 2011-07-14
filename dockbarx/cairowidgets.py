@@ -31,7 +31,8 @@ from common import connect, disconnect
 from log import logger
 
 class CairoAppButton(gtk.EventBox):
-    __gsignals__ = {"expose-event" : "override",}
+    __gsignals__ = {"expose-event" : "override",
+                    "size_allocate": "override"}
     def __init__(self, surface=None, in_dock=False):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
@@ -42,12 +43,16 @@ class CairoAppButton(gtk.EventBox):
         self.surface = surface
         self.in_dock = in_dock
         self.badge = None
+        self.badge_text = None
+        self.progress_bar = None
+        self.progress = None
         self.bf_sid = self.globals.connect("dockmanager-badge-font-changed",
                                     self.__on_dockmanager_badge_font_changed)
 
-    def update(self, surface):
+    def update(self, surface=None):
         a = self.area.get_allocation()
-        self.surface = surface
+        if surface is not None:
+            self.surface = surface
         if self.window is None:
             return
         if self.in_dock:
@@ -59,6 +64,12 @@ class CairoAppButton(gtk.EventBox):
         ctx.clip()
         ctx.set_source_surface(self.surface, a.x, a.y)
         ctx.paint()
+        for surface in (self.badge, self.progress_bar):
+            if surface is not None:
+                ctx.rectangle(a.x, a.y, a.width, a.height)
+                ctx.clip()
+                ctx.set_source_surface(surface, a.x, a.y)
+                ctx.paint()
         child = self.area.get_child()
         if child:
             child.queue_draw()
@@ -72,29 +83,95 @@ class CairoAppButton(gtk.EventBox):
             a = self.get_allocation()
             ctx.set_source_surface(self.surface, a.x, a.y)
             ctx.paint()
+            for surface in (self.badge, self.progress_bar):
+                if surface is not None:
+                    ctx.rectangle(event.area.x, event.area.y,
+                                  event.area.width, event.area.height)
+                    ctx.clip()
+                    ctx.set_source_surface(surface, a.x, a.y)
+                    ctx.paint()
             self.propagate_expose(self.area, event)
 
-    def set_badge(self, badge):
-        if not badge:
-            if self.badge:
-                self.area.get_child().destroy()
-                self.badge = None
-            return
-        if not self.badge:
-            self.badge = gtk.Label()
-            alignment = gtk.Alignment(1, 1, 0, 0)
-            alignment.set_padding(1, 1, 2, 2)
-            alignment.add(self.badge)
-            alignment.show_all()
-            self.area.add(alignment)
-            font = self.globals.settings["dockmanager_badge_font"]
-            self.badge.modify_font(pango.FontDescription(font))
-        self.badge.set_text(badge)
+    def do_size_allocate(self, allocation):
+        gtk.EventBox.do_size_allocate(self, allocation)
+        if self.badge:
+            self.make_badge(self.badge_text)
+        if self.progress_bar:
+            self.make_progress_bar(self.progress)
 
+    def make_badge(self, text):
+        if not text:
+            self.badge_text = None
+            self.badge = None
+            return
+        self.badge_text = text
+        a = self.area.get_allocation()
+        self.badge = cairo.ImageSurface(cairo.FORMAT_ARGB32, a.width, a.height)
+        ctx = gtk.gdk.CairoContext(cairo.Context(self.badge))
+        layout = ctx.create_layout()
+        font = self.globals.settings["dockmanager_badge_font"]
+        layout.set_font_description(pango.FontDescription(font))
+        layout.set_text(text)
+        te = layout.get_pixel_extents()
+        w = te[1][2]
+        h = te[0][1] + te[0][3] + 1
+        
+        x = a.width - w - 4
+        y = a.height - h - 4
+        make_path(ctx, x - 2, y + te[0][1] - 3, w + 4, h - te[0][1] + 5, r=4)
+        r=g=b=0.8
+        ctx.set_source_rgba(r, g, b)
+        ctx.fill_preserve()
+        r=g=b=0.0
+        ctx.set_source_rgba(r, g, b)
+        ctx.set_line_width(1)
+        ctx.stroke() 
+        ctx.move_to(x,y)
+        ctx.show_layout(layout)
+
+    def make_progress_bar(self, progress):
+        if progress is None:
+            self.progress = None
+            self.progress_bar = None
+            return
+        self.progress = progress
+        a = self.area.get_allocation()
+        x = max(0.1 * a.width, 2)
+        y = max(0.15 * a.height, 3)
+        w = min(max (0.5 * a.width, 15), a.width - 2 * x)
+        h = max(0.05 * a.height, 3.0)
+        r = h / 2
+        self.progress_bar = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                               a.width, a.height)
+        ctx = cairo.Context(self.progress_bar)
+        ctx.move_to(x,y)
+        ctx.line_to(x + w * progress, y)
+        ctx.line_to(x + w * progress, y + h)
+        ctx.line_to(x, y + h)
+        ctx.close_path()
+        ctx.clip()
+        ctx.set_source_rgba(0.86, 0.28, 0.08)
+        make_path(ctx, x, y, w, h, r=r, b=0)
+        ctx.fill()
+        ctx.reset_clip()
+        ctx.move_to(x + w * progress,y)
+        ctx.line_to(x + w, y)
+        ctx.line_to(x + w, y + h)
+        ctx.line_to(x + w * progress, y + h)
+        ctx.clip()
+        make_path(ctx, x, y, w, h, r=r, b=0)
+        ctx.set_source_rgba(0.8, 0.8, 0.8)
+        ctx.fill_preserve()
+        ctx.reset_clip()
+        ctx.set_source_rgba(0.0, 0.0, 0.0)
+        ctx.set_line_width(1)
+        ctx.stroke_preserve()
+        
+        
     def __on_dockmanager_badge_font_changed(self, *args):
         if self.badge:
-            font = self.globals.settings["dockmanager_badge_font"]
-            self.badge.modify_font(pango.FontDescription(font))
+            self.make_badge(self.badge_text)
+            self.update()
 
     def destroy(self, *args, **kwargs):
         if self.bf_sid:

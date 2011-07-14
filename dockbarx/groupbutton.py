@@ -230,9 +230,13 @@ class Group(ListOfWindows):
         window = self.dockbar_r().container.window
         gdk_screen = gtk.gdk.screen_get_default()
         if window is not None:
-            return(gdk_screen.get_monitor_at_window(window))
+            return gdk_screen.get_monitor_at_window(window)
         else:
             return 0
+
+    def get_app_uri(self):
+        name = self.desktop_entry.getFileName().rsplit('/')[-1]
+        return "application://%s" % name
 
     def desktop_changed(self):
         self.button.update_state()
@@ -553,7 +557,23 @@ class Group(ListOfWindows):
 
     def __on_dm_badge_changed(self, *args):
         if not self.globals.settings["dockmanager_badge"]:
-            self.button.set_badge(None)
+            self.button.make_badge(None)
+
+    def set_unity_properties(self, properties):
+        if properties.get("count-visible"):
+            count = properties.get("count")
+            if count is not None:
+                self.button.make_badge(str(count))
+        else:
+            self.button.make_badge(None)
+        if properties.get("progress-visible"):
+            progress = properties.get("progress")
+            if progress is not None:
+                self.button.make_progress_bar(progress)
+        else:
+            self.button.make_progress_bar(None)
+        self.button.update()
+            
 
     #### Menu
     def menu_show(self, event=None):

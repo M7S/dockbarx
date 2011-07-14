@@ -209,6 +209,8 @@ class DockBar():
         from dockmanager import DockManager
         global DockbarDBus
         from dbx_dbus import DockbarDBus
+        global UnityWatcher
+        from unity import UnityWatcher
         
         self.media_controls = {}
         self.mpris = Mpris2Watch(self)
@@ -235,6 +237,8 @@ class DockBar():
         self.globals.connect("gkey-changed", self.__gkeys_changed)
         self.globals.connect("use-number-shortcuts-changed",
                              self.__init_number_shortcuts)
+        self.unity_watcher = UnityWatcher(self)
+        self.unity_watcher.start()
         
         #--- Generate Gio apps
         self.apps_by_id = {}
