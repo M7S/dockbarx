@@ -277,9 +277,9 @@ class IconFactory():
                     # Just leave it.
                     pass
         if i > 0:
-            r = int(float(r) / i + 0.5)
-            g = int(float(g) / i + 0.5)
-            b = int(float(b) / i + 0.5)
+            r = int(round(float(r) / i))
+            g = int(round(float(g) / i))
+            b = int(round(float(b) / i))
         r = ("0%s"%hex(r)[2:])[-2:]
         g = ("0%s"%hex(g)[2:])[-2:]
         b = ("0%s"%hex(b)[2:])[-2:]
@@ -446,8 +446,8 @@ class IconFactory():
             self.icon = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
             ctx = gtk.gdk.CairoContext(cairo.Context(self.icon))
             pbs = pb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-            woffset = int(float(size - w) / 2 + 0.5)
-            hoffset = int(float(size - h) / 2 + 0.5)
+            woffset = round((size - w) / 2.0)
+            hoffset = round((size - h) / 2.0)
             ctx.set_source_pixbuf(pb, woffset, hoffset)
             ctx.paint()
             del pb
@@ -723,8 +723,8 @@ class IconFactory():
         w = int(((100-int(percent)) * w0)/100)-int(pixels)
         h = int(((100-int(percent)) * h0)/100)-int(pixels)
         shrinked = self.__resize_surface(surface, w, h)
-        x = int(float(w0 - w) / 2 + 0.5)
-        y = int(float(h0 - h) / 2 + 0.5)
+        x = round((w0 - w) / 2.0)
+        y = round((h0 - h) / 2.0)
         ctx.set_source_surface(shrinked, x, y)
         ctx.paint()
         del shrinked
@@ -741,8 +741,8 @@ class IconFactory():
             height = self.size
         if surface.get_width() == width and surface.get_height() == height:
             return surface
-        woffset = int(float(width - surface.get_width()) / 2 + 0.5)
-        hoffset = int(float(height - surface.get_height()) / 2 + 0.5)
+        woffset = round((width - surface.get_width()) / 2.0)
+        hoffset = round((height - surface.get_height()) / 2.0)
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
         ctx = cairo.Context(new)
         ctx.set_source_surface(surface, woffset, hoffset)

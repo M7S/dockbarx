@@ -116,7 +116,7 @@ class CairoAppButton(gtk.EventBox):
             font_base, font_size = font.rsplit(" ", 1)
             font_size = int(font_size)
         else:
-            font_size = max(int(0.2 * a.height + 0.4), 6)
+            font_size = max(int(round(0.2 * a.height)), 6)
             font_base = "sans bold"
             font = "%s %s" % (font_base, font_size)
         layout.set_font_description(pango.FontDescription(font))
@@ -126,7 +126,7 @@ class CairoAppButton(gtk.EventBox):
         h = te[0][1] + te[0][3]
         size = min(a.width, a.height)
         p = 2
-        d = int(0.05 * size + 0.4)
+        d = int(round(0.05 * size))
         # Make sure the badge isn't too wide.
         while w + 2 * p + d >= a.width and font_size > 4:
             font_size = max(4, font_size - max(2, int(font_size * 0.2)))

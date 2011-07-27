@@ -856,7 +856,8 @@ class Globals(gobject.GObject):
                     if "no" in theme_alphas[c]:
                         continue
                     else:
-                        self.colors[a] = int(int(theme_alphas[c]) * 2.55 + 0.4)
+                        alpha = int(theme_alphas[c])
+                        self.colors[a] = int(round(alpha * 2.55))
                 elif a in self.DEFAULT_COLORS:
                     self.colors[a] = self.DEFAULT_COLORS[a]
                 else:

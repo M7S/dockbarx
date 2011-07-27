@@ -1559,7 +1559,7 @@ class PrefDialog():
         if new_color != color_string:
             GCONF_CLIENT.set_string(GCONF_DIR + "/" + c + "_color", new_color)
         alpha = self.globals.settings[c + "_alpha"]
-        new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
+        new_alpha = min(int(round(button.get_alpha() / 256.0)), 255)
         if new_alpha != alpha:
             GCONF_CLIENT.set_int(GCONF_DIR + "/" + c + "_alpha", new_alpha)
             
@@ -1588,7 +1588,7 @@ class PrefDialog():
                 alpha = self.globals.colors[c+"_alpha"]
             else:
                 alpha = None
-            new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
+            new_alpha = min(int(round(button.get_alpha() / 256.0)), 255)
             if new_alpha != alpha:
                 GCONF_CLIENT.set_int(color_dir+"/"+c+"_alpha", new_alpha)
 
@@ -1610,7 +1610,7 @@ class PrefDialog():
         if self.theme_alphas.has_key(c):
             if "no" in self.theme_alphas[c]:
                 return
-            alpha = int(int(self.theme_alphas[c]) * 2.55 + 0.4)
+            alpha = int(round(int(self.theme_alphas[c]) * 2.55))
         elif self.globals.DEFAULT_COLORS.has_key(c+"_alpha"):
             alpha = self.globals.DEFAULT_COLORS[c+"_alpha"]
         else:
