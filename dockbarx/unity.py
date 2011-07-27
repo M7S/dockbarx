@@ -23,8 +23,11 @@ import dbus.service
 import gobject
 import weakref
 from dbus.mainloop.glib import DBusGMainLoop
+from log import logger
+import time
 
 DBusGMainLoop(set_as_default=True)
+BUS = dbus.SessionBus()
 
 class UnityFakeDBus(dbus.service.Object):
     def __new__(cls):
@@ -72,34 +75,188 @@ class UnityFakeDBus(dbus.service.Object):
 
 class UnityWatcher():
     def __init__(self, dockbar):
-        self.bus = dbus.SessionBus()
+        BUS = dbus.SessionBus()
         self.dockbar_r = weakref.ref(dockbar)
         self.fake_unity = None
         self.sid = None
+        self.name_owner_sid = None
+        self.props_by_app = {}
 
     def start(self):
         if self.fake_unity is None:
             self.fake_unity = UnityFakeDBus()
-        if self.sid is not None:
-            return
-        interface = "com.canonical.Unity.LauncherEntry"
-        self.sid = self.bus.add_signal_receiver(self.__on_signal_recieved,
-                                                dbus_interface=interface)
+        if self.sid is None:
+            interface = "com.canonical.Unity.LauncherEntry"
+            self.sid = BUS.add_signal_receiver(self.__on_signal_recieved,
+                                               dbus_interface=interface,
+                                               sender_keyword="sender")
+        if self.name_owner_sid is None:
+            self.name_owner_sid = BUS.add_signal_receiver(
+                                        self.__on_name_owner_changed,
+                                        signal_name="NameOwnerChanged",
+                                        bus_name="org.freedesktop.DBus",
+                                        path="/org/freedesktop/DBus",
+                                        dbus_interface="org.freedesktop.DBus")
 
     def stop(self):
+        for group in self.dockbar_r().groups:
+            if group.unity_launcher_bus_name is not None:
+                # Remove counts, quicklists etc.
+                group.set_unity_properties({}, None)
+        self.props_by_app = {}
         if self.sid is not None:
-            self.bus.remove_signal_receiver(self.sid)
+            BUS.remove_signal_receiver(self.sid)
             self.sid = None
+        if self.name_owner_sid is not None:
+            BUS.remove_signal_receiver(self.name_owner_sid)
+            self.name_owner_sid = None
         if self.fake_unity is not None:
             self.fake_unity.stop()
             self.fake_unity = None
 
-    def __on_signal_recieved(self, app_uri, properties):
+    def apply_for_group(self, group):
+        app_uri = group.get_app_uri()
+        if app_uri in self.props_by_app:
+            group.set_unity_properties(self.props_by_app[app_uri],
+                                       self.props_by_app[app_uri]["sender"])
+
+    def __on_signal_recieved(self, app_uri, properties, sender):
+        if not app_uri or not sender:
+            return
         dockbar = self.dockbar_r()
+        if app_uri in self.props_by_app and \
+           sender == self.props_by_app[app_uri]["sender"]:
+               for key, value in properties.items():
+                   self.props_by_app[app_uri][key] = value
+        else:
+            self.props_by_app[app_uri] = properties
+            properties["sender"] = sender
         for group in dockbar.groups:
             if group.get_app_uri() == app_uri:
                 break
         else:
             return
-        group.set_unity_properties(properties)
+        group.set_unity_properties(self.props_by_app[app_uri], sender)
+
+    def __on_name_owner_changed(self, name, before, after):
+        dockbar = self.dockbar_r()
+        if not after:
+            # Name disappeared. Check if it's one of the unity launchers.
+            for group in dockbar.groups:
+                if name == group.unity_launcher_bus_name:
+                    # Remove counts, quicklists etc.
+                    group.set_unity_properties({}, None)
+            for key, value in self.props_by_app.items():
+                if name == value["sender"]:
+                    del self.props_by_app[key]
+
+    
+class DBusMenu(object):
+    def __new__(cls, group, bus_name, path):
+        if not bus_name in BUS.list_names():
+            return None
+        return object.__new__(cls)
+        
+    def __init__(self, group, bus_name, path):
+        self.group_r = weakref.ref(group)
+        self.sids = []
+        self.bus_name = bus_name
+        self.path = path
+        self.obj = BUS.get_object(bus_name, path)
+        self.iface = dbus.Interface(self.obj, dbus_interface=\
+                                    "com.canonical.dbusmenu")
+        self.layout = [0,{},[]]
+        empty_list = dbus.Array([], "s")
+        self.iface.GetLayout(0, -1, empty_list, 
+                             reply_handler=self.__layout_loaded,
+                             error_handler=self.__error_loading)
+
+    def __layout_loaded(self, revision, layout):
+        self.layout = layout
+        self.revision = revision
+        self.sids.append(self.iface.connect_to_signal("ItemsPropertiesUpdated",
+                                                self.__on_properties_updated))
+        self.sids.append(self.iface.connect_to_signal("LayoutUpdated",
+                                                self.__on_layout_updated))
+        self.sids.append(self.iface.connect_to_signal("ItemActivationRequested",
+                                                self.__on_item_activition_requested))
+        group = self.group_r()
+        if group.menu:
+            group.menu.update_quicklist_menu(layout)
+                                                
+    def __error_loading(self, *args):
+        # The interface is probably not up and running yet
+        time.sleep(0.2)
+        empty_list = dbus.Array([], "s")
+        self.iface.GetLayout(0, -1, empty_list, 
+                             reply_handler=self.__layout_loaded,
+                             error_handler=self.__error_handler)
+    
+    def __error_handler(self, *args):
+        print "ERROR"
+        pass
+
+    def get_layout(self, parent=0):
+        empty_list = dbus.Array([], "s")
+        if parent != 0:
+            layout = self.__recursive_match(self.layout, parent)
+            self.revision, new_layout = self.iface.GetLayout(parent, -1,
+                                                             empty_list)
+            layout[1] = new_layout[1]
+            layout[2] = new_layout[2]
+        else:
+            self.revision, self.layout = self.iface.GetLayout(0, -1,
+                                                              empty_list)
+
+    def __recursive_match(self, a, k):
+        if a[0] == k:
+            return a
+        for child in a[2]:
+            result = self.__recursive_match(child, k)
+            if result is not None:
+                return result
+        return None
+
+    def __on_layout_updated(self, revision, parent):
+        group = self.group_r()
+        if revision != self.revision:
+            self.get_layout(parent)
+        layout = self.__recursive_match(self.layout, parent)
+        if group.menu:
+            group.menu.update_quicklist_menu(layout)
+
+    def send_event(self, id, event, data, event_time):
+        self.iface.Event(id, event, data, event_time)
+        
+    def __on_properties_updated(self, changed_props, removed_props):
+        group = self.group_r()
+        changed_items = [] 
+        for props in changed_props:
+            item = self.__recursive_match(self.layout, props[0])
+            for key, value in props[1].items():
+                item[1][key] = value
+            changed_items.append(item)
+            if group.menu is not None:
+                identifier = "unity_%s" % props[0]
+                group.menu.set_properties(identifier, props[1])
+        for props in removed_props:
+            item = self.__recursive_match(self.layout, props[0])
+            for prop in props[1]:
+                if prop in item[1]:
+                    del item[1][prop]
+            changed_items.append(item)
+        if group.menu is not None:
+            for item in changed_items:
+                identifier = "unity_%s" % item[0]
+                group.menu.set_properties(identifier, item[1])
+
+    def __on_item_activition_requested(self, item_id, timestamp):
+        #~ group = self.group_r()
+        #~ group.menu_item_activision_requested(item_id, time_stamp)
+        pass
+        
+    def destroy(self):
+        for sid in self.sids[:]:
+            BUS.remove_signal_receiver(sid)
+            self.sids.remove(sid)
         

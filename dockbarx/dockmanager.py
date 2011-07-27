@@ -52,9 +52,8 @@ class DockManager(dbus.service.Object):
                         "menu-item-icon-file",
                         "menu-item-icon-name",
                         "menu-item-with-label",
+                        "dock-item-badge",
                         "dock-item-progress"]
-        if self.globals.settings["dockmanager_badge"]:
-            capabilities.append("dock-item-badge")
         return capabilities
 
     @dbus.service.method(dbus_interface="net.launchpad.DockManager",
@@ -151,10 +150,6 @@ class DockManager(dbus.service.Object):
         self.remove_from_connection()
         self.globals.disconnect(self.badge_sid)
 
-    def __on_use_badge_changed(self, *args):
-        if self.globals.settings["dockmanager_badge"]:
-            self.reset()
-
 class DockManagerItem(dbus.service.Object):
     counter = 0
     def __init__(self, groupbutton):
@@ -190,15 +185,15 @@ class DockManagerItem(dbus.service.Object):
                          in_signature="a{sv}", out_signature="")
     def UpdateDockItem(self, properties):
         group = groupbutton_r()
-        if self.globals.settings["dockmanager_badge"]:
-            badge = properties.get("badge", None)
-            group.button.make_badge(badge)
-            group.button.update()
-        progress = properties.get("progress", None)
-        if progress is not None:
-            progress = float(progress)/100
-            group.button.make_progress_bar(progress)
-            group.button.update()
+        if "bagde" in properties:
+            group.button.set_badge(properties["badge"], backend="dockmanager")
+        if "progress" in properties:
+            progress = float(properties["progress"])/100
+            group.button.set_progress_bar(progress, backend="dockmanager")
+        if "attention" in properties:
+            group.dm_attention = properties["attention"]
+            if group.needs_attention != group.dm_attention:
+                group.needs_attention_changed()
 
     @dbus.service.signal(dbus_interface='net.launchpad.DockItem',
                          signature='i')
@@ -242,5 +237,7 @@ class DockManagerItem(dbus.service.Object):
         return self.menu_items
 
     def remove(self):
-        self.groupbutton_r().button.set_badge(None)
+        self.groupbutton_r().button.set_badge(None, backend="dockmanager")
+        self.groupbutton_r().button.set_progress_bar(None,
+                                                     backend="dockmanager")
         self.remove_from_connection()

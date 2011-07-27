@@ -417,6 +417,89 @@ class PrefDialog():
         alignment.add(self.old_menu_cb)
         appearance_box.pack_start(alignment, False)
 
+        bpbox = gtk.HBox()
+        # Badge frame
+        frame = gtk.Frame(_("Badge"))
+        frame.set_border_width(5)
+        vbox = gtk.VBox()
+        vbox.set_border_width(10)
+        label = gtk.Label(_("Custom colors"))
+        vbox.pack_start(label, False)
+        table = gtk.Table(True)
+        self.custom_badge_color_cbs = []
+        self.badge_color_buttons = []
+        for i in (0, 1):
+            text = (_("Text"), _("Background"))[i]
+            s = ("badge_custom_fg_color", "badge_custom_bg_color")[i]
+            self.custom_badge_color_cbs.append(gtk.CheckButton(text))
+            self.custom_badge_color_cbs[i].connect("toggled",
+                                                   self.__checkbutton_toggled,
+                                                   s)
+            self.badge_color_buttons.append(gtk.ColorButton())
+            text = (_("Custom badge text color"), 
+                    _("Custom badge background color"))[i]
+            s = ("badge_fg", "badge_bg")[i]
+            self.badge_color_buttons[i].set_title(text)
+            self.badge_color_buttons[i].set_use_alpha(True)
+            self.badge_color_buttons[i].connect("color-set",
+                                                self.__bp_color_set, s)
+            table.attach(self.custom_badge_color_cbs[i], 0, 1, i, i + 1,
+                         xoptions = gtk.FILL, xpadding = 5)
+            table.attach(self.badge_color_buttons[i], 1, 2, i, i + 1)
+        vbox.pack_start(table, False)
+        
+        bfbox = gtk.HBox()
+        self.custom_badge_cb = gtk.CheckButton(_("Custom font and size"))
+        self.custom_badge_cb.connect("toggled", self.__checkbutton_toggled,
+                                     "badge_use_custom_font")
+        bfbox.pack_start(self.custom_badge_cb, False)
+        self.badge_font_button = gtk.FontButton()
+        self.badge_font_button.set_use_font(True)
+        self.badge_font_button.set_use_size(True)
+        self.badge_font_button.set_show_style(True)
+        self.badge_font_button.set_title(_("Badge font"))
+        self.badge_font_button.connect("font_set", self.__set_font,
+                                       "badge_font")
+        bfbox.pack_start(self.badge_font_button, False, padding=5)
+        vbox.pack_start(bfbox, False, padding = 5)
+        frame.add(vbox)
+        bpbox.pack_start(frame)
+        
+
+        # Progress frame
+        frame = gtk.Frame(_("Progress bar"))
+        frame.set_border_width(5)
+        vbox = gtk.VBox()
+        vbox.set_border_width(10)
+        label = gtk.Label(_("Custom colors"))
+        vbox.pack_start(label, False)
+        table = gtk.Table(True)
+        self.custom_progress_color_cbs = []
+        self.progress_color_buttons = []
+        for i in (0, 1):
+            text = (_("Foreground"), _("Background"))[i]
+            s = (_("progress_custom_fg_color"),
+                 _("progress_custom_bg_color"))[i]
+            self.custom_progress_color_cbs.append(gtk.CheckButton(text))
+            self.custom_progress_color_cbs[i].connect("toggled",
+                                                   self.__checkbutton_toggled,
+                                                   s)
+            self.progress_color_buttons.append(gtk.ColorButton())
+            text = (_("Custom progress bar foreground color"), 
+                    _("Custom progress bar background color"))[i]
+            s = ("progress_fg", "progress_bg")[i]
+            self.progress_color_buttons[i].set_title(text)
+            self.progress_color_buttons[i].set_use_alpha(True)
+            self.progress_color_buttons[i].connect("color-set",
+                                                   self.__bp_color_set, s)
+            table.attach(self.custom_progress_color_cbs[i], 0, 1, 
+                         i, i + 1, xoptions = gtk.FILL, xpadding = 5)
+            table.attach(self.progress_color_buttons[i], 1, 2, i, i + 1)
+        vbox.pack_start(table, False)
+        frame.add(vbox)
+        bpbox.pack_start(frame)
+        appearance_box.pack_start(bpbox)
+
 
         #--- Popup page
         popup_box.set_border_width(5)
@@ -664,12 +747,19 @@ class PrefDialog():
                                       "media_buttons")
         plugins_box.pack_start(self.media_buttons_cb, False)
 
-        self.quicklist_cb = gtk.CheckButton(_("Use Unity quicklists"))
+        self.quicklist_cb = gtk.CheckButton(_("Use Unity static quicklists"))
         self.quicklist_cb.set_border_width(5)
         self.quicklist_cb.connect("toggled",
-                                      self.__checkbutton_toggled,
-                                      "quicklist")
+                                  self.__checkbutton_toggled,
+                                  "quicklist")
         plugins_box.pack_start(self.quicklist_cb, False)
+
+        self.unity_cb = gtk.CheckButton(_("Use Unity counters (badges), progress bars and dynamic quicklists"))
+        self.unity_cb.set_border_width(5)
+        self.unity_cb.connect("toggled",
+                              self.__checkbutton_toggled,
+                              "unity")
+        plugins_box.pack_start(self.unity_cb, False)
 
         dockmanager_frame = gtk.Frame(_("DockManager"))
         dockmanager_frame.set_border_width(5)
@@ -679,25 +769,7 @@ class PrefDialog():
         self.dockmanager_cb.connect("toggled",
                                     self.__checkbutton_toggled,
                                     "dockmanager")
-        self.dockmanager_badge_cb = gtk.CheckButton(_("Allow DockManager to write badges on GroupButtons"))
-        self.dockmanager_badge_cb.connect("toggled",
-                                           self.__checkbutton_toggled,
-                                           "dockmanager_badge")
         dockmanager_box.pack_start(self.dockmanager_cb, False)
-        dockmanager_box.pack_start(self.dockmanager_badge_cb, False)
-
-        bfbox = gtk.HBox()
-        badge_font_label = gtk.Label(_("Badge font"))
-        bfbox.pack_start(badge_font_label, False)
-        self.badge_font_button = gtk.FontButton()
-        self.badge_font_button.set_use_font(True)
-        self.badge_font_button.set_use_size(True)
-        self.badge_font_button.set_show_style(True)
-        self.badge_font_button.set_title(_("Badge font"))
-        self.badge_font_button.connect("font_set", self.__set_font,
-                                       "dockmanager_badge_font")
-        bfbox.pack_start(self.badge_font_button, False, padding=5)
-        dockmanager_box.pack_start(bfbox, padding=5)
         helpers_button = gtk.Button(_("Helpers"))
         helpers_button.connect("clicked", self.__open_dockmanager_settings)
         dockmanager_box.pack_start(helpers_button, False)
@@ -1027,6 +1099,34 @@ class PrefDialog():
         # Menu style
         self.old_menu_cb.set_active(self.globals.settings["old_menu"])
 
+        # Badge and progress bar
+        custom_font = self.globals.settings["badge_use_custom_font"]
+        self.custom_badge_cb.set_active(custom_font)
+        self.badge_font_button.set_sensitive(custom_font)
+        self.badge_font_button.set_font_name(
+                                        self.globals.settings["badge_font"])
+        for i in (0, 1):
+            s = ("badge_custom_fg_color", "badge_custom_bg_color")[i]
+            active = self.globals.settings[s]
+            self.custom_badge_color_cbs[i].set_active(active)
+            self.badge_color_buttons[i].set_sensitive(active)
+            s = ("badge_fg", "badge_bg")[i]
+            color = gtk.gdk.color_parse(self.globals.settings[s + "_color"])
+            self.badge_color_buttons[i].set_color(color)
+            alpha = self.globals.settings[s + "_alpha"] * 256
+            self.badge_color_buttons[i].set_alpha(alpha)
+            
+        for i in (0, 1):
+            s = ("progress_custom_fg_color", "progress_custom_bg_color")[i]
+            active = self.globals.settings[s]
+            self.custom_progress_color_cbs[i].set_active(active)
+            self.progress_color_buttons[i].set_sensitive(active)
+            s = ("progress_fg", "progress_bg")[i]
+            color = gtk.gdk.color_parse(self.globals.settings[s + "_color"])
+            self.progress_color_buttons[i].set_color(color)
+            alpha = self.globals.settings[s + "_alpha"] * 256
+            self.progress_color_buttons[i].set_alpha(alpha)
+            
         # Popup alignment
         settings_align = self.globals.settings["popup_align"]
         if settings_align == "left":
@@ -1107,14 +1207,9 @@ class PrefDialog():
                             self.globals.settings["media_buttons"])
         self.quicklist_cb.set_active(
                             self.globals.settings["quicklist"])
+        self.unity_cb.set_active(self.globals.settings["unity"])
         dockmanager = self.globals.settings["dockmanager"]
-        badge = self.globals.settings["dockmanager_badge"]
         self.dockmanager_cb.set_active(dockmanager)
-        self.dockmanager_badge_cb.set_active(badge)
-        self.dockmanager_badge_cb.set_sensitive(dockmanager)
-        self.badge_font_button.set_font_name(
-                            self.globals.settings["dockmanager_badge_font"])
-        self.badge_font_button.set_sensitive(dockmanager and badge)
 
         # Colors
         if self.theme:
@@ -1450,8 +1545,27 @@ class PrefDialog():
         if value != self.globals.settings[setting]:
             GCONF_CLIENT.set_int(GCONF_DIR+"/"+setting, value)
 
+    def __bp_color_set(self, button, c):
+        # Read the value from color (and alpha) and write
+        # it as 8-bit/channel hex string for gconf.
+        # (Alpha is written like int (0-255).)
+        if not self.theme:
+            return
+        color_string = self.globals.settings[c + "_color"]
+        color = button.get_color()
+        cs = color.to_string()
+        # cs has 16-bit per color, we want 8.
+        new_color = cs[0:3] + cs[5:7] + cs[9:11]
+        if new_color != color_string:
+            GCONF_CLIENT.set_string(GCONF_DIR + "/" + c + "_color", new_color)
+        alpha = self.globals.settings[c + "_alpha"]
+        new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
+        if new_alpha != alpha:
+            GCONF_CLIENT.set_int(GCONF_DIR + "/" + c + "_alpha", new_alpha)
+            
+
     def __color_set(self, button, c):
-        # Read the value from color (and aplha) and write
+        # Read the value from color (and alpha) and write
         # it as 8-bit/channel hex string for gconf.
         # (Alpha is written like int (0-255).)
         if not self.theme:

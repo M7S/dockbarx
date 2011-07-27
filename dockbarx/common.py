@@ -512,12 +512,13 @@ class Globals(gobject.GObject):
                                 gobject.TYPE_NONE,()),
         "dockmanager-badge-changed": (gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,()),
-        "dockmanager-badge-font-changed": (gobject.SIGNAL_RUN_FIRST,
-                                           gobject.TYPE_NONE,()),
+        "badge-look-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "progress-bar-look-changed": (gobject.SIGNAL_RUN_FIRST,
+                                      gobject.TYPE_NONE,()),
         "media-buttons-changed": (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,()),
-        "quicklist-changed": (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,()),
+        "quicklist-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "unity-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "show-tooltip-changed": (gobject.SIGNAL_RUN_FIRST,
                                  gobject.TYPE_NONE,()),
         "show-previews-changed": (gobject.SIGNAL_RUN_FIRST,
@@ -568,10 +569,25 @@ class Globals(gobject.GObject):
           "select_next_activate_immediately": False,
 
           "dockmanager": False,
-          "dockmanager_badge": False,
-          "dockmanager_badge_font": "sans 10",
           "media_buttons": True,
           "quicklist": True,
+          "unity": True,
+
+          "badge_use_custom_font": False,
+          "badge_font": "sans 10",
+          "badge_custom_bg_color": False,
+          "badge_bg_color": "#CDCDCD",
+          "badge_bg_alpha": 255,
+          "badge_custom_fg_color": False,
+          "badge_fg_color": "#020202",
+          "badge_fg_alpha": 255,
+
+          "progress_custom_bg_color": False,
+          "progress_bg_color": "#CDCDCD",
+          "progress_bg_alpha": 128,
+          "progress_custom_fg_color": False,
+          "progress_fg_color": "#772953",
+          "progress_fg_alpha": 255,
 
           "opacify": False,
           "opacify_group": False,
@@ -767,23 +783,25 @@ class Globals(gobject.GObject):
             self.emit("show-close-button-changed")
         if "media_buttons" in changed_settings:
             self.emit("media-buttons-changed")
-        if "mquicklist" in changed_settings:
+        if "quicklist" in changed_settings:
             self.emit("quicklist-changed")
+        if "unity" in changed_settings:
+            self.emit("unity-changed")
         if "dockmanager" in changed_settings:
             self.emit("dockmanager-changed")
-        if "dockmanager_badge" in changed_settings:
-            self.emit("dockmanager-badge-changed")
-        if "dockmanager_badge_font" in changed_settings:
-            self.emit("dockmanager-badge-font-changed")
         if "use_number_shortcuts" in changed_settings:
             self.emit("use-number-shortcuts-changed")
         for key in changed_settings:
             if key == "theme":
                 self.emit("theme-changed")
-            if "color" in key:
+            if key.startswith("color"):
                 self.emit("color-changed")
             if "gkey" in key:
                 self.emit("gkey-changed")
+            if key.startswith("badge"):
+                self.emit("badge-look-changed")
+            if key.startswith("progress"):
+                self.emit("progress-bar-look-changed")
 
         if pref_update == True:
             self.emit("preference-update")
@@ -801,7 +819,7 @@ class Globals(gobject.GObject):
                 gconf_set[type(value)](gdir+ "/" + name , value)
             else:
                 if type(gc_value) != type(value):
-                    gconf_set[type(value)](Ggdir + "/" + name , value)
+                    gconf_set[type(value)](gdir + "/" + name , value)
                 else:
                     settings[name] = gc_value
         return settings

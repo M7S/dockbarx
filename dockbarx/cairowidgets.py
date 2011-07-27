@@ -46,8 +46,10 @@ class CairoAppButton(gtk.EventBox):
         self.badge_text = None
         self.progress_bar = None
         self.progress = None
-        self.bf_sid = self.globals.connect("dockmanager-badge-font-changed",
-                                    self.__on_dockmanager_badge_font_changed)
+        self.bl_sid = self.globals.connect("badge-look-changed",
+                                           self.__on_badge_look_changed)
+        self.pbl_sid = self.globals.connect("progress-bar-look-changed",
+                                        self.__on_progress_bar_look_changed)
 
     def update(self, surface=None):
         a = self.area.get_allocation()
@@ -109,22 +111,56 @@ class CairoAppButton(gtk.EventBox):
         self.badge = cairo.ImageSurface(cairo.FORMAT_ARGB32, a.width, a.height)
         ctx = gtk.gdk.CairoContext(cairo.Context(self.badge))
         layout = ctx.create_layout()
-        font = self.globals.settings["dockmanager_badge_font"]
+        if self.globals.settings["badge_use_custom_font"]:
+            font = self.globals.settings["badge_font"]
+            font_base, font_size = font.rsplit(" ", 1)
+            font_size = int(font_size)
+        else:
+            font_size = max(int(0.2 * a.height + 0.4), 6)
+            font_base = "sans bold"
+            font = "%s %s" % (font_base, font_size)
         layout.set_font_description(pango.FontDescription(font))
         layout.set_text(text)
         te = layout.get_pixel_extents()
         w = te[1][2]
-        h = te[0][1] + te[0][3] + 1
-        
-        x = a.width - w - 4
-        y = a.height - h - 4
-        make_path(ctx, x - 2, y + te[0][1] - 3, w + 4, h - te[0][1] + 5, r=4)
-        r=g=b=0.8
-        ctx.set_source_rgba(r, g, b)
+        h = te[0][1] + te[0][3]
+        size = min(a.width, a.height)
+        p = 2
+        d = int(0.05 * size + 0.4)
+        # Make sure the badge isn't too wide.
+        while w + 2 * p + d >= a.width and font_size > 4:
+            font_size = max(4, font_size - max(2, int(font_size * 0.2)))
+            font = "%s %s" % (font_base, font_size)
+            layout.set_font_description(pango.FontDescription(font))
+            te = layout.get_pixel_extents()
+            w = te[1][2]
+            h = te[0][1] + te[0][3]
+        x = a.width - w - p - d
+        y = a.height - h - p - d
+        make_path(ctx, x - p, y + te[0][1] - (p + 1), 
+                  w + 2 * p, h - te[0][1] + 2 * (p + 1), r=4)
+        if self.globals.settings["badge_custom_bg_color"]:
+            color = self.globals.settings["badge_bg_color"]
+            alpha = float(self.globals.settings["badge_bg_alpha"]) / 255
+        else:
+            color = "#CDCDCD"
+            alpha = 1.0
+        r = int(color[1:3], 16)/255.0
+        g = int(color[3:5], 16)/255.0
+        b = int(color[5:7], 16)/255.0
+        ctx.set_source_rgba(r, g, b, alpha)
         ctx.fill_preserve()
-        r=g=b=0.0
-        ctx.set_source_rgba(r, g, b)
-        ctx.set_line_width(1)
+        if self.globals.settings["badge_custom_fg_color"]:
+            color = self.globals.settings["badge_fg_color"]
+            alpha = float(self.globals.settings["badge_fg_alpha"]) / 255
+        else:
+            color = "#020202"
+            alpha = 1.0
+        r = int(color[1:3], 16)/255.0
+        g = int(color[3:5], 16)/255.0
+        b = int(color[5:7], 16)/255.0
+        ctx.set_source_rgba(r, g, b, alpha)
+        ctx.set_line_width(0.8)
         ctx.stroke() 
         ctx.move_to(x,y)
         ctx.show_layout(layout)
@@ -138,9 +174,9 @@ class CairoAppButton(gtk.EventBox):
         a = self.area.get_allocation()
         x = max(0.1 * a.width, 2)
         y = max(0.15 * a.height, 3)
-        w = min(max (0.5 * a.width, 15), a.width - 2 * x)
-        h = max(0.05 * a.height, 3.0)
-        r = h / 2
+        w = min(max (0.60 * a.width, 20), a.width - 2 * x)
+        h = max(0.10 * a.height, 3.0)
+        ro = h / 2
         self.progress_bar = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                                a.width, a.height)
         ctx = cairo.Context(self.progress_bar)
@@ -150,8 +186,17 @@ class CairoAppButton(gtk.EventBox):
         ctx.line_to(x, y + h)
         ctx.close_path()
         ctx.clip()
-        ctx.set_source_rgba(0.86, 0.28, 0.08)
-        make_path(ctx, x, y, w, h, r=r, b=0)
+        if self.globals.settings["progress_custom_fg_color"]:
+            color = self.globals.settings["progress_fg_color"]
+            alpha = float(self.globals.settings["progress_fg_alpha"]) / 255
+        else:
+            color = "#DD4814"
+            alpha = 1.0
+        r = int(color[1:3], 16)/255.0
+        g = int(color[3:5], 16)/255.0
+        b = int(color[5:7], 16)/255.0
+        ctx.set_source_rgba(r, g, b, alpha)
+        make_path(ctx, x, y, w, h, r=ro, b=0)
         ctx.fill()
         ctx.reset_clip()
         ctx.move_to(x + w * progress,y)
@@ -159,24 +204,42 @@ class CairoAppButton(gtk.EventBox):
         ctx.line_to(x + w, y + h)
         ctx.line_to(x + w * progress, y + h)
         ctx.clip()
-        make_path(ctx, x, y, w, h, r=r, b=0)
-        ctx.set_source_rgba(0.8, 0.8, 0.8)
+        make_path(ctx, x, y, w, h, r=ro, b=0)
+        if self.globals.settings["progress_custom_bg_color"]:
+            color = self.globals.settings["progress_bg_color"]
+            bg_alpha = float(self.globals.settings["progress_bg_alpha"]) / 255
+            print bg_alpha
+        else:
+            color = "#CDCDCD"
+            bg_alpha = 0.5
+        br = int(color[1:3], 16)/255.0
+        bg = int(color[3:5], 16)/255.0
+        bb = int(color[5:7], 16)/255.0
+        ctx.set_source_rgba(br, bg, bb, bg_alpha)
         ctx.fill_preserve()
         ctx.reset_clip()
-        ctx.set_source_rgba(0.0, 0.0, 0.0)
-        ctx.set_line_width(1)
+        ctx.set_source_rgba(r, g, b, alpha)
+        ctx.set_line_width(0.8)
         ctx.stroke_preserve()
         
         
-    def __on_dockmanager_badge_font_changed(self, *args):
+    def __on_badge_look_changed(self, *args):
         if self.badge:
             self.make_badge(self.badge_text)
             self.update()
+        
+    def __on_progress_bar_look_changed(self, *args):
+        if self.progress_bar:
+            self.make_progress_bar(self.progress)
+            self.update()
 
     def destroy(self, *args, **kwargs):
-        if self.bf_sid:
-            self.globals.disconnect(self.bf_sid)
-            self.bf_sid = None
+        if self.bl_sid:
+            self.globals.disconnect(self.bl_sid)
+            self.bl_sid = None
+        if self.pbl_sid:
+            self.globals.disconnect(self.pbl_sid)
+            self.pbl_sid = None
         if self.surface:
             self.surface = None
         gtk.EventBox.destroy(self, *args, **kwargs)
@@ -666,6 +729,41 @@ class CairoMenuItem(CairoButton):
     def __init__(self, label):
         CairoButton.__init__(self, label)
         self.area.set_padding(3, 3, 5, 5)
+        
+
+class CairoCheckMenuItem(CairoMenuItem):
+    def __init__(self, label, toggle_type="checkmark"):
+        self.globals = Globals()
+        CairoMenuItem.__init__(self, None)
+        self.indicator = gtk.CheckMenuItem()
+        self.indicator.set_draw_as_radio(toggle_type == "radio")
+        #~ if toggle_type == "radio":
+            #~ self.indicator = gtk.RadioButton()
+        #~ else:
+            #~ self.indicator = gtk.CheckButton()
+        self.area.label = gtk.Label()
+        hbox = gtk.HBox()
+        hbox.pack_start(self.indicator, False, padding=2)
+        hbox.pack_start(self.area.label, False, padding=2)
+        alignment = gtk.Alignment(0.5,0.5,0,0)
+        alignment.add(hbox)
+        alignment.show_all()
+        self.area.add(alignment)
+        color = self.globals.colors["color2"]
+        self.set_label(label, color)
+        
+    def set_active(self, active):
+        self.indicator.set_active(active)
+        
+    def get_active(self):
+        return self.indicator.get_active()
+        
+    def set_inconsistent(self, inconsistent):
+        self.indicator.set_inconsistent(inconsistent)
+        
+    def get_inconsistent(self):
+        return self.indicator.set_inconsistent()
+        
 
 class CairoToggleMenu(gtk.VBox):
     __gsignals__ = {"toggled": (gobject.SIGNAL_RUN_FIRST,
@@ -715,6 +813,9 @@ class CairoToggleMenu(gtk.VBox):
             self.toggle_button.set_label_color(color)
         self.show_menu = not self.show_menu
         self.emit("toggled", self.show_menu)
+        
+    def get_toggled(self):
+        return self.show_menu
 
 
 class CairoVBox(gtk.VBox):

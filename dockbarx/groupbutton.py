@@ -33,9 +33,10 @@ import weakref
 
 from windowbutton import Window
 from iconfactory import IconFactory
-from cairowidgets import CairoAppButton, CairoMenuItem
-from cairowidgets import CairoPopup, CairoToggleMenu
+from cairowidgets import CairoMenuItem, CairoCheckMenuItem
+from cairowidgets import CairoPopup, CairoToggleMenu, CairoAppButton
 from dockmanager import DockManagerItem
+from unity import DBusMenu
 from common import *
 import zg
 from log import logger
@@ -140,8 +141,6 @@ class Group(ListOfWindows):
         # Todo: Make globals connections disconnectable!
         connect(self.globals, "show-only-current-desktop-changed",
                 self.__on_show_only_current_desktop_changed)
-        connect(self.globals, "dockmanager-badge-changed",
-                self.__on_dm_badge_changed)
         self.opacify_obj = Opacify()
         self.pinned = pinned
         self.desktop_entry = desktop_entry
@@ -167,6 +166,10 @@ class Group(ListOfWindows):
         self.launch_timer_sid = None
         self.scrollpeak_sid = None
         self.scrollpeak_window = None
+        self.quicklist = None
+        self.unity_launcher_bus_name = None
+        self.unity_urgent = False
+        self.dm_attention = False
 
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
@@ -202,6 +205,9 @@ class Group(ListOfWindows):
         self.remove_dockmanager()
         self.remove_media_controls()
         self.remove_launch_timer()
+        if self.quicklist:
+            self.quicklist.destroy()
+            self.quicklist = None
         if self.scrollpeak_sid is not None:
             gobject.source_remove(self.scrollpeak_sid)
         if self.deopacify_sid is not None:
@@ -235,8 +241,9 @@ class Group(ListOfWindows):
             return 0
 
     def get_app_uri(self):
-        name = self.desktop_entry.getFileName().rsplit('/')[-1]
-        return "application://%s" % name
+        if self.desktop_entry is not None:
+            name = self.desktop_entry.getFileName().rsplit('/')[-1]
+            return "application://%s" % name
 
     def desktop_changed(self):
         self.button.update_state()
@@ -432,12 +439,15 @@ class Group(ListOfWindows):
     def needs_attention_changed(self, arg=None, state_update=True):
         # Checks if there are any urgent windows and changes
         # the group button looks if there are at least one
-        for window in self:
-            if window.wnck.needs_attention():
-                self.needs_attention = True
-                break
+        if self.unity_urgent or self.dm_attention:
+            self.needs_attention = True
         else:
-            self.needs_attention = False
+            for window in self:
+                if window.wnck.needs_attention():
+                    self.needs_attention = True
+                    break
+            else:
+                self.needs_attention = False
         if state_update:
             self.button.update_state_if_shown()
 
@@ -555,25 +565,36 @@ class Group(ListOfWindows):
             file_name = ''
         return file_name
 
-    def __on_dm_badge_changed(self, *args):
-        if not self.globals.settings["dockmanager_badge"]:
-            self.button.make_badge(None)
-
-    def set_unity_properties(self, properties):
-        if properties.get("count-visible"):
+    def set_unity_properties(self, properties, sender):
+        self.unity_launcher_bus_name = sender
+        if properties.get("count-visible", False):
             count = properties.get("count")
             if count is not None:
-                self.button.make_badge(str(count))
+                self.button.set_badge(str(count), backend="unity")
         else:
-            self.button.make_badge(None)
-        if properties.get("progress-visible"):
+            self.button.set_badge(None, backend="unity")
+        if properties.get("progress-visible", False):
             progress = properties.get("progress")
             if progress is not None:
-                self.button.make_progress_bar(progress)
+                self.button.set_progress_bar(progress, backend="unity")
         else:
-            self.button.make_progress_bar(None)
-        self.button.update()
-            
+            self.button.set_progress_bar(None, backend="unity")
+        self.unity_urgent = properties.get("urgent", False)
+        if self.needs_attention != self.unity_urgent:
+            self.needs_attention_changed()
+        path = properties.get("quicklist")
+        if path and self.quicklist and sender == self.quicklist.bus_name and \
+           path == self.quicklist.path:
+                return
+        elif not path and self.quicklist:
+            self.quicklist.destroy()
+            self.quicklist = None
+            if self.menu:
+                self.menu.remove_quicklist()
+        elif path:
+            if self.quicklist:
+                self.quicklist.destroy()
+            self.quicklist = DBusMenu(self, sender, path)
 
     #### Menu
     def menu_show(self, event=None):
@@ -620,14 +641,26 @@ class Group(ListOfWindows):
                 if item["label"]:
                     id = "dockmanager_%s" % id
                     self.menu.add_item(item["label"], submenu, identifier=id)
-        # Unity quicklists
+        # Unity static quicklists
+        static_quicklist = None
         if self.desktop_entry and self.globals.settings["quicklist"]:
-            quicklist = self.desktop_entry.get_quicklist()
-            if quicklist:
+            static_quicklist = self.desktop_entry.get_quicklist()
+            if static_quicklist:
                 self.menu.add_separator()
-            for label in quicklist:
+            for label in static_quicklist:
                 id = "quicklist_%s" % label
                 self.menu.add_item(label, identifier=id)
+        # Unity dynamic quicklists
+        if self.quicklist:
+            layout = self.quicklist.layout
+        else:
+            layout = None
+        if not bool(static_quicklist) and layout is not None:
+            for item in layout[2]:
+                if item[1].get("visible", True):
+                    self.menu.add_separator()
+                    break
+        self.menu.add_quicklist(layout)
         # Recent and most used files
         self.zg_files = {}
         if self.desktop_entry:
@@ -679,6 +712,7 @@ class Group(ListOfWindows):
             self.menu.add_item(_("_Close") + t)
 
         connect(self.menu, "item-activated", self.__on_menuitem_activated)
+        connect(self.menu, "item-hovered", self.__on_menuitem_hovered)
         connect(self.menu, "menu-resized", self.__on_menu_resized)
         if self.globals.settings["old_menu"]:
             menu = self.menu.get_menu()
@@ -751,7 +785,23 @@ class Group(ListOfWindows):
             related_files = related_files[:3]
         return recent_files, most_used_files, related_files
 
-    def __on_menuitem_activated(self, arg, identifier):
+    def __on_menuitem_hovered(self, arg, event, identifier):
+        if identifier.startswith("unity_") and self.quicklist:
+            identifier = int(identifier.rsplit("_", 1)[-1])
+            data = dbus.String("", variant_level=1)
+            t = dbus.UInt32(event.time)
+            self.quicklist.send_event(identifier, "hovered", 
+                                      data, t)
+            return
+
+    def __on_menuitem_activated(self, menu_item, identifier):
+        if identifier.startswith("unity_") and self.quicklist:
+            identifier = int(identifier.rsplit("_", 1)[-1])
+            data = dbus.String("", variant_level=1)
+            t = dbus.UInt32(0)
+            self.quicklist.send_event(identifier, "clicked", 
+                                      data, t)
+            return
         if identifier in self.zg_files:
             self.launch(None, None, self.zg_files[identifier])
             return
@@ -1395,6 +1445,8 @@ class GroupButton(CairoAppButton):
         self.attention_effect_running = False
         self.launch_effect = False
         self.state_type = None
+        self.badge_backend = None
+        self.progress_backend = None
         self.icon_factory = IconFactory(group,
                                         identifier=group.identifier,
                                         desktop_entry=group.desktop_entry)
@@ -1548,6 +1600,34 @@ class GroupButton(CairoAppButton):
             self.needs_attention_anim_trigger = False
             self.attention_effect_running = False
             return False
+
+    def set_badge(self, badge, backend=None):
+        if not badge:
+            if backend is not None and backend != self.badge_backend:
+               # Don't remove a badge set by another backend.
+               return
+            self.badge_backend = None
+        else:
+            self.badge_backend = backend
+        if badge == self.badge_text:
+            return
+        self.make_badge(badge)
+        if self.surface is not None:
+            self.update()
+
+    def set_progress_bar(self, progress, backend=None):
+        if progress is None:
+            if backend is not None and backend != self.progress_backend:
+               # Don't remove a progress bar set by another backend.
+               return
+            self.progress_backend = None
+        else:
+            self.progress_backend = backend
+        if progress == self.progress:
+            return
+        self.make_progress_bar(progress)
+        if self.surface is not None:
+            self.update()
 
     def set_icongeo(self, window=None):
         group = self.group_r()
@@ -2481,6 +2561,9 @@ class GroupMenu(gobject.GObject):
     __gsignals__ = {
         "item-activated":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,(str, )),
+        "item-hovered":
+            (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,
+             (gtk.gdk.Event, str)),
         "menu-resized":
             (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,())}
 
@@ -2488,6 +2571,8 @@ class GroupMenu(gobject.GObject):
         gobject.GObject.__init__(self)
         self.gtk_menu = gtk_menu
         self.submenus = {}
+        self.items = {}
+        self.quicklist_position = 0
         if gtk_menu:
             self.menu = gtk.Menu()
         else:
@@ -2497,11 +2582,17 @@ class GroupMenu(gobject.GObject):
             self.menu.on_popup_reallocate = lambda p: p.set_previews(None)
         self.menu.show()
 
-    def add_item(self, name, submenu=None, identifier=None):
+    def add_item(self, name, 
+                 submenu=None, identifier=None, toggle_type=""):
+        # Todo: add toggle types
         if not identifier:
             identifier = name
         if self.gtk_menu:
-            item = gtk.MenuItem(name)
+            if toggle_type in ("checkmark","radio"):
+                item = gtk.CheckMenuItem(name)
+                item.set_draw_as_radio(toggle_type == "radio")
+            else:
+                item = gtk.MenuItem(name)
             item.show()
             if submenu:
                 self.submenus[submenu].append(item)
@@ -2511,46 +2602,206 @@ class GroupMenu(gobject.GObject):
                 self.menu.append(item)
                 item.connect("activate", self.__on_item_activated, identifier)
         else:
-            item = CairoMenuItem(name)
+            if toggle_type in ("checkmark","radio"):
+                item = CairoCheckMenuItem(name, toggle_type)
+            else:
+                item = CairoMenuItem(name)
             item.connect("clicked", self.__on_item_activated, identifier)
             item.show()
             if submenu:
                 self.submenus[submenu].add_item(item)
             else:
                 self.menu.pack_start(item)
+        item.connect("enter-notify-event", self.__on_item_hovered, identifier)
+        self.items[identifier] = item
+        return item
 
-    def add_submenu(self, name):
+    def add_submenu(self, name, submenu=None, identifier=None):
         if self.gtk_menu:
             item = gtk.MenuItem(name)
             item.show()
-            self.menu.append(item)
+            if submenu:
+                submenu.append(item)
+            else:
+                self.menu.append(item)
             menu = gtk.Menu()
             item.set_submenu(menu)
         else:
+            item = None
             menu = CairoToggleMenu(name)
-            self.menu.pack_start(menu)
+            if submenu:
+                self.submenus[submenu].add_item(menu)
+            else:
+                self.menu.pack_start(menu)
             menu.show()
             menu.connect("toggled", self.__on_submenu_toggled)
-        self.submenus[name] = menu
+        if identifier is not None:
+            self.items[identifier] = item or menu
+        self.submenus[identifier or name] = menu
+        return item or menu
 
-    def add_separator(self):
+    def add_separator(self, submenu=None, identifier=None):
         separator = gtk.SeparatorMenuItem()
         separator.show()
         if self.gtk_menu:
-            self.menu.append(separator)
+            if submenu:
+                self.submenus[submenu].append(separator)
+            else:
+                self.menu.append(separator)
         else:
-            self.menu.pack_start(separator)
+            if submenu:
+                self.submenus[submenu].add_item(separator)
+            else:
+                self.menu.pack_start(separator)
+        if identifier is not None:
+            self.items[identifier] = separator
+        return separator
 
     def get_menu(self):
         return self.menu
+    
+    def get_item(self, identifier):
+        return self.items.get(identifier)
 
     def has_submenu(self, name):
         return name in self.submenus
+        
+    def add_quicklist(self, layout):
+        self.quicklist_position = len(self.menu.get_children())
+        if not layout:
+            return False
+        return self.add_quicklist_menu(layout, None)
+        
+    def add_quicklist_menu(self, layout, parent):
+        for layout_item in layout[2]:
+            identifier = "unity_%s" % layout_item[0]
+            props = layout_item[1]
+            label = props.get("label", "")
+            visible = props.get("visible", True)
+            enabled = props.get("enabled", True)
+            type_ = props.get("type", "standard")
+            toggle_type = props.get("toggle-type", "")
+            toggled = props.get("toggle-state", -1)
+            submenu = props.get("children-display", "")
+            if type_ == "separator":
+                item = self.add_separator(parent, identifier)
+            elif submenu:
+                item = self.add_submenu(label, parent, identifier)
+                self.add_quicklist_menu(layout_item, identifier)
+            elif not label:
+                continue
+            else:
+                item = self.add_item(label, 
+                                     parent, 
+                                     identifier, 
+                                     toggle_type)
+            if visible:
+                item.show()
+            else:
+                item.hide()
+            if not submenu:
+                item.set_sensitive(enabled)
+            if toggle_type:
+                if toggled in (0,1):
+                    item.set_active(toggled)
+                    item.set_inconsistent(False)
+                else:
+                    item.set_inconsistent(True)
+        
+    def update_quicklist_menu(self, layout):
+        open_menus = []
+        if not self.gtk_menu:
+            # Get all open submenus
+            for identifier, menu in self.submenus.items():
+                if menu.get_toggled():
+                    open_menus.append(identifier)
+        # Remove the old parts of the quicklist and add the new.
+        if layout[0] == 0:
+            for identifier, item in self.items.items():
+                if not identifier.startswith("unity_"):
+                    continue
+                for child in self.menu.get_children():
+                    if child == item:
+                        break
+                else:
+                    continue
+                del self.items[identifier]
+                item.destroy()
+            children = self.menu.get_children()
+            pack_list = []
+            while len(children) > self.quicklist_position:
+                child = children.pop(self.quicklist_position)
+                self.menu.remove(child)
+                pack_list.append(child)
+            self.add_quicklist_menu(layout, None)
+            for child in pack_list:
+                if self.gtk_menu:
+                    self.menu.append(child)
+                else:
+                    self.menu.pack_start(child)
+        else:
+            identifier = "unity_%s" % layout[0]
+            menu = self.submenus[identifier]
+            if self.gtk_menu:
+                for child in menu.get_children():
+                    child.destroy()
+            else:
+                for item in menu.get_items():
+                    menu.remove_item(item)
+                    item.destroy()
+            self.add_quicklist_menu(layout, identifier)
+        for identifier in open_menus:
+            # Reopen the closed submenus.
+            menu = self.submenus[identifier]
+            if not menu.get_toggled():
+                menu.toggle()
+            else:
+                menu.queue_draw()
+        if not self.gtk_menu:
+            self.emit("menu-resized")
 
+    def remove_quicklist(self):
+        self.update_quicklist_menu([0,{},[]])
+        
+    def set_properties(self, identifier, props):
+        item = self.get_item(identifier)
+        if item is None:
+            logger.warning("Tried to change a quicklist menu item that doesn't exist.")
+            return
+        label = props.get("label", "")
+        visible = props.get("visible", True)
+        enabled = props.get("enabled", True)
+        type_ = props.get("type", "standard")
+        toggle_type = props.get("toggle-type", "")
+        toggled = props.get("toggle-state", -1)
+        submenu = props.get("children-display", "")
+        if visible:
+            item.show()
+        else:
+            item.hide()
+        if not submenu:
+            item.set_sensitive(enabled)
+        if toggle_type:
+            if toggled in (0,1):
+                item.set_active(toggled)
+                item.set_inconsistent(False)
+            else:
+                item.set_inconsistent(True)
+        if type_ == "standard" and label:
+            if self.gtk_menu:
+                item.child.set_text(label)
+            else:
+                item.set_label(label)
+        
     def delete_menu(self):
         del self.submenus
+        del self.items
+        disconnect(self)
         self.menu.destroy()
         del self.menu
+        
+    def __on_item_hovered(self, button, event, identifier):
+        self.emit("item-hovered", event, identifier)
 
     def __on_item_activated(self, *args):
         identifier = args[-1]

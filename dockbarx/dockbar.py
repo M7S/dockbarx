@@ -238,7 +238,9 @@ class DockBar():
         self.globals.connect("use-number-shortcuts-changed",
                              self.__init_number_shortcuts)
         self.unity_watcher = UnityWatcher(self)
-        self.unity_watcher.start()
+        if self.globals.settings["unity"]:
+            self.unity_watcher.start()
+        self.globals.connect("unity-changed", self.__on_unity_changed)
         
         #--- Generate Gio apps
         self.apps_by_id = {}
@@ -544,6 +546,7 @@ class DockBar():
         else:
             self.groups.append(group)
         self.__media_player_check(identifier, group)
+        self.unity_watcher.apply_for_group(group)
         self.update_pinned_apps_list()
         return group
 
@@ -1264,6 +1267,12 @@ class DockBar():
             self.__start_dockmanager()
         else:
             self.__stop_dockmanager()
+
+    def __on_unity_changed(self, *args):
+        if self.globals.settings["unity"]:
+            self.unity_watcher.start()
+        else:
+            self.unity_watcher.stop()
 
     #### Keyboard actions
     def __gkeys_changed(self, arg=None, dialog=True):
