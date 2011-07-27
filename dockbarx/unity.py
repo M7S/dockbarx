@@ -123,6 +123,13 @@ class UnityWatcher():
     def __on_signal_recieved(self, app_uri, properties, sender):
         if not app_uri or not sender:
             return
+        # Apparently python dbus doensn't handle all kinds of int/long 
+        # variables correctly. This is a hack to fix that. There's perhaps
+        # a more correct way to do this?
+        count = properties.get("count", 0)
+        if count < -4646570052043045216L:
+            properties["count"]= count + 4646570052043145216L
+            
         dockbar = self.dockbar_r()
         if app_uri in self.props_by_app and \
            sender == self.props_by_app[app_uri]["sender"]:

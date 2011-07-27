@@ -190,7 +190,7 @@ class CairoAppButton(gtk.EventBox):
             color = self.globals.settings["progress_fg_color"]
             alpha = float(self.globals.settings["progress_fg_alpha"]) / 255
         else:
-            color = "#DD4814"
+            color = "#772953"
             alpha = 1.0
         r = int(color[1:3], 16)/255.0
         g = int(color[3:5], 16)/255.0
@@ -211,7 +211,7 @@ class CairoAppButton(gtk.EventBox):
             print bg_alpha
         else:
             color = "#CDCDCD"
-            bg_alpha = 0.5
+            bg_alpha = 0.25
         br = int(color[1:3], 16)/255.0
         bg = int(color[3:5], 16)/255.0
         bb = int(color[5:7], 16)/255.0

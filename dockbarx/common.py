@@ -584,7 +584,7 @@ class Globals(gobject.GObject):
 
           "progress_custom_bg_color": False,
           "progress_bg_color": "#CDCDCD",
-          "progress_bg_alpha": 128,
+          "progress_bg_alpha": 64,
           "progress_custom_fg_color": False,
           "progress_fg_color": "#772953",
           "progress_fg_alpha": 255,
