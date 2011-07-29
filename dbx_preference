@@ -937,7 +937,7 @@ class PrefDialog():
         hbox = gtk.HBox()
         hbox.set_border_width(5)
         hbox.set_spacing(5)
-        label = gtk.Label(_("Mode"))
+        label = gtk.Label(_("Type"))
         hbox.pack_start(label, False, False)
         self.dock_mode_box = gtk.combo_box_new_text()
         for pos in (_("panel"), _("corner"), _("centered")):
@@ -956,6 +956,19 @@ class PrefDialog():
             self.dock_position_box.append_text(pos)
         self.dock_position_box.connect("changed", self.__cb_changed)
         hbox.pack_start(self.dock_position_box, False)
+        dock_box.pack_start(hbox, False)
+
+        hbox = gtk.HBox()
+        hbox.set_border_width(5)
+        hbox.set_spacing(5)
+        label = gtk.Label(_("Behavior"))
+        hbox.pack_start(label, False, False)
+        self.dock_behavior_box = gtk.combo_box_new_text()
+        for pos in (_("panel"), _("standard"), _("dogde windows"),
+                    _("dodge active window"), _("always autohide")):
+            self.dock_behavior_box.append_text(pos)
+        self.dock_behavior_box.connect("changed", self.__cb_changed)
+        hbox.pack_start(self.dock_behavior_box, False)
         dock_box.pack_start(hbox, False)
 
         hbox = gtk.HBox()
@@ -982,20 +995,6 @@ class PrefDialog():
         self.dock_offset_spin = gtk.SpinButton(adj, 0.5, 0)
         hbox.pack_start(self.dock_offset_spin, False)
         dock_box.pack_start(hbox, False)
-
-        self.dock_strut_cb = gtk.CheckButton(_("Allow maximized windows behind the dock"))
-        self.dock_strut_cb.set_border_width(5)
-        self.dock_strut_cb.connect("toggled",
-                                   self.__checkbutton_toggled,
-                                   "dock/overlap")
-        dock_box.pack_start(self.dock_strut_cb, False)
-
-        self.dock_autohide_cb = gtk.CheckButton(_("Autohide dock"))
-        self.dock_autohide_cb.set_border_width(5)
-        self.dock_autohide_cb.connect("toggled",
-                                      self.__checkbutton_toggled,
-                                      "dock/autohide")
-        dock_box.pack_start(self.dock_autohide_cb, False)
         
 
         notebook.append_page(dock_box, gtk.Label(_("Dock")))
@@ -1315,21 +1314,22 @@ class PrefDialog():
             self.dock_offset_spin.set_sensitive(True)
         model = self.dock_mode_box.get_model()
         for i in range(len(model)):
-            pos = self.globals.settings["dock/mode"].lower()
-            if model[i][0].lower() == pos:
+            mode = self.globals.settings["dock/mode"].lower()
+            if model[i][0].lower() == _(mode):
                 self.dock_mode_box.set_active(i)
                 break
         model = self.dock_position_box.get_model()
         for i in range(len(model)):
             pos = self.globals.settings["dock/position"].lower()
-            if model[i][0].lower() == pos:
+            if model[i][0].lower() == _(pos):
                 self.dock_position_box.set_active(i)
                 break
-        self.dock_strut_cb.set_active(self.globals.settings["dock/overlap"])
-        self.dock_strut_cb.set_sensitive(
-                                    not self.globals.settings["dock/autohide"])
-        self.dock_autohide_cb.set_active(
-                                        self.globals.settings["dock/autohide"])
+        model = self.dock_behavior_box.get_model()
+        for i in range(len(model)):
+            beh = self.globals.settings["dock/behavior"].lower()
+            if model[i][0].lower() == _(beh):
+                self.dock_behavior_box.set_active(i)
+                break
 
     def __dialog_close(self,par1,par2):
         self.dialog.destroy()
@@ -1532,12 +1532,20 @@ class PrefDialog():
             for p in pos:
                 if value == _(p) and p != self.globals.settings["dock/size"]:
                     GCONF_CLIENT.set_string(GCONF_DIR+"/dock/position", p)
-                    
+
         if combobox == self.dock_mode_box:
             pos = ("panel", "centered", "corner")
             for p in pos:
                 if value == _(p) and p != self.globals.settings["dock/mode"]:
                     GCONF_CLIENT.set_string(GCONF_DIR+"/dock/mode", p)
+
+        if combobox == self.dock_behavior_box:
+            pos = ("panel", "standard", "dogde windows",
+                   "dodge active window", "always autohide")
+            for p in pos:
+                if value == _(p) and \
+                   p != self.globals.settings["dock/behavior"]:
+                    GCONF_CLIENT.set_string(GCONF_DIR+"/dock/behavior", p)
 
     def __adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf

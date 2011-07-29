@@ -197,6 +197,11 @@ class DockX(CairoDockX):
                             "top": 1000, "bottom":1000}
         self.geometry_time = 0
         self.last_geometry_window = lambda: None
+        if self.globals.settings["dock/behavior"] in ("panel", "standard"):
+            self.autohide = False
+        else:
+            self.autohide = True
+        self.screen = wnck.screen_get_default()
         self.monitor = monitor
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
@@ -221,12 +226,12 @@ class DockX(CairoDockX):
                              self.__on_position_changed)
         self.globals.connect("dock-mode-changed", self.__on_mode_changed)
         self.globals.connect("dock-offset-changed", self.__on_offset_changed)
-        self.globals.connect("dock-overlap-changed",
-                             self.__on_overlap_changed)
-        self.globals.connect("dock-autohide-changed",
-                             self.__on_autohide_changed)
+        self.globals.connect("dock-behavior-changed",
+                             self.__on_behavior_changed)
         self.__calc_window_overlaps()
-        if self.globals.settings["dock/autohide"]:
+        self.screen.connect("active-window-changed",
+                            self.__on_active_window_changed)
+        if self.autohide:
             self.show_dock()
         self.dbus_obj = DockXDBus(self)
 
@@ -306,8 +311,7 @@ class DockX(CairoDockX):
     def __set_dock_strut(self, x, y, w, h):
         if not self.window:
             return
-        set_strut = not self.globals.settings["dock/overlap"] \
-                    and not self.globals.settings["dock/autohide"]
+        set_strut = self.globals.settings["dock/behavior"] == "panel"
         if not set_strut:
             self.window.property_delete("_NET_WM_STRUT")
             self.window.property_delete("_NET_WM_STRUT_PARTIAL")
@@ -333,6 +337,10 @@ class DockX(CairoDockX):
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
             if s.get_monitor_at_point(x + w / 2, my + mh + 5) != self.monitor:
                 set_strut = False
+        if not set_strut:
+            self.window.property_delete("_NET_WM_STRUT")
+            self.window.property_delete("_NET_WM_STRUT_PARTIAL")
+            return
         self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
                                     gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
         self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
@@ -481,11 +489,11 @@ class DockX(CairoDockX):
             y2 = my + mh - 1
         elif self.globals.settings["dock/position"] == "top":
             x1 = mx
-            x2 = mx + mh - 1
+            x2 = mx + mw - 1
             y1 = y2 = my
         else:
             x1 = mx
-            x2 = mx + mh - 1
+            x2 = mx + mw - 1
             y1 = y2 = my + mh - 1
         self.autounhide_sid = gobject.timeout_add(200, self.__unhide_check,
                                                   display, x1, x2, y1, y2)
@@ -517,7 +525,7 @@ class DockX(CairoDockX):
         return False
 
     def add_window(self, window, calc_overlap=True):
-        if not self.globals.settings["dock/autohide"]:
+        if not self.autohide:
             return
         geo_sid = window.connect("geometry-changed",
                              self.__on_window_geometry_changed)
@@ -529,13 +537,14 @@ class DockX(CairoDockX):
             self.__calc_window_overlaps()
             
     def remove_window(self, window, calc_overlap=True, forced=False):
-        if not self.globals.settings["dock/autohide"] and not forced:
+        if self.autohide and not forced:
             return
         del self.border_distances[window]
-        sids = self.windows.pop(window)
-        if sids is not None:
-            window.disconnect(sids[0])
-            window.disconnect(sids[1])
+        if window in self.windows:
+            sids = self.windows.pop(window)
+            if sids is not None:
+                window.disconnect(sids[0])
+                window.disconnect(sids[1])
         if calc_overlap:
             self.__calc_window_overlaps()
 
@@ -552,6 +561,10 @@ class DockX(CairoDockX):
         self.last_geometry_window = weakref.ref(window)
         self.geometry_time = time.time()
         gobject.timeout_add(120, self.__calc_border_distance, window, True)
+
+    def __on_active_window_changed(self, screen, previous_active_window):
+        if self.globals.settings["dock/behavior"] == "dogde active window":
+            self.__calc_window_overlaps()
         
 
     def __calc_border_distance(self, window, calc_overlap=False):
@@ -579,9 +592,18 @@ class DockX(CairoDockX):
     def __calc_window_overlaps(self):
         pos = self.globals.settings["dock/position"]
         size = self.globals.settings["dock/size"]
+        beh = self.globals.settings["dock/behavior"]
+        if beh == "always autohide":
+            self.window_overlaps = True
+            return True
         self.window_overlaps = False
+        active_workspace = self.screen.get_active_workspace()
         for window in self.dockbar.windows:
             if window.is_minimized():
+                continue
+            if beh == "dodge active window" and not window.is_active():
+                continue
+            if window.get_workspace() != active_workspace:
                 continue
             border_distance = self.border_distances.get(window)
             if border_distance is None:
@@ -602,7 +624,7 @@ class DockX(CairoDockX):
         self.position_dock()
         self.queue_draw()
         self.__calc_window_overlaps()
-        if self.globals.settings["dock/autohide"]:
+        if self.autohide:
             self.hide_dock()
 
     def __on_overlap_changed(self, *args):
@@ -613,22 +635,26 @@ class DockX(CairoDockX):
     def __on_offset_changed(self, *args):
         self.position_dock()
 
-    def __on_autohide_changed(self, *args):
-        if self.globals.settings["dock/autohide"]:
-            self.hide_dock()
-            for window in self.dockbar.windows:
-                self.add_window(window, calc_overlap=False)
-            self.__calc_window_overlaps()
+    def __on_behavior_changed(self, *args):
+        if self.globals.settings["dock/behavior"] in ("panel", "standard"):
+            if self.autohide:
+                self.autohide = False
+                if self.autohide_sid is not None:
+                    gobject.source_remove(self.autohide_sid)
+                    self.autohide_sid = None
+                if self.autounhide_sid is not None:
+                    gobject.source_remove(self.autounhide_sid)
+                    self.autounhide_sid = None
+                self.show()
+                for window in self.dockbar.windows:
+                    self.remove_window(window, calc_overlap=False, forced=True)
         else:
-            if self.autohide_sid is not None:
-                gobject.source_remove(self.autohide_sid)
-                self.autohide_sid = None
-            if self.autounhide_sid is not None:
-                gobject.source_remove(self.autounhide_sid)
-                self.autounhide_sid = None
-            self.show()
-            for window in self.dockbar.windows:
-                self.remove_window(window, calc_overlap=False, forced=True)
+            if not self.autohide:
+                self.autohide = True
+                self.hide_dock()
+                for window in self.dockbar.windows:
+                    self.add_window(window, calc_overlap=False)
+            self.__calc_window_overlaps()
         self.position_dock()
         if self.globals.settings["dock/mode"] in ("centered", "corner"):
             a = self.get_allocation()
@@ -645,7 +671,7 @@ class DockX(CairoDockX):
         self.db_loaded = False
         self.dockbar.reload()
         self.db_loaded = True
-        if self.globals.settings["dock/autohide"]:
+        if self.autohide:
             self.__calc_window_overlaps()
 
     def do_destroy(self, *args):

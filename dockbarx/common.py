@@ -540,9 +540,9 @@ class Globals(gobject.GObject):
         "dock-offset-changed": (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,()),
         "dock-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
-                                   gobject.TYPE_NONE,()),
-        "dock-autohide-changed": (gobject.SIGNAL_RUN_FIRST,
-                                   gobject.TYPE_NONE,())
+                                 gobject.TYPE_NONE,()),
+        "dock-behavior-changed": (gobject.SIGNAL_RUN_FIRST,
+                                  gobject.TYPE_NONE,())
     }
 
     DEFAULT_SETTINGS = {
@@ -650,9 +650,8 @@ class Globals(gobject.GObject):
           "dock/position": "left",
           "dock/size": 42,
           "dock/offset":0,
-          "dock/mode":"panel",
-          "dock/overlap": False,
-          "dock/autohide": False}
+          "dock/mode": "panel",
+          "dock/behavior": "panel"}
 
     DEFAULT_COLORS={
                       "color1": "#333333",
@@ -759,8 +758,8 @@ class Globals(gobject.GObject):
             self.emit("dock-offset-changed")
         if "dock/position" in changed_settings:
             self.emit("dock-position-changed")
-        if "dock/autohide" in changed_settings:
-            self.emit("dock-autohide-changed")
+        if "dock/behavior" in changed_settings:
+            self.emit("dock-behavior-changed")
         if "dock/mode" in changed_settings:
             self.emit("dock-mode-changed")
         if "dock/overlap" in changed_settings:
