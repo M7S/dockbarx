@@ -542,6 +542,8 @@ class Globals(gobject.GObject):
         "dock-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
                                  gobject.TYPE_NONE,()),
         "dock-behavior-changed": (gobject.SIGNAL_RUN_FIRST,
+                                  gobject.TYPE_NONE,()),
+        "awn-behavior-changed": (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,())
     }
 
@@ -651,7 +653,9 @@ class Globals(gobject.GObject):
           "dock/size": 42,
           "dock/offset":0,
           "dock/mode": "panel",
-          "dock/behavior": "panel"}
+          "dock/behavior": "panel",
+
+          "awn/behavior": "disabled"}
 
     DEFAULT_COLORS={
                       "color1": "#333333",
@@ -726,6 +730,8 @@ class Globals(gobject.GObject):
         key = entry.get_key().split("/")[-1]
         if entry.get_key().split("/")[-2] == "dock":
             key = "dock/" + key
+        elif entry.get_key().split("/")[-2] == "awn":
+            key = "awn/" + key
         if key in self.settings:
             value = self.settings[key]
             if entry_get[type(value)]() != value:
@@ -762,8 +768,8 @@ class Globals(gobject.GObject):
             self.emit("dock-behavior-changed")
         if "dock/mode" in changed_settings:
             self.emit("dock-mode-changed")
-        if "dock/overlap" in changed_settings:
-            self.emit("dock-overlap-changed")
+        if "awn/behavior" in changed_settings:
+            self.emit("awn-behavior-changed")
         if "locked_list_no_overlap" in changed_settings:
             self.emit("locked-list-overlap-changed")
         if "locked_list_in_menu" in changed_settings:

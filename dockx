@@ -228,7 +228,7 @@ class DockX(CairoDockX):
         self.globals.connect("dock-offset-changed", self.__on_offset_changed)
         self.globals.connect("dock-behavior-changed",
                              self.__on_behavior_changed)
-        self.__compute_inhibit_autohide()
+        self.__compute_should_autohide()
         self.screen.connect("active-window-changed",
                             self.__on_active_window_changed)
         if self.autohide:
@@ -499,7 +499,7 @@ class DockX(CairoDockX):
                                                   display, x1, x2, y1, y2)
 
     def __unhide_check(self, display, x1, x2, y1, y2):
-        if not self.inhibit_autohide:
+        if not self.should_autohide:
             self.show_dock()
             return False
         s, x, y, mod = display.get_pointer()
@@ -509,7 +509,7 @@ class DockX(CairoDockX):
         return True
 
     def __hide_check(self):
-        if self.globals.shown_popup() is not None or not self.inhibit_autohide:
+        if self.globals.shown_popup() is not None or not self.should_autohide:
             return True
         pos = self.globals.settings["dock/position"]
         x, y = self.get_pointer()
@@ -524,7 +524,7 @@ class DockX(CairoDockX):
         self.hide_dock()
         return False
 
-    def add_window(self, window, calc_overlap=True):
+    def add_window(self, window, reset_should_autohide=True):
         if not self.autohide:
             return
         geo_sid = window.connect("geometry-changed",
@@ -533,10 +533,10 @@ class DockX(CairoDockX):
                              self.__on_window_state_changed)
         self.windows[window] = (geo_sid, state_sid)
         self.__calc_border_distance(window)
-        if self.db_loaded and calc_overlap:
-            self.__compute_inhibit_autohide()
+        if self.db_loaded and reset_should_autohide:
+            self.__compute_should_autohide()
             
-    def remove_window(self, window, calc_overlap=True, forced=False):
+    def remove_window(self, window, reset_should_autohide=True, forced=False):
         if self.autohide and not forced:
             return
         del self.border_distances[window]
@@ -545,12 +545,12 @@ class DockX(CairoDockX):
             if sids is not None:
                 window.disconnect(sids[0])
                 window.disconnect(sids[1])
-        if calc_overlap:
-            self.__compute_inhibit_autohide()
+        if reset_should_autohide:
+            self.__compute_should_autohide()
 
     def __on_window_state_changed(self, wnck_window,changed_mask, new_state):
         if WNCK_WINDOW_STATE_MINIMIZED & changed_mask:
-            self.__compute_inhibit_autohide()
+            self.__compute_should_autohide()
         
     def __on_window_geometry_changed(self, window):
         if time.time() - self.geometry_time < 0.12 and \
@@ -563,11 +563,11 @@ class DockX(CairoDockX):
         gobject.timeout_add(120, self.__calc_border_distance, window, True)
 
     def __on_active_window_changed(self, screen, previous_active_window):
-        if self.globals.settings["dock/behavior"] == "dogde active window":
-            self.__compute_inhibit_autohide()
+        if self.globals.settings["dock/behavior"] == "dodge active window":
+            self.__compute_should_autohide()
         
 
-    def __calc_border_distance(self, window, calc_overlap=False):
+    def __calc_border_distance(self, window, reset_should_autohide=False):
         bd = {"left": 1000, "right": 1000, "top": 1000, "bottom": 1000}
         x, y, w, h = window.get_geometry()
         gdk_screen = gtk.gdk.screen_get_default()
@@ -586,17 +586,17 @@ class DockX(CairoDockX):
             if y < my + mh:
                 bd["bottom"] = my + mh - y - h
         self.border_distances[window] = bd
-        if calc_overlap:
-            self.__compute_inhibit_autohide()
+        if reset_should_autohide:
+            self.__compute_should_autohide()
 
-    def __compute_inhibit_autohide(self):
+    def __compute_should_autohide(self):
         pos = self.globals.settings["dock/position"]
         size = self.globals.settings["dock/size"]
         beh = self.globals.settings["dock/behavior"]
         if beh == "always autohide":
-            self.inhibit_autohide = True
+            self.should_autohide = True
             return True
-        self.inhibit_autohide = False
+        self.should_autohide = False
         active_workspace = self.screen.get_active_workspace()
         for window in self.dockbar.windows:
             if window.is_minimized():
@@ -609,9 +609,9 @@ class DockX(CairoDockX):
             if border_distance is None:
                 continue
             if border_distance[pos] < size:
-                self.inhibit_autohide = True
+                self.should_autohide = True
                 break
-        return self.inhibit_autohide
+        return self.should_autohide
         
         
     def __on_mode_changed(self, *args):
@@ -623,7 +623,7 @@ class DockX(CairoDockX):
     def __on_position_changed(self, *args):
         self.position_dock()
         self.queue_draw()
-        self.__compute_inhibit_autohide()
+        self.__compute_should_autohide()
         if self.autohide:
             self.hide_dock()
 
@@ -647,14 +647,15 @@ class DockX(CairoDockX):
                     self.autounhide_sid = None
                 self.show()
                 for window in self.dockbar.windows:
-                    self.remove_window(window, calc_overlap=False, forced=True)
+                    self.remove_window(window,
+                                       reset_should_autohide=False, forced=True)
         else:
             if not self.autohide:
                 self.autohide = True
                 self.hide_dock()
                 for window in self.dockbar.windows:
-                    self.add_window(window, calc_overlap=False)
-            self.__compute_inhibit_autohide()
+                    self.add_window(window, reset_should_autohide=False)
+            self.__compute_should_autohide()
         self.position_dock()
         if self.globals.settings["dock/mode"] in ("centered", "corner"):
             a = self.get_allocation()
@@ -672,7 +673,7 @@ class DockX(CairoDockX):
         self.dockbar.reload()
         self.db_loaded = True
         if self.autohide:
-            self.__compute_inhibit_autohide()
+            self.__compute_should_autohide()
 
     def do_destroy(self, *args):
         CairoDockX.do_destroy(self)

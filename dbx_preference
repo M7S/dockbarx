@@ -227,6 +227,7 @@ class PrefDialog():
         advanced_box = gtk.VBox()
         popup_box = gtk.VBox()
         dock_box = gtk.VBox()
+        awn_box = gtk.VBox()
 
         #--- Window item page
         hbox = gtk.HBox()
@@ -964,7 +965,7 @@ class PrefDialog():
         label = gtk.Label(_("Behavior"))
         hbox.pack_start(label, False, False)
         self.dock_behavior_box = gtk.combo_box_new_text()
-        for pos in (_("panel"), _("standard"), _("dogde windows"),
+        for pos in (_("panel"), _("standard"), _("dodge windows"),
                     _("dodge active window"), _("always autohide")):
             self.dock_behavior_box.append_text(pos)
         self.dock_behavior_box.connect("changed", self.__cb_changed)
@@ -995,8 +996,26 @@ class PrefDialog():
         self.dock_offset_spin = gtk.SpinButton(adj, 0.5, 0)
         hbox.pack_start(self.dock_offset_spin, False)
         dock_box.pack_start(hbox, False)
+
+        #--- AWN page
+        hbox = gtk.HBox()
+        hbox.set_border_width(5)
+        hbox.set_spacing(5)
+        label = gtk.Label(_("Dodge behavior"))
+        hbox.pack_start(label, False, False)
+        self.awn_behavior_box = gtk.combo_box_new_text()
+        for beh in (_("disabled"), _("dodge windows"),
+                    _("dodge active window")):
+            self.awn_behavior_box.append_text(beh)
+        self.awn_behavior_box.connect("changed", self.__cb_changed)
+        hbox.pack_start(self.awn_behavior_box, False)
+        awn_box.pack_start(hbox, False)
+        label = gtk.Label(_("AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the awn applet Taskmanager is not running. Set dodge behavior here instead."))
+        label.set_line_wrap(True)
+        awn_box.pack_start(label, False)
         
 
+        notebook.append_page(awn_box, gtk.Label(_("AWN")))
         notebook.append_page(dock_box, gtk.Label(_("Dock")))
         notebook.append_page(appearance_box, gtk.Label(_("Appearance")))
         notebook.append_page(popup_box, gtk.Label(_("Window List")))
@@ -1008,11 +1027,17 @@ class PrefDialog():
         self.__update()
         self.dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.dialog.show_all()
+        awn = False
+        dock = False
         for name in dbus.SessionBus().list_names():
             if str(name).startswith("org.dockbar.DockX"):
-                break
-        else:
+                dock = True
+            if str(name).startswith("org.dockbar.AWNapplet"):
+                awn = True
+        if not dock:
             dock_box.hide()
+        if not awn:
+            awn_box.hide()
 
     def __load_theme(self):
         self.themes = self.__find_themes()
@@ -1330,6 +1355,13 @@ class PrefDialog():
             if model[i][0].lower() == _(beh):
                 self.dock_behavior_box.set_active(i)
                 break
+                
+        model = self.awn_behavior_box.get_model()
+        for i in range(len(model)):
+            beh = self.globals.settings["awn/behavior"].lower()
+            if model[i][0].lower() == _(beh):
+                self.awn_behavior_box.set_active(i)
+                break
 
     def __dialog_close(self,par1,par2):
         self.dialog.destroy()
@@ -1540,12 +1572,20 @@ class PrefDialog():
                     GCONF_CLIENT.set_string(GCONF_DIR+"/dock/mode", p)
 
         if combobox == self.dock_behavior_box:
-            pos = ("panel", "standard", "dogde windows",
+            pos = ("panel", "standard", "dodge windows",
                    "dodge active window", "always autohide")
             for p in pos:
                 if value == _(p) and \
                    p != self.globals.settings["dock/behavior"]:
                     GCONF_CLIENT.set_string(GCONF_DIR+"/dock/behavior", p)
+
+        if combobox == self.awn_behavior_box:
+            pos = ("disabled", "dodge windows",
+                   "dodge active window")
+            for p in pos:
+                if value == _(p) and \
+                   p != self.globals.settings["awn/behavior"]:
+                    GCONF_CLIENT.set_string(GCONF_DIR+"/awn/behavior", p)
 
     def __adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf

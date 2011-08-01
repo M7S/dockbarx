@@ -41,8 +41,6 @@ class DockManager(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name,
                                      "/net/launchpad/DockManager")
         self.globals = Globals()
-        self.badge_sid = self.globals.connect("dockmanager-badge-changed",
-                                              self.__on_use_badge_changed)
 
 
     @dbus.service.method(dbus_interface="net.launchpad.DockManager",
