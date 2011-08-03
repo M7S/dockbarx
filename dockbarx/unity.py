@@ -124,12 +124,20 @@ class UnityWatcher():
         if not app_uri or not sender:
             return
         # Apparently python dbus doensn't handle all kinds of int/long 
-        # variables correctly. This is a hack to fix that. There's perhaps
-        # a more correct way to do this?
+        # variables correctly. Try the UnityFox firefox addon for example.
+        # This is a hack to fix that. There's perhaps a more correct way
+        # to do this?
         count = properties.get("count", 0)
-        if count < -4646570052043045216L:
-            properties["count"]= count + 4646570052043145216L
-            
+        if count < -(1<<35):
+            # We assume that the actual int value contains 36(?) bits but
+            # python-dbus has made a number of 64 bits instead. The first bits
+            # then contains garbage.
+            count = int(bin(count)[-36:], 2)
+            # The nuber will now start from 1<<35 and go downwards as the
+            # actual number increases (because count was negative before we
+            # cut the first half). Let's fix that.
+            count = (1<<35) - count
+            properties["count"] = count
         dockbar = self.dockbar_r()
         if app_uri in self.props_by_app and \
            sender == self.props_by_app[app_uri]["sender"]:
