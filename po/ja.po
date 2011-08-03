@@ -7,308 +7,364 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-06-08 20:22+0300\n"
+"POT-Creation-Date: 2011-08-02 14:34+0300\n"
 "PO-Revision-Date: 2011-02-16 21:52+0000\n"
 "Last-Translator: kawaji <jiro.kawada@gmail.com>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-07-04 13:16+0000\n"
-"X-Generator: Launchpad (build 13333)\n"
+"X-Launchpad-Export-Date: 2011-08-03 09:01+0000\n"
+"X-Generator: Launchpad (build 13573)\n"
 
 #: dbx_preference:212
 msgid "DockBarX preferences"
 msgstr "DockBarX の設定"
 
-#: dbx_preference:233
+#: dbx_preference:234
 msgid "Window item actions"
 msgstr "ウィンドウアイテムのアクション"
 
-#: dbx_preference:239 dbx_preference:529
+#: dbx_preference:240 dbx_preference:613
 msgid "Left mouse button"
 msgstr "左マウスボタン"
 
-#: dbx_preference:240 dbx_preference:530
+#: dbx_preference:241 dbx_preference:614
 msgid "Shift + left mouse button"
 msgstr "Shift + 左マウスボタン"
 
-#: dbx_preference:242 dbx_preference:532
+#: dbx_preference:243 dbx_preference:616
 msgid "Middle mouse button"
 msgstr "中央マウスボタン"
 
-#: dbx_preference:244 dbx_preference:533
+#: dbx_preference:245 dbx_preference:617
 msgid "Shift + middle mouse button"
 msgstr "Shift + 中央マウスボタン"
 
-#: dbx_preference:246 dbx_preference:535
+#: dbx_preference:247 dbx_preference:619
 msgid "Right mouse button"
 msgstr "右マウスボタン"
 
-#: dbx_preference:248 dbx_preference:536
+#: dbx_preference:249 dbx_preference:620
 msgid "Shift + right mouse button"
 msgstr "Shift + 右マウスボタン"
 
-#: dbx_preference:250 dbx_preference:538
+#: dbx_preference:251 dbx_preference:622
 msgid "Scroll up"
 msgstr "上スクロール"
 
-#: dbx_preference:251 dbx_preference:539
+#: dbx_preference:252 dbx_preference:623
 msgid "Scroll down"
 msgstr "下スクロール"
 
-#: dbx_preference:256 dbx_preference:605 dbx_preference:1134
-#: dbx_preference:1390
+#: dbx_preference:257 dbx_preference:689 dbx_preference:1265
+#: dbx_preference:1533
 msgid "select or minimize window"
 msgstr "ウィンドウを選択または最小化"
 
-#: dbx_preference:257 dbx_preference:604 dbx_preference:1133
-#: dbx_preference:1389
+#: dbx_preference:258 dbx_preference:688 dbx_preference:1264
+#: dbx_preference:1532
 msgid "select window"
 msgstr "ウィンドウを選択"
 
-#: dbx_preference:258
+#: dbx_preference:259
 msgid "maximize window"
 msgstr "ウィンドウを最大化"
 
-#: dbx_preference:259
+#: dbx_preference:260
 msgid "close window"
 msgstr "ウィンドウを閉じる"
 
-#: dbx_preference:260 dbx_preference:548
+#: dbx_preference:261 dbx_preference:632
 msgid "show menu"
 msgstr "メニューを表示"
 
-#: dbx_preference:261
+#: dbx_preference:262
 msgid "shade window"
 msgstr "ウィンドウをシェード"
 
-#: dbx_preference:262
+#: dbx_preference:263
 msgid "unshade window"
 msgstr "ウィンドウのシェードを解除"
 
-#: dbx_preference:263 dbx_preference:557
+#: dbx_preference:264 dbx_preference:641
 msgid "no action"
 msgstr "アクションなし"
 
-#: dbx_preference:292
+#: dbx_preference:293
 msgid "Close window list"
 msgstr "ウィンドウリストを閉じる"
 
-#: dbx_preference:306
+#: dbx_preference:307
 msgid "Show close button"
 msgstr "閉じるボタンを使用する"
 
-#: dbx_preference:316
+#: dbx_preference:317
 msgid "Theme:"
 msgstr "テーマ:"
 
-#: dbx_preference:334
+#: dbx_preference:335
 msgid "Colors"
 msgstr "配色"
 
-#: dbx_preference:391
+#: dbx_preference:392
 msgid "Needs attention effect"
 msgstr "注意要求の通知エフェクト"
 
-#: dbx_preference:395
+#: dbx_preference:396
 msgid "Compiz water"
 msgstr "Compiz 水効果"
 
-#: dbx_preference:397
+#: dbx_preference:398
 msgid "Blinking"
 msgstr "点滅"
 
-#: dbx_preference:399
+#: dbx_preference:400
 msgid "Static"
 msgstr "スタティック"
 
-#: dbx_preference:401
+#: dbx_preference:402
 msgid "No effect"
 msgstr "エフェクトなし"
 
-#: dbx_preference:412
+#: dbx_preference:413
 msgid "Use gtk menu (old style) instead of DockbarX style menu."
 msgstr "DockbarXスタイルのメニューの代わりにGTKメニュー（旧スタイル）を使用する"
 
-#: dbx_preference:424
-msgid "Show window list only if more than one window is open"
-msgstr "複数のウィンドウを開いている場合にのみウィンドウリストを表示する"
+#: dbx_preference:423
+msgid "Badge"
+msgstr ""
 
-#: dbx_preference:430
-msgid "Show tooltip when no window is open"
-msgstr "開いているウィンドウがないときはツールチップを表示する"
+#: dbx_preference:427 dbx_preference:475
+msgid "Custom colors"
+msgstr ""
 
-#: dbx_preference:437
-msgid "Alignment"
-msgstr "配置"
+#: dbx_preference:433
+msgid "Text"
+msgstr ""
+
+#: dbx_preference:433 dbx_preference:481
+msgid "Background"
+msgstr ""
+
+#: dbx_preference:440
+msgid "Custom badge text color"
+msgstr ""
 
 #: dbx_preference:441
-msgid "Align left"
-msgstr "左端揃え"
+msgid "Custom badge background color"
+msgstr ""
 
-#: dbx_preference:443
-msgid "Align center"
-msgstr "中央揃え"
+#: dbx_preference:453
+msgid "Custom font and size"
+msgstr ""
 
-#: dbx_preference:445
-msgid "Align right"
-msgstr "右端揃え"
+#: dbx_preference:461
+msgid "Badge font"
+msgstr "バッジのフォント"
 
-#: dbx_preference:454 dbx_preference:459
-msgid "Delay"
-msgstr "遅延表示"
+#: dbx_preference:471
+msgid "Progress bar"
+msgstr ""
 
-#: dbx_preference:469
-msgid "Delay for switching between window lists"
-msgstr "ウィンドウリスト間の切り替え時の遅延時間"
+#: dbx_preference:481
+msgid "Foreground"
+msgstr ""
 
 #: dbx_preference:482
-msgid "Previews"
-msgstr "プレビュー"
+msgid "progress_custom_fg_color"
+msgstr ""
 
-#: dbx_preference:486
-msgid "Show previews"
-msgstr "プレビューを表示する"
+#: dbx_preference:483
+msgid "progress_custom_bg_color"
+msgstr ""
 
-#: dbx_preference:491
-msgid "Preview size"
-msgstr "プレビューの大きさ"
+#: dbx_preference:489
+msgid "Custom progress bar foreground color"
+msgstr ""
 
-#: dbx_preference:503
-msgid "Locked list"
+#: dbx_preference:490
+msgid "Custom progress bar background color"
 msgstr ""
 
 #: dbx_preference:508
+msgid "Show window list only if more than one window is open"
+msgstr "複数のウィンドウを開いている場合にのみウィンドウリストを表示する"
+
+#: dbx_preference:514
+msgid "Show tooltip when no window is open"
+msgstr "開いているウィンドウがないときはツールチップを表示する"
+
+#: dbx_preference:521
+msgid "Alignment"
+msgstr "配置"
+
+#: dbx_preference:525
+msgid "Align left"
+msgstr "左端揃え"
+
+#: dbx_preference:527
+msgid "Align center"
+msgstr "中央揃え"
+
+#: dbx_preference:529
+msgid "Align right"
+msgstr "右端揃え"
+
+#: dbx_preference:538 dbx_preference:543
+msgid "Delay"
+msgstr "遅延表示"
+
+#: dbx_preference:553
+msgid "Delay for switching between window lists"
+msgstr "ウィンドウリスト間の切り替え時の遅延時間"
+
+#: dbx_preference:566
+msgid "Previews"
+msgstr "プレビュー"
+
+#: dbx_preference:570
+msgid "Show previews"
+msgstr "プレビューを表示する"
+
+#: dbx_preference:575
+msgid "Preview size"
+msgstr "プレビューの大きさ"
+
+#: dbx_preference:587
+msgid "Locked list"
+msgstr ""
+
+#: dbx_preference:592
 msgid "Show \"locked list\" option in menu"
 msgstr ""
 
-#: dbx_preference:509
+#: dbx_preference:593
 msgid ""
 "The option is only shown when a program has more than one window opened."
 msgstr ""
 
-#: dbx_preference:514
+#: dbx_preference:598
 msgid "Maximized windows should not overlap the locked list"
 msgstr ""
 
-#: dbx_preference:523
+#: dbx_preference:607
 msgid "Group button actions"
 msgstr "グループボタンのアクション"
 
-#: dbx_preference:543
+#: dbx_preference:627
 msgid "select"
 msgstr "選択"
 
-#: dbx_preference:544
+#: dbx_preference:628
 msgid "close all windows"
 msgstr "全てのウィンドウを閉じる"
 
-#: dbx_preference:545
+#: dbx_preference:629
 msgid "minimize all windows"
 msgstr "全てのウィンドウを最小化"
 
-#: dbx_preference:546
+#: dbx_preference:630
 msgid "maximize all windows"
 msgstr "全てのウィンドウを最大化"
 
-#: dbx_preference:547
+#: dbx_preference:631
 msgid "launch application"
 msgstr "アプリケーションを起動"
 
-#: dbx_preference:549
+#: dbx_preference:633
 msgid "remove launcher"
 msgstr "ランチャーを削除"
 
-#: dbx_preference:550
+#: dbx_preference:634
 msgid "select next window"
 msgstr "次のウィンドウを選択"
 
-#: dbx_preference:551
+#: dbx_preference:635
 msgid "select previous window"
 msgstr "前のウィンドウを選択"
 
-#: dbx_preference:552
+#: dbx_preference:636
 msgid "minimize all other groups"
 msgstr "他の全てのグループを最小化"
 
-#: dbx_preference:553
+#: dbx_preference:637
 msgid "compiz scale windows"
 msgstr "Compiz ウィンドウのスケール"
 
-#: dbx_preference:554
+#: dbx_preference:638
 msgid "compiz shift windows"
 msgstr "Compiz ウィンドウのシフト"
 
-#: dbx_preference:555
+#: dbx_preference:639
 msgid "compiz scale all"
 msgstr "Compiz 全ウィンドウのスケール"
 
-#: dbx_preference:556
+#: dbx_preference:640
 msgid "show preference dialog"
 msgstr "設定ダイアログを表示"
 
-#: dbx_preference:584
+#: dbx_preference:668
 msgid "Double click"
 msgstr "ダブルクリック"
 
-#: dbx_preference:595
+#: dbx_preference:679
 msgid "\"Select\" action options"
 msgstr "\"選択\"アクションのオプション"
 
-#: dbx_preference:601
+#: dbx_preference:685
 msgid "One window open"
 msgstr "開いているウィンドウが１つ"
 
-#: dbx_preference:610
+#: dbx_preference:694
 msgid "Multiple windows open"
 msgstr "開いているウィンドウが複数"
 
-#: dbx_preference:613 dbx_preference:1143 dbx_preference:1399
+#: dbx_preference:697 dbx_preference:1274 dbx_preference:1542
 msgid "select all"
 msgstr "全て選択"
 
-#: dbx_preference:614 dbx_preference:1144 dbx_preference:1400
+#: dbx_preference:698 dbx_preference:1275 dbx_preference:1543
 msgid "select or minimize all"
 msgstr "全て選択または最小化"
 
-#: dbx_preference:615 dbx_preference:1145 dbx_preference:1401
+#: dbx_preference:699 dbx_preference:1276 dbx_preference:1544
 msgid "compiz scale"
 msgstr "Compiz スケール"
 
-#: dbx_preference:616 dbx_preference:1146 dbx_preference:1402
+#: dbx_preference:700 dbx_preference:1277 dbx_preference:1545
 msgid "cycle through windows"
 msgstr "ウィンドウ間の切り替え"
 
-#: dbx_preference:617 dbx_preference:1147 dbx_preference:1403
+#: dbx_preference:701 dbx_preference:1278 dbx_preference:1546
 msgid "show window list"
 msgstr "ウィンドウリストを表示"
 
-#: dbx_preference:622
+#: dbx_preference:706
 msgid "Workspace behavior"
 msgstr "ワークスペースに関わる挙動"
 
-#: dbx_preference:626 dbx_preference:1411
+#: dbx_preference:710 dbx_preference:1554
 msgid "Ignore windows on other workspaces"
 msgstr "他のワークスペース上のウィンドウは無視する"
 
-#: dbx_preference:627 dbx_preference:1157 dbx_preference:1412
+#: dbx_preference:711 dbx_preference:1288 dbx_preference:1555
 msgid "Switch workspace when needed"
 msgstr "必要に応じてワークスペースを切り替える"
 
-#: dbx_preference:629 dbx_preference:1158 dbx_preference:1413
+#: dbx_preference:713 dbx_preference:1289 dbx_preference:1556
 msgid "Move windows from other workspaces"
 msgstr "ウィンドウを他のワークスペースから移動させる"
 
-#: dbx_preference:640
+#: dbx_preference:724
 msgid "\"Select next\" options"
 msgstr "\"次のウィンドウを選択\"のオプション"
 
-#: dbx_preference:642
+#: dbx_preference:726
 msgid "\"Select next\" selects the most recently used window in the group"
 msgstr "\"次を選択\"で、同グループの直近に使用したウィンドウ を選択する"
 
-#: dbx_preference:643
+#: dbx_preference:727
 msgid ""
 "If set, \"Select Next\" action selects the window that has been used most "
 "recently, otherwise it activates the next window in the window list."
@@ -316,65 +372,61 @@ msgstr ""
 "有効にした場合、\"次を選択\"アクションは一番最近使用したウィンドウを選択し、有効にしていない場合は、ウィンドウリストの次のウィンドウをアクティブにしま"
 "す。"
 
-#: dbx_preference:649
+#: dbx_preference:733
 msgid "Use no delay with \"Select next\""
 msgstr "\"次を選択\"時には遅延を使用しない"
 
-#: dbx_preference:650
+#: dbx_preference:734
 msgid ""
 "If set, \"Select Next\" action selects the next window immediately without "
 "any delay"
 msgstr "有効にした場合、\"次を選択\"アクションは一切の遅延なく直ちに次のウィンドウを選択します。"
 
-#: dbx_preference:660
+#: dbx_preference:744
 msgid "Use media buttons"
 msgstr "メディアボタンを使用する"
 
-#: dbx_preference:667
-msgid "Use Unity quicklists"
+#: dbx_preference:751
+msgid "Use Unity static quicklists"
 msgstr ""
 
-#: dbx_preference:674
+#: dbx_preference:758
+msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
+msgstr ""
+
+#: dbx_preference:765
 msgid "DockManager"
 msgstr "ドックマネージャ"
 
-#: dbx_preference:678
+#: dbx_preference:769
 msgid "Use DockManager"
 msgstr "ドックマネージャを使用する"
 
-#: dbx_preference:682
-msgid "Allow DockManager to write badges on GroupButtons"
-msgstr "ドックマネージャにグループボタン上へのバッジの書き込みを許可する"
-
-#: dbx_preference:690 dbx_preference:696
-msgid "Badge font"
-msgstr "バッジのフォント"
-
-#: dbx_preference:701
+#: dbx_preference:774
 msgid "Helpers"
 msgstr "ヘルパー"
 
-#: dbx_preference:710
+#: dbx_preference:783
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "他のビューポート/ワークスペース上のウィンドウは無視する"
 
-#: dbx_preference:716
+#: dbx_preference:789
 msgid "Ignore windows on other monitors"
 msgstr "他のモニタ上のウィンドウは無視する"
 
-#: dbx_preference:723
+#: dbx_preference:796
 msgid "Give each wine application its own group button"
 msgstr "各Wineアプリケーションごとにグループボタンを与える"
 
-#: dbx_preference:730
+#: dbx_preference:803
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "OpenOfficeアプリケーション（Writer, Calc等）は個別に分ける"
 
-#: dbx_preference:737
+#: dbx_preference:810
 msgid "Delay on select all (Workaround for order problems)"
 msgstr "「全て選択」時に遅延を設ける（順序問題に対する回避策）"
 
-#: dbx_preference:738
+#: dbx_preference:811
 msgid ""
 "Compiz can't handle the order of multiple windows that are brought up at "
 "once. This problem can be solved by adding short delays between the "
@@ -383,173 +435,207 @@ msgstr ""
 "一度に複数のウィンドウを表示させる場合、Compizはその順序の取り扱いができません。この問題は、各ウィンドウのアクティブ化に短時間の遅延を追加することで"
 "解決できます。"
 
-#: dbx_preference:746 dbx_preference:750
+#: dbx_preference:819 dbx_preference:823
 msgid "Opacify"
 msgstr "半透明化"
 
-#: dbx_preference:751
+#: dbx_preference:824
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
 msgstr "半透明化は、ウィンドウリスト上のウィンドウの名前やプレビューにマウスをホバーさせたとき、それ他の全てのウィンドウを半透明にします。"
 
-#: dbx_preference:754
+#: dbx_preference:827
 msgid "Opacify group"
 msgstr "グループを半透明化"
 
-#: dbx_preference:755
+#: dbx_preference:828
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
 msgstr "グループの半透明化は、グループボタンにマウスをホバーさせたとき、その他の全てのグループを半透明にします。"
 
-#: dbx_preference:759
+#: dbx_preference:832
 msgid "Use smooth fade in/out"
 msgstr "滑らかなフェードイン/アウトを使用する"
 
-#: dbx_preference:765
+#: dbx_preference:838
 msgid "Opacity"
 msgstr "不透過率"
 
-#: dbx_preference:777
+#: dbx_preference:850
 msgid "Smoothness"
 msgstr "滑らかさ"
 
-#: dbx_preference:786
+#: dbx_preference:859
 msgid "Duration"
 msgstr "継続時間"
 
-#: dbx_preference:800
+#: dbx_preference:873
 msgid "Global Keyboard Shortcuts"
 msgstr "グローバル・キーボードショートカット"
 
-#: dbx_preference:805 dockbarx/dockbar.py:1274
+#: dbx_preference:878 dockbarx/dockbar.py:1289
 msgid "Select next group"
 msgstr "次のグループを選択"
 
-#: dbx_preference:807 dockbarx/dockbar.py:1275
+#: dbx_preference:880 dockbarx/dockbar.py:1290
 msgid "Select previous group"
 msgstr "前のグループを選択"
 
-#: dbx_preference:809 dockbarx/dockbar.py:1276
+#: dbx_preference:882 dockbarx/dockbar.py:1291
 msgid "Select next window in group"
 msgstr "グループの次のウィンドウを選択"
 
-#: dbx_preference:811 dockbarx/dockbar.py:1277
+#: dbx_preference:884 dockbarx/dockbar.py:1292
 msgid "Select previous window in group"
 msgstr "グループの前のウィンドウを選択"
 
-#: dbx_preference:846
+#: dbx_preference:919
 msgid "Note! Compiz keyboard shortcuts will override these."
 msgstr ""
 
-#: dbx_preference:848
+#: dbx_preference:921
 msgid "Skip pinned apps without open windows"
 msgstr ""
 
-#: dbx_preference:854
+#: dbx_preference:927
 msgid "Use Unity style number shortcuts (Super+number)"
 msgstr ""
 
-#: dbx_preference:868
-msgid "Mode"
+#: dbx_preference:941
+msgid "Type"
 msgstr ""
 
-#: dbx_preference:871
+#: dbx_preference:944 dbx_preference:968
 msgid "panel"
 msgstr ""
 
-#: dbx_preference:871
+#: dbx_preference:944
 msgid "corner"
 msgstr ""
 
-#: dbx_preference:871
+#: dbx_preference:944
 msgid "centered"
 msgstr ""
 
-#: dbx_preference:880
+#: dbx_preference:953
 msgid "Position"
 msgstr ""
 
-#: dbx_preference:883
+#: dbx_preference:956
 msgid "left"
 msgstr ""
 
-#: dbx_preference:883
+#: dbx_preference:956
 msgid "right"
 msgstr ""
 
-#: dbx_preference:883
+#: dbx_preference:956
 msgid "top"
 msgstr ""
 
-#: dbx_preference:883
+#: dbx_preference:956
 msgid "bottom"
 msgstr ""
 
-#: dbx_preference:892
+#: dbx_preference:965
+msgid "Behavior"
+msgstr ""
+
+#: dbx_preference:968
+msgid "standard"
+msgstr ""
+
+#: dbx_preference:968 dbx_preference:1007
+msgid "dodge windows"
+msgstr ""
+
+#: dbx_preference:969 dbx_preference:1008
+msgid "dodge active window"
+msgstr ""
+
+#: dbx_preference:969
+msgid "always autohide"
+msgstr ""
+
+#: dbx_preference:978
 msgid "Size"
 msgstr ""
 
-#: dbx_preference:904
+#: dbx_preference:990
 msgid "Offset"
 msgstr ""
 
-#: dbx_preference:905
+#: dbx_preference:991
 msgid ""
 "Use this if the dock isn't able to automatically aviod overlapping with "
 "other panels"
 msgstr ""
 
-#: dbx_preference:914
-msgid "Allow maximized windows behind the dock"
+#: dbx_preference:1004
+msgid "Dodge behavior"
 msgstr ""
 
-#: dbx_preference:922
-msgid "Appearance"
-msgstr "外観"
+#: dbx_preference:1007
+msgid "disabled"
+msgstr ""
 
-#: dbx_preference:923
-msgid "Window List"
-msgstr "ウィンドウリスト"
+#: dbx_preference:1013
+msgid ""
+"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
+"awn applet Taskmanager is not running. Set dodge behavior here instead."
+msgstr ""
 
-#: dbx_preference:924
-msgid "Group Button"
-msgstr "グループボタン"
+#: dbx_preference:1018
+msgid "AWN"
+msgstr ""
 
-#: dbx_preference:925
-msgid "Window Item"
-msgstr "ウィンドウアイテム"
-
-#: dbx_preference:926
-msgid "Plugins"
-msgstr "プラグイン"
-
-#: dbx_preference:927
+#: dbx_preference:1019
 msgid "Dock"
 msgstr ""
 
-#: dbx_preference:928
+#: dbx_preference:1020
+msgid "Appearance"
+msgstr "外観"
+
+#: dbx_preference:1021
+msgid "Window List"
+msgstr "ウィンドウリスト"
+
+#: dbx_preference:1022
+msgid "Group Button"
+msgstr "グループボタン"
+
+#: dbx_preference:1023
+msgid "Window Item"
+msgstr "ウィンドウアイテム"
+
+#: dbx_preference:1024
+msgid "Plugins"
+msgstr "プラグイン"
+
+#: dbx_preference:1025
 msgid "Advanced"
 msgstr "詳細設定"
 
-#: dbx_preference:988 dockbarx/theme.py:169
+#: dbx_preference:1096 dockbarx/theme.py:169
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 "現在指定のテーマが /usr/share/dockbarx/themes または ~/.dockbarx/themes で見つけられません"
 
-#: dbx_preference:1156
+#: dbx_preference:1287
 msgid "Ignore windows on other workspace"
 msgstr "他のワークスペース上のウィンドウは無視する"
 
-#: dbx_preference:1284
+#: dbx_preference:1427
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr "プレビューには、CompizのKDE互換性プラグインが有効にされていることが必要です。DockBarX に有効化を行わせますか？"
 
-#: dbx_preference:1298
+#: dbx_preference:1441
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
@@ -558,7 +644,7 @@ msgstr ""
 "プレビューに必要なCompizのKDE互換性プラグインがインストールされていないようです。Ubuntu を使用している場合は、compiz-fusion-"
 "plugins-main パッケージをインストールする必要があります。"
 
-#: dbx_preference:1316
+#: dbx_preference:1459
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
@@ -566,120 +652,120 @@ msgstr ""
 "プレビューには、CompizのKDE互換性プラグインにあるPlasmaサムネイルのサポートが有効にされていることが必要です。DockBarX "
 "に有効化を行わせますか？"
 
-#: dbx_preference:1339
+#: dbx_preference:1482
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr "半透明化には、Compizの不透明度・明度・彩度プラグインが有効にされていることが必要です。DockBarX に有効化を行わせますか？"
 
-#: dbx_preference:1497
+#: dbx_preference:1675
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
 msgstr "キーボード文字列には、修飾キー(<control> または <alt>, <super>)が最低１つ必要です。"
 
-#: dockbarx/dockbar.py:1096 dockbarx/groupbutton.py:2331
+#: dockbarx/dockbar.py:1105 dockbarx/groupbutton.py:2442
 msgid "Identifier"
 msgstr "識別子"
 
-#: dockbarx/dockbar.py:1097
+#: dockbarx/dockbar.py:1106
 msgid "Enter the identifier here"
 msgstr "ここに識別子を入力してください"
 
-#: dockbarx/dockbar.py:1099
+#: dockbarx/dockbar.py:1108
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr "プログラムが自身のウィンドウの認識に失敗する場合にのみ入力が必要となります。 "
 
-#: dockbarx/dockbar.py:1100
+#: dockbarx/dockbar.py:1109
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr "プログラムがすでに実行中の場合、そのプログラムの識別子はドロップダウンリストから見つけられます。"
 
-#: dockbarx/dockbar.py:1117
+#: dockbarx/dockbar.py:1126
 msgid "Identifier:"
 msgstr "識別子:"
 
-#: dockbarx/windowbutton.py:602 dockbarx/groupbutton.py:649
-#: dockbarx/groupbutton.py:757 dockbarx/groupbutton.py:758
+#: dockbarx/windowbutton.py:602 dockbarx/groupbutton.py:704
+#: dockbarx/groupbutton.py:829 dockbarx/groupbutton.py:830
 msgid "_Minimize"
 msgstr "最小化(_M)"
 
-#: dockbarx/windowbutton.py:605 dockbarx/groupbutton.py:647
-#: dockbarx/groupbutton.py:760 dockbarx/groupbutton.py:761
+#: dockbarx/windowbutton.py:605 dockbarx/groupbutton.py:702
+#: dockbarx/groupbutton.py:832 dockbarx/groupbutton.py:833
 msgid "Un_minimize"
 msgstr "最小化解除(_M)"
 
-#: dockbarx/windowbutton.py:614 dockbarx/groupbutton.py:653
-#: dockbarx/groupbutton.py:751 dockbarx/groupbutton.py:752
+#: dockbarx/windowbutton.py:614 dockbarx/groupbutton.py:708
+#: dockbarx/groupbutton.py:823 dockbarx/groupbutton.py:824
 msgid "Ma_ximize"
 msgstr "最大化(_X)"
 
-#: dockbarx/windowbutton.py:617 dockbarx/groupbutton.py:656
-#: dockbarx/groupbutton.py:754 dockbarx/groupbutton.py:755
+#: dockbarx/windowbutton.py:617 dockbarx/groupbutton.py:711
+#: dockbarx/groupbutton.py:826 dockbarx/groupbutton.py:827
 msgid "Unma_ximize"
 msgstr "最大化解除(_X)"
 
-#: dockbarx/windowbutton.py:623 dockbarx/groupbutton.py:657
-#: dockbarx/groupbutton.py:749 dockbarx/groupbutton.py:750
+#: dockbarx/windowbutton.py:623 dockbarx/groupbutton.py:712
+#: dockbarx/groupbutton.py:821 dockbarx/groupbutton.py:822
 msgid "_Close"
 msgstr "閉じる(_C)"
 
-#: dockbarx/groupbutton.py:328 dockbarx/groupbutton.py:579
-#: dockbarx/groupbutton.py:768
+#: dockbarx/groupbutton.py:339 dockbarx/groupbutton.py:622
+#: dockbarx/groupbutton.py:840
 msgid "_Launch application"
 msgstr "アプリケーション起動(_L)"
 
-#: dockbarx/groupbutton.py:581 dockbarx/groupbutton.py:767
+#: dockbarx/groupbutton.py:624 dockbarx/groupbutton.py:839
 msgid "_Pin application"
 msgstr "ドックバーに追加(_P)"
 
-#: dockbarx/groupbutton.py:583 dockbarx/groupbutton.py:766
+#: dockbarx/groupbutton.py:626 dockbarx/groupbutton.py:838
 msgid "Make custom launcher"
 msgstr "カスタムランチャー作成"
 
-#: dockbarx/groupbutton.py:585 dockbarx/groupbutton.py:765
+#: dockbarx/groupbutton.py:628 dockbarx/groupbutton.py:837
 msgid "Unpin application"
 msgstr "ドックバーから削除"
 
-#: dockbarx/groupbutton.py:586 dockbarx/groupbutton.py:587
-#: dockbarx/groupbutton.py:588
+#: dockbarx/groupbutton.py:629 dockbarx/groupbutton.py:630
+#: dockbarx/groupbutton.py:631
 msgid "Properties"
 msgstr "プロパティ"
 
-#: dockbarx/groupbutton.py:587 dockbarx/groupbutton.py:764
+#: dockbarx/groupbutton.py:630 dockbarx/groupbutton.py:836
 msgid "Edit Identifier"
 msgstr "識別子の編集"
 
-#: dockbarx/groupbutton.py:588 dockbarx/groupbutton.py:763
+#: dockbarx/groupbutton.py:631 dockbarx/groupbutton.py:835
 msgid "Edit Launcher"
 msgstr "ランチャーの編集"
 
-#: dockbarx/groupbutton.py:615
+#: dockbarx/groupbutton.py:670
 msgid "Recent"
 msgstr "最近使用"
 
-#: dockbarx/groupbutton.py:616
+#: dockbarx/groupbutton.py:671
 msgid "Most used"
 msgstr "最頻使用"
 
-#: dockbarx/groupbutton.py:617
+#: dockbarx/groupbutton.py:672
 msgid "Related"
 msgstr "関連使用"
 
-#: dockbarx/groupbutton.py:635 dockbarx/groupbutton.py:770
+#: dockbarx/groupbutton.py:690 dockbarx/groupbutton.py:842
 msgid "Remove locked list"
 msgstr ""
 
-#: dockbarx/groupbutton.py:638 dockbarx/groupbutton.py:769
+#: dockbarx/groupbutton.py:693 dockbarx/groupbutton.py:841
 msgid "Show locked list"
 msgstr ""
 
-#: dockbarx/groupbutton.py:645 dockbarx/groupbutton.py:750
-#: dockbarx/groupbutton.py:752 dockbarx/groupbutton.py:755
-#: dockbarx/groupbutton.py:758 dockbarx/groupbutton.py:761
+#: dockbarx/groupbutton.py:700 dockbarx/groupbutton.py:822
+#: dockbarx/groupbutton.py:824 dockbarx/groupbutton.py:827
+#: dockbarx/groupbutton.py:830 dockbarx/groupbutton.py:833
 msgid " all windows"
 msgstr " 全てのウィンドウ"
 
@@ -736,3 +822,6 @@ msgstr " 全てのウィンドウ"
 
 #~ msgid "One window open:"
 #~ msgstr "開いているウィンドウが１つ:"
+
+#~ msgid "Allow DockManager to write badges on GroupButtons"
+#~ msgstr "ドックマネージャにグループボタン上へのバッジの書き込みを許可する"
