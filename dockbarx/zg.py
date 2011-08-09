@@ -47,16 +47,23 @@ def _get(name=None,
         result_type = datamodel.ResultType.MostRecentSubjects
     time_range = datamodel.TimeRange.from_seconds_ago(days * 3600 * 24)
 
-    event_template = datamodel.Event()
-    if name:
-        event_template.set_actor("application://%s"%name)
-
-    for mimetype in mimetypes:
-        event_template.append_subject(
+    if not mimetypes:
+        event_template = datamodel.Event()
+        if name:
+            event_template.set_actor("application://%s"%name)
+        event_templates = [event_template]
+    else:
+        event_templates = []
+        for mimetype in mimetypes:
+            event_template = datamodel.Event()
+            if name:
+                event_template.set_actor("application://%s"%name)
+            event_template.append_subject(
                         datamodel.Subject.new_for_values(mimetype=mimetype))
+            event_templates.append(event_template)
 
     results = iface.FindEvents(time_range,
-                               [event_template, ],
+                               event_templates,
                                datamodel.StorageState.Any,
                                number_of_results,
                                result_type)
@@ -170,10 +177,7 @@ if __name__ == "__main__":
     app = "gedit.desktop"
     print "Testing with %s"%app
     results = get_recent_for_app(app)
-    for event in results:
-        # Zeitgeist timestamps are in msec
-        timestamp = int(event.timestamp) / 1000
-        print date.fromtimestamp(timestamp).strftime("%d %B %Y")
-        for subject in event.get_subjects():
-            print " -", subject.text, ":", subject.uri
+    for result in results:
+        print result
+    
 
