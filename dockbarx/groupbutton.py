@@ -2262,7 +2262,7 @@ class LockedPopup(GroupPopup):
             wx, wy = button_window.get_origin()
         else:
             wx, wy = (0, 0)
-        if self.dockbar_r().orient == "v" or wy < mgeo.height / 2:
+        if group.dockbar_r().orient == "v" or wy < mgeo.height / 2:
             GroupPopup.__init__(self, group, 0)
             self.point("down", 20)
         else:

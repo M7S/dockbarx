@@ -208,7 +208,6 @@ class DBusMenu(object):
                              error_handler=self.__error_handler)
     
     def __error_handler(self, *args):
-        print "ERROR"
         pass
 
     def get_layout(self, parent=0):

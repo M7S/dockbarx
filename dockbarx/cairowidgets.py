@@ -208,7 +208,6 @@ class CairoAppButton(gtk.EventBox):
         if self.globals.settings["progress_custom_bg_color"]:
             color = self.globals.settings["progress_bg_color"]
             bg_alpha = float(self.globals.settings["progress_bg_alpha"]) / 255
-            print bg_alpha
         else:
             color = "#CDCDCD"
             bg_alpha = 0.25

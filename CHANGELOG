@@ -1,4 +1,30 @@
 Changelog:
+
+0.46
+Features:
+- Unity progress bars and counters (badges) are supported now as well as dynamic quicklists and urgent signals.
+- Dockmanager progress bars and urgent signals are supported now. The badges are rewritten and have a new improved look.
+- The mouse cursor is changed to the wait cursor when a program is launched from dockbarx.
+
+The Dock:
+- The dock can be set to dodge windows or to dodge the active window. See the behavior option in dock tab of preference.
+- The dock tab of preference are now shown only if the dock is running when the preference window is opened. Hopefully this will reduce confusion for people who hasn't used the preference window of DockbarX before.
+
+AWN applet:
+- DockbarX AWN applet can make AWN dodge windows or dodge the active window since avoid windows and intellihide of AWN only works when the taskbar is used. This can be set from the new AWN tab in Dockbarx preference.
+- When AWN is set to autohide, the autohide is inhibited while a DockbarX window list is howered.
+- The new AWN tab in preference is only shown if the DockbarX awn applet is running when when preference window is opened. Hopefully this will reduce confusion for people who hasn't used the preference window of DockbarX before.
+
+Themes:
+- In agreement with the creator Izobalax, the license for the gaia theme is changed to CC 3.0 BY-SA so that it can be included in the official debian package.
+
+Bug Fixes:
+- Related files didn't work for applications with more than one mimetype. Hopefully the related files feature will be more useful now when this bug is fixed!
+- Bug #806990: DockbarX (the dock and the awn applet) crashed when closing Libreoffice Calc.
+- Bug #779564: DockbarX gave all windows opacity 0 under some circumstances.
+- Bug #809080: Closed apps were shown as running in the dock when not using autohide.
+
+
 0.45
 Features:
 - Autohide option for the dock.
