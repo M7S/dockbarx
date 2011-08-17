@@ -125,8 +125,6 @@ class DockBarApp (awn.AppletSimple):
 
     #### Autohide stuff
     def add_window(self, window, reset_should_autohide=True):
-        #~ if not self.autohide:
-            #~ return
         geo_sid = window.connect("geometry-changed",
                              self.__on_window_geometry_changed)
         state_sid = window.connect("state-changed",
@@ -137,8 +135,6 @@ class DockBarApp (awn.AppletSimple):
             self.__compute_should_autohide()
             
     def remove_window(self, window, reset_should_autohide=True, forced=False):
-        #~ if self.autohide and not forced:
-            #~ return
         del self.border_distances[window]
         if window in self.windows:
             sids = self.windows.pop(window)

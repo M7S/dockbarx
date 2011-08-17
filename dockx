@@ -537,7 +537,7 @@ class DockX(CairoDockX):
             self.__compute_should_autohide()
             
     def remove_window(self, window, reset_should_autohide=True, forced=False):
-        if self.autohide and not forced:
+        if not self.autohide and not forced:
             return
         del self.border_distances[window]
         if window in self.windows:
