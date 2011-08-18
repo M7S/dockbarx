@@ -105,71 +105,8 @@ def get_recent_for_mimetypes(mimetypes, days=1, number_of_results=5):
                 number_of_results=number_of_results)
 
 # Mimetypes to use for programs that has no/bad support for zeitgeist
-workrounds = \
- {"openoffice.org-writer":
-   ["application/msword",
-    "application/rtf",
-    "application/vnd.ms-works",
-    "application/vnd.oasis.opendocument.text",
-    "application/vnd.oasis.opendocument.text-master",
-    "application/vnd.oasis.opendocument.text-template",
-    "application/vnd.stardivision.writer",
-    "application/vnd.stardivision.writer-global",
-    "application/vnd.sun.xml.writer",
-    "application/vnd.sun.xml.writer.global",
-    "application/vnd.sun.xml.writer.template",
-    "application/vnd.wordperfect",
-    "application/wordperfect",
-    "text/rtf",
-    "application/vnd.ms-word.document.macroEnabled.12",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-word.template.macroEnabled.12",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.template"],
-  "openoffice.org-draw":
-     ["application/vnd.oasis.opendocument.graphics",
-      "application/vnd.oasis.opendocument.graphics-template",
-      "application/vnd.stardivision.draw",
-      "application/vnd.sun.xml.draw",
-      "application/vnd.sun.xml.draw.template"],
-  "openoffice.org-impress":
-     ["application/mspowerpoint",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.oasis.opendocument.presentation",
-      "application/vnd.oasis.opendocument.presentation-template",
-      "application/vnd.stardivision.impress",
-      "application/vnd.sun.xml.impress",
-      "application/vnd.sun.xml.impress.template",
-      "application/vnd.ms-powerpoint.slideshow.macroEnabled.12",
-      "application/vnd.openxmlformats-officedocument.presentationml.slideshow",
-      "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "application/vnd.ms-powerpoint.template.macroEnabled.12",
-      "application/vnd.openxmlformats-officedocument.presentationml.template"],
-  "openoffice.org-calc":
-     ["application/msexcel",
-      "application/vnd.lotus-1-2-3",
-      "application/vnd.ms-excel",
-      "application/vnd.oasis.opendocument.chart",
-      "application/vnd.oasis.opendocument.chart-template",
-      "application/vnd.oasis.opendocument.spreadsheet",
-      "application/vnd.oasis.opendocument.spreadsheet-template",
-      "application/vnd.stardivision.calc",
-      "application/vnd.stardivision.chart",
-      "application/vnd.sun.xml.calc",
-      "application/vnd.sun.xml.calc.template",
-      "text/spreadsheet",
-      "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
-      "application/vnd.ms-excel.sheet.macroEnabled.12",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.ms-excel.template.macroEnabled.12",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
-      "application/csv",
-      "application/excel",
-      "application/x-123",
-      "application/x-dos_ms_excel",
-      "application/x-excel",
-      "application/x-ms-excel",
-      "application/x-msexcel"]}
+# Format: {name:[mimetypes]}
+workrounds = {}
 
 
 

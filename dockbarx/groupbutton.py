@@ -747,14 +747,7 @@ class Group(ListOfWindows):
         # For programs that work badly with zeitgeist (openoffice for now),
         # mimetypes should be used to identify recent and most used as well.
         if self.identifier in zg.workrounds:
-            if self.identifier == "openoffice-writer" and \
-               not self.globals.settings["separate_ooo_apps"]:
-                mimetypes = zg.workrounds["openoffice-writer"] + \
-                            zg.workrounds["openoffice-calc"] + \
-                            zg.workrounds["openoffice-presentation"] + \
-                            zg.workrounds["openoffice-draw"]
-            else:
-                mimetypes = zg.workrounds[self.identifier]
+            mimetypes = zg.workrounds[self.identifier]
             recent_files += zg.get_recent_for_mimetypes(mimetypes,
                                                         days=30,
                                                         number_of_results=8)
