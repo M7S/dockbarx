@@ -128,6 +128,7 @@ class DockBar():
         self.windows = None
         self.container = None
         self.theme = None
+        self.popup_style = None
         self.skip_tasklist_windows = None
         self.next_group = None
         self.dockmanager = None
@@ -201,7 +202,8 @@ class DockBar():
         from groupbutton import Group, GroupIdentifierError
         global Theme
         global NoThemesError
-        from theme import Theme, NoThemesError
+        global PopupStyle
+        from theme import Theme, NoThemesError, PopupStyle
         global Mpris2Watch
         global MediaButtons
         from mediabuttons import Mpris2Watch, MediaButtons
@@ -316,6 +318,11 @@ class DockBar():
         except NoThemesError, details:
             logger.exception("Error: Couldn't find any themes")
             sys.exit(1)
+
+        if self.popup_style is None:
+            self.popup_style = PopupStyle()
+        else:
+            self.popup_style.reload()
 
         self.container.set_spacing(self.theme.get_gap())
         self.container.show()

@@ -22,6 +22,9 @@ msgstr ""
 msgid "Active window text"
 msgstr ""
 
+msgid "Active window"
+msgstr ""
+
 msgid "Minimized window text"
 msgstr ""
 

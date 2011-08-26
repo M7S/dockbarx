@@ -111,7 +111,7 @@ class Theme(gobject.GObject):
     def __init__(self):
         if "theme" in self.__dict__:
             # This is not the first instance of Theme,
-            #no need to initiate anything
+            # no need to initiate anything
             return
         gobject.GObject.__init__(self)
         self.globals = Globals()
@@ -136,7 +136,6 @@ class Theme(gobject.GObject):
                 # Just use one of the themes that where found if default
                 # theme couldn't be found either.
                 self.theme_path = self.themes.values()[0]
-
         self.reload()
 
     def find_themes(self):
@@ -198,6 +197,10 @@ class Theme(gobject.GObject):
             if type == "pixmap_from_file":
                 self.surfaces[d["name"]] = self.load_surface(tar, d["file"])
 
+        # Popup style
+        ps = self.theme.get("popup_style", {})
+        self.default_popup_style = ps.get("file_name", "dbx.tar.gz")
+
         # Colors
         self.color_names = {}
         self.default_colors = {}
@@ -239,6 +242,7 @@ class Theme(gobject.GObject):
         self.globals.theme_name = self.name
         self.globals.update_colors(self.name,
                                    self.default_colors, self.default_alphas)
+        self.globals.update_popup_style(self.name, self.default_popup_style)
         self.emit("theme_reloaded")
 
     def check(self, path_to_tar):
@@ -350,4 +354,251 @@ class Theme(gobject.GObject):
         del self.default_colors
         del self.default_alphas
         del self.surfaces
+
+class PopupStyle(gobject.GObject):
+    __gsignals__ = {"popup-style-reloaded": (gobject.SIGNAL_RUN_FIRST,
+                                             gobject.TYPE_NONE,()),}
+
+    KNOWN_KEYS = ("border_width",
+                  "arrow_size",
+                  "border_color",
+                  "border_color2",
+                  "border_alpha",
+                  "border_alpha2",
+                  "popup_distance",
+                  "popup_roundness",
+                  "popup_padding",
+                  "popup_radial_gradient1",
+                  "popup_radial_gradient1_color1",
+                  "popup_radial_gradient1_color2",
+                  "popup_radial_gradient1_alpha1",
+                  "popup_radial_gradient1_alpha2",
+                  "popup_radial_gradient2",
+                  "popup_radial_gradient2_color1",
+                  "popup_radial_gradient2_color2",
+                  "popup_radial_gradient2_alpha1",
+                  "popup_radial_gradient2_alpha2",
+                  "popup_radial_gradient3",
+                  "popup_radial_gradient3_color1",
+                  "popup_radial_gradient3_alpha1",
+                  "popup_radial_gradient3_color2",
+                  "popup_radial_gradient3_alpha2",
+                  "popup_linear_gradient1",
+                  "popup_linear_gradient1_color1",
+                  "popup_linear_gradient1_alpha1",
+                  "popup_linear_gradient1_color2",
+                  "popup_linear_gradient1_alpha2",
+                  "popup_linear_gradient2",
+                  "popup_linear_gradient2_color1",
+                  "popup_linear_gradient2_alpha1",
+                  "popup_linear_gradient2_color2",
+                  "popup_linear_gradient2_alpha2",
+                  "popup_linear_gradient3",
+                  "popup_linear_gradient3_color1",
+                  "popup_linear_gradient3_alpha1",
+                  "popup_linear_gradient3_color2",
+                  "popup_linear_gradient3_alpha2",
+                  "locked_list_padding",
+                  "locked_list_distance",
+                  "window_item_roundness",
+                  "window_item_lr_padding",
+                  "window_item_td_padding",
+                  "window_item_border_color",
+                  "window_item_border_alpha",
+                  "menu_item_roundness",
+                  "menu_item_lr_padding",
+                  "menu_item_td_padding",
+                  "menu_item_border_color",
+                  "menu_item_border_alpha",
+                  "active_item_alpha",
+                  "active_item_boder_color",
+                  "active_item_boder_alpha",
+                  "needs_attention_item_color",
+                  "needs_attention_item_alpha",
+                  "needs_attention_item_boder_color",
+                  "needs_attention_item_boder_alpha",)
+
+    def __new__(cls, *p, **k):
+        if not "_the_instance" in cls.__dict__:
+            cls._the_instance = gobject.GObject.__new__(cls)
+        return cls._the_instance
+
+    def __init__(self):
+        if "is_initiated" in self.__dict__:
+            # This is not the first instance of PopupStyle,
+            # no need to initiate anything
+            return
+        self.is_initiated = True
+        gobject.GObject.__init__(self)
+        self.globals = Globals()
+        self.name = "DBX"
+        self.settings = {}
+        self.globals.connect("popup-style-changed", self.on_style_changed)
+        self.on_style_changed()
+
+    def find_styles(self):
+        # Reads the styles from /usr/share/dockbarx/themes/popup_styles and
+        # ~/.dockbarx/themes/popup_styles and returns a dict
+        # of the style file names and paths so that a style can be loaded
+        styles = {}
+        style_paths = []
+        homeFolder = os.path.expanduser("~")
+        style_folder = homeFolder + "/.dockbarx/themes/popup_styles"
+        dirs = ["/usr/share/dockbarx/themes/popup_styles", style_folder]
+        for dir in dirs:
+            if os.path.exists(dir) and os.path.isdir(dir):
+                for f in os.listdir(dir):
+                    if f[-7:] == ".tar.gz":
+                        styles[f] = dir+"/"+f
+        return styles
+
+    def on_style_changed(self, arg=None):
+        styles = self.find_styles()
+        if self.globals.popup_style_file in styles:
+            self.style_path = styles[self.globals.popup_style_file]
+        elif self.globals.default_popup_style in styles:
+            self.style_path = styles[self.globals.popup_style_file]
+        else:
+            self.style_path = styles.get("dbx.tar.gz", "dbx.tar.gz")
+        self.reload()
+
+    def reload(self):
+        if self.style_path is None:
+            return
+        try:
+            tar = taropen(self.style_path)
+        except:
+            logger.debug("Error opening style %s" % self.style_path)
+            self.settings = {"border_color2": "#000000",
+                             "menu_item_lr_padding": 3}
+            self.name = "DBX"
+            self.bg = None
+            self.globals.set_popup_style("dbx.tar.gz")
+            self.emit("popup-style-reloaded")
+            return
+        # Load settings
+        try:
+            config = tar.extractfile("style")
+        except:
+            logger.exception("Error extracting style from %s" % \
+                             self.style_path)
+            tar.close()
+            self.settings = {"border_color2": "#000000",
+                             "menu_item_lr_padding": 3}
+            self.name = "DBX"
+            self.bg = None
+            self.globals.set_popup_style("dbx.tar.gz")
+            self.emit("popup-style-reloaded")
+            return
+        old_settings = self.settings
+        self.settings = {}
+        name = None
+        for line in config.readlines():
+            # Split at "=" and clean up the key and value
+            if not "=" in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip().lstrip().lower()
+            value = value.strip().lstrip()
+            # Remove comments
+            if "#" in key:
+                continue
+            # If there is a trailing comment, remove it
+            # But avoid removing # if it's in a quote
+            sharp = value.find("#")
+            if sharp != -1 and value.count("\"", 0, sharp) % 2 == 0 and \
+               value.count("'", 0, sharp) % 2 == 0:
+                   value = value.split("#", 1)[0].strip()
+            # Remove quote signs
+            if value[0] in ("\"", "'") and value[-1] in ("\"", "'"):
+                value = value[1:-1]
+            
+            if key == "name":
+                name = value
+                continue
+            value = value.lower()
+            # If the key is known add the item to the dict.
+            if key in self.KNOWN_KEYS:
+                self.settings[key] = value
+            else:
+                # Todo: Error message here!
+                logger.warning("Unknown key in popup style %s: %s" % \
+                               (name, key))
+                pass
+        config.close()
+        if name:
+            self.name = name
+        else:
+            # Todo: Error handling here!
+            self.settings = old_settings
+            tar.close()
+            return
+        # Load background
+        if "background.png" in tar.getnames():
+            bgf = tar.extractfile("background.png")
+            self.bg = cairo.ImageSurface.create_from_png(bgf)
+            bgf.close()
+        else:
+            self.bg = None
+        tar.close()
+
+        # Inform rest of dockbar about the reload.
+        self.globals.set_popup_style(self.style_path.rsplit("/", 1)[-1])
+        self.emit("popup-style-reloaded")
+
+    def get_styles(self):
+        # For DockbarX preference. This function makes a dict of the names and
+        # file names of the styles for all styles that can be opened correctly.
+        styles = {}
+        home_folder = os.path.expanduser("~")
+        style_folder = home_folder + "/.dockbarx/themes/popup_styles"
+        dirs = ["/usr/share/dockbarx/themes/popup_styles", style_folder]
+        for dir in dirs:
+            if os.path.exists(dir) and os.path.isdir(dir):
+                for f in os.listdir(dir):
+                    if f[-7:] == ".tar.gz":
+                        name = self.check(dir+"/"+f)
+                        if name:
+                            styles[name] = f
+        # The default style (if the theme doesn't set another one) is DBX,
+        # wheter or not the file actually exists.
+        if not "DBX" in styles:
+            styles["DBX"] = "dbx.tar.gz"
+        return styles
+
+    def check(self, style_path):
+        try:
+            tar = taropen(style_path)
+        except:
+            return None
+        try:
+            config = tar.extractfile("style")
+        except:
+            tar.close()
+            return None
+        name = None
+        for line in config.readlines():
+            # Split at "=" and clean up the key and value
+            if not "=" in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip().lstrip().lower()
+            value = value.strip().lstrip()
+            # Remove comments
+            if "#" in key:
+                continue
+            # If there is a trailing comment, remove it
+            # But avoid removing # if it's in a quote
+            sharp = value.find("#")
+            if sharp != -1 and value.count("\"", 0, sharp) % 2 == 0 and \
+               value.count("'", 0, sharp) % 2 == 0:
+                   value = value.split("#", 1)[0].strip()
+            # Remove quote signs
+            if value[0] in ("\"", "'") and value[-1] in ("\"", "'"):
+                value = value[1:-1]
+            if key == "name":
+                name = value
+                break
+        tar.close()
+        return name
 

@@ -1998,14 +1998,12 @@ class GroupPopup(CairoPopup):
                     "drag-motion": "override",
                     "drag-leave": "override"}
 
-    def __init__(self, group, arrow_size=None):
+    def __init__(self, group, no_arrow=False, type_="popup"):
         self.group_r = weakref.ref(group)
         self.dockbar_r = weakref.ref(group.dockbar_r())
+        self.popup_type = type_
         self.globals = Globals()
-        if arrow_size is not None:
-            CairoPopup.__init__(self, arrow_size, self.dockbar_r().orient)
-        else:
-            CairoPopup.__init__(self, orient=self.dockbar_r().orient)
+        CairoPopup.__init__(self, self.dockbar_r().orient, no_arrow, type_)
         self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_MENU)
 
         self.show_sid = None
@@ -2046,7 +2044,8 @@ class GroupPopup(CairoPopup):
         CairoPopup.do_size_allocate(self, allocation)
         group = self.group_r()
         # Move popup to it's right spot
-        offset = -7
+        offset = int(self.popup_style.settings.get("%s_distance" % \
+                                                   self.popup_type, -7))
         wx, wy = group.button.window.get_origin()
         b_alloc = group.button.get_allocation()
         width, height = self.get_size()
@@ -2256,10 +2255,12 @@ class LockedPopup(GroupPopup):
         else:
             wx, wy = (0, 0)
         if group.dockbar_r().orient == "v" or wy < mgeo.height / 2:
-            GroupPopup.__init__(self, group, 0)
+            # The popup should be placed at bottom of the screen and have no
+            # arrow.
+            GroupPopup.__init__(self, group, False, type_="locked_list")
             self.point("down", 20)
         else:
-            GroupPopup.__init__(self, group)
+            GroupPopup.__init__(self, group, type_="locked_list")
         child = group.popup.alignment.get_child()
         if child:
             group.popup.alignment.remove(child)

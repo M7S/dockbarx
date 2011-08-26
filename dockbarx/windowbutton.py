@@ -309,6 +309,7 @@ class WindowItem(CairoButton):
         self.label.set_ellipsize(pango.ELLIPSIZE_END)
         self.label.set_alignment(0, 0.5)
         self.__update_label()
+        self.area.set_needs_attention(window.wnck.needs_attention())
         hbox = gtk.HBox()
         icon = window.wnck.get_mini_icon()
         self.icon_image = gtk.image_new_from_pixbuf(icon)
@@ -365,11 +366,7 @@ class WindowItem(CairoButton):
         """Updates the style of the label according to window state."""
         window = self.window_r()
         text = escape(str(window.wnck.get_name()))
-        if window.wnck.needs_attention():
-            text = "<i>"+text+"</i>"
-        if window.is_active_window:
-            color = self.globals.colors["color3"]
-        elif window.wnck.is_minimized():
+        if window.wnck.is_minimized():
             color = self.globals.colors["color4"]
         else:
             color = self.globals.colors["color2"]
@@ -406,12 +403,16 @@ class WindowItem(CairoButton):
         self.__update_icon()
 
     def active_changed(self):
+        window = self.window_r()
+        self.area.set_active_window(window.is_active_window)
         self.__update_label()
 
     def icon_changed(self):
         self.__update_icon()
 
     def needs_attention_changed(self):
+        window = self.window_r()
+        self.area.set_needs_attention(window.wnck.needs_attention())
         self.__update_label()
 
     def name_changed(self):

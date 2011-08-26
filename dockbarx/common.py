@@ -507,6 +507,8 @@ class Globals(gobject.GObject):
         "show-only-current-monitor-changed": (gobject.SIGNAL_RUN_FIRST,
                                               gobject.TYPE_NONE,()),
         "theme-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "popup-style-changed": (gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,()),
         "color-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
         "dockmanager-changed": (gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,()),
@@ -549,6 +551,7 @@ class Globals(gobject.GObject):
 
     DEFAULT_SETTINGS = {
           "theme": "DBX",
+          "popup_style_file": "dbx.tar.gz",
           "groupbutton_attention_notification_type": "red",
           "workspace_behavior": "switch",
           "popup_delay": 250,
@@ -672,6 +675,7 @@ class Globals(gobject.GObject):
 
                }
 
+
     def __new__(cls, *p, **k):
         if not "_the_instance" in cls.__dict__:
             cls._the_instance = gobject.GObject.__new__(cls)
@@ -689,6 +693,7 @@ class Globals(gobject.GObject):
             self.opacity_matches = None
             self.dragging = False
             self.theme_name = None
+            self.popup_style_file = None
 
             self.set_shown_popup(None)
             self.set_locked_popup(None)
@@ -745,6 +750,14 @@ class Globals(gobject.GObject):
                 theme_name = theme_name.translate(None, '!?*()/#"@')
             except:
                 pass
+            psf = "%s/themes/%s/popup_style_file"%(GCONF_DIR, theme_name)
+            if entry.get_key() == psf:
+                value = entry.get_value().get_string()
+                if self.popup_style_file != value:
+                    self.popup_style_file = value
+                    pref_update == True
+                    self.emit("popup-style-changed")
+                
             for i in range(1, 9):
                 c = "color%s"%i
                 a = "color%s_alpha"%i
@@ -868,6 +881,36 @@ class Globals(gobject.GObject):
                 else:
                     continue
                 GCONF_CLIENT.set_int(color_dir + "/" + a , self.colors[a])
+
+    def update_popup_style(self, theme_name, default_style):
+        # Runs when the theme has changed.
+        self.default_popup_style = default_style
+        theme_name = theme_name.replace(" ", "_").encode()
+        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
+            theme_name = theme_name.replace(sign, "")
+        psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
+        try:
+            style = GCONF_CLIENT.get_value(psf)
+            if style != self.popup_style_file:
+                self.popup_style_file = style
+                self.emit("popup-style-changed")
+        except:
+            self.popup_style_file = default_style
+            GCONF_CLIENT.set_string(psf, default_style)
+            self.emit("popup-style-changed")
+        self.emit("preference-update")
+
+    def set_popup_style(self, style):
+        # Used when the popup style is reloaded.
+        if self.popup_style_file != style:
+            self.popup_style_file = style
+            theme_name = self.theme_name
+            theme_name = theme_name.replace(" ", "_").encode()
+            for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
+                theme_name = theme_name.replace(sign, "")
+            psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
+            GCONF_CLIENT.set_string(psf, style)
+            self.emit("preference-update")
 
     def get_pinned_apps_from_gconf(self):
         # Get list of pinned_apps

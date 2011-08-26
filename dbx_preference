@@ -28,6 +28,7 @@ from xml.sax.handler import ContentHandler
 import dbus
 
 from dockbarx.common import *
+from dockbarx.theme import PopupStyle
 
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
@@ -119,6 +120,10 @@ class Theme():
         # Name
         self.name = theme_handler.get_name()
 
+        # Popup style
+        ps = self.theme.get("popup_style", {})
+        self.default_popup_style = ps.get("file_name", "dbx.tar.gz")
+
         # Colors
         self.color_names = {}
         self.default_colors = {}
@@ -200,12 +205,15 @@ class Theme():
             return False
         return True
 
-class PrefDialog():
 
+class PrefDialog():
     def __init__ (self):
+
 
         self.globals = Globals()
         self.__load_theme()
+        self.popup_style = PopupStyle()
+        self.popup_styles = self.popup_style.get_styles()
         self.globals.connect("theme-changed", self.__on_theme_changed)
         self.globals.connect("preference-update", self.__update)
 
@@ -331,6 +339,26 @@ class PrefDialog():
         hbox.pack_start(button, False)
         appearance_box.pack_start(hbox, False, padding=5)
 
+        
+        hbox = gtk.HBox()
+        label = gtk.Label(_("Window list style:"))
+        label.set_alignment(1,0.5)
+        self.popup_style_combo = gtk.combo_box_new_text()
+        style_names = self.popup_styles.keys()
+        style_names.sort()
+        for style in style_names:
+            self.popup_style_combo.append_text(style)
+        self.popup_style_combo.connect("changed", self.__popup_style_changed)
+        button = gtk.Button()
+        image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,
+                                         gtk.ICON_SIZE_SMALL_TOOLBAR)
+        button.add(image)
+        button.connect("clicked", self.__reset_popup_style)
+        hbox.pack_start(label, False, padding=5)
+        hbox.pack_start(self.popup_style_combo, False)
+        hbox.pack_start(button, False)
+        appearance_box.pack_start(hbox, False, padding=5)
+
         # Colors frame
         frame = gtk.Frame(_("Colors"))
         frame.set_border_width(5)
@@ -339,7 +367,7 @@ class PrefDialog():
         self.default_color_names = {
             "color1": "Window list background",
             "color2": "Normal text",
-            "color3": "Active window text",
+            "color3": "Active window",
             "color4": "Minimized window text",
             "color5": "Active color",
             "color6": "Not used",
@@ -1060,6 +1088,8 @@ class PrefDialog():
             self.theme_colors = self.theme.get_default_colors()
             self.theme_alphas = self.theme.get_default_alphas()
             self.globals.theme_name = self.theme.get_name()
+            self.globals.update_popup_style(self.theme.get_name(),
+                                            self.theme.default_popup_style)
             self.globals.update_colors(self.theme.get_name(),
                                        self.theme.get_default_colors(),
                                        self.theme.get_default_alphas())
@@ -1304,6 +1334,15 @@ class PrefDialog():
             if model[i][0].lower() == self.globals.settings["theme"].lower():
                 self.theme_combo.set_active(i)
                 break
+
+        # Popup styles
+        model = self.popup_style_combo.get_model()
+        for i in range(len(self.popup_style_combo.get_model())):
+            file_name = self.popup_styles[model[i][0]]
+            if file_name == self.globals.popup_style_file:
+                self.popup_style_combo.set_active(i)
+                break
+
 
         # Advanced page stuff
         self.preview_cb.set_active(self.globals.settings["preview"])
@@ -1689,6 +1728,33 @@ class PrefDialog():
         GCONF_CLIENT.set_string(GCONF_DIR+"/"+"%s_keystr"%setting, keystr)
         self.gkeys_entries[setting].set_text(keystr)
 
+    def __popup_style_changed(self, combobox):
+        if not self.theme:
+            return
+        value = self.popup_style_combo.get_active_text()
+        if value is None:
+            return
+        file_name = self.popup_styles[value]
+        theme_name = self.theme.get_name().replace(" ", "_").encode()
+        try:
+            theme_name = theme_name.translate(None, '!?*()/#"@')
+        except:
+            pass
+        psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
+        GCONF_CLIENT.set_string(psf, file_name)
+
+    def __reset_popup_style(self, combobox):
+        if not self.theme:
+            return
+        file_name = self.theme.default_popup_style
+        theme_name = self.theme.get_name().replace(" ", "_").encode()
+        try:
+            theme_name = theme_name.translate(None, '!?*()/#"@')
+        except:
+            pass
+        psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
+        GCONF_CLIENT.set_string(psf, file_name)
+
     def __set_theme(self, button=None):
         value = self.theme_combo.get_active_text()
         if value is None:
@@ -1714,6 +1780,7 @@ class PrefDialog():
                     text = self.default_color_names[c]
                 self.color_labels[c].set_text(text)
                 self.color_buttons[c].set_title(text)
+            self.__update()
 
     def __on_theme_changed(self, arg):
         self.__load_theme()
@@ -1722,6 +1789,13 @@ class PrefDialog():
         theme_names.sort()
         for theme in theme_names:
                 self.theme_combo.append_text(theme)
+
+        self.popup_style_combo.get_model().clear()
+        self.popup_styles = self.popup_style.get_styles()
+        style_names = self.popup_styles.keys()
+        style_names.sort()
+        for style in style_names:
+            self.popup_style_combo.append_text(style)
         # Color labels
         color_names = self.theme.get_color_names()
         for i in range(1, 9):
