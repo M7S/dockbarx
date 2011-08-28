@@ -489,12 +489,14 @@ class DockBar():
            not window.is_skip_tasklist():
             self.__add_window(window)
             self.skip_tasklist_windows.remove(window)
-            if self.is_dock:
-                self.parent_window.add_window(window)
+            if self.is_dock or self.awn_applet:
+                dock = self.parent_window or self.awn_applet
+                dock.add_window(window)
         if window.is_skip_tasklist() and \
            not window in self.skip_tasklist_windows:
-            if self.is_dock:
-                self.parent_window.remove_window(window)
+            if self.is_dock or self.awn_applet:
+                dock = self.parent_window or self.awn_applet
+                dock.remove_window(window)
             self.__remove_window(window)
             self.skip_tasklist_windows.append(window)
 

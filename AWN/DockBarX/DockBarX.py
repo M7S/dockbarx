@@ -135,7 +135,8 @@ class DockBarApp (awn.AppletSimple):
             self.__compute_should_autohide()
             
     def remove_window(self, window, reset_should_autohide=True, forced=False):
-        del self.border_distances[window]
+        if window in self.border_distances:
+            del self.border_distances[window]
         if window in self.windows:
             sids = self.windows.pop(window)
             if sids is not None:
