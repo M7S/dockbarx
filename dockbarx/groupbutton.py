@@ -2044,8 +2044,7 @@ class GroupPopup(CairoPopup):
         CairoPopup.do_size_allocate(self, allocation)
         group = self.group_r()
         # Move popup to it's right spot
-        offset = int(self.popup_style.settings.get("%s_distance" % \
-                                                   self.popup_type, -7))
+        offset = int(self.popup_style.get("%s_distance" % self.popup_type, -7))
         wx, wy = group.button.window.get_origin()
         b_alloc = group.button.get_allocation()
         width, height = self.get_size()

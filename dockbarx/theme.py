@@ -416,7 +416,19 @@ class PopupStyle(gobject.GObject):
                   "needs_attention_item_color",
                   "needs_attention_item_alpha",
                   "needs_attention_item_boder_color",
-                  "needs_attention_item_boder_alpha",)
+                  "needs_attention_item_boder_alpha",
+                  "close_button_pressed_bg_color",
+                  "close_button_pressed_bg_alpha",
+                  "close_button_hover_bg_color",
+                  "close_button_hover_bg_alpha",
+                  "close_button_bg_color",
+                  "close_button_bg_alpha",
+                  "close_button_pressed_x_color",
+                  "close_button_pressed_x_alpha",
+                  "close_button_hover_x_color",
+                  "close_button_hover_x_alpha",
+                  "close_button_x_color",
+                  "close_button_x_alpha")
 
     def __new__(cls, *p, **k):
         if not "_the_instance" in cls.__dict__:
@@ -436,6 +448,9 @@ class PopupStyle(gobject.GObject):
         self.globals.connect("popup-style-changed", self.on_style_changed)
         self.on_style_changed()
 
+    def get(self, key, default=None):
+        return self.settings.get(key, default)
+        
     def find_styles(self):
         # Reads the styles from /usr/share/dockbarx/themes/popup_styles and
         # ~/.dockbarx/themes/popup_styles and returns a dict

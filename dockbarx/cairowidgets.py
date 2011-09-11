@@ -294,17 +294,39 @@ class CairoSmallButton(gtk.Button):
 class CairoCloseButton(CairoSmallButton):
     def __init__(self):
         CairoSmallButton.__init__(self, 14)
+        self.popup_style = PopupStyle()
 
     def draw_button(self, ctx, x, y, w, h):
-        if self.mouseover:
-            alpha = 1
+        if self.mousedown and self.mouseover:
+            bgc = self.popup_style.get("close_button_pressed_bg_color",
+                                       "#FF0000")
+            bga = self.popup_style.get("close_button_pressed_bg_alpha", 100)
+            xc = self.popup_style.get("close_button_pressed_x_color",
+                                       "#FFFFFF")
+            xa = self.popup_style.get("close_button_pressed_x_alpha", 100)
+        elif self.mouseover:
+            bgc = self.popup_style.get("close_button_hover_bg_color",
+                                       "#FF0000")
+            bga = self.popup_style.get("close_button_hover_bg_alpha", 100)
+            xc = self.popup_style.get("close_button_hover_x_color",
+                                       "#FFFFFF")
+            xa = self.popup_style.get("close_button_hover_x_alpha", 0)
         else:
+            bgc = self.popup_style.get("close_button_bg_color",
+                                       "#FF0000")
+            bga = self.popup_style.get("close_button_bg_alpha", 50)
+            xc = self.popup_style.get("close_button_x_color",
+                                       "#FFFFF")
+            xa = self.popup_style.get("close_button_x_alpha", 0)
             alpha = 0.5
         button_source = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                                        w, h)
         bctx = cairo.Context(button_source)
-        make_path(bctx, 0, 0, w, h, 5)
-        bctx.set_source_rgba(1, 0, 0, alpha)
+        r = self.popup_style.get("close_button_roundness", 5)
+        make_path(bctx, 0, 0, w, h, r)
+        red, green, blue = parse_color(bgc)
+        alpha = min(max(float(bga) / 100, 0), 1)
+        bctx.set_source_rgba(red, green, blue, alpha)
         bctx.fill()
         bctx.scale(w, h)
         bctx.move_to(0.3, 0.3)
@@ -312,10 +334,9 @@ class CairoCloseButton(CairoSmallButton):
         bctx.move_to(0.3, 0.7)
         bctx.line_to(0.7, 0.3)
         bctx.set_line_width(2.0/w)
-        if self.mousedown and self.mouseover:
-            bctx.set_source_rgba(1, 1, 1, 1)
-        else:
-            bctx.set_source_rgba(1, 1, 1, 0)
+        red, green, blue = parse_color(xc)
+        alpha = min(max(float(xa) / 100, 0), 1)
+        bctx.set_source_rgba(red, green, blue, alpha)
         bctx.set_operator(cairo.OPERATOR_SOURCE)
         bctx.stroke()
 
@@ -451,7 +472,7 @@ class CairoPopup(gtk.Window):
         if self.no_arrow:
             return 0
         else:
-            return int(self.popup_style.settings.get("arrow_size", 9))
+            return int(self.popup_style.get("arrow_size", 9))
 
     def add(self, child):
         self.alignment.add(child)
@@ -461,7 +482,7 @@ class CairoPopup(gtk.Window):
 
     def point(self, new_pointer, ap=0):
         self.ap = ap
-        p = int(self.popup_style.settings.get("%s_padding" % self.popup_type,
+        p = int(self.popup_style.get("%s_padding" % self.popup_type,
                                               7))
         a = self.__get_arrow_size()
         if new_pointer != self.pointer:
@@ -501,7 +522,7 @@ class CairoPopup(gtk.Window):
         ctx.set_source_rgba(0, 0, 0,0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
         ctx.paint()
-        r = int(self.popup_style.settings.get("popup_roundness", 6))
+        r = int(self.popup_style.get("popup_roundness", 6))
         if self.is_composited():
             make_path(ctx, 0, 0, w, h, r, 0,
                       self.__get_arrow_size(), self.pointer, self.ap)
@@ -521,7 +542,7 @@ class CairoPopup(gtk.Window):
         blue = float(int(color[5:7], 16))/255
         alpha= float(self.globals.colors["color1_alpha"]) / 255
         
-        r = int(self.popup_style.settings.get("popup_roundness", 6))
+        r = int(self.popup_style.get("popup_roundness", 6))
         make_path(ctx, 0, 0, w, h, r, 2.5,
                   self.__get_arrow_size(), self.pointer, self.ap)
         if self.is_composited():
@@ -535,7 +556,7 @@ class CairoPopup(gtk.Window):
             for name in ("popup_radial_gradient%s", "popup_linear_gradient%s"):
                 gradients.append(name % n)
         for n in gradients:
-            args = self.popup_style.settings.get(n)
+            args = self.popup_style.get(n)
             if args:
                 args = [float(arg) for arg in args.split(",")]
                 if n.startswith("popup_radial"):
@@ -548,21 +569,21 @@ class CairoPopup(gtk.Window):
                     logger.exception("Couldn't make gradinet %s for " % n + \
                                      "popup style %s" % self.popup_style.name)
                     break
-                rpc1 = self.popup_style.settings.get("%s_color1" % n,
+                rpc1 = self.popup_style.get("%s_color1" % n,
                                                      "#FFFFFF")
                 if not rpc1[0] == "#":
                     rpc1 = "#%s" % rpc1
                 red, green, blue = parse_color(rpc1)
-                alpha = self.popup_style.settings.get("%s_alpha1" % n, 20)
+                alpha = self.popup_style.get("%s_alpha1" % n, 20)
                 alpha = float(alpha) / 100
                 pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
                 
-                rpc2 = self.popup_style.settings.get("%s_color2" % n,
+                rpc2 = self.popup_style.get("%s_color2" % n,
                                                      "#FFFFFF")
                 if not rpc2[0] == "#":
                     rpc2 = "#%s" % rpc2
                 red, green, blue = parse_color(rpc2)
-                alpha = self.popup_style.settings.get("%s_alpha2" % n, 0)
+                alpha = self.popup_style.get("%s_alpha2" % n, 0)
                 alpha = float(alpha) / 100
                 pattern.add_color_stop_rgba(1.0, red, green, blue, alpha)
                 ctx.set_source(pattern)
@@ -578,14 +599,14 @@ class CairoPopup(gtk.Window):
             ctx.set_source_rgba(0.0, 0.0, 0.0, 0.8)
         else:
             ctx.set_source_rgb(0, 0, 0)
-        bw = float(self.popup_style.settings.get("border_width", 3))
+        bw = float(self.popup_style.get("border_width", 3))
         if "border_color2" in self.popup_style.settings:
             bc = self.popup_style.settings["border_color2"]
         else:
-            bc = self.popup_style.settings.get("border_color", "#FFFFFF")
+            bc = self.popup_style.get("border_color", "#FFFFFF")
         if bc[0] != "#":
             bc = "#%s" % bc
-        alpha = self.popup_style.settings.get("border_alpha", 80)
+        alpha = self.popup_style.get("border_alpha", 80)
         alpha = float(alpha) / 100
         red = float(int(bc[1:3], 16))/255
         green = float(int(bc[3:5], 16))/255
@@ -600,13 +621,13 @@ class CairoPopup(gtk.Window):
             return
         else:
             ctx.stroke_preserve()
-            bc = self.popup_style.settings.get("border_color", "#FFFFFF")
+            bc = self.popup_style.get("border_color", "#FFFFFF")
             if bc[0] != "#":
                 bc = "#%s" % bc
             red = float(int(bc[1:3], 16))/255
             green = float(int(bc[3:5], 16))/255
             blue = float(int(bc[5:7], 16))/255
-            alpha = self.popup_style.settings.get("border_alpha2", 100)
+            alpha = self.popup_style.get("border_alpha2", 100)
             alpha = float(alpha) / 100
             if self.is_composited():
                 ctx.set_source_rgba(red, green, blue, alpha)
@@ -617,7 +638,7 @@ class CairoPopup(gtk.Window):
 
     def __on_popup_style_reloaded(self, *args):
         a = self.__get_arrow_size()
-        p = int(self.popup_style.settings.get("popup_padding", 7))
+        p = int(self.popup_style.get("popup_padding", 7))
         padding = {"up":(p+a, p, p, p),
                    "down":(p, p+a, p, p),
                    "left":(p, p, p+a, p),
@@ -722,9 +743,9 @@ class CairoArea(gtk.Alignment):
         self.text = text
         gtk.Alignment.__init__(self, 0, 0, 1, 1)
         self.popup_style = PopupStyle()
-        lrp = int(self.popup_style.settings.get("%s_lr_padding" % self.type,
+        lrp = int(self.popup_style.get("%s_lr_padding" % self.type,
                                                 5))
-        tdp = int(self.popup_style.settings.get("%s_td_padding" % self.type,
+        tdp = int(self.popup_style.get("%s_td_padding" % self.type,
                                                 5))
         self.set_padding(lrp, lrp, tdp, tdp)
         self.set_app_paintable(1)
@@ -792,18 +813,18 @@ class CairoArea(gtk.Alignment):
         else:
             r = g = b = 0.0
             alpha = 0.25
-        roundness = int(self.popup_style.settings.get("%s_roundness" % \
+        roundness = int(self.popup_style.get("%s_roundness" % \
                                                       self.type, 5))
         make_path(ctx, x, y, w, h, roundness)
 
 
         ctx.set_source_rgba(r, g, b, alpha)
         ctx.fill_preserve()
-        bc = self.popup_style.settings.get("%s_border_color" % self.type,
+        bc = self.popup_style.get("%s_border_color" % self.type,
                                            "#FFFFFF")
         if not bc[0] == "#":
             bc = "#%s" % bc
-        alpha = self.popup_style.settings.get("%s_border_alpha" % self.type,
+        alpha = self.popup_style.get("%s_border_alpha" % self.type,
                                               80)
         alpha = float(alpha) / 100
         r, g, b = parse_color(bc)
@@ -816,9 +837,9 @@ class CairoArea(gtk.Alignment):
         if type_ == "active_item":
             color = self.globals.colors["color3"]
         elif type_ == "needs_attention_item":
-            color = self.popup_style.settings.get("%s_color" % type_,
+            color = self.popup_style.get("%s_color" % type_,
                                                   "#FF0000")
-        roundness = int(self.popup_style.settings.get("%s_roundness" % \
+        roundness = int(self.popup_style.get("%s_roundness" % \
                                                       self.type, 5))
         make_path(ctx, x, y, w, h, roundness)
 
@@ -826,18 +847,18 @@ class CairoArea(gtk.Alignment):
             color = "#%s" % color
         r, g, b = parse_color(color)
         # Todo: make alpha adjustable from theme.
-        alpha = self.popup_style.settings.get("%s_alpha" % type_, 15)
+        alpha = self.popup_style.get("%s_alpha" % type_, 15)
         alpha = float(alpha) / 100
         ctx.set_source_rgba(r, g, b, 0.25)
         ctx.fill_preserve()
         
-        bc = self.popup_style.settings.get("%s_border_color" % type_,
+        bc = self.popup_style.get("%s_border_color" % type_,
                                            "#FFFFFF")
         if not bc[0] == "#":
             bc = "#%s" % bc
         # Todo: make alpha adjustable from theme.
         r, g, b = parse_color(bc)
-        alpha = self.popup_style.settings.get("%s_border_alpha" % type_, 15)
+        alpha = self.popup_style.get("%s_border_alpha" % type_, 15)
         alpha = float(alpha) / 100
         ctx.set_source_rgba(r, g, b, alpha)
         ctx.set_line_width(1)
@@ -873,7 +894,7 @@ class CairoArea(gtk.Alignment):
             # but check if it's still outside the rounded corners
             x = None
             y = None
-            r = int(self.popup_style.settings.get("%s_roundness" % self.type,
+            r = int(self.popup_style.get("%s_roundness" % self.type,
                                                   5))
             if mx < r:
                 x = r - mx
@@ -999,7 +1020,7 @@ class CairoVBox(gtk.VBox):
     def draw_frame(self, ctx, x, y, w, h):
         color = "#000000"
         r, g, b = parse_color(color)
-        rd = int(self.popup_style.settings.get("menu_item_roundness", 5))
+        rd = int(self.popup_style.get("menu_item_roundness", 5))
         make_path(ctx, x, y, w, h, rd)
         ctx.set_source_rgba(r, g, b, 0.20)
         ctx.fill_preserve()
