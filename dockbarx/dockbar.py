@@ -134,7 +134,7 @@ class DockBar():
         self.dockmanager = None
 
         self.globals = Globals()
-        self.globals.connect("theme-changed", self.reload)
+        self.globals.connect("theme-changed", self.__on_theme_changed)
         self.globals.connect("media-buttons-changed",
                              self.__on_media_controls_changed)
         self.globals.connect("dockmanager-changed",
@@ -407,6 +407,10 @@ class DockBar():
         # Starts the preference dialog
         os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
                    "/usr/bin/dbx_preference")
+
+    def __on_theme_changed(self, *args):
+        if not self.is_dock:
+            self.reload()
 
     #### Applet events
     def __on_ppm_pref(self,event=None,data=None):

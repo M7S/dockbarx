@@ -28,7 +28,7 @@ from xml.sax.handler import ContentHandler
 import dbus
 
 from dockbarx.common import *
-from dockbarx.theme import PopupStyle
+from dockbarx.theme import PopupStyle, DockTheme
 
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
@@ -214,6 +214,8 @@ class PrefDialog():
         self.__load_theme()
         self.popup_style = PopupStyle()
         self.popup_styles = self.popup_style.get_styles()
+        self.dock_theme = DockTheme()
+        self.dock_themes = self.dock_theme.get_themes()
         self.globals.connect("theme-changed", self.__on_theme_changed)
         self.globals.connect("preference-update", self.__update)
 
@@ -973,6 +975,10 @@ class PrefDialog():
             self.dock_mode_box.append_text(pos)
         self.dock_mode_box.connect("changed", self.__cb_changed)
         hbox.pack_start(self.dock_mode_box, False)
+        self.end_decoration_cb = gtk.CheckButton()
+        self.end_decoration_cb.connect("toggled", self.__checkbutton_toggled,
+                                       "dock/end_decorations")
+        hbox.pack_start(self.end_decoration_cb, False, padding=5)
         dock_box.pack_start(hbox, False)
         
         hbox = gtk.HBox()
@@ -1024,6 +1030,68 @@ class PrefDialog():
         self.dock_offset_spin = gtk.SpinButton(adj, 0.5, 0)
         hbox.pack_start(self.dock_offset_spin, False)
         dock_box.pack_start(hbox, False)
+
+        hbox = gtk.HBox()
+        label = gtk.Label(_("Dock theme:"))
+        label.set_alignment(1,0.5)
+        self.dock_theme_combo = gtk.combo_box_new_text()
+        theme_names = self.dock_themes.keys()
+        theme_names.sort()
+        for theme in theme_names:
+            self.dock_theme_combo.append_text(theme)
+        button = gtk.Button()
+        image = gtk.image_new_from_stock(gtk.STOCK_REFRESH,
+                                         gtk.ICON_SIZE_SMALL_TOOLBAR)
+        button.add(image)
+        button.connect("clicked", self.__set_dock_theme)
+        hbox.pack_start(label, False, padding=5)
+        hbox.pack_start(self.dock_theme_combo, False)
+        hbox.pack_start(button, False)
+        dock_box.pack_start(hbox, False, padding=5)
+        
+        #Dock Colors
+        frame = gtk.Frame(_("Colors"))
+        frame.set_border_width(5)
+        hbox = gtk.HBox()
+        hbox.set_border_width(5)
+        hbox.set_spacing(5)
+        label = gtk.Label(_("Background color"))
+        self.dock_bg_color_button = gtk.ColorButton()
+        self.dock_bg_color_button.set_use_alpha(True)
+        self.dock_bg_color_button.set_title(_("Background color"))
+        self.dock_bg_color_button.connect("color-set",
+                                          self.__dock_color_set, "bg_color")
+        self.dock_bg_color_clear = gtk.Button()
+        image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,
+                                         gtk.ICON_SIZE_SMALL_TOOLBAR)
+        self.dock_bg_color_clear .add(image)
+        self.dock_bg_color_clear .connect("clicked",
+                                          self.__dock_color_reset, "bg_color")
+        hbox.pack_start(label, False)
+        hbox.pack_start(self.dock_bg_color_button, False)
+        hbox.pack_start(self.dock_bg_color_clear, False)
+        self.dock_bar2_box = gtk.HBox()
+        self.dock_bar2_box.set_spacing(5)
+        label = gtk.Label(_("Second background color"))
+        label.set_alignment(1, 0.5)
+        self.bar2_bg_color_button = gtk.ColorButton()
+        self.bar2_bg_color_button.set_use_alpha(True)
+        self.bar2_bg_color_button.set_title(_("Second background color"))
+        self.bar2_bg_color_button.connect("color-set", self.__dock_color_set,
+                                          "bar2_bg_color")
+        self.bar2_bg_color_clear = gtk.Button()
+        image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,
+                                         gtk.ICON_SIZE_SMALL_TOOLBAR)
+        self.bar2_bg_color_clear.add(image)
+        self.bar2_bg_color_clear.connect("clicked", self.__dock_color_reset,
+                                         "bar2_bg_color")
+        self.dock_bar2_box.pack_start(label, True, True)
+        self.dock_bar2_box.pack_start(self.bar2_bg_color_button, False)
+        self.dock_bar2_box.pack_start(self.bar2_bg_color_clear, False)
+        hbox.pack_start(self.dock_bar2_box)
+        frame.add(hbox)
+        dock_box.pack_start(frame, False)
+        
 
         #--- AWN page
         hbox = gtk.HBox()
@@ -1372,6 +1440,8 @@ class PrefDialog():
         # Dock page
         self.dock_size_spin.set_value(self.globals.settings["dock/size"])
         self.dock_offset_spin.set_value(self.globals.settings["dock/offset"])
+        self.end_decoration_cb.set_active(
+                                self.globals.settings["dock/end_decorations"])
         if self.globals.settings["dock/mode"].lower() == "centered":
             self.dock_offset_spin.set_sensitive(False)
         else:
@@ -1382,6 +1452,15 @@ class PrefDialog():
             if model[i][0].lower() == _(mode):
                 self.dock_mode_box.set_active(i)
                 break
+        if mode == "panel":
+            self.end_decoration_cb.set_label(_("Show corner decorations"))
+            self.end_decoration_cb.show()
+        elif mode == "corner":
+            self.end_decoration_cb.set_label(
+                                        _("Show decorations in both corners"))
+            self.end_decoration_cb.show()
+        else:
+            self.end_decoration_cb.hide()
         model = self.dock_position_box.get_model()
         for i in range(len(model)):
             pos = self.globals.settings["dock/position"].lower()
@@ -1394,7 +1473,28 @@ class PrefDialog():
             if model[i][0].lower() == _(beh):
                 self.dock_behavior_box.set_active(i)
                 break
-                
+        # Dock Themes
+        model = self.dock_theme_combo.get_model()
+        for i in range(len(self.dock_theme_combo.get_model())):
+            file_name = self.dock_themes[model[i][0]]
+            if file_name == self.globals.settings["dock/theme_file"]:
+                self.dock_theme_combo.set_active(i)
+                break
+        #Dock Colors
+        color = gtk.gdk.color_parse(self.globals.dock_colors["bg_color"])
+        alpha = self.globals.dock_colors["bg_alpha"] * 256
+        self.dock_bg_color_button.set_color(color)
+        self.dock_bg_color_button.set_alpha(alpha)
+        color = gtk.gdk.color_parse(self.globals.dock_colors["bar2_bg_color"])
+        alpha = self.globals.dock_colors["bar2_bg_alpha"] * 256
+        self.bar2_bg_color_button.set_color(color)
+        self.bar2_bg_color_button.set_alpha(alpha)
+        if int(self.dock_theme.get("use_bar2", False)):
+            self.dock_bar2_box.show()
+        else:
+            self.dock_bar2_box.hide()
+        
+        # Awn
         model = self.awn_behavior_box.get_model()
         for i in range(len(model)):
             beh = self.globals.settings["awn/behavior"].lower()
@@ -1808,6 +1908,51 @@ class PrefDialog():
             text = dockbarx.i18n.theme.gettext(text)
             self.color_labels[c].set_text(text)
             self.color_buttons[c].set_title(text)
+            
+    def __set_dock_theme(self, button=None):
+        value = self.dock_theme_combo.get_active_text()
+        if value is None:
+            return
+        file_name = self.dock_themes[value]
+        if file_name != self.globals.settings["dock/theme_file"]:
+            GCONF_CLIENT.set_string(GCONF_DIR + "/dock/theme_file", file_name)
+        # Update the list of themes.
+        self.dock_theme_combo.get_model().clear()
+        self.dock_themes = self.dock_theme.get_themes()
+        theme_names = self.dock_themes.keys()
+        theme_names.sort()
+        for theme in theme_names:
+                self.dock_theme_combo.append_text(theme)
+        self.__update()
+
+    def __dock_color_set(self, button, c):
+        # Read the value from color (and alpha) and write
+        # it as 8-bit/channel hex string for gconf.
+        # (Alpha is written like int (0-255).)
+        color_string = self.globals.dock_colors[c]
+        color = button.get_color()
+        cs = color.to_string()
+        # cs has 16-bit per color, we want 8.
+        new_color = cs[0:3] + cs[5:7] + cs[9:11]
+        theme_file = self.globals.settings["dock/theme_file"]
+        color_dir = GCONF_DIR + "/dock/themes/" + theme_file
+        if new_color != color_string:
+            GCONF_CLIENT.set_string(color_dir + "/" + c, new_color)
+        alpha = self.globals.dock_colors[c.replace("color", "alpha")]
+        new_alpha = min(int(round(button.get_alpha() / 256.0)), 255)
+        if new_alpha != alpha:
+            GCONF_CLIENT.set_int(color_dir + "/" + c.replace("color", "alpha"),
+                                 new_alpha)
+
+    def __dock_color_reset(self, button, c):
+        # Reset gconf color setting to default.
+        value = self.dock_theme.default_colors[c]
+        theme_file = self.globals.settings["dock/theme_file"]
+        color_dir = GCONF_DIR + "/dock/themes/" + theme_file
+        GCONF_CLIENT.set_string(color_dir+"/"+c, value)
+        a = c.replace("color", "alpha")
+        value = self.dock_theme.default_colors[a]
+        GCONF_CLIENT.set_int(color_dir+"/"+a, value)
 
     def __open_dockmanager_settings(self, *args):
         bus = dbus.SessionBus()

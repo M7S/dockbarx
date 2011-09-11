@@ -31,8 +31,9 @@ import dockbarx.dockbar
 import wnck
 import gobject
 from dockbarx.common import Globals
+from dockbarx.theme import DockTheme
 from Xlib import display
-from math import pi
+from math import pi, sin, cos, tan, atan
 import weakref
 import time
 import dbus
@@ -46,17 +47,22 @@ class CairoDockX(gtk.Window):
     __gsignals__ = {"expose-event": "override"}
     def __init__(self):
         gtk.Window.__init__(self)
-        self.globals = globals()
+        self.globals = Globals()
+        self.theme = DockTheme()
         self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         self.set_decorated(False)
         self.set_resizable(False)
+        self.dockbar_allocation = None
         gtk_screen = gtk.gdk.screen_get_default()
         colormap = gtk_screen.get_rgba_colormap()
         if colormap is None:
             colormap = gtk_screen.get_rgb_colormap()
         self.set_colormap(colormap)
         self.set_app_paintable(1)
-        self.globals = Globals()
+        self.button_area = gtk.Alignment()
+        gtk.Window.add(self, self.button_area)
+        self.compute_padding()
+        self.globals.connect("dock-color-changed", self.__on_color_changed)
 
 
     def do_expose_event(self, event):
@@ -64,128 +70,280 @@ class CairoDockX(gtk.Window):
         self.set_shape_mask()
         w,h = self.get_size()
         self.ctx = self.window.cairo_create()
-        # set a clip region for the expose event, XShape stuff
-        self.ctx.save()
         if self.is_composited():
-            self.ctx.set_source_rgba(1, 1, 1,0)
+            self.ctx.set_source_rgba(1, 1, 1, 0)
         else:
             self.ctx.set_source_rgb(0.8, 0.8, 0.8)
         self.ctx.set_operator(cairo.OPERATOR_SOURCE)
         self.ctx.paint()
-        self.ctx.restore()
         self.ctx.rectangle(event.area.x, event.area.y,
                            event.area.width, event.area.height)
         self.ctx.clip()
         self.draw_frame(self.ctx, w, h)
         gtk.Window.do_expose_event(self, event)
-        #~ if self.get_child():
-            #~ self.propagate_expose(self.get_child(), event)
+        if self.get_child():
+            self.propagate_expose(self.get_child(), event)
 
     def set_shape_mask(self):
         # Set window shape from alpha mask of background image
-        #~ w,h = self.get_size()
-        #~ if w==0: w = 800
-        #~ if h==0: h = 600
-        #~ pixmap = gtk.gdk.Pixmap (None, w, h, 1)
-        #~ ctx = pixmap.cairo_create()
-        #~ ctx.set_source_rgba(0, 0, 0,0)
-        #~ ctx.set_operator (cairo.OPERATOR_SOURCE)
-        #~ ctx.paint()
-        #~ if self.is_composited():
-            #~ make_path(ctx, 0, 0, w, h, 6, 0, 9, self.pointer, self.ap)
-            #~ ctx.set_source_rgba(1, 1, 1, 1)
-        #~ else:
-            #~ make_path(ctx, 0, 0, w, h, 6, 1, 9, self.pointer, self.ap)
-            #~ ctx.set_source_rgb(0, 0, 0)
-        #~ ctx.fill()
-        #~ self.shape_combine_mask(pixmap, 0, 0)
-        #~ del pixmap
-        pass
+        pos = self.globals.settings["dock/position"]
+        w, h = self.get_size()
+        if w==0 or h==0:
+            return
+        pixmap = gtk.gdk.Pixmap (None, w, h, 1)
+        ctx = pixmap.cairo_create()
+        ctx.set_source_rgba(0, 0, 0, 0)
+        ctx.set_operator (cairo.OPERATOR_SOURCE)
+        ctx.paint()
+        if self.is_composited():
+            if self.dockbar is not None:
+                ctx.set_source_rgba(1, 1, 1, 1)
+                ctx.rectangle(*self.dockbar.container.get_allocation())
+                ctx.fill()
+        w, h = self.__set_rotation(pos, ctx, w, h)
+        stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=False)
+        ctx.new_path()
+        ctx.set_source_rgba(1, 1, 1, 1)
+        ctx.append_path(fill_path)
+        ctx.fill()
+        ctx.set_source_rgba(1, 1, 1, 1)
+        ctx.append_path(stroke_path)
+        ctx.set_line_width(0.8)
+        ctx.stroke()
+        if int(self.theme.get("use_bar2", False)):
+            stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=True)
+            ctx.new_path()
+            ctx.set_source_rgba(1, 1, 1, 1)
+            ctx.append_path(fill_path)
+            ctx.fill()
+            ctx.set_source_rgba(1, 1, 1, 1)
+            ctx.append_path(stroke_path)
+            ctx.set_line_width(0.8)
+            ctx.stroke()
+        if self.is_composited():
+            self.input_shape_combine_mask(pixmap, 0, 0)
+        else:
+            self.shape_combine_mask(pixmap, 0, 0)
 
     def draw_frame(self, ctx, w, h):
-        color = self.globals.colors["color1"]
-        red = float(int(color[1:3], 16))/255
-        green = float(int(color[3:5], 16))/255
-        blue = float(int(color[5:7], 16))/255
-        alpha= float(self.globals.colors["color1_alpha"]) / 255
-        mode = self.globals.settings["dock/mode"]
         pos = self.globals.settings["dock/position"]
-        r = 6
-        # Create the stroke and fill paths
-        if pos == "left":
-            if mode == "centered":
-                ctx.move_to(0, 0.5)
-                ctx.arc(w - r - 0.5, r + 0.5, r, -pi/2, 0)
-            else:
-                ctx.move_to(w - 0.5, 0)
-            if mode == "centered" or mode == "corner":
-                ctx.arc(w - r - 0.5, h - r - 0.5, r, 0, pi/2)
-                ctx.line_to(0, h - 0.5)
-            else:
-                ctx.line_to(w - 0.5, h)
-            stroke_path = ctx.copy_path()
-            ctx.line_to(0, h)
-            ctx.line_to(0, 0)
-            ctx.close_path()
-        elif pos == "right":
-            if mode == "centered":
-                ctx.move_to(w, 0.5)
-                ctx.arc_negative(r + 0.5, r + 0.5, r, -pi/2, -pi)
-            else:
-                ctx.move_to(0.5, 0)
-            if mode == "centered" or mode == "corner":
-                ctx.arc_negative(r + 0.5, h - r - 0.5, r, pi, pi/2)
-                ctx.line_to(w, h - 0.5)
-            else:
-                ctx.line_to(0.5, h)
-            stroke_path = ctx.copy_path()
-            ctx.line_to(w, h)
-            ctx.line_to(w, 0)
-            ctx.close_path()
-        elif pos == "top":
-            if mode == "centered":
-                ctx.move_to(0.5, 0)
-                ctx.arc_negative(r + 0.5, h - r - 0.5, r, pi, pi/2)
-            else:
-                ctx.move_to(0, h - 0.5)
-            if mode == "centered" or mode == "corner":
-                ctx.arc_negative(w - r - 0.5, h - r - 0.5, r, pi/2, 0)
-                ctx.line_to(w - 0.5, 0)
-            else:
-                ctx.line_to(w, h - 0.5)
-            stroke_path = ctx.copy_path()
-            ctx.line_to(w, 0)
-            ctx.line_to(0, 0)
-            ctx.close_path()
-        else:
-            if mode == "centered":
-                ctx.move_to(0.5, h)
-                ctx.arc(r + 0.5, r + 0.5, r, -pi, -pi/2)
-            else:
-                ctx.move_to(0, 0.5)
-            if mode == "centered" or mode == "corner":
-                ctx.arc(w - r - 0.5, r + 0.5, r, -pi/2, 0)
-                ctx.line_to(w - 0.5, h)
-            else:
-                ctx.line_to(w, 0.5)
-            stroke_path = ctx.copy_path()
-            ctx.line_to(w, h)
-            ctx.line_to(0, h)
-            ctx.close_path()
-        # Fill with background color
+        w, h = self.__set_rotation(pos, ctx, w, h)
+        stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=False)
+        color = self.globals.dock_colors["bg_color"]
+        red, green, blue = self.__parse_color(color)
+        alpha= self.globals.dock_colors["bg_alpha"] / 255.0
+        ctx.new_path()
+        ctx.append_path(fill_path)
         if self.is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:
             ctx.set_source_rgb(red, green, blue)
-        ctx.fill()
+        ctx.fill_preserve()
+        # Background picture
+        if self.theme.bg is not None:
+            pattern = cairo.SurfacePattern(self.theme.bg)
+            pattern.set_extend(cairo.EXTEND_REPEAT)
+            ctx.set_source(pattern)
+            ctx.fill_preserve()
         # Stroke the outer border
         ctx.append_path(stroke_path)
-        if self.is_composited():
-            ctx.set_source_rgba(red*0.5, green*0.5, blue*0.5, 0.8)
-        else:
-            ctx.set_source_rgb(red*0.5, green*0.5, blue*0.5)
-        ctx.set_line_width(1)
+        color = self.theme.get("border_color", "#000000")
+        red, green, blue = self.__parse_color(color)
+        ctx.set_source_rgb(red, green, blue)
+        bw = float(self.theme.get("border_width", 0.8))
+        ctx.set_line_width(bw)
         ctx.stroke()
+        if not int(self.theme.get("use_bar2", False)):
+            return
+
+        if self.theme.get("bar2_type") == "layer":
+            ctx.set_operator(cairo.OPERATOR_OVER)
+        stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=True)
+        color = self.globals.dock_colors["bar2_bg_color"]
+        red, green, blue = self.__parse_color(color)
+        alpha= self.globals.dock_colors["bar2_bg_alpha"] / 255.0
+        ctx.new_path()
+        ctx.append_path(fill_path)
+        if self.is_composited():
+            ctx.set_source_rgba(red, green, blue, alpha)
+        else:
+            ctx.set_source_rgb(red, green, blue)
+        ctx.fill_preserve()
+        # Background picture
+        if self.theme.bar2_bg is not None:
+            pattern = cairo.SurfacePattern(self.theme.bar2_bg)
+            pattern.set_extend(cairo.EXTEND_REPEAT)
+            ctx.set_source(pattern)
+            ctx.fill_preserve()
+        # Stroke the outer border
+        color = self.theme.get("bar2_border_color", "#000000")
+        red, green, blue = self.__parse_color(color)
+        ctx.append_path(stroke_path)
+        ctx.set_source_rgb(red, green, blue)
+        bw = float(self.theme.get("bar2_border_width", 0.8))
+        ctx.set_line_width(bw)
+        ctx.stroke()
+        
+
+    def __set_rotation(self, pos, ctx, w, h):
+        # Changes the user space so that the dock can be drawn as if
+        # it's at the bottom no matter where it's really placed.
+        if pos == "left":
+            old = h
+            h = w
+            w = old
+            del old
+            ctx.rotate(pi/2)
+            ctx.translate(0, -h)
+        elif pos == "right":
+            old = h
+            h = w
+            w = old
+            del old
+            ctx.rotate(pi/2)
+            ctx.scale(1, -1)
+        elif pos == "top":
+            ctx.scale(1, -1)
+            ctx.translate(0, -h)
+        return w, h
+
+    def __make_path(self, ctx, w, h, bar2=False):
+        # Create the stroke and fill paths
+        mode = self.globals.settings["dock/mode"]
+        ed = self.globals.settings["dock/end_decorations"]
+        if bar2:
+            # slope is recalculated in such a way that 0 means a straight
+            # angle, positive numbers means outwards slope and negative
+            # numbers inwards. In radians.
+            slope = -(float(self.theme.get("bar2_slope", 90)) - 90) / 180.0*pi
+            bend = float(self.theme.get("bar2_bend", 0))
+            r = float(self.theme.get("bar2_roundness", 6))
+            sp = int(self.theme.get("bar2_side_padding", 6))
+            rel_size = float(self.theme.get("bar2_rel_size", 100.0))
+            rel_size2 = float(self.theme.get("rel_size", 100.0))
+            slope2 = -(float(self.theme.get("slope", 90)) - 90) / 180.0 * pi
+            sp2 = int(self.theme.get("side_padding", 6))
+            if not self.is_composited() and rel_size2 < 100:
+                rel_size2 = 100.0
+        else:
+            slope = -(float(self.theme.get("slope", 90)) - 90) / 180.0 * pi
+            bend = float(self.theme.get("bend", 0))
+            r = float(self.theme.get("roundness", 6))
+            sp = int(self.theme.get("side_padding", 6))
+            rel_size = float(self.theme.get("rel_size", 100.0))
+            if int(self.theme.get("use_bar2", False)):
+                rel_size2 = float(self.theme.get("bar2_rel_size", 100.0))
+                slope2 = -(float(self.theme.get("bar2_slope", 90)) - 90)
+                slope2 = slope2 / 180.0 * pi 
+                sp2 = int(self.theme.get("bar2_side_padding", 6))
+            else:
+                rel_size2 = 0
+                slope2 = 0
+                sp2 = 0
+            if not self.is_composited() and rel_size < 100:
+                rel_size = 100.0
+        size = int(self.globals.settings["dock/size"] * rel_size / 100)
+        size2 = int(self.globals.settings["dock/size"] * rel_size2 / 100)
+        t = h - size
+        d1 = int(tan(abs(slope)) * size)
+        d2 = int(bend / 100 * d1)
+        p = max(int(tan(abs(slope2)) * size2) + sp2 - d1 - sp, 0)
+        if mode == "centered" or ed:
+            y0 = h
+            y3 = t + 0.5
+            if slope < 0:
+                x0 = p + 0.5 + d1
+                x1 = x0 - d2
+                y1 = y0
+                x3 = p + 0.5
+                rad = atan((x1-x3)/(y1-y3))
+                x2 = x3 + sin(rad) * r
+                y2 = y3 + cos(rad) * r
+            else:
+                x0 = p + 0.5
+                x1 = x0 + d2
+                y1 = y0
+                x3 = p + 0.5 + d1
+                rad = atan((x3-x1)/(y1-y3))
+                x2 = x3 - sin(rad) * r
+                y2 = y3 + cos(rad) * r
+            ctx.move_to(x0, y0)
+            ctx.curve_to(x1, y1, x1, y1, x2, y2)
+            ctx.curve_to(x3, y3, x3, y3, x3 + r, y3)
+        else:
+            ctx.move_to(0, t + 0.5)
+        if mode == "centered" or mode == "corner" or ed:
+            y3 = h
+            y0 = t + 0.5
+            if slope < 0:
+                x3 = w - p - 0.5 - d1
+                x2 = x3 + d2
+                y2 = y3
+                x0 = w - p - 0.5
+                rad = atan((x0-x2)/(y2-y0))
+                x1 = w - p - 0.5 - sin(rad) * r
+                y1 = y0 + cos(rad) * r
+            else:
+                x3 = w - p - 0.5
+                x2 = x3 - d2
+                y2 = y3
+                x0 = w - p - 0.5 - d1
+                rad = atan((x2-x0)/(y2-y0))
+                x1 = x0 + sin(rad) * r
+                y1 = y0 + cos(rad) * r
+            ctx.line_to(x0 - r, y0)
+            ctx.curve_to(x0, y0, x0, y0, x1, y1)
+            ctx.curve_to(x2, y2, x2, y2, x3, y3)
+        else:
+            ctx.line_to(w, t + 0.5)
+        stroke_path = ctx.copy_path()
+        ctx.line_to(w, h)
+        ctx.line_to(0, h)
+        ctx.close_path()
+        fill_path = ctx.copy_path()
+        return stroke_path, fill_path
+
+    def __parse_color(self, color):
+        if color[0] != "#":
+            color = "#%s" % color
+        red = float(int(color[1:3], 16))/255
+        green = float(int(color[3:5], 16))/255
+        blue = float(int(color[5:7], 16))/255
+        return red, green, blue
+
+    def compute_padding(self):
+        pos = self.globals.settings["dock/position"]
+        size = self.globals.settings["dock/size"]
+        rel_size = float(self.theme.get("rel_size", 100))
+        if int(self.theme.get("use_bar2", False)):
+            b2_rel_size = rel_size = float(self.theme.get("bar2_rel_size",
+                                           100))
+        else:
+            b2_rel_size = 0
+        p = max(int(size*rel_size/100) - size,
+                int(size*b2_rel_size/100) - size,
+                0)
+        # Todo: Is rel_bottom_padding really a good idea? Decide.
+        rb = float(self.theme.get("rel_bottom_padding", 0))
+        b = int(size * rb / 100)
+        if pos == "left":
+            padding = (0, 0, b, p)
+        elif pos == "right":
+            padding = (0, 0, p, b)
+        elif pos == "top":
+            padding = (b, p, 0, 0)
+        else:
+            padding = (p, b, 0, 0)
+        self.button_area.set_padding(*padding)
+
+    def add_box(self, widget):
+        self.button_area.add(widget)
+
+    def remove_box(self):
+        self.button_area.remove(widget)
+
+    def __on_color_changed(self, *args):
+        self.queue_draw()
 
         
 class DockX(CairoDockX):
@@ -216,12 +374,14 @@ class DockX(CairoDockX):
         self.autohide_sid = None
         self.autounhide_sid = None
         self.autounhide_sid = None
+        self.old_x = 0
+        self.old_y = 0
         self.box = gtk.HBox()
         self.padding1 = EventPadding(self, "before")
         self.padding2 = EventPadding(self, "after")
-        self.add(self.box)
+        self.add_box(self.box)
         self.position_dock()
-        self.globals.connect("dock-size-changed", self.position_dock)
+        self.globals.connect("dock-size-changed", self.__on_dock_size_changed)
         self.globals.connect("dock-position-changed",
                              self.__on_position_changed)
         self.globals.connect("dock-mode-changed", self.__on_mode_changed)
@@ -231,50 +391,58 @@ class DockX(CairoDockX):
         self.__compute_should_autohide()
         self.screen.connect("active-window-changed",
                             self.__on_active_window_changed)
+        self.globals.connect("theme-changed", self.reload)
+        self.globals.connect("dock-end-decorations-changed",
+                           self.__on_end_decorations_changed)
+        self.theme.connect("dock-theme-reloaded",
+                           self.__on_dock_theme_reloaded)
         if self.autohide:
             self.show_dock()
         self.dbus_obj = DockXDBus(self)
 
-    def position_dock(self, *args):
+    def position_dock(self, rebuild=False):
         centered = self.globals.settings["dock/mode"] == "centered"
         cornered = self.globals.settings["dock/mode"] == "corner"
+        ed = self.globals.settings["dock/end_decorations"]
         pos = self.globals.settings["dock/position"]
-        if self.globals.settings["dock/position"] in ("left", "right"):
+        if pos in ("left", "right"):
             if self.dockbar.orient != "v" or not self.box.get_children():
                 self.dockbar.set_orient("v")
-                for child in self.box.get_children():
-                    self.box.remove(child)
-                self.box.destroy()
-                self.box = gtk.VBox()
-                self.add(self.box)
-                self.box.pack_start(self.padding1, False, False)
-                self.box.pack_start(self.dockbar.container, False, False)
-                if centered or cornered:
-                    self.box.pack_start(self.padding2, False, False)
-                else:
-                    self.box.pack_start(self.padding2, True, True)
-                self.show_all()
+                rebuild = True
         else:
             if self.dockbar.orient != "h" or not self.box.get_children():
                 self.dockbar.set_orient("h")
-                for child in self.box.get_children():
-                    self.box.remove(child)
-                self.box.destroy()
+                rebuild = True
+        if rebuild:
+            for child in self.box.get_children():
+                self.box.remove(child)
+            self.box.destroy()
+            if pos in ("left", "right"):
+                self.box = gtk.VBox()
+            else:
                 self.box = gtk.HBox()
-                self.add(self.box)
-                if centered or cornered:
-                    self.box.pack_start(self.padding1, False, False)
-                self.box.pack_start(self.dockbar.container, False, False)
-                if centered or cornered:
-                    self.box.pack_start(self.padding2, False, False)
+            self.add_box(self.box)
+            self.box.pack_start(self.padding1, False, False)
+            self.padding1.compute_size(centered or ed)
+            self.box.pack_start(self.dockbar.container, False, False)
+            if centered or cornered:
+                self.box.pack_start(self.padding2, False, False)
+                self.padding2.compute_size(True)
+            else:
+                self.box.pack_start(self.padding2, True, True)
+                # Todo: Is setting a big size request problem free? Find out. 
+                if pos in ("left", "right"):
+                    self.padding2.set_size_request(-1, 3000)
                 else:
-                    self.box.pack_start(self.padding2, True, True)
-                self.show_all()
+                    self.padding2.set_size_request(3000, -1)
+            self.show_all()
         mx, my, mw, mh = self.get_monitor_geometry()
         l, r, t, b = self.__get_monitor_and_strut_borders()
         sw = self.get_screen().get_width()
         sh = self.get_screen().get_height()
-        size = self.globals.settings["dock/size"]
+        rel_size = float(self.theme.get("rel_size", 100))
+        db_size = self.globals.settings["dock/size"]
+        size = max(db_size, int(db_size * rel_size / 100))
         o = self.globals.settings["dock/offset"]
         if pos == "left":
             x,y, w, h = (l, t + o, size, sh - t - b - o)
@@ -282,7 +450,6 @@ class DockX(CairoDockX):
         elif pos == "right":
             x,y, w, h = (sw - size - r, t + o, size, sh - t - b - o)
             strut = [0, sw - x, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
-            print x,y,w,h
         elif pos == "top":
             x,y, w, h = (l + o, t, sw - l - r - o, size)
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
@@ -303,10 +470,13 @@ class DockX(CairoDockX):
             self.move(mx + mw / 2 - a.width / 2, y)
         else:
             self.move(x, y)
+            self.old_x = x
+            self.old_y = y
         self.__set_dock_strut(x, y, w, h)
         for group in self.dockbar.groups:
-            group.button.icon_factory.set_size(size)
+            group.button.icon_factory.set_size(db_size)
             group.button.update_state(force_update=True)
+        self.dockbar_allocation = self.dockbar.container.get_allocation()
 
     def __set_dock_strut(self, x, y, w, h):
         if not self.window:
@@ -370,9 +540,6 @@ class DockX(CairoDockX):
                 if cl and cl[0] in ("dockx", "dockbarx_factory"):
                     continue
                 if self.globals.settings["dock/position"] == "left":
-                    #~ if prop1.value[4] < my + mh and \
-                       #~ prop1.value[5] >= my:
-                        #~ strut[0] = max(strut[0], prop1.value[0])
                     if prop1.value[6] < my + mh and \
                        prop1.value[7] >= my:
                         strut[1] = max(strut[1], prop1.value[1])
@@ -386,9 +553,6 @@ class DockX(CairoDockX):
                     if prop1.value[4] < my + mh and \
                        prop1.value[5] >= my:
                         strut[0] = max(strut[0], prop1.value[0])
-                    #~ if prop1.value[6] < my + mh and \
-                       #~ prop1.value[7] >= my:
-                        #~ strut[1] = max(strut[1], prop1.value[1])
                     if prop1.value[8] < mx + mw and \
                        prop1.value[9] >= mx + mw - size:
                         strut[2] = max(strut[2], prop1.value[2])
@@ -402,9 +566,6 @@ class DockX(CairoDockX):
                     if prop1.value[6] <= my + size and \
                        prop1.value[7] >= my:
                         strut[1] = max(strut[1], prop1.value[1])
-                    #~ if prop1.value[8] < mx + mw and \
-                       #~ prop1.value[9] >= mx:
-                        #~ strut[2] = max(strut[2], prop1.value[2])
                     if prop1.value[10] < mx + mw and \
                        prop1.value[11] >= mx:
                         strut[3] = max(strut[3], prop1.value[3])
@@ -418,9 +579,6 @@ class DockX(CairoDockX):
                     if prop1.value[8] < mx + mw and \
                        prop1.value[9] >= mx:
                         strut[2] = max(strut[2], prop1.value[2])
-                    #~ if prop1.value[10] < mx + mw and \
-                       #~ prop1.value[11] >= mx:
-                        #~ strut[3] = max(strut[3], prop1.value[3])
                 continue
             if prop2 is not None:
                 # Hopefully this one is never needed because
@@ -612,18 +770,28 @@ class DockX(CairoDockX):
                 self.should_autohide = True
                 break
         return self.should_autohide
-        
+
+    def __on_dock_size_changed(self, *args):
+        centered = self.globals.settings["dock/mode"] == "centered"
+        cornered = self.globals.settings["dock/mode"] == "corner"
+        ed = self.globals.settings["dock/end_decorations"]
+        self.padding1.compute_size(centered or ed)
+        if centered or cornered:
+            self.padding2.compute_size(True)
+        else:
+            self.padding2.set_size_request(-1, -1)
+        self.position_dock()
+        self.queue_draw()
         
     def __on_mode_changed(self, *args):
-        for child in self.box.get_children():
-            self.box.remove(child)
-        self.position_dock()
+        self.position_dock(rebuild=True)
         self.queue_draw()
 
     def __on_position_changed(self, *args):
         self.position_dock()
         self.queue_draw()
         self.__compute_should_autohide()
+        self.compute_padding()
         if self.autohide:
             self.hide_dock()
 
@@ -648,7 +816,8 @@ class DockX(CairoDockX):
                 self.show()
                 for window in self.dockbar.windows:
                     self.remove_window(window,
-                                       reset_should_autohide=False, forced=True)
+                                       reset_should_autohide=False,
+                                       forced=True)
         else:
             if not self.autohide:
                 self.autohide = True
@@ -662,6 +831,16 @@ class DockX(CairoDockX):
             x, y = self.get_position()
             self.__set_dock_strut(x, y, a.width, a.height)
 
+    def __on_dock_theme_reloaded(self, *args):
+        self.compute_padding()
+        self.position_dock(rebuild=True)
+        self.queue_draw()
+
+    def __on_end_decorations_changed(self, *args):
+        self.compute_padding()
+        self.position_dock(rebuild=True)
+        self.queue_draw()
+
     def get_monitor_geometry(self):
         screen = self.get_screen()
         if screen is None:
@@ -672,6 +851,7 @@ class DockX(CairoDockX):
         self.db_loaded = False
         self.dockbar.reload()
         self.db_loaded = True
+        self.theme.reload()
         if self.autohide:
             self.__compute_should_autohide()
 
@@ -696,6 +876,31 @@ class EventPadding(gtk.EventBox):
         self.position = position
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
+
+    def compute_size(self, corner=True):
+        dock = self.dock_r()
+        use_bar2 = int(dock.theme.get("use_bar2", False))
+        if use_bar2:
+            b2_s = int(dock.theme.get("b2_side_padding", 6))
+        b1_s  = int(dock.theme.get("side_padding", 6))
+        if corner:
+            size = self.globals.settings["dock/size"]
+            rel_size = float(dock.theme.get("rel_size", 100))
+            slope = -(float(dock.theme.get("slope", 90)) - 90) / 180 * pi
+            b1_s += int(abs(tan(slope)) * int(size*rel_size/100))
+            if use_bar2:
+                rel_size = float(dock.theme.get("bar2_rel_size", 100))
+                slope = -(float(dock.theme.get("bar2_slope", 90)) - 90)
+                slope = slope / 180 * pi
+                b2_s += int(abs(tan(slope)) * int(size*rel_size/100))
+            else:
+                b2_s = 0
+        s = max(b1_s, b2_s)
+        pos = self.globals.settings["dock/position"]
+        if pos in ("left", "right"):
+            self.set_size_request(-1, s)
+        else:
+            self.set_size_request(s, -1)
 
     def do_button_release_event(self, event):
         if event.button != 3:

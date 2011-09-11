@@ -602,3 +602,192 @@ class PopupStyle(gobject.GObject):
         tar.close()
         return name
 
+class DockTheme(gobject.GObject):
+    __gsignals__ = {"dock-theme-reloaded": (gobject.SIGNAL_RUN_FIRST,
+                                             gobject.TYPE_NONE,()),}
+
+    def __init__(self):
+        gobject.GObject.__init__(self)
+        self.globals = Globals()
+        self.name = "DBX"
+        self.settings = {}
+        self.globals.connect("dock-theme-changed", self.on_theme_changed)
+        self.on_theme_changed()
+
+    def get(self, key, default=None):
+        return self.settings.get(key, default)
+
+    def find_themes(self):
+        # Reads the themes from /usr/share/dockbarx/themes/dock_themes and
+        # ~/.dockbarx/themes/dock_themes and returns a dict
+        # of the theme file names and paths so that a theme can be loaded
+        themes = {}
+        theme_paths = []
+        homeFolder = os.path.expanduser("~")
+        theme_folder = homeFolder + "/.dockbarx/themes/dock"
+        dirs = ["/usr/share/dockbarx/themes/dock", theme_folder]
+        for dir in dirs:
+            if os.path.exists(dir) and os.path.isdir(dir):
+                for f in os.listdir(dir):
+                    if f[-7:] == ".tar.gz":
+                        themes[f] = dir+"/"+f
+        return themes
+
+    def on_theme_changed(self, arg=None):
+        themes = self.find_themes()
+        if self.globals.settings["dock/theme_file"] in themes:
+            self.theme_path = themes[self.globals.settings["dock/theme_file"]]
+        else:
+            self.theme_path = themes.get("dbx.tar.gz", "dbx.tar.gz")
+        self.reload()
+
+    def reload(self):
+        if self.theme_path is None:
+            return
+        self.default_colors = {"bg_color": "#111111", "bg_alpha": 127,
+                               "bar2_bg_color":"#111111", "bar2_bg_alpha": 127}
+        try:
+            tar = taropen(self.theme_path)
+        except:
+            logger.debug("Error opening dock theme %s" % self.theme_path)
+            self.settings = {}
+            self.name = "DBX"
+            self.bg = None
+            self.globals.set_dock_theme("dbx.tar.gz", self.default_colors)
+            self.emit("dock-theme-reloaded")
+            return
+        # Load settings
+        try:
+            config = tar.extractfile("theme")
+        except:
+            logger.exception("Error extracting theme from %s" % \
+                             self.theme_path)
+            tar.close()
+            self.settings = {}
+            self.name = "DBX"
+            self.bg = None
+            self.globals.set_dock_theme("dbx.tar.gz", self.default_colors)
+            self.emit("dock-theme-reloaded")
+            return
+        old_settings = self.settings
+        self.settings = {}
+        name = None
+        for line in config.readlines():
+            # Split at "=" and clean up the key and value
+            if not "=" in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip().lstrip().lower()
+            value = value.strip().lstrip()
+            # Remove comments
+            if "#" in key:
+                continue
+            # If there is a trailing comment, remove it
+            # But avoid removing # if it's in a quote
+            sharp = value.find("#")
+            if sharp != -1 and value.count("\"", 0, sharp) % 2 == 0 and \
+               value.count("'", 0, sharp) % 2 == 0:
+                   value = value.split("#", 1)[0].strip()
+            # Remove quote signs
+            if value[0] in ("\"", "'") and value[-1] in ("\"", "'"):
+                value = value[1:-1]
+            
+            if key == "name":
+                name = value
+                continue
+            value = value.lower()
+            self.settings[key] = value
+        config.close()
+        if name:
+            self.name = name
+        else:
+            # Todo: Error handling here!
+            self.settings = old_settings
+            tar.close()
+            self.globals.set_dock_theme("dbx.tar.gz", self.default_colors)
+            self.emit("dock-theme-reloaded")
+            return
+        # Load background
+        if "background.png" in tar.getnames():
+            bgf = tar.extractfile("background.png")
+            self.bg = cairo.ImageSurface.create_from_png(bgf)
+            bgf.close()
+        else:
+            self.bg = None
+        if "bar2_background.png" in tar.getnames():
+            bgf = tar.extractfile("bar2_background.png")
+            self.bar2_bg = cairo.ImageSurface.create_from_png(bgf)
+            bgf.close()
+        else:
+            self.bar2_bg = None
+        tar.close()
+
+        for key in self.default_colors.keys():
+            if key in self.settings:
+                value = self.settings.pop(key)
+                if "alpha" in key:
+                    value = int(round(int(value))*2.55)
+                elif value[0] != "#":
+                        value = "#%s" % value
+                self.default_colors[key] = value
+        
+        # Inform rest of dockbar about the reload.
+        self.globals.set_dock_theme(self.theme_path.rsplit("/", 1)[-1],
+                                    self.default_colors)
+        self.emit("dock-theme-reloaded")
+
+    def get_themes(self):
+        # For DockbarX preference. This function makes a dict of the names and
+        # file names of the themes for all themes that can be opened correctly.
+        themes = {}
+        home_folder = os.path.expanduser("~")
+        theme_folder = home_folder + "/.dockbarx/themes/dock"
+        dirs = ["/usr/share/dockbarx/themes/dock", theme_folder]
+        for dir in dirs:
+            if os.path.exists(dir) and os.path.isdir(dir):
+                for f in os.listdir(dir):
+                    if f[-7:] == ".tar.gz":
+                        name = self.check(dir+"/"+f)
+                        if name:
+                            themes[name] = f
+        # The default theme (if the theme doesn't set another one) is DBX,
+        # wheter or not the file actually exists.
+        if not "DBX" in themes:
+            themes["DBX"] = "dbx.tar.gz"
+        return themes
+
+    def check(self, theme_path):
+        try:
+            tar = taropen(theme_path)
+        except:
+            return None
+        try:
+            config = tar.extractfile("theme")
+        except:
+            tar.close()
+            return None
+        name = None
+        for line in config.readlines():
+            # Split at "=" and clean up the key and value
+            if not "=" in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip().lstrip().lower()
+            value = value.strip().lstrip()
+            # Remove comments
+            if "#" in key:
+                continue
+            # If there is a trailing comment, remove it
+            # But avoid removing # if it's in a quote
+            sharp = value.find("#")
+            if sharp != -1 and value.count("\"", 0, sharp) % 2 == 0 and \
+               value.count("'", 0, sharp) % 2 == 0:
+                   value = value.split("#", 1)[0].strip()
+            # Remove quote signs
+            if value[0] in ("\"", "'") and value[-1] in ("\"", "'"):
+                value = value[1:-1]
+            if key == "name":
+                name = value
+                break
+        tar.close()
+        return name

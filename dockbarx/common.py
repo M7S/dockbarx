@@ -545,6 +545,10 @@ class Globals(gobject.GObject):
                                  gobject.TYPE_NONE,()),
         "dock-behavior-changed": (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,()),
+        "dock-theme-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "dock-color-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "dock-end-decorations-changed": (gobject.SIGNAL_RUN_FIRST,
+                                  gobject.TYPE_NONE,()),
         "awn-behavior-changed": (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,())
     }
@@ -652,11 +656,13 @@ class Globals(gobject.GObject):
           "gkeys_select_next_group_skip_launchers": False,
           "use_number_shortcuts": True,
                       
+          "dock/theme_file": "dbx.tar.gz",
           "dock/position": "left",
           "dock/size": 42,
           "dock/offset":0,
           "dock/mode": "panel",
           "dock/behavior": "panel",
+          "dock/end_decorations": False,
 
           "awn/behavior": "disabled"}
 
@@ -694,6 +700,7 @@ class Globals(gobject.GObject):
             self.dragging = False
             self.theme_name = None
             self.popup_style_file = None
+            self.dock_colors = {}
 
             self.set_shown_popup(None)
             self.set_locked_popup(None)
@@ -743,7 +750,8 @@ class Globals(gobject.GObject):
                 changed_settings.append(key)
                 self.settings[key] = entry_get[type(value)]()
                 pref_update = True
-                
+
+        # Theme colors and popup style
         if self.theme_name:
             theme_name = self.theme_name.replace(" ", "_").encode()
             try:
@@ -770,6 +778,15 @@ class Globals(gobject.GObject):
                             self.colors[k] = entry_get[type(value)]()
                             pref_update = True
 
+        # Dock theme colors
+        for key, value in self.dock_colors.items():
+            tf = self.settings["dock/theme_file"]
+            if entry.get_key() == "%s/dock/themes/%s/%s"%(GCONF_DIR, tf, key):
+                if entry_get[type(value)] != value:
+                    self.dock_colors[key] = entry_get[type(value)]()
+                    self.emit("dock-color-changed")
+                    pref_update = True
+
         #TODO: Add check for sane values for critical settings.
         if "dock/size" in changed_settings:
             self.emit("dock-size-changed")
@@ -781,6 +798,10 @@ class Globals(gobject.GObject):
             self.emit("dock-behavior-changed")
         if "dock/mode" in changed_settings:
             self.emit("dock-mode-changed")
+        if "dock/end_decorations" in changed_settings:
+            self.emit("dock-end-decorations-changed")
+        if "dock/theme_file" in changed_settings:
+            self.emit("dock-theme-changed")
         if "awn/behavior" in changed_settings:
             self.emit("awn-behavior-changed")
         if "locked_list_no_overlap" in changed_settings:
@@ -912,6 +933,23 @@ class Globals(gobject.GObject):
             GCONF_CLIENT.set_string(psf, style)
             self.emit("preference-update")
 
+    def set_dock_theme(self, theme, colors):
+        if self.settings["dock/theme_file"] != theme:
+            self.settings["dock/theme_file"] = theme
+            GCONF_CLIENT.set_string(GCONF_DIR + "/dock/theme_file", theme)
+        
+        td = GCONF_DIR + "/dock/themes/" + theme
+        for key, value in colors.items():
+            try:
+                self.dock_colors[key] = GCONF_CLIENT.get_value("%s/%s"%(td,
+                                                                        key))
+            except:
+                self.dock_colors[key] = value
+                gset = {str: GCONF_CLIENT.set_string,
+                        int: GCONF_CLIENT.set_int }[type(value)]
+                gset("%s/%s" % (td, key), value)
+        self.emit("preference-update")
+
     def get_pinned_apps_from_gconf(self):
         # Get list of pinned_apps
         gconf_pinned_apps = []
@@ -925,7 +963,7 @@ class Globals(gobject.GObject):
 
     def set_pinned_apps_list(self, pinned_apps):
         GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", gconf.VALUE_STRING,
-                             pinned_apps)
+                              pinned_apps)
 
     def set_shown_popup(self, popup):
         if popup is None:

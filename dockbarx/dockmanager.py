@@ -68,7 +68,7 @@ class DockManager(dbus.service.Object):
         path_list = []
         for path in self.dockbar_r().get_dm_paths_by_desktop_file(name):
             path_list.append(dbus.ObjectPath(path))
-        logger.debug("Items gotten by dekstop file:", path_list)
+        logger.debug("Items gotten by dekstop file: %s" % path_list)
         return path_list
 
     @dbus.service.method(dbus_interface="net.launchpad.DockManager",
@@ -77,7 +77,7 @@ class DockManager(dbus.service.Object):
         path_list = []
         for path in self.dockbar_r().get_dm_paths_by_name(name):
             path_list.append(dbus.ObjectPath(path))
-        logger.debug("Items gotten by name:", path_list)
+        logger.debug("Items gotten by name: %s" % path_list)
         return path_list
 
     @dbus.service.method(dbus_interface="net.launchpad.DockManager",
@@ -86,7 +86,7 @@ class DockManager(dbus.service.Object):
         path_list = []
         for path in self.dockbar_r().get_dm_paths_by_pid(pid):
             path_list.append(dbus.ObjectPath(path))
-        logger.debug("Items gotten by pid:", path_list)
+        logger.debug("Items gotten by pid: %s" % path_list)
         return path_list
 
     @dbus.service.method(dbus_interface="net.launchpad.DockManager",
@@ -95,7 +95,7 @@ class DockManager(dbus.service.Object):
         path_list = []
         for path in self.dockbar_r().get_dm_paths_by_xid(xid):
             path_list.append(dbus.ObjectPath(path))
-        logger.debug("Items gotten by xid:", path_list)
+        logger.debug("Items gotten by xid: %s" % path_list)
         return path_list
 
     @dbus.service.signal(dbus_interface='net.launchpad.DockManager',
