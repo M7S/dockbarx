@@ -480,14 +480,18 @@ class PopupStyle(gobject.GObject):
     def reload(self):
         if self.style_path is None:
             return
+        # Default settings
+        self.bg = None
+        self.cb_pressed_pic = None
+        self.cb_hover_pic = None
+        self.cb_normal_pic = None
+        self.settings = {"border_color2": "#000000",
+                         "menu_item_lr_padding": 3}
+        self.name = "DBX"
         try:
             tar = taropen(self.style_path)
         except:
             logger.debug("Error opening style %s" % self.style_path)
-            self.settings = {"border_color2": "#000000",
-                             "menu_item_lr_padding": 3}
-            self.name = "DBX"
-            self.bg = None
             self.globals.set_popup_style("dbx.tar.gz")
             self.emit("popup-style-reloaded")
             return
@@ -498,16 +502,10 @@ class PopupStyle(gobject.GObject):
             logger.exception("Error extracting style from %s" % \
                              self.style_path)
             tar.close()
-            self.settings = {"border_color2": "#000000",
-                             "menu_item_lr_padding": 3}
-            self.name = "DBX"
-            self.bg = None
             self.globals.set_popup_style("dbx.tar.gz")
             self.emit("popup-style-reloaded")
             return
-        old_settings = self.settings
         self.settings = {}
-        name = None
         for line in config.readlines():
             # Split at "=" and clean up the key and value
             if not "=" in line:
@@ -544,8 +542,10 @@ class PopupStyle(gobject.GObject):
         if name:
             self.name = name
         else:
-            # Todo: Error handling here!
-            self.settings = old_settings
+            self.settings = {"border_color2": "#000000",
+                             "menu_item_lr_padding": 3}
+            self.globals.set_popup_style("dbx.tar.gz")
+            self.emit("popup-style-reloaded")
             tar.close()
             return
         # Load background
@@ -553,8 +553,18 @@ class PopupStyle(gobject.GObject):
             bgf = tar.extractfile("background.png")
             self.bg = cairo.ImageSurface.create_from_png(bgf)
             bgf.close()
-        else:
-            self.bg = None
+        if "closebutton/normal.png" in tar.getnames():
+            cbf = tar.extractfile("closebutton/normal.png")
+            self.cb_normal_pic = cairo.ImageSurface.create_from_png(cbf)
+            cbf.close()
+        if "closebutton/pressed.png" in tar.getnames():
+            cbf = tar.extractfile("closebutton/pressed.png")
+            self.cb_pressed_pic = cairo.ImageSurface.create_from_png(cbf)
+            cbf.close()
+        if "closebutton/hover.png" in tar.getnames():
+            cbf = tar.extractfile("closebutton/hover.png")
+            self.cb_hover_pic = cairo.ImageSurface.create_from_png(cbf)
+            cbf.close()
         tar.close()
 
         # Inform rest of dockbar about the reload.

@@ -882,6 +882,8 @@ class EventPadding(gtk.EventBox):
         use_bar2 = int(dock.theme.get("use_bar2", False))
         if use_bar2:
             b2_s = int(dock.theme.get("b2_side_padding", 6))
+        else:
+            b2_s = 0
         b1_s  = int(dock.theme.get("side_padding", 6))
         if corner:
             size = self.globals.settings["dock/size"]
@@ -893,8 +895,6 @@ class EventPadding(gtk.EventBox):
                 slope = -(float(dock.theme.get("bar2_slope", 90)) - 90)
                 slope = slope / 180 * pi
                 b2_s += int(abs(tan(slope)) * int(size*rel_size/100))
-            else:
-                b2_s = 0
         s = max(b1_s, b2_s)
         pos = self.globals.settings["dock/position"]
         if pos in ("left", "right"):

@@ -297,30 +297,46 @@ class CairoCloseButton(CairoSmallButton):
         self.popup_style = PopupStyle()
 
     def draw_button(self, ctx, x, y, w, h):
+        button_source = None
         if self.mousedown and self.mouseover:
-            bgc = self.popup_style.get("close_button_pressed_bg_color",
-                                       "#FF0000")
-            bga = self.popup_style.get("close_button_pressed_bg_alpha", 100)
-            xc = self.popup_style.get("close_button_pressed_x_color",
-                                       "#FFFFFF")
-            xa = self.popup_style.get("close_button_pressed_x_alpha", 100)
+            if self.popup_style.cb_pressed_pic:
+                button_source = self.popup_style.cb_pressed_pic
+            else:
+                bgc = self.popup_style.get("close_button_pressed_bg_color",
+                                           "#FF0000")
+                bga = self.popup_style.get("close_button_pressed_bg_alpha",
+                                           100)
+                xc = self.popup_style.get("close_button_pressed_x_color",
+                                           "#FFFFFF")
+                xa = self.popup_style.get("close_button_pressed_x_alpha", 100)
         elif self.mouseover:
-            bgc = self.popup_style.get("close_button_hover_bg_color",
-                                       "#FF0000")
-            bga = self.popup_style.get("close_button_hover_bg_alpha", 100)
-            xc = self.popup_style.get("close_button_hover_x_color",
-                                       "#FFFFFF")
-            xa = self.popup_style.get("close_button_hover_x_alpha", 0)
+            if self.popup_style.cb_hover_pic:
+                button_source = self.popup_style.cb_hover_pic
+            else:
+                bgc = self.popup_style.get("close_button_hover_bg_color",
+                                           "#FF0000")
+                bga = self.popup_style.get("close_button_hover_bg_alpha", 100)
+                xc = self.popup_style.get("close_button_hover_x_color",
+                                           "#FFFFFF")
+                xa = self.popup_style.get("close_button_hover_x_alpha", 0)
         else:
-            bgc = self.popup_style.get("close_button_bg_color",
-                                       "#FF0000")
-            bga = self.popup_style.get("close_button_bg_alpha", 50)
-            xc = self.popup_style.get("close_button_x_color",
-                                       "#FFFFF")
-            xa = self.popup_style.get("close_button_x_alpha", 0)
-            alpha = 0.5
-        button_source = cairo.ImageSurface(cairo.FORMAT_ARGB32,
-                                                       w, h)
+            if self.popup_style.cb_normal_pic:
+                button_source = self.popup_style.cb_normal_pic
+            else:
+                bgc = self.popup_style.get("close_button_bg_color",
+                                           "#FF0000")
+                bga = self.popup_style.get("close_button_bg_alpha", 50)
+                xc = self.popup_style.get("close_button_x_color",
+                                           "#FFFFF")
+                xa = self.popup_style.get("close_button_x_alpha", 0)
+
+        if button_source is None:
+            button_source = self.__make_button_surface(w, h, bgc, bga, xc, xa)
+        ctx.set_source_surface(button_source, x, y)
+        ctx.paint()
+
+    def __make_button_surface(self, w, h, bgc, bga, xc, xa):
+        button_source = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         bctx = cairo.Context(button_source)
         r = self.popup_style.get("close_button_roundness", 5)
         make_path(bctx, 0, 0, w, h, r)
@@ -339,9 +355,7 @@ class CairoCloseButton(CairoSmallButton):
         bctx.set_source_rgba(red, green, blue, alpha)
         bctx.set_operator(cairo.OPERATOR_SOURCE)
         bctx.stroke()
-
-        ctx.set_source_surface(button_source, x, y)
-        ctx.paint()
+        return button_source
 
 class CairoPlayPauseButton(CairoSmallButton):
     def __init__(self):
