@@ -338,7 +338,7 @@ class CairoCloseButton(CairoSmallButton):
     def __make_button_surface(self, w, h, bgc, bga, xc, xa):
         button_source = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         bctx = cairo.Context(button_source)
-        r = self.popup_style.get("close_button_roundness", 5)
+        r = int(self.popup_style.get("close_button_roundness", 5))
         make_path(bctx, 0, 0, w, h, r)
         red, green, blue = parse_color(bgc)
         alpha = min(max(float(bga) / 100, 0), 1)

@@ -417,6 +417,7 @@ class PopupStyle(gobject.GObject):
                   "needs_attention_item_alpha",
                   "needs_attention_item_boder_color",
                   "needs_attention_item_boder_alpha",
+                  "close_button_roundness",
                   "close_button_pressed_bg_color",
                   "close_button_pressed_bg_alpha",
                   "close_button_hover_bg_color",
