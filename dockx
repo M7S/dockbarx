@@ -396,6 +396,8 @@ class DockX(CairoDockX):
                            self.__on_end_decorations_changed)
         self.theme.connect("dock-theme-reloaded",
                            self.__on_dock_theme_reloaded)
+        screen = gtk.gdk.screen_get_default()
+        screen.connect("size-changed", self.__on_screen_size_changed)
         if self.autohide:
             self.show_dock()
         self.dbus_obj = DockXDBus(self)
@@ -614,9 +616,11 @@ class DockX(CairoDockX):
                 x = mx + mw / 2 - w / 2
                 y = my + mh - h
             self.move(x, y)
-            self.queue_draw()
-        if self.globals.settings["dock/mode"] == "corner":
-            x, y = self.get_position()
+        else:
+            x = self.old_x
+            y = self.old_y
+        self.move(x, y)
+        self.queue_draw()
         self.__set_dock_strut(x, y, w, h)
 
     def show_dock(self):
@@ -840,6 +844,15 @@ class DockX(CairoDockX):
         self.compute_padding()
         self.position_dock(rebuild=True)
         self.queue_draw()
+
+    def __on_screen_size_changed(self, *args):
+        self.position_dock()
+        if self.globals.settings["dock/mode"] in ("centered", "corner"):
+            a = self.get_allocation()
+            x, y = self.get_position()
+            self.__set_dock_strut(x, y, a.width, a.height)
+        if self.autohide:
+            self.__compute_should_autohide()
 
     def get_monitor_geometry(self):
         screen = self.get_screen()
