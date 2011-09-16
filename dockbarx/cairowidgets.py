@@ -21,7 +21,7 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 import cairo
-from math import pi
+from math import pi, tan
 from xml.sax.saxutils import escape
 import gobject
 import pango
@@ -564,45 +564,59 @@ class CairoPopup(gtk.Window):
         else:
             ctx.set_source_rgb(red, green, blue)
         ctx.fill_preserve()
-        # Gradients
-        gradients = []
+        # Linear gradients
         for n in range(1,4):
-            for name in ("popup_radial_gradient%s", "popup_linear_gradient%s"):
-                gradients.append(name % n)
-        for n in gradients:
-            args = self.popup_style.get(n)
-            if args:
-                args = [float(arg) for arg in args.split(",")]
-                if n.startswith("popup_radial"):
-                    func = cairo.RadialGradient
-                else:
-                    func = cairo.LinearGradient
-                try:
-                    pattern = func(*args)
-                except:
-                    logger.exception("Couldn't make gradinet %s for " % n + \
-                                     "popup style %s" % self.popup_style.name)
-                    break
-                rpc1 = self.popup_style.get("%s_color1" % n,
-                                                     "#FFFFFF")
-                if not rpc1[0] == "#":
-                    rpc1 = "#%s" % rpc1
-                red, green, blue = parse_color(rpc1)
-                alpha = self.popup_style.get("%s_alpha1" % n, 20)
-                alpha = float(alpha) / 100
-                pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
-                
-                rpc2 = self.popup_style.get("%s_color2" % n,
-                                                     "#FFFFFF")
-                if not rpc2[0] == "#":
-                    rpc2 = "#%s" % rpc2
-                red, green, blue = parse_color(rpc2)
-                alpha = self.popup_style.get("%s_alpha2" % n, 0)
-                alpha = float(alpha) / 100
-                pattern.add_color_stop_rgba(1.0, red, green, blue, alpha)
-                ctx.set_source(pattern)
-                
-                ctx.fill_preserve()
+            name = "popup_linear_gradient%s" % n
+            if not int(self.popup_style.get("use_%s" % name, 0)):
+                continue
+            angle = int(self.popup_style.get("%s_angle" % name, 0))
+            start = float(self.popup_style.get("%s_start" % name, 0))
+            stop = float(self.popup_style.get("%s_stop" % name, 100))
+            pattern = self.__make_linear_pattern(angle, start, stop, w, h)
+            rpc1 = self.popup_style.get("%s_start_color" % name, "#FFFFFF")
+            if not rpc1[0] == "#":
+                rpc1 = "#%s" % rpc1
+            red, green, blue = parse_color(rpc1)
+            alpha = self.popup_style.get("%s_start_alpha" % name, 20)
+            alpha = float(alpha) / 100
+            pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
+            
+            rpc2 = self.popup_style.get("%s_stop_color" % name, "#FFFFFF")
+            if not rpc2[0] == "#":
+                rpc2 = "#%s" % rpc2
+            red, green, blue = parse_color(rpc2)
+            alpha = self.popup_style.get("%s_stop_alpha" % name, 0)
+            alpha = float(alpha) / 100
+            pattern.add_color_stop_rgba(1.0, red, green, blue, alpha)
+            ctx.set_source(pattern)
+            ctx.fill_preserve()
+        # Radial gradients
+        for n in range(1,4):
+            name = "popup_radial_gradient%s" % n
+            if not int(self.popup_style.get("use_%s" % name, 0)):
+                continue
+            args = self.popup_style.get(name, "50,30,10,50,30,100")
+            args = args.split(",")
+            args = [int(arg) for arg in args]
+            pattern = cairo.RadialGradient(*args)
+            rpc1 = self.popup_style.get("%s_color1" % name, "#FFFFFF")
+            if not rpc1[0] == "#":
+                rpc1 = "#%s" % rpc1
+            red, green, blue = parse_color(rpc1)
+            alpha = self.popup_style.get("%s_alpha1" % name, 20)
+            alpha = float(alpha) / 100
+            pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
+            
+            rpc2 = self.popup_style.get("%s_color2" % name, "#FFFFFF")
+            if not rpc2[0] == "#":
+                rpc2 = "#%s" % rpc2
+            red, green, blue = parse_color(rpc2)
+            alpha = self.popup_style.get("%s_alpha2" % name, 0)
+            alpha = float(alpha) / 100
+            pattern.add_color_stop_rgba(1.0, red, green, blue, alpha)
+            ctx.set_source(pattern)
+            
+            ctx.fill_preserve()
         # Background picture
         if self.popup_style.bg is not None:
             pattern = cairo.SurfacePattern(self.popup_style.bg)
@@ -650,6 +664,53 @@ class CairoPopup(gtk.Window):
             ctx.set_line_width(max(bw - 1, 0.5))
             ctx.stroke()
 
+    def __make_linear_pattern(self, angle_f, start, stop, w, h):
+        start_x = None
+        angle =  angle_f % 180
+        if angle == 0:
+            if angle_f // 180 % 2:
+                # the angle is 180 + n * 360, n = 0, 1, 2, 3, ...
+                start_x = w - (start * w / 100.0)
+                start_y = 0
+                stop_x = w - (stop * w / 100.0)
+                stop_y = 0
+            else:
+                # the angle is 0 + n * 360, n = 0, 1, 2, 3, ...
+                start_x = start * w / 100.0
+                start_y = 0
+                stop_x = stop * w / 100.0
+                stop_y = 0
+        elif angle == 90:
+            start_x = 0
+            start_y = start * h / 100.0
+            stop_x = 0
+            stop_y = stop * h / 100.0
+        elif angle == -90:
+            start_x = 0
+            start_y = h - (start * h / 100.0)
+            stop_x = 0
+            stop_y = h - (stop * h / 100.0)
+        elif angle > 90 or (-90 < angle and angle < 0):
+            x1 = w * start / 100.0
+            y1 = h * start / 100.0
+            x2 = w * stop / 100.0
+            y2 = h * stop / 100.0
+        else:
+            x1 = w - (w * start / 100.0)
+            y1 = h * start / 100.0
+            x2 = w - (w * stop / 100.0)
+            y2 = h * stop / 100.0
+        if start_x is None:
+            k1 = -tan(angle * pi / 180.0 )
+            k2 = -1 / k1
+            print "ks", k1, k2
+            start_x = x1
+            start_y = y1
+            stop_x = (k1 * x1 - k2 * x2 + y2 - y1) / (k1 - k2)
+            stop_y = k1 * (stop_x - x1) + y1
+        print start_x, start_y, ":", stop_x, stop_y
+        return cairo.LinearGradient(start_x, start_y, stop_x, stop_y)
+         
     def __on_popup_style_reloaded(self, *args):
         a = self.__get_arrow_size()
         p = int(self.popup_style.get("popup_padding", 7))

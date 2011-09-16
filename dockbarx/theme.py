@@ -359,78 +359,6 @@ class PopupStyle(gobject.GObject):
     __gsignals__ = {"popup-style-reloaded": (gobject.SIGNAL_RUN_FIRST,
                                              gobject.TYPE_NONE,()),}
 
-    KNOWN_KEYS = ("border_width",
-                  "arrow_size",
-                  "border_color",
-                  "border_color2",
-                  "border_alpha",
-                  "border_alpha2",
-                  "popup_distance",
-                  "popup_roundness",
-                  "popup_padding",
-                  "popup_radial_gradient1",
-                  "popup_radial_gradient1_color1",
-                  "popup_radial_gradient1_color2",
-                  "popup_radial_gradient1_alpha1",
-                  "popup_radial_gradient1_alpha2",
-                  "popup_radial_gradient2",
-                  "popup_radial_gradient2_color1",
-                  "popup_radial_gradient2_color2",
-                  "popup_radial_gradient2_alpha1",
-                  "popup_radial_gradient2_alpha2",
-                  "popup_radial_gradient3",
-                  "popup_radial_gradient3_color1",
-                  "popup_radial_gradient3_alpha1",
-                  "popup_radial_gradient3_color2",
-                  "popup_radial_gradient3_alpha2",
-                  "popup_linear_gradient1",
-                  "popup_linear_gradient1_color1",
-                  "popup_linear_gradient1_alpha1",
-                  "popup_linear_gradient1_color2",
-                  "popup_linear_gradient1_alpha2",
-                  "popup_linear_gradient2",
-                  "popup_linear_gradient2_color1",
-                  "popup_linear_gradient2_alpha1",
-                  "popup_linear_gradient2_color2",
-                  "popup_linear_gradient2_alpha2",
-                  "popup_linear_gradient3",
-                  "popup_linear_gradient3_color1",
-                  "popup_linear_gradient3_alpha1",
-                  "popup_linear_gradient3_color2",
-                  "popup_linear_gradient3_alpha2",
-                  "locked_list_padding",
-                  "locked_list_distance",
-                  "window_item_roundness",
-                  "window_item_lr_padding",
-                  "window_item_td_padding",
-                  "window_item_border_color",
-                  "window_item_border_alpha",
-                  "menu_item_roundness",
-                  "menu_item_lr_padding",
-                  "menu_item_td_padding",
-                  "menu_item_border_color",
-                  "menu_item_border_alpha",
-                  "active_item_alpha",
-                  "active_item_boder_color",
-                  "active_item_boder_alpha",
-                  "needs_attention_item_color",
-                  "needs_attention_item_alpha",
-                  "needs_attention_item_boder_color",
-                  "needs_attention_item_boder_alpha",
-                  "close_button_roundness",
-                  "close_button_pressed_bg_color",
-                  "close_button_pressed_bg_alpha",
-                  "close_button_hover_bg_color",
-                  "close_button_hover_bg_alpha",
-                  "close_button_bg_color",
-                  "close_button_bg_alpha",
-                  "close_button_pressed_x_color",
-                  "close_button_pressed_x_alpha",
-                  "close_button_hover_x_color",
-                  "close_button_hover_x_alpha",
-                  "close_button_x_color",
-                  "close_button_x_alpha")
-
     def __new__(cls, *p, **k):
         if not "_the_instance" in cls.__dict__:
             cls._the_instance = gobject.GObject.__new__(cls)
@@ -531,14 +459,7 @@ class PopupStyle(gobject.GObject):
                 name = value
                 continue
             value = value.lower()
-            # If the key is known add the item to the dict.
-            if key in self.KNOWN_KEYS:
-                self.settings[key] = value
-            else:
-                # Todo: Error message here!
-                logger.warning("Unknown key in popup style %s: %s" % \
-                               (name, key))
-                pass
+            self.settings[key] = value
         config.close()
         if name:
             self.name = name
