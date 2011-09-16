@@ -703,12 +703,10 @@ class CairoPopup(gtk.Window):
         if start_x is None:
             k1 = -tan(angle * pi / 180.0 )
             k2 = -1 / k1
-            print "ks", k1, k2
             start_x = x1
             start_y = y1
             stop_x = (k1 * x1 - k2 * x2 + y2 - y1) / (k1 - k2)
             stop_y = k1 * (stop_x - x1) + y1
-        print start_x, start_y, ":", stop_x, stop_y
         return cairo.LinearGradient(start_x, start_y, stop_x, stop_y)
          
     def __on_popup_style_reloaded(self, *args):
