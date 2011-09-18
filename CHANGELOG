@@ -1,5 +1,18 @@
 Changelog:
 
+0.47
+Features
+- Window list styles
+The window list (and the close button) is themeable now. You can select different styles for the window list from appearence tab. The styles are independent parts of the themes. They exist in .dockbarx/themes/popup_styles or /usr/share/dockbarx/themes/popup_styles. They are .tar.gz files and should contain one style file with all the settings  and optionally one background.png picture. Making styles should be very easy compared to making themes. Look inside any of the styles that comes with DockbarX, the style file is heavily commented. Themes can set which style they want to use as default and the default colors of the window list is still set from the theme.
+- Window list look has changed more besides the styles. Active and urgent windows are now highlighted with background colors instead of simply changing fonts.
+
+- Stand alone dock themes
+The dock is themable now as well. Writing dock themes is similar to writing window list styles. The files is located at ~/.dockbarx/themes/dock/ or /usr/share/dockbarx/themes/dock/. Look inside one of the themes for more information on how to make one, it shouldn't be too hard.
+
+Bug fixes:
+- Bug #833335 and #834804: The awn applet didn't remove icons on windows where closed. (Sorry AWN-using-people for the long wait for this fix.)
+- Lots of small bugfixes for the dock. The dock is still a little bit buggy so please bug report anything and there will be a bug fix release soon.
+
 0.46.1
 Bug Fixes:
 - Bug #809080: In the dock application buttons were not removed when windows were closed when the behaviors "panel" or "standard" were used.
