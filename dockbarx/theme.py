@@ -493,7 +493,7 @@ class PopupStyle(gobject.GObject):
         self.globals.set_popup_style(self.style_path.rsplit("/", 1)[-1])
         self.emit("popup-style-reloaded")
 
-    def get_styles(self):
+    def get_styles(self, theme_name=None):
         # For DockbarX preference. This function makes a dict of the names and
         # file names of the styles for all styles that can be opened correctly.
         styles = {}
@@ -504,7 +504,16 @@ class PopupStyle(gobject.GObject):
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
                     if f[-7:] == ".tar.gz":
-                        name = self.check(dir+"/"+f)
+                        name, oft = self.check(dir+"/"+f)
+                        if oft:
+                            # The style is meant only for themes
+                            # mentioned in oft.
+                            if theme_name is None:
+                                continue
+                            oft = [t.strip().lstrip().lower() \
+                                   for t in oft.split(",")]
+                            if not theme_name.lower() in oft:
+                                continue
                         if name:
                             styles[name] = f
         # The default style (if the theme doesn't set another one) is DBX,
@@ -524,6 +533,7 @@ class PopupStyle(gobject.GObject):
             tar.close()
             return None
         name = None
+        oft = None
         for line in config.readlines():
             # Split at "=" and clean up the key and value
             if not "=" in line:
@@ -543,11 +553,12 @@ class PopupStyle(gobject.GObject):
             # Remove quote signs
             if value[0] in ("\"", "'") and value[-1] in ("\"", "'"):
                 value = value[1:-1]
+            if key == "only_for_themes":
+                oft = value
             if key == "name":
                 name = value
-                break
         tar.close()
-        return name
+        return name, oft
 
 class DockTheme(gobject.GObject):
     __gsignals__ = {"dock-theme-reloaded": (gobject.SIGNAL_RUN_FIRST,

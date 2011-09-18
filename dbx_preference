@@ -213,7 +213,7 @@ class PrefDialog():
         self.globals = Globals()
         self.__load_theme()
         self.popup_style = PopupStyle()
-        self.popup_styles = self.popup_style.get_styles()
+        self.popup_styles = self.popup_style.get_styles(self.theme.get_name())
         self.dock_theme = DockTheme()
         self.dock_themes = self.dock_theme.get_themes()
         self.globals.connect("theme-changed", self.__on_theme_changed)
@@ -1410,6 +1410,8 @@ class PrefDialog():
             if file_name == self.globals.popup_style_file:
                 self.popup_style_combo.set_active(i)
                 break
+        else:
+            self.popup_style_combo.set_active(-1)
 
 
         # Advanced page stuff
@@ -1891,7 +1893,7 @@ class PrefDialog():
                 self.theme_combo.append_text(theme)
 
         self.popup_style_combo.get_model().clear()
-        self.popup_styles = self.popup_style.get_styles()
+        self.popup_styles = self.popup_style.get_styles(self.theme.get_name())
         style_names = self.popup_styles.keys()
         style_names.sort()
         for style in style_names:
