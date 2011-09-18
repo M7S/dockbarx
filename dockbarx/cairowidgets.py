@@ -474,11 +474,12 @@ class CairoPopup(gtk.Window):
             self.point("down")
         else:
             self.point("left")
-        connect(self.popup_style,
-                "popup-style-reloaded", self.__on_popup_style_reloaded)
+        self.popup_reloaded_sid = self.popup_style.connect(
+                                                "popup-style-reloaded",
+                                                self.__on_popup_style_reloaded)
 
     def destroy(self):
-        disconnect(self.popup_style)
+        self.popup_style.disconnect(self.popup_reloaded_sid)
         self.popup_style = None
         gtk.Window.destroy(self)
 
@@ -496,8 +497,7 @@ class CairoPopup(gtk.Window):
 
     def point(self, new_pointer, ap=0):
         self.ap = ap
-        p = int(self.popup_style.get("%s_padding" % self.popup_type,
-                                              7))
+        p = int(self.popup_style.get("%s_padding" % self.popup_type, 7))
         a = self.__get_arrow_size()
         if new_pointer != self.pointer:
             self.pointer = new_pointer
@@ -720,7 +720,7 @@ class CairoPopup(gtk.Window):
          
     def __on_popup_style_reloaded(self, *args):
         a = self.__get_arrow_size()
-        p = int(self.popup_style.get("popup_padding", 7))
+        p = int(self.popup_style.get("%s_padding" % self.popup_type, 7))
         padding = {"up":(p+a, p, p, p),
                    "down":(p, p+a, p, p),
                    "left":(p, p, p+a, p),
