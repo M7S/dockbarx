@@ -565,7 +565,7 @@ class CairoPopup(gtk.Window):
             ctx.set_source_rgb(red, green, blue)
         ctx.fill_preserve()
         # Linear gradients
-        for n in range(1,4):
+        for n in (1, 2, 3):
             name = "popup_linear_gradient%s" % n
             if not int(self.popup_style.get("use_%s" % name, 0)):
                 continue
@@ -591,7 +591,7 @@ class CairoPopup(gtk.Window):
             ctx.set_source(pattern)
             ctx.fill_preserve()
         # Radial gradients
-        for n in range(1,4):
+        for n in (1, 2, 3):
             name = "popup_radial_gradient%s" % n
             if not int(self.popup_style.get("use_%s" % name, 0)):
                 continue
@@ -664,41 +664,50 @@ class CairoPopup(gtk.Window):
             ctx.set_line_width(max(bw - 1, 0.5))
             ctx.stroke()
 
-    def __make_linear_pattern(self, angle_f, start, stop, w, h):
+    def __make_linear_pattern(self, angle, start, stop, w, h):
         start_x = None
-        angle =  angle_f % 180
+        angle =  angle % 360
+        if angle < 0:
+            angle += 360
         if angle == 0:
-            if angle_f // 180 % 2:
-                # the angle is 180 + n * 360, n = 0, 1, 2, 3, ...
-                start_x = w - (start * w / 100.0)
-                start_y = 0
-                stop_x = w - (stop * w / 100.0)
-                stop_y = 0
-            else:
-                # the angle is 0 + n * 360, n = 0, 1, 2, 3, ...
-                start_x = start * w / 100.0
-                start_y = 0
-                stop_x = stop * w / 100.0
-                stop_y = 0
-        elif angle == 90:
+            start_x = start * w / 100.0
+            start_y = 0
+            stop_x = stop * w / 100.0
+            stop_y = 0
+        if angle == 180:
+            start_x = w - (start * w / 100.0)
+            start_y = 0
+            stop_x = w - (stop * w / 100.0)
+            stop_y = 0
+        elif angle == 270:
             start_x = 0
             start_y = start * h / 100.0
             stop_x = 0
             stop_y = stop * h / 100.0
-        elif angle == -90:
+        elif angle == 90:
             start_x = 0
             start_y = h - (start * h / 100.0)
             stop_x = 0
             stop_y = h - (stop * h / 100.0)
-        elif angle > 90 or (-90 < angle and angle < 0):
+        elif angle < 90:
             x1 = w * start / 100.0
-            y1 = h * start / 100.0
+            y1 = h - h * start / 100.0
             x2 = w * stop / 100.0
-            y2 = h * stop / 100.0
-        else:
+            y2 = h - h * stop / 100.0
+        elif 90 < angle  and angle < 180:
+            x1 = w - (w * start / 100.0)
+            y1 = h - h * start / 100.0
+            x2 = w - (w * stop / 100.0)
+            y2 = h - h * stop / 100.0
+        elif 180 < angle and angle < 270: 
             x1 = w - (w * start / 100.0)
             y1 = h * start / 100.0
             x2 = w - (w * stop / 100.0)
+            y2 = h * stop / 100.0
+        elif 270 < angle:
+            x1 = w * start / 100.0
+            y1 = h * start / 100.0
+            x2 = w * stop / 100.0
             y2 = h * stop / 100.0
         if start_x is None:
             k1 = -tan(angle * pi / 180.0 )

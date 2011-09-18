@@ -139,6 +139,30 @@ class CairoDockX(gtk.Window):
         else:
             ctx.set_source_rgb(red, green, blue)
         ctx.fill_preserve()
+        ctx.set_operator(cairo.OPERATOR_OVER)
+        # Linear gradients
+        for n in (1, 2, 3):
+            name = "linear_gradient%s" % n
+            if not int(self.theme.get("use_%s" % name, 0)):
+                continue
+            pattern = self.__make_linear_pattern(w, h, n)
+            rpc1 = self.theme.get("%s_start_color" % name, "#FFFFFF")
+            if not rpc1[0] == "#":
+                rpc1 = "#%s" % rpc1
+            red, green, blue = self.__parse_color(rpc1)
+            alpha = self.theme.get("%s_start_alpha" % name, 20)
+            alpha = float(alpha) / 100
+            pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
+            
+            rpc2 = self.theme.get("%s_stop_color" % name, "#FFFFFF")
+            if not rpc2[0] == "#":
+                rpc2 = "#%s" % rpc2
+            red, green, blue = self.__parse_color(rpc2)
+            alpha = self.theme.get("%s_stop_alpha" % name, 0)
+            alpha = float(alpha) / 100
+            pattern.add_color_stop_rgba(1.0, red, green, blue, alpha)
+            ctx.set_source(pattern)
+            ctx.fill_preserve()
         # Background picture
         if self.theme.bg is not None:
             pattern = cairo.SurfacePattern(self.theme.bg)
@@ -146,6 +170,7 @@ class CairoDockX(gtk.Window):
             ctx.set_source(pattern)
             ctx.fill_preserve()
         # Stroke the outer border
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
         ctx.append_path(stroke_path)
         color = self.theme.get("border_color", "#000000")
         red, green, blue = self.__parse_color(color)
@@ -169,6 +194,30 @@ class CairoDockX(gtk.Window):
         else:
             ctx.set_source_rgb(red, green, blue)
         ctx.fill_preserve()
+        ctx.set_operator(cairo.OPERATOR_OVER)
+        # Linear gradients
+        for n in (1, 2, 3):
+            name = "bar2_linear_gradient%s" % n
+            if not int(self.theme.get("bar2_use_linear_gradient%s" % n, 0)):
+                continue
+            pattern = self.__make_linear_pattern(w, h, n, bar2=True)
+            rpc1 = self.theme.get("%s_start_color" % name, "#FFFFFF")
+            if not rpc1[0] == "#":
+                rpc1 = "#%s" % rpc1
+            red, green, blue = self.__parse_color(rpc1)
+            alpha = self.theme.get("%s_start_alpha" % name, 20)
+            alpha = float(alpha) / 100
+            pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
+            
+            rpc2 = self.theme.get("%s_stop_color" % name, "#FFFFFF")
+            if not rpc2[0] == "#":
+                rpc2 = "#%s" % rpc2
+            red, green, blue = self.__parse_color(rpc2)
+            alpha = self.theme.get("%s_stop_alpha" % name, 0)
+            alpha = float(alpha) / 100
+            pattern.add_color_stop_rgba(1.0, red, green, blue, alpha)
+            ctx.set_source(pattern)
+            ctx.fill_preserve()
         # Background picture
         if self.theme.bar2_bg is not None:
             pattern = cairo.SurfacePattern(self.theme.bar2_bg)
@@ -176,6 +225,7 @@ class CairoDockX(gtk.Window):
             ctx.set_source(pattern)
             ctx.fill_preserve()
         # Stroke the outer border
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
         color = self.theme.get("bar2_border_color", "#000000")
         red, green, blue = self.__parse_color(color)
         ctx.append_path(stroke_path)
@@ -310,6 +360,71 @@ class CairoDockX(gtk.Window):
         green = float(int(color[3:5], 16))/255
         blue = float(int(color[5:7], 16))/255
         return red, green, blue
+
+    def __make_linear_pattern(self, w, h, n, bar2=False):
+        if bar2:
+            name = "bar2_linear_gradient%s" % n
+            rel_size = float(self.theme.get("bar2_rel_size", 100.0))
+        else:
+            name = "linear_gradient%s" % n
+            rel_size = float(self.theme.get("rel_size", 100.0))
+        angle = int(self.theme.get("%s_angle" % name, 0))
+        start = float(self.theme.get("%s_start" % name, 0))
+        stop = float(self.theme.get("%s_stop" % name, 100))
+        size = int(self.globals.settings["dock/size"] * rel_size / 100)
+        t = h - size
+        start_x = None
+        angle =  angle % 360
+        if angle < 0:
+            angle += 360
+        if angle == 0:
+            start_x = start * w / 100.0
+            start_y = 0
+            stop_x = stop * w / 100.0
+            stop_y = 0
+        if angle == 180:
+            start_x = w - (start * w / 100.0)
+            start_y = 0
+            stop_x = w - (stop * w / 100.0)
+            stop_y = 0
+        elif angle == 270:
+            start_x = 0
+            start_y = t + start * size / 100.0
+            stop_x = 0
+            stop_y = t + stop * size / 100.0
+        elif angle == 90:
+            start_x = 0
+            start_y = h - (start * size / 100.0)
+            stop_x = 0
+            stop_y = h - (stop * size / 100.0)
+        elif angle < 90:
+            x1 = w * start / 100.0
+            y1 = h - size * start / 100.0
+            x2 = w * stop / 100.0
+            y2 = h - size * stop / 100.0
+        elif 90 < angle  and angle < 180:
+            x1 = w - (w * start / 100.0)
+            y1 = h - size * start / 100.0
+            x2 = w - (w * stop / 100.0)
+            y2 = h - size * stop / 100.0
+        elif 180 < angle and angle < 270: 
+            x1 = w - (w * start / 100.0)
+            y1 = t + size * start / 100.0
+            x2 = w - (w * stop / 100.0)
+            y2 = t + size * stop / 100.0
+        elif 270 < angle:
+            x1 = w * start / 100.0
+            y1 = t + size * start / 100.0
+            x2 = w * stop / 100.0
+            y2 = t + size * stop / 100.0
+        if start_x is None:
+            k1 = -tan(angle * pi / 180.0 )
+            k2 = -1 / k1
+            start_x = x1
+            start_y = y1
+            stop_x = (k1 * x1 - k2 * x2 + y2 - y1) / (k1 - k2)
+            stop_y = k1 * (stop_x - x1) + y1
+        return cairo.LinearGradient(start_x, start_y, stop_x, stop_y)
 
     def compute_padding(self):
         pos = self.globals.settings["dock/position"]
