@@ -293,8 +293,12 @@ class CairoSmallButton(gtk.Button):
 
 class CairoCloseButton(CairoSmallButton):
     def __init__(self):
-        CairoSmallButton.__init__(self, 14)
         self.popup_style = PopupStyle()
+        self.size = int(self.popup_style.get("close_button_size", 14))
+        CairoSmallButton.__init__(self, self.size)
+        self.popup_reloaded_sid = self.popup_style.connect(
+                                                "popup-style-reloaded",
+                                                self.__on_popup_style_reloaded)
 
     def draw_button(self, ctx, x, y, w, h):
         button_source = None
@@ -356,6 +360,13 @@ class CairoCloseButton(CairoSmallButton):
         bctx.set_operator(cairo.OPERATOR_SOURCE)
         bctx.stroke()
         return button_source
+
+    def __on_popup_style_reloaded(self, *args):
+        size = int(self.popup_style.get("close_button_size", 14))
+        if size != self.size:
+            self.set_size_request(size, size)
+            self.size = size
+            self.queue_draw()
 
 class CairoPlayPauseButton(CairoSmallButton):
     def __init__(self):
@@ -726,6 +737,8 @@ class CairoPopup(gtk.Window):
                    "left":(p, p, p+a, p),
                    "right":(p, p, p, p+a)}[self.pointer]
         self.alignment.set_padding(*padding)
+        if self.popup_type == "locked_list":
+            self.resize(10, 10)
 
     def pointer_is_inside(self):
         ax, ay, width, height = self.alignment.get_allocation()
