@@ -53,14 +53,6 @@ try:
 except:
     WNCK_WINDOW_ACTION_MAXIMIZE = 1 << 14
 
-def load_ccm():
-    global ccm
-    try:
-        import ccm
-    except:
-        pass
-
-load_ccm()
 
 class GroupIdentifierError(Exception):
     pass
@@ -1305,7 +1297,7 @@ class Group(ListOfWindows):
             self[0].action_select_window(widget, event)
             return
             
-        if ccm and ccm.Version >= '0.9.4':
+        if self.globals.get_compiz_version() >= '0.9.4':
             screen_path = 'screen0'
         else:
             screen_path = 'allscreens'
@@ -1334,7 +1326,7 @@ class Group(ListOfWindows):
             self[0].action_select_window(widget, event)
             return
 
-        if ccm and ccm.Version >= '0.9.4':
+        if self.globals.get_compiz_version() >= '0.9.4':
             screen_path = 'screen0'
         else:
             screen_path = 'allscreens'
@@ -1355,7 +1347,7 @@ class Group(ListOfWindows):
         #~ self.deopacify()
 
     def action_compiz_scale_all(self, widget, event):
-        if ccm and ccm.Version >= '0.9.4':
+        if self.globals.get_compiz_version() >= '0.9.4':
             screen_path = 'screen0'
         else:
             screen_path = 'allscreens'
@@ -1569,7 +1561,7 @@ class GroupButton(CairoAppButton):
                 x = x + alloc.x + alloc.width/2
                 y = y + alloc.y + alloc.height/2
                 try:
-                    if ccm and ccm.Version >= '0.9.4':
+                    if self.globals.get_compiz_version() >= '0.9.4':
                         screen_path = 'screen0'
                     else:
                         screen_path = 'allscreens'

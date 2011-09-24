@@ -323,7 +323,7 @@ class WindowItem(CairoButton):
         vbox.pack_start(hbox, False)
         self.preview_box = gtk.Alignment(0.5, 0.5, 0, 0)
         self.preview_box.set_padding(4, 2, 0, 0)
-        self.preview =  gtk.Image()
+        self.preview = gtk.Image()
         self.preview_box.add(self.preview)
         self.preview.show()
         vbox.pack_start(self.preview_box, True, True)
@@ -442,10 +442,10 @@ class WindowItem(CairoButton):
         if width*ar < size and height < size:
             pass
         elif float(width) / height > ar:
-            height = int(size * ar * height / width)
+            height = int(round(size * ar * height / width))
             width = int(size * ar)
         else:
-            width = size * width / height
+            width = int(float(size) * width / height)
             height = size
         self.preview.set_size_request(width, height)
         return width, height
@@ -457,7 +457,9 @@ class WindowItem(CairoButton):
             self.preview_box.hide()
 
     def get_preview_allocation(self):
-        return self.preview.get_allocation()
+        a = self.preview.get_allocation()
+        self.area.set_preview_allocation(a)
+        return a
 
     #### Events
     def do_enter_notify_event(self, event):

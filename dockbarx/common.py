@@ -701,6 +701,7 @@ class Globals(gobject.GObject):
             self.theme_name = None
             self.popup_style_file = None
             self.dock_colors = {}
+            self.__compiz_version = None
 
             self.set_shown_popup(None)
             self.set_locked_popup(None)
@@ -982,6 +983,15 @@ class Globals(gobject.GObject):
 
     def get_locked_popup(self):
         return self.locked_popup()
+
+    def get_compiz_version(self):
+        if self.__compiz_version is None:
+            try:
+                import ccm
+                self.__compiz_version = ccm.Version
+            except:
+                self.__compiz_version = "0.8"
+        return self.__compiz_version
         
 
 

@@ -30,6 +30,8 @@ from common import Globals, connect, disconnect
 from theme import PopupStyle
 from log import logger
 
+
+
 class CairoAppButton(gtk.EventBox):
     __gsignals__ = {"expose-event" : "override",
                     "size_allocate": "override"}
@@ -849,6 +851,7 @@ class CairoArea(gtk.Alignment):
         self.pressed_down = False
         self.active_window = False
         self.needs_attention = False
+        self.preview_allocation = [0, 0, 0, 0]
         if text:
             self.label = gtk.Label()
             self.add(self.label)
@@ -881,11 +884,13 @@ class CairoArea(gtk.Alignment):
     def do_expose_event(self, event, arg=None):
         a = self.get_allocation()
         mx , my = self.get_pointer()
-        highlighted = False
-        if (mx >= 0 and mx < a.width and my >= 0 and my < a.height) or \
-            self.highlighted:
-                highlighted = True
-        if self.active_window or highlighted or self.needs_attention:
+        preview = self.globals.settings["preview"] and \
+                  self.globals.get_compiz_version() >= "0.9"
+        highlighted = self.highlighted or \
+                      (mx >= 0 and mx < a.width and my >= 0 and my < a.height)
+            
+        if preview or self.active_window or \
+           highlighted or self.needs_attention:
             ctx = self.window.cairo_create()
             ctx.rectangle(event.area.x, event.area.y,
                           event.area.width, event.area.height)
@@ -898,6 +903,12 @@ class CairoArea(gtk.Alignment):
                                  "active_item")
         if highlighted:
             self.draw_frame(ctx, a.x, a.y, a.width, a.height)
+        # Empty preview space
+        if preview:
+            ctx.rectangle(*self.preview_allocation)
+            ctx.set_source_rgba(1, 1, 1, 0)
+            ctx.set_operator(cairo.OPERATOR_SOURCE)
+            ctx.fill()
         self.propagate_expose(self.get_child(), event)
         return
 
@@ -978,6 +989,9 @@ class CairoArea(gtk.Alignment):
     def set_needs_attention(self, needs_attention):
         self.needs_attention = needs_attention
         self.queue_draw()
+
+    def set_preview_allocation(self, allocation):
+        self.preview_allocation = allocation
 
     def pointer_is_inside(self):
         mx,my = self.get_pointer()
@@ -1098,6 +1112,7 @@ class CairoVBox(gtk.VBox):
     __gsignals__ = {"expose-event" : "override"}
 
     def __init__(self, label=None, show_menu=False):
+        self.set_app_paintable(1)
         gtk.VBox.__init__(self)
         self.globals = Globals()
         self.popup_style = PopupStyle()
@@ -1124,6 +1139,40 @@ class CairoVBox(gtk.VBox):
         ctx.set_line_width(1)
         ctx.stroke()
 
+class CairoPreview(gtk.Image):
+    _gsignals__ = {"expose-event" : "override",
+                   "visibility-notify-event": "override"}
+    def __init__(self):
+        gtk.Image.__init__(self)
+        gobject.timeout_add(100, self.draw)
+
+    def draw(self):
+        if self.window is None:
+            return True
+        a = self.get_allocation()
+        ctx = self.window.cairo_create()
+        ctx.rectangle(a.x, a.y,
+                      a.width, a.height)
+        ctx.clip()
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
+        ctx.set_source_rgba(1,1,1,0)
+        ctx.paint()
+        print "drawn"
+
+    def do_expose_event(self, event, arg=None):
+        print "exposed"
+        a = self.get_allocation()
+        ctx = self.window.cairo_create()
+        ctx.rectangle(event.area.x, event.area.y,
+                      event.area.width, event.area.height)
+        ctx.clip()
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
+        ctx.set_source_rgba(1,1,1,0)
+        ctx.paint()
+
+    def do_visibility_notify_event(self, *args):
+        print "visibility"
+        self.draw()
 
 def make_path(ctx, x=0, y=0, w=0, h=0, r=6, b=0.5,
               arrow_size=0, arrow_direction=None, arrow_position=0):
