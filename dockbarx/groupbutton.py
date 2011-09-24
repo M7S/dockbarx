@@ -2453,7 +2453,12 @@ class WindowList(gtk.VBox):
             for window in group.get_windows():
                 previews.append(5)
                 previews.append(window.wnck.get_xid())
-                previews.extend(window.item.get_preview_allocation())
+                x, y, w, h = window.item.get_preview_allocation()
+                if self.globals.get_compiz_version() > "0.9":
+                    wh = window.wnck.get_geometry()[3]
+                    ch = window.wnck.get_client_window_geometry()[3]
+                    h = int(h - 2 * (float(h) / wh) * (wh - ch) )
+                previews.extend([x, y, w, h]) 
         else:
             previews = [0,5,0,0,0,0,0]
         return previews

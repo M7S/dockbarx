@@ -443,9 +443,9 @@ class WindowItem(CairoButton):
             pass
         elif float(width) / height > ar:
             height = int(round(size * ar * height / width))
-            width = int(size * ar)
+            width = int(round(size * ar))
         else:
-            width = int(float(size) * width / height)
+            width = int(round(float(size) * width / height))
             height = size
         self.preview.set_size_request(width, height)
         return width, height
