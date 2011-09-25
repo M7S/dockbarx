@@ -493,6 +493,8 @@ class DockX(CairoDockX):
         self.autounhide_sid = None
         self.old_x = 0
         self.old_y = 0
+        self.old_width = 0
+        self.old_height = 0
         self.box = gtk.HBox()
         self.padding1 = EventPadding(self, "before")
         self.padding2 = EventPadding(self, "after")
@@ -711,13 +713,8 @@ class DockX(CairoDockX):
 
     def do_size_allocate(self, allocation):
         CairoDockX.do_size_allocate(self, allocation)
-        if self.globals.settings["dock/mode"] == "panel":
-            return
-        
         w = allocation.width
         h = allocation.height
-        sw = self.get_screen().get_width()
-        sh = self.get_screen().get_height()
         if self.globals.settings["dock/mode"] == "centered":
             mx, my, mw, mh = self.get_monitor_geometry()
             if self.globals.settings["dock/position"] == "left":
@@ -732,16 +729,20 @@ class DockX(CairoDockX):
             else:
                 x = mx + mw / 2 - w / 2
                 y = my + mh - h
-            self.move(x, y)
         else:
             x = self.old_x
             y = self.old_y
         self.move(x, y)
-        self.queue_draw()
-        self.__set_dock_strut(x, y, w, h)
+        if (w, h) != (self.old_width, self.old_height):
+            self.queue_draw()
+            self.old_width, self.old_height = w, h
+        if self.globals.settings["dock/mode"] != "panel":
+            self.__set_dock_strut(x, y, w, h)
 
     def show_dock(self):
         self.show()
+        if self.globals.settings["dock/mode"] != "centered":
+            self.move(self.old_x, self.old_y)
         if self.autohide_sid is not None:
             gobject.source_remove(self.autohide_sid)
         if self.autounhide_sid is not None:
