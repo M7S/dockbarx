@@ -121,9 +121,11 @@ class CairoDockX(gtk.Window):
             ctx.set_line_width(0.8)
             ctx.stroke()
         if self.is_composited():
-            self.input_shape_combine_mask(pixmap, 0, 0)
+            self.window.shape_combine_mask(None, 0, 0)
+            self.window.input_shape_combine_mask(pixmap, 0, 0)
         else:
-            self.shape_combine_mask(pixmap, 0, 0)
+            self.window.input_shape_combine_mask(None, 0, 0)
+            self.window.shape_combine_mask(pixmap, 0, 0)
 
     def draw_frame(self, ctx, w, h):
         pos = self.globals.settings["dock/position"]
