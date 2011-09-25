@@ -2455,9 +2455,13 @@ class WindowList(gtk.VBox):
                 previews.append(window.wnck.get_xid())
                 x, y, w, h = window.item.get_preview_allocation()
                 if self.globals.get_compiz_version() > "0.9":
-                    wh = window.wnck.get_geometry()[3]
-                    ch = window.wnck.get_client_window_geometry()[3]
-                    h = int(h - 2 * (float(h) / wh) * (wh - ch) )
+                    # Compensate for a bug in compiz.
+                    # The size is wrong with twice the size of the
+                    # window decorations.
+                    ww, wh = window.wnck.get_geometry()[2:4]
+                    cw, ch = window.wnck.get_client_window_geometry()[2:4]
+                    #~ w = int(w - 2 * (float(w) / ww) * (ww - cw))
+                    h = int(h - 2 * (float(h) / wh) * (wh - ch))
                 previews.extend([x, y, w, h]) 
         else:
             previews = [0,5,0,0,0,0,0]

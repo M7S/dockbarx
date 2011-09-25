@@ -525,6 +525,8 @@ class Globals(gobject.GObject):
                                  gobject.TYPE_NONE,()),
         "show-previews-changed": (gobject.SIGNAL_RUN_FIRST,
                                   gobject.TYPE_NONE,()),
+        "preview-size-changed": (gobject.SIGNAL_RUN_FIRST,
+                                 gobject.TYPE_NONE,()),
         "locked-list-in-menu-changed": (gobject.SIGNAL_RUN_FIRST,
                                          gobject.TYPE_NONE,()),
         "locked-list-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
@@ -817,6 +819,8 @@ class Globals(gobject.GObject):
             self.emit("show-only-current-monitor-changed")
         if "preview" in changed_settings:
             self.emit("show-previews-changed")
+        if "preview_size" in changed_settings:
+            self.emit("preview-size-changed")
         if "groupbutton_show_tooltip" in changed_settings:
             self.emit("show-tooltip-changed")
         if "show_close_button" in changed_settings:

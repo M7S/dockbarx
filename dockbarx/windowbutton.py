@@ -69,11 +69,12 @@ class Window():
                                                 self.__on_window_icon_changed)
         self.name_changed_event = self.wnck.connect("name-changed",
                                                 self.__on_window_name_changed)
+        self.geometry_changed_event = self.wnck.connect("geometry-changed",
+                                                self.__on_geometry_changed)
 
         self.item = WindowItem(self, group)
         self.needs_attention = self.wnck.needs_attention()
         self.item.show()
-        self.geometry_changed_event = None
         self.__on_show_only_current_monitor_changed()
 
     def __ne__(self, window):
@@ -132,13 +133,6 @@ class Window():
         del self.globals
 
     def __on_show_only_current_monitor_changed(self, arg=None):
-        if self.globals.settings["show_only_current_monitor"]:
-            if self.geometry_changed_event is None:
-                self.geometry_changed_event = self.wnck.connect(
-                                "geometry-changed", self.__on_geometry_changed)
-        else:
-            if self.geometry_changed_event is not None:
-                self.wnck.disconnect(self.geometry_changed_event)
         self.monitor = self.get_monitor()
 
     def select_after_delay(self, delay):
@@ -169,13 +163,15 @@ class Window():
     def __on_window_name_changed(self, window):
         self.item.name_changed()
 
-
     def __on_geometry_changed(self, *args):
-        monitor = self.get_monitor()
-        if monitor != self.monitor:
-            self.monitor = monitor
-            self.item.update_show_state()
-            self.group_r().window_monitor_changed()
+        if self.globals.settings["show_only_current_monitor"]:
+            monitor = self.get_monitor()
+            if monitor != self.monitor:
+                self.monitor = monitor
+                self.item.update_show_state()
+                self.group_r().window_monitor_changed()
+        if self.globals.settings["preview"]:
+            self.item.update_preview()
 
     def desktop_changed(self):
         if self.is_on_current_desktop():
@@ -336,8 +332,9 @@ class WindowItem(CairoButton):
         self.close_button.connect("leave-notify-event",
                                   self.__on_close_button_leave)
         connect(self.globals, "show-close-button-changed",
-                             self.__on_show_close_button_changed)
+                              self.__on_show_close_button_changed)
         connect(self.globals, "color-changed", self.__update_label)
+        connect(self.globals, "preview-size-changed", self.update_preview)
 
     def clean_up(self):
         window = self.window_r()
@@ -432,7 +429,7 @@ class WindowItem(CairoButton):
             self.show_all()
 
     ####Preview
-    def update_preview(self):
+    def update_preview(self, *args):
         window = self.window_r()
         group = self.group_r()
         width = window.wnck.get_geometry()[2]
