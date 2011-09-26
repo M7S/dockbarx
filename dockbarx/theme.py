@@ -53,9 +53,13 @@ class ThemeHandler(ContentHandler):
             return
         # Add all attributes to a dictionary
         d = {}
-        for attr in attrs.keys():
+        for key, value in attrs.items():
             # make sure that all text is in lower
-            d[attr.encode().lower()] = attrs[attr].encode().lower()
+            # except for file_names
+            if key.encode().lower() == "file_name":
+                d[key.encode().lower()] = value.encode()
+            else:
+                d[key.encode().lower()] = value.encode().lower()
         # Add a ODict to the dictionary in which all
         # content will be put.
         d["content"] = ODict()

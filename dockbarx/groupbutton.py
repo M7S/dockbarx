@@ -310,7 +310,7 @@ class Group(ListOfWindows):
         self.button.update_state()
         self.nextlist = None
         self.button.set_icongeo()
-        if self.locked_popup():
+        if self.locked_popup:
             self.locked_popup.get_child_().show_all()
             self.locked_popup.resize(10, 10)
             self.locked_popup.show()
