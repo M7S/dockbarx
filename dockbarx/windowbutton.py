@@ -291,7 +291,9 @@ class WindowItem(CairoButton):
                     "leave-notify-event": "override",
                     "button-press-event": "override",
                     "scroll-event": "override",
-                    "clicked": "override"}
+                    "clicked": "override",
+                    "drag-motion" : "override",
+                    "drag-leave" : "override",}
     def __init__(self, window, group):
         CairoButton.__init__(self)
         self.set_no_show_all(True)
@@ -334,6 +336,9 @@ class WindowItem(CairoButton):
         self.add(vbox)
         self.preview_box.set_no_show_all(True)
         vbox.show_all()
+
+        self.drag_dest_set(0, [], 0)
+        self.drag_entered = False
 
         self.close_button.connect("button-press-event", self.disable_click)
         self.close_button.connect("clicked", self.__on_close_button_clicked)
@@ -550,20 +555,20 @@ class WindowItem(CairoButton):
             self.do_leave_notify_event(event)
 
     #### D'n'D
-    def __on_drag_motion(self, widget, drag_context, x, y, t):
+    def do_drag_motion(self, drag_context, x, y, t):
         if not self.drag_entered:
-            self.group_r().expose()
+            self.group_r().popup.expose()
             self.drag_entered = True
             self.dnd_select_window = \
-                gobject.timeout_add(600, self.action_select_window)
+                gobject.timeout_add(600, self.window_r().action_select_window)
         drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
         return True
 
-    def __on_drag_leave(self, widget, drag_context, t):
+    def do_drag_leave(self, drag_context, t):
         self.drag_entered = False
         gobject.source_remove(self.dnd_select_window)
-        self.group_r().expose()
-        self.group_r().popup.hide_if_not_howered()
+        self.group_r().popup.expose()
+        self.group_r().popup.hide_if_not_hovered()
 
     #### Opacify
     def __opacify(self):

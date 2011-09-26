@@ -2231,9 +2231,9 @@ class GroupPopup(CairoPopup):
 
     def expose(self):
         event = gtk.gdk.Event(gtk.gdk.EXPOSE)
-        event.window = self.popup.window
-        event.area = self.popup.get_allocation()
-        self.popup.send_expose(event)
+        event.window = self.window
+        event.area = self.get_allocation()
+        self.send_expose(event)
 
     #### D'N'D
     def do_drag_motion(self, drag_context, x, y, t):
