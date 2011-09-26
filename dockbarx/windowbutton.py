@@ -62,6 +62,7 @@ class Window():
         self.select_sid = None
         self.xid = self.wnck.get_xid()
         self.is_active_window = False
+        self.on_current_desktop = self.is_on_current_desktop()
 
         self.state_changed_event = self.wnck.connect("state-changed",
                                                 self.__on_window_state_changed)
@@ -164,17 +165,24 @@ class Window():
         self.item.name_changed()
 
     def __on_geometry_changed(self, *args):
+        group = self.group_r()
         if self.globals.settings["show_only_current_monitor"]:
             monitor = self.get_monitor()
             if monitor != self.monitor:
                 self.monitor = monitor
                 self.item.update_show_state()
-                self.group_r().window_monitor_changed()
+                group.window_monitor_changed()
+        if self.globals.settings["show_only_current_desktop"]:
+            onc = self.is_on_current_desktop()
+            if self.on_current_desktop != onc:
+                self.on_current_destkop = onc
+                group.window_desktop_changed()
         if self.globals.settings["preview"]:
             self.item.update_preview()
 
     def desktop_changed(self):
-        if self.is_on_current_desktop():
+        self.on_current_desktop = self.is_on_current_desktop()
+        if self.on_current_desktop:
             self.item.show()
         else:
             self.item.hide()
@@ -421,7 +429,7 @@ class WindowItem(CairoButton):
     def update_show_state(self):
         window = self.window_r()
         if (self.globals.settings["show_only_current_desktop"] and \
-           not window.is_on_current_desktop()) or \
+           not window.on_current_desktop) or \
            (self.globals.settings["show_only_current_monitor"] and \
            window.monitor != self.group_r().monitor):
             self.hide_all()

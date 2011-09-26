@@ -447,6 +447,15 @@ class Group(ListOfWindows):
         self.button.update_state_if_shown()
         self.button.set_icon_geo()
 
+    def window_desktop_changed(self):
+        self.button.update_state_if_shown()
+        self.nextlist = None
+        self.button.set_icongeo()
+        if self.locked_popup:
+            self.locked_popup.get_child_().show_all()
+            self.locked_popup.resize(10, 10)
+            self.locked_popup.show()
+
 
     #### Opacify
     def opacify(self, delay=0):
