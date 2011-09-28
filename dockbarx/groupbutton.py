@@ -1463,6 +1463,7 @@ class GroupButton(CairoAppButton):
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
         self.launcher_drag = False
+        self.dnd_position = "end"
         self.dnd_show_popup = None
         self.dd_uri = None
 
@@ -1536,7 +1537,10 @@ class GroupButton(CairoAppButton):
             state_type = state_type | IconFactory.LAUNCH_EFFECT
 
         if self.launcher_drag:
-            state_type = state_type | IconFactory.DRAG_DROPP
+            if self.dnd_position == "start":
+                state_type = state_type | IconFactory.DRAG_DROPP_START
+            else:
+                state_type = state_type | IconFactory.DRAG_DROPP_END
 
         # Add the number of windows
         state_type = state_type | window_count
@@ -1767,7 +1771,8 @@ class GroupButton(CairoAppButton):
                 # Todo: What if the uri doesn't start with "file://"?
                 path = self.dd_uri[7:-2]
                 path = path.replace("%20"," ")
-                self.dockbar_r().launcher_dropped(path, group)
+                self.dockbar_r().launcher_dropped(path, group,
+                                                  self.dnd_position)
             else:
                 uri = self.dd_uri
                 # Remove the new line at the end
@@ -1786,7 +1791,8 @@ class GroupButton(CairoAppButton):
         name = group.identifier or group.desktop_entry.getFileName()
         if selection.target == "text/groupbutton_name":
             if selection.data != name:
-                self.dockbar_r().groupbutton_moved(selection.data, group)
+                self.dockbar_r().groupbutton_moved(selection.data, group,
+                                                   self.dnd_position)
         elif selection.target == "text/uri-list":
             # Uri lists are tested on first motion instead on drop
             # to check if it's a launcher.
@@ -1809,6 +1815,17 @@ class GroupButton(CairoAppButton):
             drag_context.drag_status(gtk.gdk.ACTION_COPY, t)
         else:
             drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
+        if self.launcher_drag:
+            dnd_position = "end"
+            if self.dockbar_r().orient == "v":
+                if y <= self.allocation.height / 2:
+                    dnd_position = "start"
+            else:
+                if x <= self.allocation.width / 2:
+                    dnd_position = "start"
+            if dnd_position != self.dnd_position:
+                self.dnd_position = dnd_position
+                self.update_state()
         return True
 
     def do_drag_enter(self, drag_context, x, y, t):

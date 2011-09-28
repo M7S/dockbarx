@@ -54,7 +54,8 @@ class IconFactory():
     ACTIVE = 1<<11
     LAUNCH_EFFECT = 1<<12
     # Double width/height icons for drag and drop situations.
-    DRAG_DROPP = 1<<13
+    DRAG_DROPP_START = 1<<13
+    DRAG_DROPP_END = 1<<14
     TYPE_DICT = {"some_minimized":SOME_MINIMIZED,
                  "all_minimized":ALL_MINIMIZED,
                  "launcher":LAUNCHER,
@@ -139,7 +140,8 @@ class IconFactory():
         #The first four bits of type is for telling the number of windows
         self.win_nr = min(type & 15, self.max_win_nr)
         # Remove all types that are not used by the theme (saves memory)
-        dnd = type & self.DRAG_DROPP
+        dnd = (type & self.DRAG_DROPP_START and "start") or \
+              (type & self.DRAG_DROPP_END and "end")
         type = type & self.types_in_theme
         type += self.win_nr
         if type in self.surfaces:
@@ -162,16 +164,15 @@ class IconFactory():
             del self.temp
             gc.collect()
         if dnd:
-            surface = self.__dd_highlight(surface, self.dockbar_r().orient)
+            orient = self.dockbar_r().orient
+            surface = self.__dd_highlight(surface, orient, dnd)
             gc.collect()
         return surface
 
 
-    def __dd_highlight(self, surface, direction = "h"):
+    def __dd_highlight(self, surface, direction = "h", position="start"):
         w = surface.get_width()
         h = surface.get_height()
-        # Make a background almost twice as wide or high
-        # as the surface depending on panel orientation.
         if direction == "v":
             h = h + 4
         else:
@@ -179,8 +180,18 @@ class IconFactory():
         bg = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(bg)
 
-        # Put arrow pointing to the empty part on it.
-        if direction == "v":
+        if direction == "v" and position == "start":
+            ctx.move_to(1, 1.5)
+            ctx.line_to(w - 1, 1.5)
+            ctx.set_source_rgba(1, 1, 1, 0.2)
+            ctx.set_line_width(2)
+            ctx.stroke()
+            ctx.move_to(2, 1.5)
+            ctx.line_to(w - 2, 1.5)
+            ctx.set_source_rgba(0, 0, 0, 0.7)
+            ctx.set_line_width(1)
+            ctx.stroke()
+        elif direction == "v":
             ctx.move_to(1, h - 1.5)
             ctx.line_to(w - 1, h - 1.5)
             ctx.set_source_rgba(1, 1, 1, 0.2)
@@ -188,6 +199,17 @@ class IconFactory():
             ctx.stroke()
             ctx.move_to(2, h - 1.5)
             ctx.line_to(w - 2, h - 1.5)
+            ctx.set_source_rgba(0, 0, 0, 0.7)
+            ctx.set_line_width(1)
+            ctx.stroke()
+        elif position == "start":
+            ctx.move_to(1.5, 1)
+            ctx.line_to(1.5, h - 1)
+            ctx.set_source_rgba(1, 1, 1, 0.2)
+            ctx.set_line_width(2)
+            ctx.stroke()
+            ctx.move_to(1.5, 2)
+            ctx.line_to(1.5, h - 2)
             ctx.set_source_rgba(0, 0, 0, 0.7)
             ctx.set_line_width(1)
             ctx.stroke()
@@ -203,9 +225,12 @@ class IconFactory():
             ctx.set_line_width(1)
             ctx.stroke()
 
-
-        # And put the surface on the left/upper half of it.
-        ctx.set_source_surface(surface, 0, 0)
+        x, y  = 0, 0
+        if direction == "v" and position == "start":
+            y = 4
+        elif position == "start":
+            x = 4
+        ctx.set_source_surface(surface, x, y)
         ctx.paint()
         return bg
 

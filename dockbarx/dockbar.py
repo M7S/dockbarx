@@ -521,7 +521,7 @@ class DockBar():
             self.next_group.scrollpeak_abort()
             self.next_group = None
 
-    def groupbutton_moved(self, name, drop_point):
+    def groupbutton_moved(self, name, drop_point, drop_position="end"):
         # Moves the button to the right of the drop point.
         group = self.groups[name]
 
@@ -533,6 +533,8 @@ class DockBar():
             # Dropped on a group button
             index = self.groups.index(drop_point)
             index += (index < self.groups.index(group))
+            if drop_position == "start":
+                index -= 1
         self.container.reorder_child(group.button, index)
         self.groups.move(group, index)
         self.update_pinned_apps_list()
@@ -798,7 +800,7 @@ class DockBar():
 
 
     #### Launchers
-    def launcher_dropped(self, path, drop_point):
+    def launcher_dropped(self, path, drop_point, drop_position="end"):
         # Creates a new launcher with a desktop file located at path.
         # The new launcher is inserted at the right (or under)
         # the group button that the launcher was dropped on.
@@ -922,6 +924,8 @@ class DockBar():
                               drop_point.desktop_entry.getFileName()
             if drop_identifier in (identifier, path):
                 index = self.groups.index(drop_point)
+                if drop_position == "start":
+                    index -= 1
         group = self.groups.get(identifier) or self.groups.get(path)
         if group is not None:
             # Get the windows for repopulation of the new button
@@ -929,7 +933,9 @@ class DockBar():
             self.groups.remove(group)
             group.destroy()
         if index is None:
-            index = self.groups.index(drop_point) + 1
+            index = self.groups.index(drop_point)
+            if drop_position == "end":
+                index += 1
         try:
             self.__make_groupbutton(identifier=identifier,
                                   desktop_entry=desktop_entry,
