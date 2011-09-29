@@ -1,4 +1,15 @@
 Changelog:
+0.48
+Features:
+- More intuitive placement of drag-dropped launchers, they don't always end up on the right side of the button you drop them on anymore.
+
+Bug fixes:
+- Workaround for the Compiz preview bug. Previews should work more or less as they are supposed to even if you use Compiz 0.9 now (even for minimized windows if you activate "keep previews of minimized windows" in workarounds plugin).
+- Previews are resized correctly on window geometry changes.
+- The dock doesn't loose the ability to resize itself anymore every time the compositing window manager is restarted.
+- Bug #837711: DockX repositioned itself when unhiding.
+- Bug #854551: DockbarX failed to recognize windows moved to another workspace.
+- Bug #854561: DockbarX fails to show the selected window when using drag and drop.
 
 0.47
 Features

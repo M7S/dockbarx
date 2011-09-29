@@ -27,7 +27,7 @@ import msgfmt
 import os
 import sys
 
-VERSION = "0.47"
+VERSION = "0.48"
 
 class build_trans(cmd.Command):
     description = "Compile .po files into .mo files"
