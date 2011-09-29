@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-29 06:58+0300\n"
+"POT-Creation-Date: 2011-09-29 22:53+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,45 +25,45 @@ msgstr ""
 msgid "Window item actions"
 msgstr ""
 
-#: dbx_preference:254 dbx_preference:653
+#: dbx_preference:254 dbx_preference:654
 msgid "Left mouse button"
 msgstr ""
 
-#: dbx_preference:255 dbx_preference:654
+#: dbx_preference:255 dbx_preference:655
 msgid "Shift + left mouse button"
 msgstr ""
 
-#: dbx_preference:257 dbx_preference:656
+#: dbx_preference:257 dbx_preference:657
 msgid "Middle mouse button"
 msgstr ""
 
-#: dbx_preference:259 dbx_preference:657
+#: dbx_preference:259 dbx_preference:658
 msgid "Shift + middle mouse button"
 msgstr ""
 
-#: dbx_preference:261 dbx_preference:659
+#: dbx_preference:261 dbx_preference:660
 msgid "Right mouse button"
 msgstr ""
 
-#: dbx_preference:263 dbx_preference:660
+#: dbx_preference:263 dbx_preference:661
 msgid "Shift + right mouse button"
 msgstr ""
 
-#: dbx_preference:265 dbx_preference:662
+#: dbx_preference:265 dbx_preference:663
 msgid "Scroll up"
 msgstr ""
 
-#: dbx_preference:266 dbx_preference:663
+#: dbx_preference:266 dbx_preference:664
 msgid "Scroll down"
 msgstr ""
 
-#: dbx_preference:271 dbx_preference:729 dbx_preference:1373
-#: dbx_preference:1687
+#: dbx_preference:271 dbx_preference:730 dbx_preference:1374
+#: dbx_preference:1611
 msgid "select or minimize window"
 msgstr ""
 
-#: dbx_preference:272 dbx_preference:728 dbx_preference:1372
-#: dbx_preference:1686
+#: dbx_preference:272 dbx_preference:729 dbx_preference:1373
+#: dbx_preference:1610
 msgid "select window"
 msgstr ""
 
@@ -75,7 +75,7 @@ msgstr ""
 msgid "close window"
 msgstr ""
 
-#: dbx_preference:275 dbx_preference:672
+#: dbx_preference:275 dbx_preference:673
 msgid "show menu"
 msgstr ""
 
@@ -87,7 +87,7 @@ msgstr ""
 msgid "unshade window"
 msgstr ""
 
-#: dbx_preference:278 dbx_preference:681
+#: dbx_preference:278 dbx_preference:682
 msgid "no action"
 msgstr ""
 
@@ -107,7 +107,7 @@ msgstr ""
 msgid "Window list style:"
 msgstr ""
 
-#: dbx_preference:369 dbx_preference:1063
+#: dbx_preference:369 dbx_preference:1064
 msgid "Colors"
 msgstr ""
 
@@ -235,452 +235,471 @@ msgstr ""
 msgid "Show previews for minimized windows"
 msgstr ""
 
-#: dbx_preference:615
+#: dbx_preference:608
+msgid ""
+"To get previews for minimized windows you need to active \"Keep previews of "
+"minimized windows\" in Compiz plugin Workarounds."
+msgstr ""
+
+#: dbx_preference:616
 msgid "Preview size"
 msgstr ""
 
-#: dbx_preference:627
+#: dbx_preference:628
 msgid "Locked list"
 msgstr ""
 
-#: dbx_preference:632
+#: dbx_preference:633
 msgid "Show \"locked list\" option in menu"
 msgstr ""
 
-#: dbx_preference:633
+#: dbx_preference:634
 msgid ""
 "The option is only shown when a program has more than one window opened."
 msgstr ""
 
-#: dbx_preference:638
+#: dbx_preference:639
 msgid "Maximized windows should not overlap the locked list"
 msgstr ""
 
-#: dbx_preference:647
+#: dbx_preference:648
 msgid "Group button actions"
 msgstr ""
 
-#: dbx_preference:667
+#: dbx_preference:668
 msgid "select"
 msgstr ""
 
-#: dbx_preference:668
+#: dbx_preference:669
 msgid "close all windows"
 msgstr ""
 
-#: dbx_preference:669
+#: dbx_preference:670
 msgid "minimize all windows"
 msgstr ""
 
-#: dbx_preference:670
+#: dbx_preference:671
 msgid "maximize all windows"
 msgstr ""
 
-#: dbx_preference:671
+#: dbx_preference:672
 msgid "launch application"
 msgstr ""
 
-#: dbx_preference:673
+#: dbx_preference:674
 msgid "remove launcher"
 msgstr ""
 
-#: dbx_preference:674
+#: dbx_preference:675
 msgid "select next window"
 msgstr ""
 
-#: dbx_preference:675
+#: dbx_preference:676
 msgid "select previous window"
 msgstr ""
 
-#: dbx_preference:676
+#: dbx_preference:677
 msgid "minimize all other groups"
 msgstr ""
 
-#: dbx_preference:677
+#: dbx_preference:678
 msgid "compiz scale windows"
 msgstr ""
 
-#: dbx_preference:678
+#: dbx_preference:679
 msgid "compiz shift windows"
 msgstr ""
 
-#: dbx_preference:679
+#: dbx_preference:680
 msgid "compiz scale all"
 msgstr ""
 
-#: dbx_preference:680
+#: dbx_preference:681
 msgid "show preference dialog"
 msgstr ""
 
-#: dbx_preference:708
+#: dbx_preference:709
 msgid "Double click"
 msgstr ""
 
-#: dbx_preference:719
+#: dbx_preference:720
 msgid "\"Select\" action options"
 msgstr ""
 
-#: dbx_preference:725
+#: dbx_preference:726
 msgid "One window open"
 msgstr ""
 
-#: dbx_preference:734
+#: dbx_preference:735
 msgid "Multiple windows open"
 msgstr ""
 
-#: dbx_preference:737 dbx_preference:1382 dbx_preference:1696
+#: dbx_preference:738 dbx_preference:1383 dbx_preference:1620
 msgid "select all"
 msgstr ""
 
-#: dbx_preference:738 dbx_preference:1383 dbx_preference:1697
+#: dbx_preference:739 dbx_preference:1384 dbx_preference:1621
 msgid "select or minimize all"
 msgstr ""
 
-#: dbx_preference:739 dbx_preference:1384 dbx_preference:1698
+#: dbx_preference:740 dbx_preference:1385 dbx_preference:1622
 msgid "compiz scale"
 msgstr ""
 
-#: dbx_preference:740 dbx_preference:1385 dbx_preference:1699
+#: dbx_preference:741 dbx_preference:1386 dbx_preference:1623
 msgid "cycle through windows"
 msgstr ""
 
-#: dbx_preference:741 dbx_preference:1386 dbx_preference:1700
+#: dbx_preference:742 dbx_preference:1387 dbx_preference:1624
 msgid "show window list"
 msgstr ""
 
-#: dbx_preference:746
+#: dbx_preference:747
 msgid "Workspace behavior"
 msgstr ""
 
-#: dbx_preference:750 dbx_preference:1708
+#: dbx_preference:751 dbx_preference:1632
 msgid "Ignore windows on other workspaces"
 msgstr ""
 
-#: dbx_preference:751 dbx_preference:1396 dbx_preference:1709
+#: dbx_preference:752 dbx_preference:1397 dbx_preference:1633
 msgid "Switch workspace when needed"
 msgstr ""
 
-#: dbx_preference:753 dbx_preference:1397 dbx_preference:1710
+#: dbx_preference:754 dbx_preference:1398 dbx_preference:1634
 msgid "Move windows from other workspaces"
 msgstr ""
 
-#: dbx_preference:764
+#: dbx_preference:765
 msgid "\"Select next\" options"
 msgstr ""
 
-#: dbx_preference:766
+#: dbx_preference:767
 msgid "\"Select next\" selects the most recently used window in the group"
 msgstr ""
 
-#: dbx_preference:767
+#: dbx_preference:768
 msgid ""
 "If set, \"Select Next\" action selects the window that has been used most "
 "recently, otherwise it activates the next window in the window list."
 msgstr ""
 
-#: dbx_preference:773
+#: dbx_preference:774
 msgid "Use no delay with \"Select next\""
 msgstr ""
 
-#: dbx_preference:774
+#: dbx_preference:775
 msgid ""
 "If set, \"Select Next\" action selects the next window immediately without "
 "any delay"
 msgstr ""
 
-#: dbx_preference:784
+#: dbx_preference:785
 msgid "Use media buttons"
 msgstr ""
 
-#: dbx_preference:791
+#: dbx_preference:792
 msgid "Use Unity static quicklists"
 msgstr ""
 
-#: dbx_preference:798
+#: dbx_preference:799
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr ""
 
-#: dbx_preference:805
+#: dbx_preference:806
 msgid "DockManager"
 msgstr ""
 
-#: dbx_preference:809
+#: dbx_preference:810
 msgid "Use DockManager"
 msgstr ""
 
-#: dbx_preference:814
+#: dbx_preference:815
 msgid "Helpers"
 msgstr ""
 
-#: dbx_preference:823
+#: dbx_preference:824
 msgid "Ignore windows on other viewports/workspaces"
 msgstr ""
 
-#: dbx_preference:829
+#: dbx_preference:830
 msgid "Ignore windows on other monitors"
 msgstr ""
 
-#: dbx_preference:836
+#: dbx_preference:837
 msgid "Give each wine application its own group button"
 msgstr ""
 
-#: dbx_preference:843
+#: dbx_preference:844
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr ""
 
-#: dbx_preference:850
+#: dbx_preference:851
 msgid "Delay on select all (Workaround for order problems)"
 msgstr ""
 
-#: dbx_preference:851
+#: dbx_preference:852
 msgid ""
 "Compiz can't handle the order of multiple windows that are brought up at "
 "once. This problem can be solved by adding short delays between the "
 "activation of each window."
 msgstr ""
 
-#: dbx_preference:859 dbx_preference:863
+#: dbx_preference:860 dbx_preference:864
 msgid "Opacify"
 msgstr ""
 
-#: dbx_preference:864
+#: dbx_preference:865
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
 msgstr ""
 
-#: dbx_preference:867
+#: dbx_preference:868
 msgid "Opacify group"
 msgstr ""
 
-#: dbx_preference:868
+#: dbx_preference:869
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
 msgstr ""
 
-#: dbx_preference:872
+#: dbx_preference:873
 msgid "Use smooth fade in/out"
 msgstr ""
 
-#: dbx_preference:878
+#: dbx_preference:879
 msgid "Opacity"
 msgstr ""
 
-#: dbx_preference:890
+#: dbx_preference:891
 msgid "Smoothness"
 msgstr ""
 
-#: dbx_preference:899
+#: dbx_preference:900
 msgid "Duration"
 msgstr ""
 
-#: dbx_preference:913
+#: dbx_preference:914
 msgid "Global Keyboard Shortcuts"
 msgstr ""
 
-#: dbx_preference:918 dockbarx/dockbar.py:1308
+#: dbx_preference:919 dockbarx/dockbar.py:1308
 msgid "Select next group"
 msgstr ""
 
-#: dbx_preference:920 dockbarx/dockbar.py:1309
+#: dbx_preference:921 dockbarx/dockbar.py:1309
 msgid "Select previous group"
 msgstr ""
 
-#: dbx_preference:922 dockbarx/dockbar.py:1310
+#: dbx_preference:923 dockbarx/dockbar.py:1310
 msgid "Select next window in group"
 msgstr ""
 
-#: dbx_preference:924 dockbarx/dockbar.py:1311
+#: dbx_preference:925 dockbarx/dockbar.py:1311
 msgid "Select previous window in group"
 msgstr ""
 
-#: dbx_preference:959
+#: dbx_preference:960
 msgid "Note! Compiz keyboard shortcuts will override these."
 msgstr ""
 
-#: dbx_preference:961
+#: dbx_preference:962
 msgid "Skip pinned apps without open windows"
 msgstr ""
 
-#: dbx_preference:967
+#: dbx_preference:968
 msgid "Use Unity style number shortcuts (Super+number)"
 msgstr ""
 
-#: dbx_preference:981
+#: dbx_preference:982
 msgid "Type"
 msgstr ""
 
-#: dbx_preference:984 dbx_preference:1012
+#: dbx_preference:985 dbx_preference:1013
 msgid "panel"
 msgstr ""
 
-#: dbx_preference:984
+#: dbx_preference:985
 msgid "corner"
 msgstr ""
 
-#: dbx_preference:984
+#: dbx_preference:985
 msgid "centered"
 msgstr ""
 
-#: dbx_preference:997
+#: dbx_preference:998
 msgid "Position"
 msgstr ""
 
-#: dbx_preference:1000
+#: dbx_preference:1001
 msgid "left"
 msgstr ""
 
-#: dbx_preference:1000
+#: dbx_preference:1001
 msgid "right"
 msgstr ""
 
-#: dbx_preference:1000
+#: dbx_preference:1001
 msgid "top"
 msgstr ""
 
-#: dbx_preference:1000
+#: dbx_preference:1001
 msgid "bottom"
 msgstr ""
 
-#: dbx_preference:1009
+#: dbx_preference:1010
 msgid "Behavior"
 msgstr ""
 
-#: dbx_preference:1012
+#: dbx_preference:1013
 msgid "standard"
 msgstr ""
 
-#: dbx_preference:1012 dbx_preference:1113
+#: dbx_preference:1013 dbx_preference:1114
 msgid "dodge windows"
 msgstr ""
 
-#: dbx_preference:1013 dbx_preference:1114
+#: dbx_preference:1014 dbx_preference:1115
 msgid "dodge active window"
 msgstr ""
 
-#: dbx_preference:1013
+#: dbx_preference:1014
 msgid "always autohide"
 msgstr ""
 
-#: dbx_preference:1022
+#: dbx_preference:1023
 msgid "Size"
 msgstr ""
 
-#: dbx_preference:1034
+#: dbx_preference:1035
 msgid "Offset"
 msgstr ""
 
-#: dbx_preference:1035
+#: dbx_preference:1036
 msgid ""
 "Use this if the dock isn't able to automatically aviod overlapping with "
 "other panels"
 msgstr ""
 
-#: dbx_preference:1045
+#: dbx_preference:1046
 msgid "Dock theme:"
 msgstr ""
 
-#: dbx_preference:1068 dbx_preference:1071
+#: dbx_preference:1069 dbx_preference:1072
 msgid "Background color"
 msgstr ""
 
-#: dbx_preference:1085 dbx_preference:1089
+#: dbx_preference:1086 dbx_preference:1090
 msgid "Second background color"
 msgstr ""
 
-#: dbx_preference:1110
+#: dbx_preference:1111
 msgid "Dodge behavior"
 msgstr ""
 
-#: dbx_preference:1113
+#: dbx_preference:1114
 msgid "disabled"
 msgstr ""
 
-#: dbx_preference:1119
+#: dbx_preference:1120
 msgid ""
 "AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
 "awn applet Taskmanager is not running. Set dodge behavior here instead."
 msgstr ""
 
-#: dbx_preference:1124
+#: dbx_preference:1125
 msgid "AWN"
 msgstr ""
 
-#: dbx_preference:1125
+#: dbx_preference:1126
 msgid "Dock"
 msgstr ""
 
-#: dbx_preference:1126
+#: dbx_preference:1127
 msgid "Appearance"
 msgstr ""
 
-#: dbx_preference:1127
+#: dbx_preference:1128
 msgid "Window List"
 msgstr ""
 
-#: dbx_preference:1128
+#: dbx_preference:1129
 msgid "Group Button"
 msgstr ""
 
-#: dbx_preference:1129
+#: dbx_preference:1130
 msgid "Window Item"
 msgstr ""
 
-#: dbx_preference:1130
+#: dbx_preference:1131
 msgid "Plugins"
 msgstr ""
 
-#: dbx_preference:1131
+#: dbx_preference:1132
 msgid "Advanced"
 msgstr ""
 
-#: dbx_preference:1204 dockbarx/theme.py:172
+#: dbx_preference:1205 dockbarx/theme.py:172
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 
-#: dbx_preference:1395
+#: dbx_preference:1396
 msgid "Ignore windows on other workspace"
 msgstr ""
 
-#: dbx_preference:1471
+#: dbx_preference:1472
 msgid "Show corner decorations"
 msgstr ""
 
-#: dbx_preference:1475
+#: dbx_preference:1476
 msgid "Show decorations in both corners"
 msgstr ""
 
-#: dbx_preference:1581
+#: dbx_preference:1753
+msgid ""
+"You need to have at least one mod key (<control>, <alt> or <super>) in the "
+"keyboard string."
+msgstr ""
+
+#: dbx_preference:1927
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1595
+#: dbx_preference:1941
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
 
-#: dbx_preference:1613
+#: dbx_preference:1959
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1636
+#: dbx_preference:1986
 msgid ""
-"Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
+"Previews for minimzied windows requires the compiz plugin Workarounds to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1829
+#: dbx_preference:2008
 msgid ""
-"You need to have at least one mod key (<control>, <alt> or <super>) in the "
-"keyboard string."
+"Previews for minimzied windows requires the option \"Keep previews of "
+"minimized windows\" to be activated in compiz plugin Workarounds. Should "
+"DockbarX activate it for you?"
+msgstr ""
+
+#: dbx_preference:2032
+msgid ""
+"Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
+"activated. Should dockbarx activate it for you?"
 msgstr ""
 
 #: dockbarx/dockbar.py:1124 dockbarx/groupbutton.py:2453
