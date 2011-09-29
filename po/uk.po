@@ -8,364 +8,368 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-08-02 14:34+0300\n"
+"POT-Creation-Date: 2011-09-18 22:31+0300\n"
 "PO-Revision-Date: 2011-05-18 02:11+0000\n"
 "Last-Translator: Sergiy Gavrylov <sergiovana@bigmir.net>\n"
 "Language-Team: Ukrainian <linux@linux.org.ua>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-08-03 09:01+0000\n"
-"X-Generator: Launchpad (build 13573)\n"
+"X-Launchpad-Export-Date: 2011-09-29 20:48+0000\n"
+"X-Generator: Launchpad (build 14063)\n"
 
-#: dbx_preference:212
+#: dbx_preference:222
 msgid "DockBarX preferences"
 msgstr "Налаштування DockBarX"
 
-#: dbx_preference:234
+#: dbx_preference:244
 msgid "Window item actions"
 msgstr "Дія кнопки вікна"
 
-#: dbx_preference:240 dbx_preference:613
+#: dbx_preference:250 dbx_preference:643
 msgid "Left mouse button"
 msgstr "Ліва кнопка миші"
 
-#: dbx_preference:241 dbx_preference:614
+#: dbx_preference:251 dbx_preference:644
 msgid "Shift + left mouse button"
 msgstr "Shift + ліва кнопка миші"
 
-#: dbx_preference:243 dbx_preference:616
+#: dbx_preference:253 dbx_preference:646
 msgid "Middle mouse button"
 msgstr "Середня кнопка миші"
 
-#: dbx_preference:245 dbx_preference:617
+#: dbx_preference:255 dbx_preference:647
 msgid "Shift + middle mouse button"
 msgstr "Shift + середня кнопка миші"
 
-#: dbx_preference:247 dbx_preference:619
+#: dbx_preference:257 dbx_preference:649
 msgid "Right mouse button"
 msgstr "Права кнопка миші"
 
-#: dbx_preference:249 dbx_preference:620
+#: dbx_preference:259 dbx_preference:650
 msgid "Shift + right mouse button"
 msgstr "Shift + права кнопка миші"
 
-#: dbx_preference:251 dbx_preference:622
+#: dbx_preference:261 dbx_preference:652
 msgid "Scroll up"
 msgstr "Прокрутити вгору"
 
-#: dbx_preference:252 dbx_preference:623
+#: dbx_preference:262 dbx_preference:653
 msgid "Scroll down"
 msgstr "Прокрутити вниз"
 
-#: dbx_preference:257 dbx_preference:689 dbx_preference:1265
-#: dbx_preference:1533
+#: dbx_preference:267 dbx_preference:719 dbx_preference:1363
+#: dbx_preference:1674
 msgid "select or minimize window"
 msgstr "обрати або мінімізувати вікно"
 
-#: dbx_preference:258 dbx_preference:688 dbx_preference:1264
-#: dbx_preference:1532
+#: dbx_preference:268 dbx_preference:718 dbx_preference:1362
+#: dbx_preference:1673
 msgid "select window"
 msgstr "обрати вікно"
 
-#: dbx_preference:259
+#: dbx_preference:269
 msgid "maximize window"
 msgstr "максимізувати вікно"
 
-#: dbx_preference:260
+#: dbx_preference:270
 msgid "close window"
 msgstr "закрити вікно"
 
-#: dbx_preference:261 dbx_preference:632
+#: dbx_preference:271 dbx_preference:662
 msgid "show menu"
 msgstr "показати меню"
 
-#: dbx_preference:262
+#: dbx_preference:272
 msgid "shade window"
 msgstr "згорнути вікно в заголовок"
 
-#: dbx_preference:263
+#: dbx_preference:273
 msgid "unshade window"
 msgstr "розгорнути вікно із заголовку"
 
-#: dbx_preference:264 dbx_preference:641
+#: dbx_preference:274 dbx_preference:671
 msgid "no action"
 msgstr "немає дії"
 
-#: dbx_preference:293
+#: dbx_preference:303
 msgid "Close window list"
 msgstr "Закрити список вікна"
 
-#: dbx_preference:307
+#: dbx_preference:317
 msgid "Show close button"
 msgstr "Показувати кнопку закривання"
 
-#: dbx_preference:317
+#: dbx_preference:327
 msgid "Theme:"
 msgstr "Тема:"
 
-#: dbx_preference:335
+#: dbx_preference:346
+msgid "Window list style:"
+msgstr ""
+
+#: dbx_preference:365 dbx_preference:1053
 msgid "Colors"
 msgstr "Кольори"
 
-#: dbx_preference:392
+#: dbx_preference:422
 msgid "Needs attention effect"
 msgstr "Ефект привертання уваги"
 
-#: dbx_preference:396
+#: dbx_preference:426
 msgid "Compiz water"
 msgstr "Ефект води Compiz"
 
-#: dbx_preference:398
+#: dbx_preference:428
 msgid "Blinking"
 msgstr "Блимання"
 
-#: dbx_preference:400
+#: dbx_preference:430
 msgid "Static"
 msgstr "Статичний"
 
-#: dbx_preference:402
+#: dbx_preference:432
 msgid "No effect"
 msgstr "Без ефектів"
 
-#: dbx_preference:413
+#: dbx_preference:443
 msgid "Use gtk menu (old style) instead of DockbarX style menu."
 msgstr "Використовувати меню gtk (старий стиль) замість меню стилю DockbarX."
 
-#: dbx_preference:423
+#: dbx_preference:453
 msgid "Badge"
 msgstr ""
 
-#: dbx_preference:427 dbx_preference:475
+#: dbx_preference:457 dbx_preference:505
 msgid "Custom colors"
 msgstr ""
 
-#: dbx_preference:433
+#: dbx_preference:463
 msgid "Text"
 msgstr ""
 
-#: dbx_preference:433 dbx_preference:481
+#: dbx_preference:463 dbx_preference:511
 msgid "Background"
 msgstr ""
 
-#: dbx_preference:440
+#: dbx_preference:470
 msgid "Custom badge text color"
 msgstr ""
 
-#: dbx_preference:441
+#: dbx_preference:471
 msgid "Custom badge background color"
 msgstr ""
 
-#: dbx_preference:453
+#: dbx_preference:483
 msgid "Custom font and size"
 msgstr ""
 
-#: dbx_preference:461
+#: dbx_preference:491
 msgid "Badge font"
 msgstr "Шрифт символів"
 
-#: dbx_preference:471
+#: dbx_preference:501
 msgid "Progress bar"
 msgstr ""
 
-#: dbx_preference:481
+#: dbx_preference:511
 msgid "Foreground"
 msgstr ""
 
-#: dbx_preference:482
+#: dbx_preference:512
 msgid "progress_custom_fg_color"
 msgstr ""
 
-#: dbx_preference:483
+#: dbx_preference:513
 msgid "progress_custom_bg_color"
 msgstr ""
 
-#: dbx_preference:489
+#: dbx_preference:519
 msgid "Custom progress bar foreground color"
 msgstr ""
 
-#: dbx_preference:490
+#: dbx_preference:520
 msgid "Custom progress bar background color"
 msgstr ""
 
-#: dbx_preference:508
+#: dbx_preference:538
 msgid "Show window list only if more than one window is open"
 msgstr "Показувати список вікон, якщо відкрито більше, ніж одне вікно"
 
-#: dbx_preference:514
+#: dbx_preference:544
 msgid "Show tooltip when no window is open"
 msgstr "Показувати виринаючу підказку, якщо немає відкритих вікон"
 
-#: dbx_preference:521
+#: dbx_preference:551
 msgid "Alignment"
 msgstr "Вирівнювання"
 
-#: dbx_preference:525
+#: dbx_preference:555
 msgid "Align left"
 msgstr "Вирівняти ліворуч"
 
-#: dbx_preference:527
+#: dbx_preference:557
 msgid "Align center"
 msgstr "Вирівняти по центру"
 
-#: dbx_preference:529
+#: dbx_preference:559
 msgid "Align right"
 msgstr "Вирівняти праворуч"
 
-#: dbx_preference:538 dbx_preference:543
+#: dbx_preference:568 dbx_preference:573
 msgid "Delay"
 msgstr "Затримка"
 
-#: dbx_preference:553
+#: dbx_preference:583
 msgid "Delay for switching between window lists"
 msgstr "Затримка перемикання між списками вікон"
 
-#: dbx_preference:566
+#: dbx_preference:596
 msgid "Previews"
 msgstr "Мініатюри"
 
-#: dbx_preference:570
+#: dbx_preference:600
 msgid "Show previews"
 msgstr "Показувати мініатюри"
 
-#: dbx_preference:575
+#: dbx_preference:605
 msgid "Preview size"
 msgstr "Розмір мініатюр"
 
-#: dbx_preference:587
+#: dbx_preference:617
 msgid "Locked list"
 msgstr ""
 
-#: dbx_preference:592
+#: dbx_preference:622
 msgid "Show \"locked list\" option in menu"
 msgstr ""
 
-#: dbx_preference:593
+#: dbx_preference:623
 msgid ""
 "The option is only shown when a program has more than one window opened."
 msgstr ""
 
-#: dbx_preference:598
+#: dbx_preference:628
 msgid "Maximized windows should not overlap the locked list"
 msgstr ""
 
-#: dbx_preference:607
+#: dbx_preference:637
 msgid "Group button actions"
 msgstr "Дія для клавіші групування"
 
-#: dbx_preference:627
+#: dbx_preference:657
 msgid "select"
 msgstr "обрати"
 
-#: dbx_preference:628
+#: dbx_preference:658
 msgid "close all windows"
 msgstr "закрити всі вікна"
 
-#: dbx_preference:629
+#: dbx_preference:659
 msgid "minimize all windows"
 msgstr "згорнути всі вікна"
 
-#: dbx_preference:630
+#: dbx_preference:660
 msgid "maximize all windows"
 msgstr "максимізувати всі вікна"
 
-#: dbx_preference:631
+#: dbx_preference:661
 msgid "launch application"
 msgstr "запустити програму"
 
-#: dbx_preference:633
+#: dbx_preference:663
 msgid "remove launcher"
 msgstr "прибрати значок швидкого запуску"
 
-#: dbx_preference:634
+#: dbx_preference:664
 msgid "select next window"
 msgstr "вибрати наступне вікно"
 
-#: dbx_preference:635
+#: dbx_preference:665
 msgid "select previous window"
 msgstr "вибрати попереднє вікно"
 
-#: dbx_preference:636
+#: dbx_preference:666
 msgid "minimize all other groups"
 msgstr "згорнути інші групи"
 
-#: dbx_preference:637
+#: dbx_preference:667
 msgid "compiz scale windows"
 msgstr "масштабування compiz"
 
-#: dbx_preference:638
+#: dbx_preference:668
 msgid "compiz shift windows"
 msgstr "пермикач вікон compiz"
 
-#: dbx_preference:639
+#: dbx_preference:669
 msgid "compiz scale all"
 msgstr "маштабування compiz"
 
-#: dbx_preference:640
+#: dbx_preference:670
 msgid "show preference dialog"
 msgstr "показати вікно налаштувань"
 
-#: dbx_preference:668
+#: dbx_preference:698
 msgid "Double click"
 msgstr "Подвійне натискання"
 
-#: dbx_preference:679
+#: dbx_preference:709
 msgid "\"Select\" action options"
 msgstr "Дія при натисканні значка запуску"
 
-#: dbx_preference:685
+#: dbx_preference:715
 msgid "One window open"
 msgstr "Відкрито одне вікно"
 
-#: dbx_preference:694
+#: dbx_preference:724
 msgid "Multiple windows open"
 msgstr "Відкрито декілька вікон"
 
-#: dbx_preference:697 dbx_preference:1274 dbx_preference:1542
+#: dbx_preference:727 dbx_preference:1372 dbx_preference:1683
 msgid "select all"
 msgstr "вибрати усе"
 
-#: dbx_preference:698 dbx_preference:1275 dbx_preference:1543
+#: dbx_preference:728 dbx_preference:1373 dbx_preference:1684
 msgid "select or minimize all"
 msgstr "вибрати чи мінімізувати все"
 
-#: dbx_preference:699 dbx_preference:1276 dbx_preference:1544
+#: dbx_preference:729 dbx_preference:1374 dbx_preference:1685
 msgid "compiz scale"
 msgstr "маштабування compiz"
 
-#: dbx_preference:700 dbx_preference:1277 dbx_preference:1545
+#: dbx_preference:730 dbx_preference:1375 dbx_preference:1686
 msgid "cycle through windows"
 msgstr "циклічно змінювати вікна"
 
-#: dbx_preference:701 dbx_preference:1278 dbx_preference:1546
+#: dbx_preference:731 dbx_preference:1376 dbx_preference:1687
 msgid "show window list"
 msgstr "показувати список вікон"
 
-#: dbx_preference:706
+#: dbx_preference:736
 msgid "Workspace behavior"
 msgstr "Поведінка стільниць"
 
-#: dbx_preference:710 dbx_preference:1554
+#: dbx_preference:740 dbx_preference:1695
 msgid "Ignore windows on other workspaces"
 msgstr "Ігнорувати вікна з інших стільниць"
 
-#: dbx_preference:711 dbx_preference:1288 dbx_preference:1555
+#: dbx_preference:741 dbx_preference:1386 dbx_preference:1696
 msgid "Switch workspace when needed"
 msgstr "Перемикати стільниці, якщо необхідно"
 
-#: dbx_preference:713 dbx_preference:1289 dbx_preference:1556
+#: dbx_preference:743 dbx_preference:1387 dbx_preference:1697
 msgid "Move windows from other workspaces"
 msgstr "Перемістити вікна з інших стільниць"
 
-#: dbx_preference:724
+#: dbx_preference:754
 msgid "\"Select next\" options"
 msgstr "Параметр «Вибрати наступне»"
 
-#: dbx_preference:726
+#: dbx_preference:756
 msgid "\"Select next\" selects the most recently used window in the group"
 msgstr "Параметр «Вибрати наступне» вибирає недавні вікна в групі"
 
-#: dbx_preference:727
+#: dbx_preference:757
 msgid ""
 "If set, \"Select Next\" action selects the window that has been used most "
 "recently, otherwise it activates the next window in the window list."
@@ -373,11 +377,11 @@ msgstr ""
 "Якщо позначено, дія «Вибрати наступне» вибирає вікно, що використовувалось "
 "останнім, у іншому випадку, активує наступне вікно в списку вікон."
 
-#: dbx_preference:733
+#: dbx_preference:763
 msgid "Use no delay with \"Select next\""
 msgstr "Не використовувати затримку з «Вибрати наступне»"
 
-#: dbx_preference:734
+#: dbx_preference:764
 msgid ""
 "If set, \"Select Next\" action selects the next window immediately without "
 "any delay"
@@ -385,51 +389,51 @@ msgstr ""
 "Якщо позначено, дія «Вибрати наступне» вибирає наступне вікно негайно і без "
 "затримки."
 
-#: dbx_preference:744
+#: dbx_preference:774
 msgid "Use media buttons"
 msgstr "Використовувати медіа-кнопки"
 
-#: dbx_preference:751
+#: dbx_preference:781
 msgid "Use Unity static quicklists"
 msgstr ""
 
-#: dbx_preference:758
+#: dbx_preference:788
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr ""
 
-#: dbx_preference:765
+#: dbx_preference:795
 msgid "DockManager"
 msgstr "DockManager"
 
-#: dbx_preference:769
+#: dbx_preference:799
 msgid "Use DockManager"
 msgstr "Використовувати DockManager"
 
-#: dbx_preference:774
+#: dbx_preference:804
 msgid "Helpers"
 msgstr "Додатки"
 
-#: dbx_preference:783
+#: dbx_preference:813
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Ігнорувати вікна з інших робочих областей/стільниць"
 
-#: dbx_preference:789
+#: dbx_preference:819
 msgid "Ignore windows on other monitors"
 msgstr "Ігнорувати вікна з інших моніторів"
 
-#: dbx_preference:796
+#: dbx_preference:826
 msgid "Give each wine application its own group button"
 msgstr "Використовувати власну кнопку для кожної wine-програми"
 
-#: dbx_preference:803
+#: dbx_preference:833
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "Розділяти офісні програми (Writer, Calc, тощо)"
 
-#: dbx_preference:810
+#: dbx_preference:840
 msgid "Delay on select all (Workaround for order problems)"
 msgstr "Затримка при виборі всіх (Вирішення ряду проблем)"
 
-#: dbx_preference:811
+#: dbx_preference:841
 msgid ""
 "Compiz can't handle the order of multiple windows that are brought up at "
 "once. This problem can be solved by adding short delays between the "
@@ -439,11 +443,11 @@ msgstr ""
 "проблема може бути вирішена додаванням малих затримок між активацією кожного "
 "вікна."
 
-#: dbx_preference:819 dbx_preference:823
+#: dbx_preference:849 dbx_preference:853
 msgid "Opacify"
 msgstr "Непрозорість"
 
-#: dbx_preference:824
+#: dbx_preference:854
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
@@ -451,11 +455,11 @@ msgstr ""
 "Непрозорість робить усі інші вікна прозорими при наведенні курсору на назву "
 "або мініатюру в списці вікон"
 
-#: dbx_preference:827
+#: dbx_preference:857
 msgid "Opacify group"
 msgstr "Непрозорість групи"
 
-#: dbx_preference:828
+#: dbx_preference:858
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
@@ -463,182 +467,202 @@ msgstr ""
 "Непрозорість групи робить усі інші групи прозорими при наведенні курсору на "
 "кнопку групи"
 
-#: dbx_preference:832
+#: dbx_preference:862
 msgid "Use smooth fade in/out"
 msgstr "Плавне зникнення/поява"
 
-#: dbx_preference:838
+#: dbx_preference:868
 msgid "Opacity"
 msgstr "Прозорість"
 
-#: dbx_preference:850
+#: dbx_preference:880
 msgid "Smoothness"
 msgstr "Гладкість"
 
-#: dbx_preference:859
+#: dbx_preference:889
 msgid "Duration"
 msgstr "Тривалість"
 
-#: dbx_preference:873
+#: dbx_preference:903
 msgid "Global Keyboard Shortcuts"
 msgstr "Глобальні клавіатурні скорочення"
 
-#: dbx_preference:878 dockbarx/dockbar.py:1289
+#: dbx_preference:908 dockbarx/dockbar.py:1302
 msgid "Select next group"
 msgstr "Обрати наступну групу"
 
-#: dbx_preference:880 dockbarx/dockbar.py:1290
+#: dbx_preference:910 dockbarx/dockbar.py:1303
 msgid "Select previous group"
 msgstr "Обрати попередню групу"
 
-#: dbx_preference:882 dockbarx/dockbar.py:1291
+#: dbx_preference:912 dockbarx/dockbar.py:1304
 msgid "Select next window in group"
 msgstr "Вибрати наступне вікно у групі"
 
-#: dbx_preference:884 dockbarx/dockbar.py:1292
+#: dbx_preference:914 dockbarx/dockbar.py:1305
 msgid "Select previous window in group"
 msgstr "Вибрати попереднє вікно у групі"
 
-#: dbx_preference:919
+#: dbx_preference:949
 msgid "Note! Compiz keyboard shortcuts will override these."
 msgstr "Увага! Комбінації клавіш Compiz замінять ці параметри."
 
-#: dbx_preference:921
+#: dbx_preference:951
 msgid "Skip pinned apps without open windows"
 msgstr "Пропускати прикріплені програми без відкритих вікон"
 
-#: dbx_preference:927
+#: dbx_preference:957
 msgid "Use Unity style number shortcuts (Super+number)"
 msgstr ""
 
-#: dbx_preference:941
+#: dbx_preference:971
 msgid "Type"
 msgstr ""
 
-#: dbx_preference:944 dbx_preference:968
+#: dbx_preference:974 dbx_preference:1002
 msgid "panel"
 msgstr ""
 
-#: dbx_preference:944
+#: dbx_preference:974
 msgid "corner"
 msgstr ""
 
-#: dbx_preference:944
+#: dbx_preference:974
 msgid "centered"
 msgstr ""
 
-#: dbx_preference:953
+#: dbx_preference:987
 msgid "Position"
 msgstr "Розташування"
 
-#: dbx_preference:956
+#: dbx_preference:990
 msgid "left"
 msgstr "ліворуч"
 
-#: dbx_preference:956
+#: dbx_preference:990
 msgid "right"
 msgstr "праворуч"
 
-#: dbx_preference:956
+#: dbx_preference:990
 msgid "top"
 msgstr "вверху"
 
-#: dbx_preference:956
+#: dbx_preference:990
 msgid "bottom"
 msgstr "внизу"
 
-#: dbx_preference:965
+#: dbx_preference:999
 msgid "Behavior"
 msgstr ""
 
-#: dbx_preference:968
+#: dbx_preference:1002
 msgid "standard"
 msgstr ""
 
-#: dbx_preference:968 dbx_preference:1007
+#: dbx_preference:1002 dbx_preference:1103
 msgid "dodge windows"
 msgstr ""
 
-#: dbx_preference:969 dbx_preference:1008
+#: dbx_preference:1003 dbx_preference:1104
 msgid "dodge active window"
 msgstr ""
 
-#: dbx_preference:969
+#: dbx_preference:1003
 msgid "always autohide"
 msgstr ""
 
-#: dbx_preference:978
+#: dbx_preference:1012
 msgid "Size"
 msgstr "Розмір"
 
-#: dbx_preference:990
+#: dbx_preference:1024
 msgid "Offset"
 msgstr ""
 
-#: dbx_preference:991
+#: dbx_preference:1025
 msgid ""
 "Use this if the dock isn't able to automatically aviod overlapping with "
 "other panels"
 msgstr ""
 
-#: dbx_preference:1004
+#: dbx_preference:1035
+msgid "Dock theme:"
+msgstr ""
+
+#: dbx_preference:1058 dbx_preference:1061
+msgid "Background color"
+msgstr ""
+
+#: dbx_preference:1075 dbx_preference:1079
+msgid "Second background color"
+msgstr ""
+
+#: dbx_preference:1100
 msgid "Dodge behavior"
 msgstr ""
 
-#: dbx_preference:1007
+#: dbx_preference:1103
 msgid "disabled"
 msgstr ""
 
-#: dbx_preference:1013
+#: dbx_preference:1109
 msgid ""
 "AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
 "awn applet Taskmanager is not running. Set dodge behavior here instead."
 msgstr ""
 
-#: dbx_preference:1018
+#: dbx_preference:1114
 msgid "AWN"
 msgstr ""
 
-#: dbx_preference:1019
+#: dbx_preference:1115
 msgid "Dock"
 msgstr "Док"
 
-#: dbx_preference:1020
+#: dbx_preference:1116
 msgid "Appearance"
 msgstr "Зовнішній вигляд"
 
-#: dbx_preference:1021
+#: dbx_preference:1117
 msgid "Window List"
 msgstr "Список вікон"
 
-#: dbx_preference:1022
+#: dbx_preference:1118
 msgid "Group Button"
 msgstr "Кнопка групи"
 
-#: dbx_preference:1023
+#: dbx_preference:1119
 msgid "Window Item"
 msgstr "Кнопка вікна"
 
-#: dbx_preference:1024
+#: dbx_preference:1120
 msgid "Plugins"
 msgstr "Модулі"
 
-#: dbx_preference:1025
+#: dbx_preference:1121
 msgid "Advanced"
 msgstr "Додатково"
 
-#: dbx_preference:1096 dockbarx/theme.py:169
+#: dbx_preference:1194 dockbarx/theme.py:168
 msgid ""
 "No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 "Жодної активної теми не знайдено ні в /usr/share/dockbarx/themes, ні в "
 "~/.dockbarx/themes"
 
-#: dbx_preference:1287
+#: dbx_preference:1385
 msgid "Ignore windows on other workspace"
 msgstr "Ігнорувати вікна з інших стільниць"
 
-#: dbx_preference:1427
+#: dbx_preference:1458
+msgid "Show corner decorations"
+msgstr ""
+
+#: dbx_preference:1462
+msgid "Show decorations in both corners"
+msgstr ""
+
+#: dbx_preference:1568
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
@@ -646,7 +670,7 @@ msgstr ""
 "Перегляд мініатюр працює лише з ввімкненим плагіном compiz KDE Compability. "
 "Активувати його зараз?"
 
-#: dbx_preference:1441
+#: dbx_preference:1582
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
@@ -656,7 +680,7 @@ msgstr ""
 "Якщо ви використовуєте Ubuntu, будь ласка, встановіть пакет compiz-fusion-"
 "plugins-main"
 
-#: dbx_preference:1459
+#: dbx_preference:1600
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
@@ -664,7 +688,7 @@ msgstr ""
 "Перегляд мініатюр працює з ввімкненою опцією \"Support Plasma Thumnails\" у "
 "налаштуваннях плагіна KDE Compability. Активувати її зараз?"
 
-#: dbx_preference:1482
+#: dbx_preference:1623
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
@@ -672,7 +696,7 @@ msgstr ""
 "Непрозорість працює з плагіном compiz Opacity, Brightness and Saturation. "
 "Активувати його зараз?"
 
-#: dbx_preference:1675
+#: dbx_preference:1816
 msgid ""
 "You need to have at least one mod key (<control>, <alt> or <super>) in the "
 "keyboard string."
@@ -680,15 +704,15 @@ msgstr ""
 "У комбінації клавіш повинна бути хоча б одна модульна клавіша (<control>, "
 "<alt> чи <super>)"
 
-#: dockbarx/dockbar.py:1105 dockbarx/groupbutton.py:2442
+#: dockbarx/dockbar.py:1118 dockbarx/groupbutton.py:2435
 msgid "Identifier"
 msgstr "Ідентифікатор"
 
-#: dockbarx/dockbar.py:1106
+#: dockbarx/dockbar.py:1119
 msgid "Enter the identifier here"
 msgstr "Введіть інтендифікатор тут"
 
-#: dockbarx/dockbar.py:1108
+#: dockbarx/dockbar.py:1121
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
@@ -696,7 +720,7 @@ msgstr ""
 "Ви повинні зробити це лише у тому випадку, якщо програмі не вдасться "
 "організувати свої вікна "
 
-#: dockbarx/dockbar.py:1109
+#: dockbarx/dockbar.py:1122
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
@@ -704,49 +728,49 @@ msgstr ""
 "Ви можете знайти індефікатор у списку вікон лише тоді, коли програма вже "
 "працює"
 
-#: dockbarx/dockbar.py:1126
+#: dockbarx/dockbar.py:1139
 msgid "Identifier:"
 msgstr "Ідентифікатор:"
 
-#: dockbarx/windowbutton.py:602 dockbarx/groupbutton.py:704
-#: dockbarx/groupbutton.py:829 dockbarx/groupbutton.py:830
+#: dockbarx/windowbutton.py:603 dockbarx/groupbutton.py:704
+#: dockbarx/groupbutton.py:822 dockbarx/groupbutton.py:823
 msgid "_Minimize"
 msgstr "_Згорнути"
 
-#: dockbarx/windowbutton.py:605 dockbarx/groupbutton.py:702
-#: dockbarx/groupbutton.py:832 dockbarx/groupbutton.py:833
+#: dockbarx/windowbutton.py:606 dockbarx/groupbutton.py:702
+#: dockbarx/groupbutton.py:825 dockbarx/groupbutton.py:826
 msgid "Un_minimize"
 msgstr "_Розгорнути"
 
-#: dockbarx/windowbutton.py:614 dockbarx/groupbutton.py:708
-#: dockbarx/groupbutton.py:823 dockbarx/groupbutton.py:824
+#: dockbarx/windowbutton.py:615 dockbarx/groupbutton.py:708
+#: dockbarx/groupbutton.py:816 dockbarx/groupbutton.py:817
 msgid "Ma_ximize"
 msgstr "Розгорнути на ве_сь екран"
 
-#: dockbarx/windowbutton.py:617 dockbarx/groupbutton.py:711
-#: dockbarx/groupbutton.py:826 dockbarx/groupbutton.py:827
+#: dockbarx/windowbutton.py:618 dockbarx/groupbutton.py:711
+#: dockbarx/groupbutton.py:819 dockbarx/groupbutton.py:820
 msgid "Unma_ximize"
 msgstr "В_ідновити попередній розмір"
 
-#: dockbarx/windowbutton.py:623 dockbarx/groupbutton.py:712
-#: dockbarx/groupbutton.py:821 dockbarx/groupbutton.py:822
+#: dockbarx/windowbutton.py:624 dockbarx/groupbutton.py:712
+#: dockbarx/groupbutton.py:814 dockbarx/groupbutton.py:815
 msgid "_Close"
 msgstr "_Закрити"
 
 #: dockbarx/groupbutton.py:339 dockbarx/groupbutton.py:622
-#: dockbarx/groupbutton.py:840
+#: dockbarx/groupbutton.py:833
 msgid "_Launch application"
 msgstr "_Виконати програму"
 
-#: dockbarx/groupbutton.py:624 dockbarx/groupbutton.py:839
+#: dockbarx/groupbutton.py:624 dockbarx/groupbutton.py:832
 msgid "_Pin application"
 msgstr "_Прикріпити програму"
 
-#: dockbarx/groupbutton.py:626 dockbarx/groupbutton.py:838
+#: dockbarx/groupbutton.py:626 dockbarx/groupbutton.py:831
 msgid "Make custom launcher"
 msgstr "Створити кнопку запуску"
 
-#: dockbarx/groupbutton.py:628 dockbarx/groupbutton.py:837
+#: dockbarx/groupbutton.py:628 dockbarx/groupbutton.py:830
 msgid "Unpin application"
 msgstr "Вилучити програму"
 
@@ -755,11 +779,11 @@ msgstr "Вилучити програму"
 msgid "Properties"
 msgstr "Властивості"
 
-#: dockbarx/groupbutton.py:630 dockbarx/groupbutton.py:836
+#: dockbarx/groupbutton.py:630 dockbarx/groupbutton.py:829
 msgid "Edit Identifier"
 msgstr "Змінити інтендифікатор"
 
-#: dockbarx/groupbutton.py:631 dockbarx/groupbutton.py:835
+#: dockbarx/groupbutton.py:631 dockbarx/groupbutton.py:828
 msgid "Edit Launcher"
 msgstr "Редагувати кнопку запуску"
 
@@ -775,52 +799,16 @@ msgstr "Найчастіше використовувані"
 msgid "Related"
 msgstr "Схоже"
 
-#: dockbarx/groupbutton.py:690 dockbarx/groupbutton.py:842
+#: dockbarx/groupbutton.py:690 dockbarx/groupbutton.py:835
 msgid "Remove locked list"
 msgstr ""
 
-#: dockbarx/groupbutton.py:693 dockbarx/groupbutton.py:841
+#: dockbarx/groupbutton.py:693 dockbarx/groupbutton.py:834
 msgid "Show locked list"
 msgstr ""
 
-#: dockbarx/groupbutton.py:700 dockbarx/groupbutton.py:822
-#: dockbarx/groupbutton.py:824 dockbarx/groupbutton.py:827
-#: dockbarx/groupbutton.py:830 dockbarx/groupbutton.py:833
+#: dockbarx/groupbutton.py:700 dockbarx/groupbutton.py:815
+#: dockbarx/groupbutton.py:817 dockbarx/groupbutton.py:820
+#: dockbarx/groupbutton.py:823 dockbarx/groupbutton.py:826
 msgid " all windows"
 msgstr " всі вікна"
-
-#~ msgid "Opacity:"
-#~ msgstr "Непрозорість:"
-
-#~ msgid "Popup Settings"
-#~ msgstr "Налаштування підказок"
-
-#~ msgid "show popup"
-#~ msgstr "показати виринаюче вікно"
-
-#~ msgid "Delay:"
-#~ msgstr "Затримка:"
-
-#~ msgid "Popup"
-#~ msgstr "Виринаюче вікно"
-
-#~ msgid "Show popup only if more than one window is open"
-#~ msgstr ""
-#~ "Показувати виринаюче вікно тільки у випадку, коли відкритих вікон більше "
-#~ "одного"
-
-#~ msgid "Preview size:"
-#~ msgstr "Розмір мініатюр:"
-
-#~ msgid "The key is already bound elsewhere."
-#~ msgstr "Ця клавіша вже використовується"
-
-#, python-format
-#~ msgid ""
-#~ "Error: DockbarX couldn't set global keybinding '%(keystr)s' for %(function)s."
-#~ msgstr ""
-#~ "Помилка: DockbarX не вдалося встановити глобальну комбінацію клавіш "
-#~ "'%(keystr)s' для %(function)s."
-
-#~ msgid "Allow DockManager to write badges on GroupButtons"
-#~ msgstr "Дозволити DockManager записувати символи до GroupButtons"
