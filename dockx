@@ -124,7 +124,6 @@ class CairoDockX(gtk.Window):
             self.window.shape_combine_mask(None, 0, 0)
             self.window.input_shape_combine_mask(pixmap, 0, 0)
         else:
-            self.window.input_shape_combine_mask(None, 0, 0)
             self.window.shape_combine_mask(pixmap, 0, 0)
 
     def draw_frame(self, ctx, w, h):

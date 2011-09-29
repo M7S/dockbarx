@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-29 22:53+0300\n"
+"POT-Creation-Date: 2011-09-29 23:41+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -173,14 +173,6 @@ msgstr ""
 
 #: dbx_preference:515
 msgid "Foreground"
-msgstr ""
-
-#: dbx_preference:516
-msgid "progress_custom_fg_color"
-msgstr ""
-
-#: dbx_preference:517
-msgid "progress_custom_bg_color"
 msgstr ""
 
 #: dbx_preference:523

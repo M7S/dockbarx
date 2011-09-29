@@ -513,8 +513,8 @@ class PrefDialog():
         self.progress_color_buttons = []
         for i in (0, 1):
             text = (_("Foreground"), _("Background"))[i]
-            s = (_("progress_custom_fg_color"),
-                 _("progress_custom_bg_color"))[i]
+            s = ("progress_custom_fg_color",
+                 "progress_custom_bg_color")[i]
             self.custom_progress_color_cbs.append(gtk.CheckButton(text))
             self.custom_progress_color_cbs[i].connect("toggled",
                                                    self.__checkbutton_toggled,
