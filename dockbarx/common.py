@@ -568,6 +568,7 @@ class Globals(gobject.GObject):
           "show_only_current_monitor": False,
           "preview": False,
           "preview_size": 150,
+          "preview_minimized": True,
           "old_menu": False,
           "show_close_button": True,
           "locked_list_in_menu": True,

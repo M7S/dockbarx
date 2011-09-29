@@ -851,6 +851,7 @@ class CairoArea(gtk.Alignment):
         self.pressed_down = False
         self.active_window = False
         self.needs_attention = False
+        self.minimized = False
         self.preview_allocation = [0, 0, 0, 0]
         if text:
             self.label = gtk.Label()
@@ -885,7 +886,9 @@ class CairoArea(gtk.Alignment):
         a = self.get_allocation()
         mx , my = self.get_pointer()
         preview = self.globals.settings["preview"] and \
-                  self.globals.get_compiz_version() >= "0.9"
+                  self.globals.get_compiz_version() >= "0.9" and \
+                  (self.globals.settings["preview_minimized"] or \
+                   not self.minimized)
         highlighted = self.highlighted or \
                       (mx >= 0 and mx < a.width and my >= 0 and my < a.height)
             
@@ -988,6 +991,10 @@ class CairoArea(gtk.Alignment):
 
     def set_needs_attention(self, needs_attention):
         self.needs_attention = needs_attention
+        self.queue_draw()
+
+    def set_minimized(self, minimized):
+        self.minimized = minimized
         self.queue_draw()
 
     def set_preview_allocation(self, allocation):

@@ -405,12 +405,19 @@ class WindowItem(CairoButton):
         if window.wnck.is_minimized():
             pixbuf = self.__make_minimized_icon(icon)
             self.icon_image.set_from_pixbuf(pixbuf)
+            if self.globals.settings["preview"] and \
+               (self.globals.get_compiz_version() < "0.9" or \
+               not self.globals.settings["preview_minimized"]):
+                   self.preview.set_from_pixbuf(window.wnck.get_icon())
         else:
             self.icon_image.set_from_pixbuf(icon)
+            self.preview.clear()
 
     def minimized_changed(self):
+        window = self.window_r()
         self.__update_label()
         self.__update_icon()
+        self.area.set_minimized(window.wnck.is_minimized())
 
     def active_changed(self):
         window = self.window_r()

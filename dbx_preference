@@ -126,9 +126,7 @@ class Theme():
 
         # Popup style
         ps = self.theme.get("popup_style", {})
-        print ps
         self.default_popup_style = ps.get("file_name", "dbx.tar.gz")
-        print self.default_popup_style
 
         # Colors
         self.color_names = {}
@@ -606,6 +604,12 @@ class PrefDialog():
         self.preview_cb = gtk.CheckButton(_("Show previews"))
         self.preview_cb.connect("toggled", self.__checkbutton_toggled, "preview")
         vbox.pack_start(self.preview_cb, False)
+        self.preview_minimized_cb = gtk.CheckButton(_("Show previews for minimized windows"))
+        self.preview_minimized_cb.connect("toggled", self.__checkbutton_toggled, "preview_minimized")
+        vbox.pack_start(self.preview_minimized_cb, False)
+        self.preview_minimized_cb.set_no_show_all(True)
+        if self.globals.get_compiz_version() >= "0.9":
+            self.preview_minimized_cb.show()
 
         spinbox = gtk.HBox()
         spinlabel = gtk.Label(_("Preview size"))
@@ -1422,6 +1426,9 @@ class PrefDialog():
 
         # Advanced page stuff
         self.preview_cb.set_active(self.globals.settings["preview"])
+        self.preview_cb.set_active(self.globals.settings["preview"])
+        self.preview_minimized_cb.set_active(
+                                   self.globals.settings["preview_minimized"])
         self.preview_size_spin.set_value(self.globals.settings["preview_size"])
         self.preview_size_spin.set_sensitive(self.globals.settings["preview"])
         self.ignore_workspace_cb.set_active(
