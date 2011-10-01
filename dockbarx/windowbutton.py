@@ -96,9 +96,10 @@ class Window():
             self.item.active_changed()
 
     def is_on_current_desktop(self):
-        if (self.wnck.get_workspace() is None \
-        or self.screen.get_active_workspace() == self.wnck.get_workspace()) \
-        and self.wnck.is_in_viewport(self.screen.get_active_workspace()):
+        aws = self.screen.get_active_workspace()
+        if (self.wnck.get_workspace() is None or \
+           self.wnck.get_workspace() == aws) and \
+           self.wnck.is_in_viewport(aws):
             return True
         else:
             return False
@@ -175,7 +176,8 @@ class Window():
         if self.globals.settings["show_only_current_desktop"]:
             onc = self.is_on_current_desktop()
             if self.on_current_desktop != onc:
-                self.on_current_destkop = onc
+                self.on_current_desktop = onc
+                self.item.update_show_state()
                 group.window_desktop_changed()
         if self.globals.settings["preview"]:
             self.item.update_preview()
@@ -336,6 +338,9 @@ class WindowItem(CairoButton):
         self.add(vbox)
         self.preview_box.set_no_show_all(True)
         vbox.show_all()
+        
+        self.show_all()
+        self.update_show_state()
 
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
@@ -444,9 +449,9 @@ class WindowItem(CairoButton):
            not window.on_current_desktop) or \
            (self.globals.settings["show_only_current_monitor"] and \
            window.monitor != self.group_r().monitor):
-            self.hide_all()
+            self.hide()
         else:
-            self.show_all()
+            self.show()
 
     ####Preview
     def update_preview(self, *args):
