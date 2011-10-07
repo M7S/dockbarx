@@ -353,6 +353,8 @@ class WindowItem(CairoButton):
                               self.__on_show_close_button_changed)
         connect(self.globals, "color-changed", self.__update_label)
         connect(self.globals, "preview-size-changed", self.update_preview)
+        connect(self.globals, "window-title-width-changed",
+                              self.__update_label)
 
     def clean_up(self):
         window = self.window_r()
@@ -388,9 +390,13 @@ class WindowItem(CairoButton):
         text = "<span foreground=\"" + color + "\">" + text + "</span>"
         self.label.set_text(text)
         self.label.set_use_markup(True)
-        # The label should be 140px wide unless there are more room
-        # because the preview takes up more.
-        self.label.set_size_request(140, -1)
+        if self.globals.settings["preview"]:
+            # The label should be 140px wide unless there are more room
+            # because the preview takes up more.
+            size = 140
+        else:
+            size = self.globals.settings["window_title_width"]
+        self.label.set_size_request(size, -1)
 
     def __make_minimized_icon(self, icon):
         pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True,
@@ -513,9 +519,7 @@ class WindowItem(CairoButton):
         # or self.__on_mouse_leave.
         CairoButton.do_button_press_event(self, event)
         self.pressed = True
-        self.press_sid = \
-                        gobject.timeout_add(600,
-                                            self.__set_pressed_false)
+        self.press_sid = gobject.timeout_add(600, self.__set_pressed_false)
 
     def __set_pressed_false(self):
         # Helper function for __on_press_event.

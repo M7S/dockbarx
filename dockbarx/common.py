@@ -527,6 +527,8 @@ class Globals(gobject.GObject):
                                   gobject.TYPE_NONE,()),
         "preview-size-changed": (gobject.SIGNAL_RUN_FIRST,
                                  gobject.TYPE_NONE,()),
+        "window-title-width-changed": (gobject.SIGNAL_RUN_FIRST,
+                                       gobject.TYPE_NONE,()),
         "locked-list-in-menu-changed": (gobject.SIGNAL_RUN_FIRST,
                                          gobject.TYPE_NONE,()),
         "locked-list-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
@@ -573,6 +575,7 @@ class Globals(gobject.GObject):
           "show_close_button": True,
           "locked_list_in_menu": True,
           "locked_list_no_overlap": False,
+          "window_title_width": 140,
 
           "select_one_window": "select or minimize window",
           "select_multiple_windows": "select or minimize all",
@@ -822,6 +825,8 @@ class Globals(gobject.GObject):
             self.emit("show-previews-changed")
         if "preview_size" in changed_settings:
             self.emit("preview-size-changed")
+        if "window_title_width" in changed_settings:
+            self.emit("window-title-width-changed")
         if "groupbutton_show_tooltip" in changed_settings:
             self.emit("show-tooltip-changed")
         if "show_close_button" in changed_settings:
