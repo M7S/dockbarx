@@ -579,23 +579,6 @@ class PrefDialog():
         self.window_title_width_spinbox.set_no_show_all(True)
         popup_box.pack_start(self.window_title_width_spinbox, False, padding=5)
 
-        # Alignment
-        vbox = gtk.VBox()
-        label1 = gtk.Label("<b><big>%s</big></b>"%_("Alignment"))
-        label1.set_alignment(0,0.5)
-        label1.set_use_markup(True)
-        vbox.pack_start(label1,False)
-        self.rb3_1 = gtk.RadioButton(None, _("Align left"))
-        self.rb3_1.connect("toggled", self.__rb_toggled, "rb3_left")
-        self.rb3_2 = gtk.RadioButton(self.rb3_1, _("Align center"))
-        self.rb3_2.connect("toggled", self.__rb_toggled, "rb3_center")
-        self.rb3_3 = gtk.RadioButton(self.rb3_1, _("Align right"))
-        self.rb3_3.connect("toggled", self.__rb_toggled, "rb3_right")
-        vbox.pack_start(self.rb3_1, False)
-        vbox.pack_start(self.rb3_2, False)
-        vbox.pack_start(self.rb3_3, False)
-        popup_box.pack_start(vbox, False, padding=5)
-
         # Delay
         vbox = gtk.VBox()
         label1 = gtk.Label("<b><big>%s</big></b>"%_("Delay"))
@@ -1278,15 +1261,6 @@ class PrefDialog():
             self.progress_color_buttons[i].set_color(color)
             alpha = self.globals.settings[s + "_alpha"] * 256
             self.progress_color_buttons[i].set_alpha(alpha)
-            
-        # Popup alignment
-        settings_align = self.globals.settings["popup_align"]
-        if settings_align == "left":
-            self.rb3_1.set_active(True)
-        elif settings_align == "center":
-            self.rb3_2.set_active(True)
-        elif settings_align == "right":
-            self.rb3_3.set_active(True)
 
         # Popup
         self.delay_spin.set_value(self.globals.settings["popup_delay"])
@@ -1552,8 +1526,6 @@ class PrefDialog():
     def __rb_toggled(self,button,par1):
         # Read the value of the toggled radio button and write to gconf
         rb1_toggled = False
-        rb2_toggled = False
-        rb3_toggled = False
 
         if par1 == "rb1_blink" and button.get_active():
             value = "blink"
@@ -1572,19 +1544,6 @@ class PrefDialog():
               self.globals.settings["groupbutton_attention_notification_type"]:
             GCONF_CLIENT.set_string(
                    GCONF_DIR+"/groupbutton_attention_notification_type", value)
-
-        if par1 == "rb3_left" and button.get_active():
-            value = "left"
-            rb3_toggled = True
-        if par1 == "rb3_center" and button.get_active():
-            value = "center"
-            rb3_toggled = True
-        if par1 == "rb3_right" and button.get_active():
-            value = "right"
-            rb3_toggled = True
-
-        if rb3_toggled and value != self.globals.settings["popup_align"]:
-            GCONF_CLIENT.set_string(GCONF_DIR+"/popup_align", value)
 
     def __checkbutton_toggled(self,button,name):
         # Read the value of the toggled check button/box and write to gconf
