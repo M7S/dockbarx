@@ -751,6 +751,8 @@ class Globals(gobject.GObject):
             key = "dock/" + key
         elif entry.get_key().split("/")[-2] == "awn":
             key = "awn/" + key
+        elif entry.get_key().split("/")[-2] == "applets":
+            key = "applets/" + key
         if key in self.settings:
             value = self.settings[key]
             if entry_get[type(value)]() != value:
@@ -866,10 +868,10 @@ class Globals(gobject.GObject):
             try:
                 gc_value = GCONF_CLIENT.get_value(gdir + "/" + name)
             except:
-                gconf_set[type(value)](gdir+ "/" + name , value)
+                gconf_set[type(value)](gdir + "/" + name, value)
             else:
                 if type(gc_value) != type(value):
-                    gconf_set[type(value)](gdir + "/" + name , value)
+                    gconf_set[type(value)](gdir + "/" + name, value)
                 else:
                     settings[name] = gc_value
         return settings

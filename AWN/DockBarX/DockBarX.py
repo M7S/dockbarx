@@ -68,10 +68,10 @@ class DockBarApp (awn.AppletSimple):
             self.box.pack_start(self.db.container, False, False)
         if self.db.orient == "h":
             self.db.container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 2)
+                                               self.icon.get_offset() + 5)
         else:
             self.db.container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 2, -1)
+                                               self.icon.get_offset() + 5, -1)
         self.add(self.box)
         self.connect("size-changed", self.__on_size_changed)
         self.connect("offset-changed", self.__on_size_changed)
@@ -92,10 +92,10 @@ class DockBarApp (awn.AppletSimple):
     def __on_size_changed(self, *args):
         if self.db.orient == "h":
             self.db.container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 2)
+                                               self.icon.get_offset() + 5)
         else:
             self.db.container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 2, -1)
+                                               self.icon.get_offset() + 5, -1)
         self.__compute_should_autohide()
 
     def __on_position_changed(self, applet, position):
@@ -113,10 +113,10 @@ class DockBarApp (awn.AppletSimple):
             self.box.pack_start(self.db.container, False, False)
         if self.db.orient == "h":
             self.db.container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 2)
+                                               self.icon.get_offset() + 5)
         else:
             self.db.container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 2, -1)
+                                               self.icon.get_offset() + 5, -1)
         self.add(self.box)
         self.box.show()
         self.db.container.show()

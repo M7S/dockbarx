@@ -32,6 +32,7 @@ import wnck
 import gobject
 from dockbarx.common import Globals
 from dockbarx.theme import DockTheme
+from dockbarx.applets import DockXApplets
 from Xlib import display
 from math import pi, sin, cos, tan, atan
 import weakref
@@ -50,6 +51,8 @@ class CairoDockX(gtk.Window):
         self.globals = Globals()
         self.theme = DockTheme()
         self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
+        self.stick()
+        self.set_accept_focus(False)
         self.set_decorated(False)
         self.set_resizable(False)
         self.dockbar_allocation = None
@@ -495,9 +498,11 @@ class DockX(CairoDockX):
         self.old_width = 0
         self.old_height = 0
         self.box = gtk.HBox()
-        self.padding1 = EventPadding(self, "before")
-        self.padding2 = EventPadding(self, "after")
+        self.padding1 = EventPadding(self)
+        self.padding2 = EventPadding(self)
+        self.spacer = EventPadding(self)
         self.add_box(self.box)
+        self.applets = DockXApplets()
         self.position_dock()
         self.globals.connect("dock-size-changed", self.__on_dock_size_changed)
         self.globals.connect("dock-position-changed",
@@ -544,17 +549,40 @@ class DockX(CairoDockX):
             self.add_box(self.box)
             self.box.pack_start(self.padding1, False, False)
             self.padding1.compute_size(centered or ed)
-            self.box.pack_start(self.dockbar.container, False, False)
-            if centered or cornered:
-                self.box.pack_start(self.padding2, False, False)
-                self.padding2.compute_size(True)
-            else:
-                self.box.pack_start(self.padding2, True, True)
-                # Todo: Is setting a big size request problem free? Find out. 
-                if pos in ("left", "right"):
-                    self.padding2.set_size_request(-1, 3000)
+            # Add the applets to the dock
+            alist = self.applets.get_list()
+            if not "Spacer" in alist:
+                alist.append("Spacer")
+            for name in alist:
+                if name == "Spacer":
+                    if not (centered or cornered):
+                        self.box.pack_start(self.spacer, True, True)
+                        # Make sure the spacer is big enough
+                        if pos in ("left", "right"):
+                            self.spacer.set_size_request(-1, 3000)
+                        else:
+                            self.spacer.set_size_request(3000, -1)
+                    continue
+                if name == "DockbarX":
+                    applet = self.dockbar.container
                 else:
-                    self.padding2.set_size_request(3000, -1)
+                    applet_ = self.applets.get(name)
+                    applet = applet_.get_dbx_applet(self)
+                self.box.pack_start(applet, False, False)
+            self.box.pack_start(self.padding2, False, False)
+            self.padding2.compute_size(centered or cornered or ed)
+            # Define if the paddings has a position right
+            # before or after the dockbarx applet.
+            # Needed for drag and drop behavior.
+            try:
+                i = alist.index("DockbarX") - alist.index("Spacer")
+            except ValueError:
+                i = None
+            self.spacer.define_position({1:"before", -1:"after"}.get(i, None))
+            first = (alist[0] == "DockbarX")
+            self.padding1.define_position((None, "before")[first])
+            last = (alist[-1] == "DockbarX")
+            self.padding2.define_position((None, "after")[last])
             self.show_all()
         mx, my, mw, mh = self.get_monitor_geometry()
         l, r, t, b = self.__get_monitor_and_strut_borders()
@@ -582,6 +610,7 @@ class DockX(CairoDockX):
             self.set_size_request(-1, h)
         else:
             self.set_size_request(w, h)
+        self.__set_dock_strut(x, y, w, h)
         if centered and pos in ("left", "right"):
             a = self.get_allocation()
             self.move(x, my + mh / 2 - a.height / 2)
@@ -592,7 +621,6 @@ class DockX(CairoDockX):
             self.move(x, y)
             self.old_x = x
             self.old_y = y
-        self.__set_dock_strut(x, y, w, h)
         for group in self.dockbar.groups:
             group.button.icon_factory.set_size(db_size)
             group.button.update_state(force_update=True)
@@ -897,10 +925,7 @@ class DockX(CairoDockX):
         cornered = self.globals.settings["dock/mode"] == "corner"
         ed = self.globals.settings["dock/end_decorations"]
         self.padding1.compute_size(centered or ed)
-        if centered or cornered:
-            self.padding2.compute_size(True)
-        else:
-            self.padding2.set_size_request(-1, -1)
+        self.padding2.compute_size(centered or cornered or ed)
         self.position_dock()
         self.queue_draw()
         
@@ -981,7 +1006,9 @@ class DockX(CairoDockX):
         self.db_loaded = False
         self.dockbar.reload()
         self.db_loaded = True
+        self.applets.find_applets()
         self.theme.reload()
+        self.position_dock(rebuild=True)
         if self.autohide:
             self.__compute_should_autohide()
 
@@ -996,16 +1023,19 @@ class EventPadding(gtk.EventBox):
                     "drag-leave" : "override",
                     "drag-drop" : "override",
                     "drag-data-received" : "override"}
-    def __init__(self, dock, position="after"):
+    def __init__(self, dock):
         gtk.EventBox.__init__(self)
         self.globals = Globals()
         self.dock_r = weakref.ref(dock)
         self.set_visible_window(False)
         self.set_size_request(6, 6)
 
-        self.position = position
+        self.position = None
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
+
+    def define_position(self, position):
+        self.position = position
 
     def compute_size(self, corner=True):
         dock = self.dock_r()
@@ -1084,6 +1114,8 @@ class EventPadding(gtk.EventBox):
         return True
 
     def do_drag_data_received(self, context, x, y, selection, targetType, t):
+        if not self.position in ("before", "after"):
+            return
         if selection.target == "text/groupbutton_name":
             self.dock_r().dockbar.groupbutton_moved(selection.data,
                                                     self.position)
@@ -1097,6 +1129,8 @@ class EventPadding(gtk.EventBox):
                 self.dock_r().dockbar.launcher_dropped(path, self.position)
 
     def do_drag_motion(self, drag_context, x, y, t):
+        if not self.position in ("before", "after"):
+            return True
         if not self.drag_entered:
             self.do_drag_enter(drag_context, x, y, t)
         if "text/groupbutton_name" in drag_context.targets:
@@ -1134,6 +1168,25 @@ class DockXDBus(dbus.service.Object):
     def Reload(self):
         self.dockx_r().reload()
 
+    @dbus.service.method(dbus_interface="org.dockbar.DockX",
+                         in_signature="", out_signature="s",)
+    def GetPosition(self):
+        return self.dockx_r().globals.settings["dock/position"]
+
+    @dbus.service.method(dbus_interface="org.dockbar.DockX",
+                         in_signature="", out_signature="i",)
+    def GetFullSize(self):
+        dockx = self.dockx_r()
+        rel_size = float(dockx.theme.get("rel_size", 100))
+        size = dockx.globals.settings["dock/size"]
+        return max(size, int(size * rel_size / 100))
+
+    @dbus.service.method(dbus_interface="org.dockbar.DockX",
+                         in_signature="", out_signature="i",)
+    def GetSize(self):
+        return self.dockx_r().globals.settings["dock/size"]
+
+
     @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
                          in_signature='ss', out_signature='v')
     def Get(self, interface_name, property_name):
@@ -1160,6 +1213,7 @@ class DockXDBus(dbus.service.Object):
     def PropertiesChanged(self, interface_name, changed_properties,
                           invalidated_properties):
         pass
+
 
 monitor = 0
 if "--monitor" in sys.argv:

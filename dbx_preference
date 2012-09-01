@@ -28,6 +28,7 @@ from xml.sax.handler import ContentHandler
 import dbus
 
 from dockbarx.common import *
+from dockbarx.applets import DockXApplets
 from dockbarx.theme import PopupStyle, DockTheme
 
 import dockbarx.i18n
@@ -36,6 +37,7 @@ dockbarx.i18n.load_theme_translation()
 
 GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = "/apps/dockbarx"
+
 
 
 class ThemeHandler(ContentHandler):
@@ -209,6 +211,214 @@ class Theme():
             return False
         return True
 
+class AppletsFrame():
+    def __init__(self):
+        self.globals = Globals()
+        self.applets = DockXApplets()
+        applet_list = self.applets.get_list()
+        unused_list = self.applets.get_unused_list()
+        
+        self.box = gtk.VBox(False, 7)
+        hbox = gtk.HBox()
+        vbox = gtk.VBox()
+        self.applet_view = self.create_treeview(applet_list, "Applets", True)
+        sw = gtk.ScrolledWindow()
+        sw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        sw.add(self.applet_view)
+        #~ frame = gtk.Frame("Applets in use")
+        #~ frame.add(sw)
+        vbox.pack_start(gtk.Label("Applets in use"), False)
+        vbox.pack_start(sw, True, True)
+        hbox.pack_start(vbox)
+        
+        
+        bbox = gtk.VBox()
+
+        self.add_button = self.create_image_button(gtk.STOCK_GO_BACK, 
+                                              self.on_add_button_clicked, 
+                                              bbox)
+        self.add_button.set_sensitive(False)
+        self.remove_button = self.create_image_button(gtk.STOCK_GO_FORWARD, 
+                                                 self.on_remove_button_clicked, 
+                                                 bbox)
+        self.remove_button.set_sensitive(False)
+        self.preferences_button = self.create_image_button(
+                                            gtk.STOCK_PREFERENCES, 
+                                            self.on_preferences_button_clicked, 
+                                            bbox)
+        self.preferences_button.set_sensitive(False)
+        reload_button = self.create_image_button(gtk.STOCK_REFRESH, 
+                                                 self.on_reload_button_clicked, 
+                                                 bbox)
+        ali = gtk.Alignment(0.5, 0.5, 1, 0)
+        ali.add(bbox)
+        hbox.pack_start(ali, False, False)
+
+        vbox = gtk.VBox()
+        self.av_applet_view = self.create_treeview(unused_list, 
+                                                   "Available applets", 
+                                                   False, True)
+        sw = gtk.ScrolledWindow()
+        sw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        sw.add(self.av_applet_view)
+        vbox.pack_start(gtk.Label("Available applets"), False)
+        vbox.pack_start(sw, True, True)
+        #~ frame = gtk.Frame("Available applets")
+        #~ frame.add(self.av_applet_view)
+        #~ vbox.pack_start(frame)
+        hbox.pack_start(vbox)
+        
+        self.box.pack_start(hbox)
+        self.textbuffer = self.create_textview(self.box)
+        self.box.show_all()
+
+    def get_box(self):
+        return self.box
+
+    def create_image_button(self, stock, call_func=None, parent=None):
+        button = gtk.Button()
+        button.add(gtk.image_new_from_stock(stock,
+                                            gtk.ICON_SIZE_LARGE_TOOLBAR))
+        if call_func:
+            button.connect("clicked", call_func)
+        if parent:
+            parent.pack_start(button, padding=5)
+        return button
+
+    def create_textview(self, parent):
+        sw = gtk.ScrolledWindow()
+        sw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw.set_size_request(-1, 150)
+        textview = gtk.TextView()
+        textview.set_wrap_mode(gtk.WRAP_WORD)
+        sw.add(textview)
+        if parent:
+            parent.pack_start(sw, False, False)
+        return textview.get_buffer()
+        
+    def create_treeview(self, content, name, reorderable=False, sort=False):
+        store = gtk.ListStore(str)
+        self.reload_model(store, content)
+        tree_view = gtk.TreeView(store)
+        tree_view.connect("row-activated", self.on_activated)
+        tree_view.connect("cursor-changed", self.on_cursor_changed)
+        tree_view.set_headers_visible(False)
+        #~ tree_view.set_rules_hint(True)
+        tree_view.set_reorderable(reorderable)
+        if sort:
+            store.set_sort_column_id(0, gtk.SORT_ASCENDING)
+        self.create_columns(tree_view, name)
+        return tree_view
+
+    def reload_model(self, store, content):
+        store.clear()
+        for row in content:
+            store.append([row])
+        return store
+
+
+    def create_columns(self, tree_view, name):
+        rendererText = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(name, rendererText, text=0)
+        tree_view.append_column(column)
+
+
+    def on_activated(self, treeview, row, col):
+        self.on_preferences_button_clicked()
+
+    def on_cursor_changed(self, treeview):
+        # Set description.
+        s = treeview.get_selection()
+        model, i = s.get_selected()
+        if i is None:
+            textbuffer.set_text("")
+            return
+        name = model[i][0]
+        description = _(self.applets.get_description(name))
+        if name == "Spacer":
+            description = "Makes some empty space between applets when the dock type is set to panel."
+        elif name == "DockbarX":
+            description = ""
+        self.textbuffer.set_text("%s\n\n%s" % (name, description))
+        # Set the buttons sensitivities
+        if treeview == self.applet_view:
+            self.remove_button.set_sensitive(name != "DockbarX")
+            self.add_button.set_sensitive(False)
+            if not name in ("DockbarX", "Spacer") and \
+               hasattr(self.applets.get(name), "run_applet_dialog"):
+                self.preferences_button.set_sensitive(True)
+            else:
+                self.preferences_button.set_sensitive(False)
+            other_selection = self.av_applet_view.get_selection()
+        else:
+            self.remove_button.set_sensitive(False)
+            self.add_button.set_sensitive(True)
+            self.preferences_button.set_sensitive(False)
+            other_selection = self.applet_view.get_selection()
+        # Unselect selection in the other treeview.
+        if other_selection.get_selected()[1] is not None:
+            other_selection.unselect_all()
+
+    def on_add_button_clicked(self, *args):
+        s = self.av_applet_view.get_selection()
+        model, i = s.get_selected()
+        if i is None:
+            return
+        applet = model[i][0]
+        model.remove(i)
+        self.applet_view.get_model().append([applet])
+        
+        self.textbuffer.set_text("")
+        self.add_button.set_sensitive(False)
+        self.remove_button.set_sensitive(False)
+        self.preferences_button.set_sensitive(False)
+        
+
+    def on_remove_button_clicked(self, *args):
+        s = self.applet_view.get_selection()
+        model, i = s.get_selected()
+        if i is None:
+            return
+        applet = model[i][0]
+        model.remove(i)
+        self.av_applet_view.get_model().append([applet])
+        
+        self.textbuffer.set_text("")
+        self.add_button.set_sensitive(False)
+        self.remove_button.set_sensitive(False)
+        self.preferences_button.set_sensitive(False)
+
+    def on_preferences_button_clicked(self, *args):
+        s = self.applet_view.get_selection()
+        model, i = s.get_selected()
+        if i is None:
+            return
+        name = model[i][0]
+        if name in ("DockbarX", "Spacer"):
+            return
+        applet = self.applets.get(name)
+        if hasattr(applet, "run_applet_dialog"):
+            self.applets.get(name).run_applet_dialog()
+
+    def on_reload_button_clicked(self, *args):
+        applet_list = [applet[0] for applet in self.applet_view.get_model()]
+        self.applets.set_list(applet_list)
+        # Reload DockX
+        obj = BUS.get_object("org.dockbar.DockX", "/org/dockbar/DockX")
+        iface = dbus.Interface(obj, "org.dockbar.DockX")
+        func = getattr(iface, "Reload")
+        if func:
+            func(reply_handler=self.dbus_reply_handler,
+                 error_handler=self.dbus_reply_handler)
+        # Refresh lists
+        applet_list = self.applets.get_list()
+        unused_list = self.applets.get_unused_list()
+        self.reload_model(self.applet_view.get_model(), applet_list)
+        self.reload_model(self.av_applet_view.get_model(), unused_list)
+
+    def dbus_reply_handler(*args):
+        pass
 
 class PrefDialog():
     def __init__ (self):
@@ -241,6 +451,8 @@ class PrefDialog():
         advanced_box = gtk.VBox()
         popup_box = gtk.VBox()
         dock_box = gtk.VBox()
+        self.applets_frame = AppletsFrame()
+        dock_applets_box = self.applets_frame.get_box()
         awn_box = gtk.VBox()
 
         #--- Window item page
@@ -1126,6 +1338,7 @@ class PrefDialog():
 
         notebook.append_page(awn_box, gtk.Label(_("AWN")))
         notebook.append_page(dock_box, gtk.Label(_("Dock")))
+        notebook.append_page(dock_applets_box, gtk.Label(_("Dock Applets")))
         notebook.append_page(appearance_box, gtk.Label(_("Appearance")))
         notebook.append_page(popup_box, gtk.Label(_("Window List")))
         notebook.append_page(groupbutton_box, gtk.Label(_("Group Button")))
@@ -1143,8 +1356,10 @@ class PrefDialog():
                 dock = True
             if str(name).startswith("org.dockbar.AWNapplet"):
                 awn = True
+        notebook.set_current_page(0)
         if not dock:
             dock_box.hide()
+            dock_applets_box.hide()
         if not awn:
             awn_box.hide()
 

@@ -27,6 +27,7 @@ import os
 import dbus
 import gc
 from time import time
+from xdg.DesktopEntry import ParsingError
 gc.enable()
 
 
