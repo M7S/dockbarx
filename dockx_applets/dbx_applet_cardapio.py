@@ -202,8 +202,12 @@ class MenuButtonApplet(DockXApplet):
         self.icon.set_pixel_size(self.get_size())
 
 def get_dbx_applet(dock):
-    # First run, make a new instance
-    applet = MenuButtonApplet(dock)
-    cardapio_applet = CardapioDockXApplet(applet)
-    cardapio = Cardapio(panel_applet=cardapio_applet)
-    return applet
+    global mbapplet
+    try:
+        return mbapplet
+    except:
+        # First run, make a new instance
+        mbapplet = MenuButtonApplet(dock)
+        cardapio_applet = CardapioDockXApplet(mbapplet)
+        cardapio = Cardapio(panel_applet=cardapio_applet)
+        return mbapplet
