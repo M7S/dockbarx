@@ -62,7 +62,7 @@ class CairoDockX(gtk.Window):
             colormap = gtk_screen.get_rgb_colormap()
         self.set_colormap(colormap)
         self.set_app_paintable(1)
-        self.button_area = gtk.Alignment()
+        self.button_area = gtk.Alignment(0,0,1,1)
         gtk.Window.add(self, self.button_area)
         self.compute_padding()
         self.globals.connect("dock-color-changed", self.__on_color_changed)
@@ -498,9 +498,11 @@ class DockX(CairoDockX):
         self.old_width = 0
         self.old_height = 0
         self.box = gtk.HBox()
+        self.boxes = None
         self.padding1 = EventPadding(self)
         self.padding2 = EventPadding(self)
-        self.spacer = EventPadding(self)
+        self.spacer1 = EventPadding(self)
+        self.spacer2 = EventPadding(self)
         self.add_box(self.box)
         self.applets = DockXApplets()
         self.position_dock()
@@ -539,51 +541,7 @@ class DockX(CairoDockX):
                 self.dockbar.set_orient("h")
                 rebuild = True
         if rebuild:
-            for child in self.box.get_children():
-                self.box.remove(child)
-            self.box.destroy()
-            if pos in ("left", "right"):
-                self.box = gtk.VBox()
-            else:
-                self.box = gtk.HBox()
-            self.add_box(self.box)
-            self.box.pack_start(self.padding1, False, False)
-            self.padding1.compute_size(centered or ed)
-            # Add the applets to the dock
-            alist = self.applets.get_list()
-            if not "Spacer" in alist:
-                alist.append("Spacer")
-            for name in alist:
-                if name == "Spacer":
-                    if not (centered or cornered):
-                        self.box.pack_start(self.spacer, True, True)
-                        # Make sure the spacer is big enough
-                        if pos in ("left", "right"):
-                            self.spacer.set_size_request(-1, 3000)
-                        else:
-                            self.spacer.set_size_request(3000, -1)
-                    continue
-                if name == "DockbarX":
-                    applet = self.dockbar.container
-                else:
-                    applet_ = self.applets.get(name)
-                    applet = applet_.get_dbx_applet(self)
-                self.box.pack_start(applet, False, False)
-            self.box.pack_start(self.padding2, False, False)
-            self.padding2.compute_size(centered or cornered or ed)
-            # Define if the paddings has a position right
-            # before or after the dockbarx applet.
-            # Needed for drag and drop behavior.
-            try:
-                i = alist.index("DockbarX") - alist.index("Spacer")
-            except ValueError:
-                i = None
-            self.spacer.define_position({1:"before", -1:"after"}.get(i, None))
-            first = (alist[0] == "DockbarX")
-            self.padding1.define_position((None, "before")[first])
-            last = (alist[-1] == "DockbarX")
-            self.padding2.define_position((None, "after")[last])
-            self.show_all()
+            self.__rebuild()
         mx, my, mw, mh = self.get_monitor_geometry()
         l, r, t, b = self.__get_monitor_and_strut_borders()
         sw = self.get_screen().get_width()
@@ -625,6 +583,104 @@ class DockX(CairoDockX):
             group.button.icon_factory.set_size(db_size)
             group.button.update_state(force_update=True)
         self.dockbar_allocation = self.dockbar.container.get_allocation()
+
+    def __rebuild(self):
+        centered = self.globals.settings["dock/mode"] == "centered"
+        cornered = self.globals.settings["dock/mode"] == "corner"
+        panel = self.globals.settings["dock/mode"] == "panel"
+        ed = self.globals.settings["dock/end_decorations"]
+        pos = self.globals.settings["dock/position"]
+        # Clean up the old box
+        for child in self.box.get_children():
+            self.box.remove(child)
+        self.box.destroy()
+        if self.boxes:
+            for box in self.boxes:
+                for child in box.get_children():
+                    box.remove(child)
+                box.destroy()
+        if pos in ("left", "right"):
+            gtk_box = gtk.VBox
+        else:
+            gtk_box = gtk.HBox
+        self.box = gtk_box()
+        self.add_box(self.box)
+        # Padding/End decorations before applets
+        self.box.pack_start(self.padding1, False, False)
+        self.padding1.compute_size(centered or ed)
+        # Add the applets to the dock
+        alist = self.applets.get_list()
+        if alist.count("Spacer") == 2 and panel:
+            self.boxes = [gtk_box(), gtk_box(),gtk_box()]
+            # Use tre boxes to enable centered applets. 
+            self.box.pack_start(self.boxes[0], True, True)
+            self.box.pack_start(self.boxes[1], False, False)
+            self.box.pack_start(self.boxes[2], True, True)
+            # Push up the size request so that boxes gets equaly large.
+            if pos in ("left", "right"):
+                self.boxes[0].set_size_request(-1, 3000)
+                self.boxes[2].set_size_request(-1, 3000)
+            else:
+                self.boxes[0].set_size_request(3000, -1)
+                self.boxes[2].set_size_request(3000, -1)
+            box = self.boxes[0]
+        else:
+            self.boxes = None
+            box = self.box
+        expanded = False
+        spacer = self.spacer1
+        for i in range(len(alist)):
+            name = alist[i]
+            if name == "Spacer" and panel:
+                if self.boxes and box == self.boxes[1]:
+                    # Put the second spacer in the last box.
+                    box = self.boxes[2]
+                box.pack_start(spacer, True, True)
+                # Define spacer posistion relative to dbx
+                # Needed for correct drag and drop behavior.
+                if i != 0 and alist[i - 1] == "DockbarX":
+                    spacer.define_position("after")
+                elif i + 1 != len(alist) and alist[i + 1] == "DockbarX":
+                    spacer.define_position("before")
+                expanded = True
+                if self.boxes and box == self.boxes[0]:
+                    # The first spacer is in the first box.
+                    # Start putting applets in the middle box.
+                    box = self.boxes[1]
+                    spacer = self.spacer2
+            if name == "Spacer":
+                continue
+            if name == "DockbarX":
+                applet = self.dockbar.container
+                expand = False
+            else:
+                applet_ = self.applets.get(name)
+                applet = applet_.get_dbx_applet(self)
+                expand = applet.get_expand() and panel
+            if expand:
+                expanded = True
+            box.pack_start(applet, expand, expand)
+        # Append a spacer after the last applet if no spacer/expanded applet
+        # is used and the mode is panel.
+        if panel and not expanded:
+            spacer = EventPadding(self)
+            self.box.pack_start(spacer, True, True)
+            if alist[-1] == "DockbarX":
+                spacer.define_position("after")
+        # Padding/End decorations after applets
+        self.box.pack_start(self.padding2, False, False)
+        self.padding2.compute_size(centered or cornered or ed)
+        # Define if the paddings has a position right
+        # before or after the dockbarx applet.
+        # Needed for drag and drop behavior.
+        p1 = p2 = None
+        if alist[0] == "DockbarX":
+            p1 = "before"
+        if alist[-1] == "DockbarX":
+            p2 = "after"
+        self.padding1.define_position(p1)
+        self.padding2.define_position(p2)
+        self.show_all()
 
     def __set_dock_strut(self, x, y, w, h):
         if not self.window:

@@ -111,6 +111,19 @@ class Theme():
             raise
         tar.close()
         return theme_handler.get_name()
+        
+    @staticmethod
+    def get_info(path_to_tar):
+        tar = taropen(path_to_tar)
+        config = tar.extractfile("config")
+        if "info" in tar.getnames():
+            f = tar.extractfile("info")
+            info = f.read()
+            f.close()
+        else:
+            info = None
+        tar.close()
+        return info
 
     def __init__(self, path_to_tar):
         tar = taropen(path_to_tar)
@@ -332,7 +345,7 @@ class AppletsFrame():
         s = treeview.get_selection()
         model, i = s.get_selected()
         if i is None:
-            textbuffer.set_text("")
+            self.textbuffer.set_text("")
             return
         name = model[i][0]
         description = _(self.applets.get_description(name))
@@ -552,8 +565,14 @@ class PrefDialog():
                                          gtk.ICON_SIZE_SMALL_TOOLBAR)
         button.add(image)
         button.connect("clicked", self.__set_theme)
+        info_button = gtk.Button()
+        image = gtk.image_new_from_stock(gtk.STOCK_INFO,
+                                         gtk.ICON_SIZE_SMALL_TOOLBAR)
+        info_button.add(image)
+        info_button.connect("clicked", self.__show_theme_info)
         hbox.pack_start(label, False, padding=5)
         hbox.pack_start(self.theme_combo, False)
+        hbox.pack_start(info_button, False)
         hbox.pack_start(button, False)
         appearance_box.pack_start(hbox, False, padding=5)
 
@@ -2048,6 +2067,33 @@ class PrefDialog():
             text = dockbarx.i18n.theme.gettext(text)
             self.color_labels[c].set_text(text)
             self.color_buttons[c].set_title(text)
+
+    def __show_theme_info(self, *args):
+        name = self.theme_combo.get_active_text()
+        info = None
+        for theme, path in self.themes.items():
+            if theme.lower() == name.lower():
+                info = Theme.get_info(path)
+                break
+        if info is None:
+            return
+        dialog = gtk.Dialog(_("Theme Info"),
+                            buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK))
+        dialog.set_default_size(600, 400)
+        sw = gtk.ScrolledWindow()
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        textview = gtk.TextView()
+        textview.set_wrap_mode(gtk.WRAP_WORD)
+        textbuffer = textview.get_buffer()
+        sw.add(textview)
+        sw.show()
+        textview.show()
+        dialog.vbox.pack_start(sw)
+
+        textbuffer.set_text(info)
+
+        dialog.run()
+        dialog.destroy()
             
     def __set_dock_theme(self, button=None):
         value = self.dock_theme_combo.get_active_text()

@@ -113,8 +113,12 @@ class DockXApplets():
                                   gconf.VALUE_STRING,
                                   ["DockbarX"])
             applet_list = ["DockbarX"]
-        all_applets = self.applets.keys() + ["Spacer"]
-        return [a for a in all_applets if a not in applet_list]
+        all_applets = self.applets.keys()
+        unused_applets = [a for a in all_applets if a not in applet_list]
+        # There should be totally two spacers.
+        while (unused_applets + applet_list).count("Spacer") < 2:
+            unused_applets.append("Spacer")
+        return unused_applets
         
         
     def set_list(self, applet_list):
@@ -203,6 +207,7 @@ class DockXApplet(gtk.EventBox):
         self.set_visible_window(False)
         self.set_no_show_all(True)
         self.mouse_pressed = False
+        self.expand = False
         # Set gconf notifiers
         gdir = "%s/applets/%s" % (GCONF_DIR, self.applet_name)
         GCONF_CLIENT.add_dir(gdir, gconf.CLIENT_PRELOAD_NONE)
@@ -242,6 +247,12 @@ class DockXApplet(gtk.EventBox):
     def get_position(self):
         if self.dockx_r:
             return self.dockx_r().globals.settings["dock/position"]
+
+    def get_expand(self):
+        return self.expand
+
+    def set_expand(self, expand):
+        self.expand = expand
 
     def do_button_release_event(self, event):
         if self.mousepressed:
