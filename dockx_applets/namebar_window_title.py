@@ -26,8 +26,6 @@ import gconf
 from tarfile import open as taropen
 from dockbarx.applets import DockXApplet, DockXAppletDialog
 
-APPLET_NAME = "Window Title"
-APPLET_DESCRIPTION = """Shows the name of the active window and minimize/maximize/close buttons"""
 
 VERSION = '0.1'
 
@@ -283,8 +281,8 @@ class PrefDialog():
 
 
 class WindowTitleApplet(DockXApplet):
-    def __init__(self, dock):
-        DockXApplet.__init__(self, APPLET_NAME, dock)
+    def __init__(self, dbx_dict):
+        DockXApplet.__init__(self, dbx_dict)
 
         self.menu = gtk.Menu()
         preferences_item = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
@@ -518,6 +516,6 @@ class WindowTitleApplet(DockXApplet):
         if event.button == 3:
             self.menu.popup(None, None, None, event.button, event.time)
 
-def get_dbx_applet(dock):
-    wt_applet = WindowTitleApplet(dock)
+def get_dbx_applet(dbx_dict):
+    wt_applet = WindowTitleApplet(dbx_dict)
     return wt_applet

@@ -50,35 +50,86 @@ class DockXApplets():
                 continue
             for f in os.listdir(dir):
                 name, ext = os.path.splitext(os.path.split(f)[-1])
-                if not(f.startswith("dbx_applet_") and ext.lower() == ".py"):
+                if not(ext.lower() == ".applet"):
                     continue
                 path = os.path.join(dir, f)
-                try:
-                    applet = imp.load_source(name, path)
-                except:
-                    message = "Could not load applet from %s. " % path
-                    message += "Could not import the script."
-                    logger.exception(message)
-                if not hasattr(applet, "get_dbx_applet"):
+                applet, err = self.read_applet_file(path)
+                if err is not None:
+                    logger.debug("Error: Did not load applet from %s")
+                    logger.debug(err)
                     continue
-                try:
-                    name = applet.APPLET_NAME
-                except AttributeError:
-                    message = "Could not load applet from %s. " % path
-                    message += "It has no applet name."
-                    logger.exception(message)
-                    continue
-                # Todo: More intelligent selecting of applets with same name.
-                # Version control perhaps?
-                if  name not in self.applets:
-                    self.applets[name] = applet
+                name = applet["name"]
+                applet["dir"] = dir
+                self.applets[name] = applet
+
+    def read_applet_file(self, path):
+        f = open(path)
+        try:
+            lines = f.readlines()
+        except:
+            lines = None
+        finally:
+            f.close()
+        if not lines or not lines[0].lower().strip() == "@dbx applet":
+            text = "Applet at %s doesn't seem to be a dbx applet" % path
+            return None, text
+        description_nr = None
+        settings = {}
+        for i in range(len(lines)):
+            line = lines[i]
+            if line.strip().lower() == "@description":
+                description_nr = i + 1
+                break
+            # Split at "=" and clean up the key and value
+            if not "=" in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip().lstrip().lower()
+            value = value.strip().lstrip()
+            # Remove comments
+            if "#" in key:
+                continue
+            # If there is a trailing comment, remove it
+            # But avoid removing # if it's in a quote
+            sharp = value.find("#")
+            if sharp != -1 and value.count("\"", 0, sharp) % 2 == 0 and \
+               value.count("'", 0, sharp) % 2 == 0:
+                   value = value.split("#", 1)[0].strip()
+            # Remove quote signs
+            if value[0] in ("\"", "'") and value[-1] in ("\"", "'"):
+                value = value[1:-1]
+            
+            if key == "name":
+                name = value
+            settings[key] = value
+        if not settings.has_key("name"):
+            text = "The applet in file %s has no name" % path
+            return None, text
+        if not settings.has_key("exec"):
+            text = "Applet %s in file %s has no exec" % (name, path)
+            return None, text
+        if description_nr is None or description_nr >= len(lines):
+            text = "Applet %s in file %s has no description" % (name, path)
+            return None, text
+        settings["description"] =  "\n".join(lines[description_nr:])
+        return settings, None
 
     def get(self, name):
-        return self.applets[name]
+        e = self.applets[name]["exec"]
+        iname, ext = os.path.splitext(os.path.split(e)[-1])
+        path = os.path.join(self.applets[name]["dir"], e)
+        try:
+            applet = imp.load_source(iname, path)
+        except:
+            message = "Error: Could not load applet from %s. " % path
+            message += "Could not import the script."
+            logger.exception(message)
+            return
+        return applet
 
     def get_description(self, name):
         try:
-            return self.applets[name].APPLET_DESCRIPTION
+            return self.applets[name]["description"]
         except:
             return ""
 
@@ -200,9 +251,9 @@ class DockXApplet(gtk.EventBox):
                     "button-release-event": "override",
                     "button-press-event": "override"}
 
-    def __init__(self, applet_name, dockx):
-        self.dockx_r = weakref.ref(dockx)
-        self.applet_name = applet_name.lower().replace(" ", "")
+    def __init__(self, dbx_dict):
+        self.dockx_r = weakref.ref(dbx_dict["dock"])
+        self.applet_name = dbx_dict["name"].lower().replace(" ", "")
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_no_show_all(True)

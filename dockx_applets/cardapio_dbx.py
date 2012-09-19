@@ -23,9 +23,6 @@ from misc import *
 from CardapioAppletInterface import *
 from Cardapio import Cardapio
 
-APPLET_NAME = "Cardapio"
-APPLET_DESCRIPTION = "A alternative gnome menu, launcher and much more."
-
 class CardapioDockXApplet(CardapioAppletInterface):
 
     panel_type = PANEL_TYPE_AWN
@@ -185,8 +182,8 @@ class CardapioDockXApplet(CardapioAppletInterface):
 class MenuButtonApplet(DockXApplet):
     """An example applet for DockbarX standalone dock"""
 
-    def __init__(self, dock):
-        DockXApplet.__init__(self, APPLET_NAME, dock)
+    def __init__(self, dbx_dict):
+        DockXApplet.__init__(self, dbx_dict)
         self.icon = gtk.Image()
         self.icon.set_from_icon_name("cardapio-dark256", gtk.ICON_SIZE_DIALOG)
         self.icon.set_pixel_size(self.get_size())
@@ -201,13 +198,13 @@ class MenuButtonApplet(DockXApplet):
             self.icon.set_from_icon_name(name, gtk.ICON_SIZE_DIALOG)
         self.icon.set_pixel_size(self.get_size())
 
-def get_dbx_applet(dock):
+def get_dbx_applet(dbx_dict):
     global mbapplet
     try:
         return mbapplet
     except:
         # First run, make a new instance
-        mbapplet = MenuButtonApplet(dock)
+        mbapplet = MenuButtonApplet(dbx_dict)
         cardapio_applet = CardapioDockXApplet(mbapplet)
         cardapio = Cardapio(panel_applet=cardapio_applet)
         return mbapplet

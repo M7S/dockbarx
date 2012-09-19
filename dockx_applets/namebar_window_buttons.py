@@ -26,9 +26,6 @@ import gconf
 from tarfile import open as taropen
 from dockbarx.applets import DockXApplet, DockXAppletDialog
 
-APPLET_NAME = "Namebar"
-APPLET_DESCRIPTION = """Shows the name of the active window and minimize/maximize/close buttons"""
-
 VERSION = '0.1'
 
 GCONF_CLIENT = gconf.client_get_default()
@@ -38,6 +35,7 @@ DEFAULT_SETTINGS = { 'theme': 'Dust-ish',
                      'show_title':'maximized',
                      'expand': True,
                      'size': 500,
+                     'show_buttons': True,
                      'active_color': "#EEEEEE",
                      'passive_color': "#AAAAAA",
                      'active_bold': False,
@@ -90,7 +88,7 @@ class PrefDialog():
             return
 
         PREFDIALOG = self
-        self.dialog = gtk.Dialog("NameBar preferences")
+        self.dialog = gtk.Dialog("WindowButtonApplet preferences")
         self.dialog.connect("response",self.dialog_close)
 
         self.namebar= namebar
@@ -99,19 +97,19 @@ class PrefDialog():
             ca = self.dialog.get_content_area()
         except:
             ca = self.dialog.vbox
-        l1 = gtk.Label("<big>Show window title</big>")
+        l1 = gtk.Label("<big>Behavior</big>")
         l1.set_alignment(0,0.5)
         l1.set_use_markup(True)
         ca.pack_start(l1,False)
 
-        self.rb1_1 = gtk.RadioButton(None,"Show window title for the active window")
+        self.rb1_1 = gtk.RadioButton(None,"Show buttons for the active window")
         self.rb1_1.connect("toggled",self.rb_toggled,"rb1_always")
-        self.rb1_2 = gtk.RadioButton(self.rb1_1,"Show window title for the topmost maximized window")
+        self.rb1_2 = gtk.RadioButton(self.rb1_1,"Show buttons for the topmost maximized window")
         self.rb1_2.connect("toggled",self.rb_toggled,"rb1_maximized")
         ca.pack_start(self.rb1_1,False)
         ca.pack_start(self.rb1_2,False)
 
-        l1 = gtk.Label("<big>Show buttons</big>")
+        l1 = gtk.Label("<big>Layout</big>")
         l1.set_alignment(0,0.5)
         l1.set_use_markup(True)
         ca.pack_start(l1,False)
@@ -129,25 +127,6 @@ class PrefDialog():
         self.custom_layout_button.add(image)
         self.custom_layout_button.connect("clicked", self.set_custom_layout)
         hbox.pack_start(self.custom_layout_button)
-
-        l1 = gtk.Label("<big>Size</big>")
-        l1.set_alignment(0,0.5)
-        l1.set_use_markup(True)
-        ca.pack_start(l1,False)
-
-        self.expand_cb = gtk.CheckButton('Expand NameBar')
-        self.expand_cb.connect('toggled', self.checkbutton_toggled, 'expand')
-        ca.pack_start(self.expand_cb, False)
-
-        spinbox = gtk.HBox()
-        spinlabel = gtk.Label("Size:")
-        spinlabel.set_alignment(0,0.5)
-        adj = gtk.Adjustment(0, 100, 2000, 1, 50)
-        self.size_spin = gtk.SpinButton(adj, 0.5, 0)
-        adj.connect("value_changed", self.spin_changed, self.size_spin)
-        spinbox.pack_start(spinlabel, False)
-        spinbox.pack_start(self.size_spin, False)
-        ca.pack_start(spinbox, False)
 
         #Themes
         hbox = gtk.HBox()
@@ -167,57 +146,6 @@ class PrefDialog():
         hbox.pack_start(button, False)
         ca.pack_start(hbox)
 
-        frame = gtk.Frame('Text')
-        frame.set_border_width(5)
-        vbox = gtk.VBox()
-        table = gtk.Table(True)
-        # A directory of combobox names and the name of corresponding setting
-        self.color_labels_and_settings = {'Active': "active",
-                                          'Passive': "passive",}
-        # A list to ensure that the order is kept correct
-        color_labels = ['Active', 'Passive']
-        self.color_buttons = {}
-        self.clear_buttons = {}
-        self.bold_cb = {}
-        for i in range(len(color_labels)):
-            text = color_labels[i]
-            label = gtk.Label(text)
-            label.set_alignment(1,0.5)
-            self.color_buttons[text] = gtk.ColorButton()
-            self.color_buttons[text].set_title(text)
-            self.color_buttons[text].connect("color-set",  self.color_set, text)
-            self.clear_buttons[text] = gtk.Button()
-            image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,gtk.ICON_SIZE_SMALL_TOOLBAR)
-            self.clear_buttons[text].add(image)
-            self.clear_buttons[text].connect("clicked", self.color_reset, text)
-
-            self.bold_cb[text] = gtk.CheckButton('Bold')
-            self.bold_cb[text].connect('toggled', self.checkbutton_toggled, \
-                                       '%s_bold'%self.color_labels_and_settings[text])
-
-            table.attach(label, 0, 1, i, i + 1, xoptions = gtk.FILL, xpadding = 5)
-            table.attach(self.color_buttons[text], 1, 2, i, i + 1)
-            table.attach(self.clear_buttons[text], 2, 3, i, i + 1, xoptions = gtk.FILL)
-            table.attach(self.bold_cb[text], 3, 4, i, i + 1, xoptions = gtk.FILL)
-        table.set_border_width(5)
-        vbox.pack_start(table)
-
-        alignment = gtk.Alignment(0.5 ,0.5, 0, 0)
-        alignment.set_padding(2, 5, 0,0)
-        hbox = gtk.HBox()
-        label = gtk.Label(_("Alignment: "))
-        hbox.pack_start(label, False)
-        self.al_cbt = gtk.combo_box_new_text()
-        alignments = [_("left"),_("centered"),_("right")]
-        for al in alignments:
-            self.al_cbt.append_text(al)
-        self.al_cbt.connect("changed",  self.al_cbt_changed)
-        hbox.pack_start(self.al_cbt, False)
-        alignment.add(hbox)
-        vbox.pack_start(alignment)
-        frame.add(vbox)
-        ca.pack_start(frame, False, padding=5)
-
 
         self.update()
 
@@ -233,14 +161,8 @@ class PrefDialog():
 
         self.use_custom_layout_cb.set_active(settings["use_custom_layout"])
         self.custom_layout_entry.set_text(settings["custom_layout"])
-        self.custom_layout_entry.set_sensitive(settings["use_custom_layout"])
-        
-        self.expand_cb.set_active(settings['expand'])
-        if settings['expand']:
-            self.size_spin.set_sensitive(False)
-        else:
-            self.size_spin.set_sensitive(True)
-        self.size_spin.set_value(settings['size'])
+        sensitive = settings["use_custom_layout"]
+        self.custom_layout_entry.set_sensitive(sensitive)
 
         # Themes
         model = self.theme_combo.get_model()
@@ -248,19 +170,6 @@ class PrefDialog():
             if model[i][0] == settings['theme']:
                 self.theme_combo.set_active(i)
                 break
-
-        # Text style
-        for name, setting_base in self.color_labels_and_settings.items():
-            color = gtk.gdk.color_parse(settings[setting_base+'_color'])
-            self.color_buttons[name].set_color(color)
-            if settings.has_key(setting_base+"_alpha"):
-                alpha = settings[setting_base+"_alpha"] * 256
-                self.color_buttons[name].set_use_alpha(True)
-                self.color_buttons[name].set_alpha(alpha)
-            self.bold_cb[name].set_active(settings['%s_bold'%setting_base])
-
-        # Alignment
-        self.al_cbt.set_active(settings["alignment"])
 
     def dialog_close (self,par1,par2):
         global PREFDIALOG
@@ -281,12 +190,6 @@ class PrefDialog():
         if button.get_active() != settings[name]:
             GCONF_CLIENT.set_bool(GCONF_DIR+'/'+name, button.get_active())
 
-    def spin_changed(self, widget, spin):
-        if spin == self.size_spin:
-            value = spin.get_value_as_int()
-            if value != settings['size']:
-                GCONF_CLIENT.set_int("%s/size" % GCONF_DIR, value)
-
     def cb_changed(self, combobox):
         if combobox == self.theme_combo:
             value = combobox.get_active_text()
@@ -295,48 +198,10 @@ class PrefDialog():
             if value != settings['theme']:
                 GCONF_CLIENT.set_string("%s/theme" % GCONF_DIR, value)
 
-    def al_cbt_changed(self, cbt):
-        text = cbt.get_active_text()
-        alignment = {_("left"): 0,
-                     _("centered"): 1,
-                     _("right"): 2,}.get(text, 0)
-        GCONF_CLIENT.set_int("%s/alignment" % GCONF_DIR, alignment)
-
     def set_custom_layout(self, *args):
         text = self.custom_layout_entry.get_text()
         if text != settings["custom_layout"]:
             GCONF_CLIENT.set_string("%s/custom_layout" % GCONF_DIR, text)
-
-    def color_set(self, button, text):
-        # Read the value from color (and aplha) and write
-        # it as 8-bit/channel hex string for gconf.
-        # (Alpha is written like int (0-255).)
-        setting_base = self.color_labels_and_settings[text]
-        color_string = settings[setting_base+"_color"]
-        color = button.get_color()
-        cs = color.to_string()
-        # cs has 16-bit per color, we want 8.
-        new_color = cs[0:3] + cs[5:7] + cs[9:11]
-        if new_color != color_string:
-            key = "%s/%s_color" % (GCONF_DIR, setting_base)
-            GCONF_CLIENT.set_string(key, new_color)
-        if settings.has_key("%s_alpha" % setting_base):
-            alpha = settings["%s_alpha" % setting_base]
-            new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
-            if new_alpha != alpha:
-                key = "%s/%s_alpha" % (GCONF_DIR, setting_base)
-                GCONF_CLIENT.set_int(key, new_alpha)
-
-    def color_reset(self, button, text):
-        # Reset gconf color setting to default.
-        setting_base = self.color_labels_and_settings[text]
-        color_string = DEFAULT_SETTINGS["%s_color" % setting_base]
-        key = "%s/%s_color" % (GCONF_DIR, setting_base)
-        GCONF_CLIENT.set_string(key, color_string)
-        if DEFAULT_SETTINGS.has_key(setting_base+"_alpha"):
-            alpha = DEFAULT_SETTINGS[setting_base+"_alpha"]
-            key = "%s/%s_alpha" % (GCONF_DIR, setting_base)
-            GCONF_CLIENT.set_int(key, alpha)
 
     def find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
@@ -455,9 +320,9 @@ class Theme():
         return self.pixbufs
 
 
-class NameBar(DockXApplet):
-    def __init__(self, dock):
-        DockXApplet.__init__(self, APPLET_NAME, dock)
+class WindowButtonApplet(DockXApplet):
+    def __init__(self, dbx_dict):
+        DockXApplet.__init__(self, dbx_dict)
 
         self.menu = gtk.Menu()
         preferences_item = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
@@ -469,7 +334,6 @@ class NameBar(DockXApplet):
         self.shown_window = None
         self.active_window = None
         self.aw_state_handler = None
-        self.container = None
         
         #~ wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
         self.screen = wnck.screen_get_default()
@@ -503,11 +367,15 @@ class NameBar(DockXApplet):
                                  gconf.CLIENT_PRELOAD_NONE)
             GCONF_CLIENT.notify_add("/apps/metacity/general/button_layout",
                                     self.on_button_layout_changed)
-
-
+                                    
         self.window_state = 'active'
         self.max_icon_state = 'restore'
-
+        
+        self.container = gtk.HBox()
+        self.container.set_spacing(0)
+        self.container.show()
+        self.add(self.container)
+        
         #--- Load theme
         self.themes = self.find_themes()
         default_theme_path = None
@@ -557,19 +425,6 @@ class NameBar(DockXApplet):
         self.close_button.connect("button-release-event",self.on_button_release_event)
         self.close_button.connect("button-press-event",self.on_button_press_event)
 
-        #~ self.icon = gtk.Image()
-        #~ self.icon_box = gtk.EventBox()
-        #~ self.icon_box.set_visible_window(False)
-        #~ self.icon_box.add(self.icon)
-        #~ self.icon_box.connect("button-press-event",self.on_label_press_event)
-
-        self.label = gtk.Label()
-        self.label_box = gtk.EventBox()
-        self.label_box.set_visible_window(False)
-        self.label_box.add(self.label)
-        self.label_box.connect("button-press-event",self.on_label_press_event)
-        self.on_alignment_changed()
-
         self.repack()
 
         self.screen.connect("active-window-changed", self.on_active_window_changed)
@@ -579,28 +434,11 @@ class NameBar(DockXApplet):
         self.show()
 
     def repack(self):
-        if self.container:
-            children = self.container.get_children()
-            for child in children:
-                self.container.remove(child)
-            self.remove(self.container)
-            self.container.destroy()
-        if self.get_position() in ("left", "right"):
-            self.container = gtk.VBox()
-            self.label.set_angle(270)
-            self.label.set_ellipsize(pango.ELLIPSIZE_NONE)
-        else:
-            self.container = gtk.HBox()
-            self.label.set_angle(0)
-            self.label.set_ellipsize(pango.ELLIPSIZE_END)
-                
-        self.container.set_spacing(0)
-        self.resize()
-        self.container.show()
-        self.add(self.container)
+        children = self.container.get_children()
+        for child in children:
+            self.container.remove(child)
 
-        pack_dict = { #'menu': self.icon_box,
-                      'minimize': self.minimize_button,
+        pack_dict = { 'minimize': self.minimize_button,
                       'maximize': self.maximize_button,
                       'close': self.close_button }
         if settings["use_custom_layout"]:
@@ -612,7 +450,6 @@ class NameBar(DockXApplet):
         for item in start_list:
             if item in pack_dict:
                 self.container.pack_start(pack_dict[item], False)
-        self.container.pack_start(self.label_box, True, True, 2)
         try:
             end_list = pack_strs[1].split(',')
         except IndexError:
@@ -681,18 +518,11 @@ class NameBar(DockXApplet):
                 pref_update = True
         if pref_update and PREFDIALOG:
             PREFDIALOG.update()
-        if old_settings['show_title'] != settings['show_title']:
-            self.find_window_to_show()
-        if old_settings['expand'] != settings['expand'] \
-           or old_settings['size'] != settings['size']:
-            self.resize()
         if old_settings['use_custom_layout'] != settings['use_custom_layout']:
             self.repack()
         if old_settings['custom_layout'] != settings['custom_layout'] and \
            settings['use_custom_layout']:
             self.repack()
-        if old_settings['alignment'] != settings['alignment']:
-            self.on_alignment_changed()
 
     def on_button_layout_changed(self, client, connection_id, entry, args):
         if (entry.get_value().type == gconf.VALUE_STRING):
@@ -702,13 +532,6 @@ class NameBar(DockXApplet):
             if not settings["use_custom_layout"]:
                 self.repack()
 
-    def on_alignment_changed(self, *args):
-        alignment = [0, 0.5, 1][settings["alignment"]]
-        if self.get_position() in ("left", "right"):
-            self.label.set_alignment(0.5, alignment)
-        else:
-            self.label.set_alignment(alignment, 0.5)
-
     def open_preferences(self, *args):
         PrefDialog(self)
 
@@ -717,19 +540,12 @@ class NameBar(DockXApplet):
 
     def set_shown_window(self, window):
         if self.shown_window != None:
-            if self.sw_name_changed_handler != None:
-                self.shown_window.disconnect(self.sw_name_changed_handler)
             if self.sw_state_changed_handler != None:
                 self.shown_window.disconnect(self.sw_state_changed_handler)
         self.shown_window = window
-        self.sw_name_changed_handler = self.shown_window.connect('name-changed', self.on_window_name_changed)
         self.sw_state_changed_handler = self.shown_window.connect('state-changed', self.on_shown_window_state_changed)
 
         self.container.show_all()
-        #~ self.icon.set_from_pixbuf(self.shown_window.get_mini_icon())
-        name = u""+self.shown_window.get_name()
-        self.label.set_tooltip_text(name)
-        self.label.set_text(name)
         if self.shown_window.get_actions() & action_minimize:
             self.minimize_button.show()
         else:
@@ -759,22 +575,9 @@ class NameBar(DockXApplet):
             self.maximize_image.set_from_pixbuf(self.pixbufs['%s_normal_%s'%(self.max_icon_state, self.window_state)])
             self.close_image.set_from_pixbuf(self.pixbufs['close_normal_%s'%self.window_state])
 
-        attr_list = pango.AttrList()
-        if settings['%s_bold'%self.window_state]:
-            attr_list.insert(pango.AttrWeight(pango.WEIGHT_BOLD, 0, 300))
-        color = settings['%s_color'%self.window_state]
-        r = int(color[1:3], 16)*256
-        g = int(color[3:5], 16)*256
-        b = int(color[5:7], 16)*256
-        attr_list.insert(pango.AttrForeground(r, g, b, 0, 300))
-        self.label.set_attributes(attr_list)
-
     def show_none(self):
         if self.shown_window == None:
             return
-        if self.sw_name_changed_handler != None:
-            self.shown_window.disconnect(self.sw_name_changed_handler)
-            self.sw_name_changed_handler = None
         if self.sw_state_changed_handler != None:
             self.shown_window.disconnect(self.sw_state_changed_handler)
             self.sw_state_changed_handler = None
@@ -801,14 +604,6 @@ class NameBar(DockXApplet):
         # No window found
         self.show_none()
 
-    def resize(self):
-        if settings["expand"]:
-            self.set_expand(True)
-            self.container.set_size_request(-1, -1)
-        else:
-            self.set_expand(False)
-            self.container.set_size_request(settings['size'], -1)
-
     #### Window Events
     def on_active_window_changed(self, screen, previous_active_window=None):
         # This function sets the state handler for the active window
@@ -821,12 +616,6 @@ class NameBar(DockXApplet):
         and (self.active_window.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
             self.aw_state_handler = self.active_window.connect('state-changed', self.on_active_window_state_changed)
         self.find_window_to_show()
-
-
-    def on_window_name_changed(self, window):
-        name = u""+window.get_name()
-        self.label.set_tooltip_text(name)
-        self.label.set_text(name)
 
     def on_active_window_state_changed(self, window, changed_mask, new_state):
         if self.active_window != self.shown_window \
@@ -856,7 +645,7 @@ class NameBar(DockXApplet):
             self.find_window_to_show()
 
     #### Mouse events
-    def on_button_release_event(self,widget,event):
+    def on_button_release_event(self, widget, event):
         # Checks if the mouse pointer still is over the button and does the
         # minimze/maximize/unmaximize/close action and changes the icon back
         # to prelight if it does.
@@ -878,7 +667,7 @@ class NameBar(DockXApplet):
                 self.shown_window.close(event.time)
                 self.close_image.set_from_pixbuf(self.pixbufs['close_prelight_%s'%self.window_state])
 
-    def on_button_press_event(self,widget,event):
+    def on_button_press_event(self, widget, event):
         # Change the image to "pressed".
         if event.button ==1:
             if widget == self.minimize_button:
@@ -889,7 +678,7 @@ class NameBar(DockXApplet):
                 self.close_image.set_from_pixbuf(self.pixbufs['close_pressed_%s'%self.window_state])
 
 
-    def on_button_mouse_enter(self,widget,event):
+    def on_button_mouse_enter(self, widget, event):
         # Change the button's image to "prelight".
         if widget == self.minimize_button:
             self.minimize_image.set_from_pixbuf(self.pixbufs['minimize_prelight_%s'%self.window_state])
@@ -898,7 +687,7 @@ class NameBar(DockXApplet):
         if widget == self.close_button:
             self.close_image.set_from_pixbuf(self.pixbufs['close_prelight_%s'%self.window_state])
 
-    def on_button_mouse_leave(self,widget,event):
+    def on_button_mouse_leave(self, widget, event):
         # Chagenge the button's image to "normal".
         if widget == self.minimize_button:
             self.minimize_image.set_from_pixbuf(self.pixbufs['minimize_normal_%s'%self.window_state])
@@ -907,15 +696,10 @@ class NameBar(DockXApplet):
         if widget == self.close_button:
             self.close_image.set_from_pixbuf(self.pixbufs['close_normal_%s'%self.window_state])
 
-    def on_label_press_event(self, widget, event):
-        if event.button ==1 \
-        and self.shown_window != self.active_window:
-            self.shown_window.activate(event.time)
-
     def on_clicked(self, widget, event):
         if event.button == 3:
             self.menu.popup(None, None, None, event.button, event.time)
 
-def get_dbx_applet(dock):
-    namebar_applet = NameBar(dock)
-    return namebar_applet
+def get_dbx_applet(dbx_dict):
+    wb_applet = WindowButtonApplet(dbx_dict)
+    return wb_applet

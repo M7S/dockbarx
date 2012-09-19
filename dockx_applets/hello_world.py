@@ -20,15 +20,12 @@
 import gtk
 from dockbarx.applets import DockXApplet #, DockXAppletDialog 
 
-# Every applet needs to have a name and desctription set.
-APPLET_NAME = "Hello World Applet"
-APPLET_DESCRIPTION = """Writes 'Hello World!' on the dock"""
 
 class HelloWorldApplet(DockXApplet):
     """An example applet for DockbarX standalone dock"""
 
-    def __init__(self, dock):
-        DockXApplet.__init__(self, APPLET_NAME, dock)
+    def __init__(self, dbx_dict):
+        DockXApplet.__init__(self, dbx_dict)
         label = gtk.Label("<span foreground=\"#FFFFFF\">Hello World!</span>")
         label.set_use_markup(True)
         # DockXApplet base class is pretty much a gtk.EventBox.
@@ -47,10 +44,10 @@ class HelloWorldApplet(DockXApplet):
         #~ DockXApplet.run(self)
 
 # All applets needs to have this function
-def get_dbx_applet(dock):
+def get_dbx_applet(dbx_dict):
     # This is the function that dockx will be calling.
     # Returns an instance of the applet.
-    applet = HelloWorldApplet(dock)
+    applet = HelloWorldApplet(dbx_dict)
     return applet
 
 

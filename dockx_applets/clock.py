@@ -23,10 +23,6 @@ import time
 import os
 from dockbarx.applets import DockXApplet, DockXAppletDialog
 
-# Every applet needs to have a name and desctription set.
-APPLET_NAME = "Clock"
-APPLET_DESCRIPTION = """Shows the time."""
-
 
 DEFAULT_CUSTOM_FORMAT = \
             "<span foreground=\"#FFFFFF\" font=\"Sans 14\">%H:%M</span>"
@@ -37,8 +33,8 @@ class ClockApplet(DockXApplet):
     applet_name = "Clock"
     applet_description  = "Shows the time."
 
-    def __init__(self, dock):
-        DockXApplet.__init__(self, APPLET_NAME, dock)
+    def __init__(self, dbx_dict):
+        DockXApplet.__init__(self, dbx_dict)
         alignment = gtk.Alignment(yalign=0.5)
         self.add(alignment)
         self.label = gtk.Label()
@@ -232,10 +228,10 @@ class ClockAppletPreferences(DockXAppletDialog):
         self.set_setting("text_direction", direction)
 
 # All applets needs to have this functions
-def get_dbx_applet(dock):
+def get_dbx_applet(dbx_dict):
     # This is the function that dockx will be calling.
     # Returns an instance of the applet.
-    applet = ClockApplet(dock)
+    applet = ClockApplet(dbx_dict)
     return applet
 
 def run_applet_dialog():

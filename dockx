@@ -654,8 +654,10 @@ class DockX(CairoDockX):
                 applet = self.dockbar.container
                 expand = False
             else:
-                applet_ = self.applets.get(name)
-                applet = applet_.get_dbx_applet(self)
+                appletscr = self.applets.get(name)
+                if appletscr is None:
+                    continue
+                applet = appletscr.get_dbx_applet({"name":name, "dock":self})
                 expand = applet.get_expand() and panel
             if expand:
                 expanded = True

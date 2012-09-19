@@ -1,0 +1,6 @@
+@dbx applet
+name=Clock
+exec=clock.py
+
+@description
+Shows the time.
