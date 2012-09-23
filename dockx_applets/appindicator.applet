@@ -1,0 +1,6 @@
+@dbx applet
+name=AppIndicator
+exec=appindicator.py
+
+@description
+Application Indicators applet

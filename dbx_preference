@@ -412,7 +412,7 @@ class AppletsFrame():
             return
         applet = self.applets.get(name)
         if hasattr(applet, "run_applet_dialog"):
-            self.applets.get(name).run_applet_dialog()
+            self.applets.get(name).run_applet_dialog(name)
 
     def on_reload_button_clicked(self, *args):
         applet_list = [applet[0] for applet in self.applet_view.get_model()]

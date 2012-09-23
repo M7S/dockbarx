@@ -187,6 +187,7 @@ class DBusMenu(object):
                              error_handler=self.__error_loading)
 
     def __layout_loaded(self, revision, layout):
+        group = self.group_r()
         self.layout = layout
         self.revision = revision
         self.sids.append(self.iface.connect_to_signal("ItemsPropertiesUpdated",
@@ -195,7 +196,6 @@ class DBusMenu(object):
                                                 self.__on_layout_updated))
         self.sids.append(self.iface.connect_to_signal("ItemActivationRequested",
                                                 self.__on_item_activition_requested))
-        group = self.group_r()
         if group.menu:
             group.menu.update_quicklist_menu(layout)
                                                 
@@ -238,7 +238,7 @@ class DBusMenu(object):
         layout = self.__recursive_match(self.layout, parent)
         if group.menu:
             group.menu.update_quicklist_menu(layout)
-
+            
     def send_event(self, id, event, data, event_time):
         self.iface.Event(id, event, data, event_time)
         
@@ -271,6 +271,6 @@ class DBusMenu(object):
         
     def destroy(self):
         for sid in self.sids[:]:
-            BUS.remove_signal_receiver(sid)
+            sid.remove()
             self.sids.remove(sid)
         

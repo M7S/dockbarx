@@ -90,6 +90,7 @@ class MediaButtons(gtk.Alignment):
         return True
 
     def remove(self):
+        self.signal.remove()
         disconnect(self.previous_button)
         disconnect(self.next_button)
         disconnect(self.playpause_button)

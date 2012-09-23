@@ -253,23 +253,23 @@ class DockXApplet(gtk.EventBox):
 
     def __init__(self, dbx_dict):
         self.dockx_r = weakref.ref(dbx_dict["dock"])
-        self.applet_name = dbx_dict["name"].lower().replace(" ", "")
+        self.APPLET_NAME = dbx_dict["name"].lower().replace(" ", "")
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_no_show_all(True)
         self.mouse_pressed = False
         self.expand = False
         # Set gconf notifiers
-        gdir = "%s/applets/%s" % (GCONF_DIR, self.applet_name)
+        gdir = "%s/applets/%s" % (GCONF_DIR, self.APPLET_NAME)
         GCONF_CLIENT.add_dir(gdir, gconf.CLIENT_PRELOAD_NONE)
         GCONF_CLIENT.notify_add(gdir, self.__on_gconf_changed, None)
 
     def get_setting(self, *args, **kwargs):
-        kwargs["applet_name"]=self.applet_name
+        kwargs["applet_name"]=self.APPLET_NAME
         return get_setting(*args, **kwargs)
 
     def set_setting(self, *args, **kwargs):
-        kwargs["applet_name"]=self.applet_name
+        kwargs["applet_name"]=self.APPLET_NAME
         return set_setting(*args, **kwargs)
 
     def on_setting_changed(self, key, value):
@@ -322,17 +322,20 @@ class DockXApplet(gtk.EventBox):
 
 class DockXAppletDialog(gtk.Dialog):
     Title = "Applet Preferences"
-    def __init__(self, applet_name, t=None, flags=0,
+    def __init__(self, name, t=None, flags=0,
                  buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)):
-        self.applet_name = applet_name.lower().replace(" ", "")
+        if not name:
+            logger.error("Error: DockXAppletDialog can't be initialized" \
+                         "without a name as it's first argument")
+        self.APPLET_NAME = name.lower().replace(" ", "")
         if t is None:
             t = self.Title
         gtk.Dialog.__init__(self, _(t), None, flags, buttons)
 
     def get_setting(self, *args, **kwargs):
-        kwargs["applet_name"]=self.applet_name
+        kwargs["applet_name"]=self.APPLET_NAME
         return get_setting(*args, **kwargs)
 
     def set_setting(self, *args, **kwargs):
-        kwargs["applet_name"]=self.applet_name
+        kwargs["applet_name"]=self.APPLET_NAME
         return set_setting(*args, **kwargs)
