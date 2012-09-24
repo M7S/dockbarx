@@ -227,19 +227,23 @@ class AppIndicatorApplet(DockXApplet):
         ind.destroy()
 
     def on_icon_changed(self, position, icon_name, icon_desc):
-        ind = self.box.get_children(position)
+        indicators = self.box.get_children()
+        ind = indicators[position]
         ind.on_icon_changed(icon_name, icon_desc)
 
     def on_icon_themepath_changed(self, position, path):
-        ind = self.box.get_children(position)
+        indicators = self.box.get_children()
+        ind = indicators[position]
         ind.on_themepath_changed(path)
 
     def on_label_changed(self, position, label, guide):
-        ind = self.box.get_children(position)
+        indicators = self.box.get_children()
+        ind = indicators[position]
         ind.on_label_changed(label, guide)
 
     def on_title_changed(self, position, title):
-        ind = self.box.get_children(position)
+        indicators = self.box.get_children()
+        ind = indicators[position]
         ind.on_title_changed(title)
     
     def error_loading(self, err):
