@@ -1,0 +1,6 @@
+@dbx applet
+name=Volume Control
+exec=volume-control.py
+
+@description
+Applet to control your computer's volume

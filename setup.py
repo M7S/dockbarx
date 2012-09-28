@@ -71,16 +71,40 @@ class install_data(_install_data):
 
     def run(self):
         for lang in os.listdir("build/locale/"):
-            lang_dir = os.path.join("/", "usr", "share", "locale", lang, "LC_MESSAGES")
+            lang_dir = os.path.join("/", "usr", "share",
+                                    "locale", lang, "LC_MESSAGES")
             lang_files = []
-            d_file = os.path.join("build", "locale", lang, "LC_MESSAGES", "dockbarx.mo")
-            dt_file = os.path.join("build", "locale", lang, "LC_MESSAGES", "dockbarx-themes.mo")
+            d_file = os.path.join("build", "locale", lang,
+                                  "LC_MESSAGES", "dockbarx.mo")
+            dt_file = os.path.join("build", "locale", lang,
+                                   "LC_MESSAGES", "dockbarx-themes.mo")
             if os.path.exists(d_file):
                 lang_files.append(d_file)
             if os.path.exists(dt_file):
                 lang_files.append(dt_file)
             self.data_files.append( (lang_dir, lang_files) )
+        # Scan folders for the right files
+        self.scan_path("/usr/share/dockbarx/themes", "themes", ext=".tar.gz")
+        self.scan_path("share/icons/", "icons", ext=".png")
+        self.scan_path("/usr/share/dockbarx/applets/namebar_themes",
+                       "dockx_applets/namebar_themes",
+                       ext=".tar.gz")
+        self.scan_path("/usr/share/dockbarx/applets/vc-themes",
+                       "dockx_applets/vc-themes")
         _install_data.run(self)
+
+    def scan_path(self, install_path, base_path, path="", ext=""):
+        files = []
+        for f in os.listdir(os.path.join(base_path, path)):
+            fpath = os.path.join(base_path, path, f)
+            if os.path.isdir(fpath):
+                self.scan_path(install_path, base_path,
+                               os.path.join(path, f), ext)
+            elif os.path.isfile(fpath) and fpath.endswith(ext):
+                files.append(fpath)
+        if files:
+            self.data_files.append((os.path.join(install_path, path), files))
+                
 
 cmdclass = {
     "build": build,
@@ -88,20 +112,7 @@ cmdclass = {
     "install_data": install_data,
 }
 
-data_files=[("/usr/share/dockbarx/themes", ["themes/default.tar.gz",
-                                            "themes/Gaia.tar.gz",
-                                            "themes/old.tar.gz",
-                                            "themes/minimalistic.tar.gz",
-                                            "themes/sunny-c.tar.gz",
-                                            "themes/new_theme.tar.gz", ]),
-            ("/usr/share/dockbarx/themes/popup_styles", ["themes/popup_styles/dbx.tar.gz",
-                                                         "themes/popup_styles/square.tar.gz",
-                                                         "themes/popup_styles/old.tar.gz",
-                                                         "themes/popup_styles/spaced.tar.gz"]),
-            ("/usr/share/dockbarx/themes/dock", ["themes/dock/dbx.tar.gz",
-                                                 "themes/dock/square.tar.gz",
-                                                 "themes/dock/folded.tar.gz",
-                                                 "themes/dock/invisible.tar.gz"]),
+data_files=[
             ("/usr/share/dockbarx/applets", ["dockx_applets/cardapio_dbx.py",
                                              "dockx_applets/cardapio.applet",
                                              "dockx_applets/clock.py",
@@ -116,21 +127,9 @@ data_files=[("/usr/share/dockbarx/themes", ["themes/default.tar.gz",
                                              "dockx_applets/namebar_window_buttons.py",
                                              "dockx_applets/namebar_window_title.applet",
                                              "dockx_applets/namebar_window_title.py"]),
-            ("/usr/share/namebar/themes", ["dockx_applets/nambar_themes/Dust-ish.tar.gz",
-                                           "dockx_applets/nambar_themes/Human-ish.tar.gz",
-                                           "dockx_applets/nambar_themes/New Wave-ish.tar.gz"]),
             ("/usr/bin", ["dockbarx_factory", "dbx_preference", "dockx"]),
             ("/usr/lib/bonobo/servers", ["GNOME_DockBarXApplet.server"]),
             ("/usr/share/applications/", ["dbx_preference.desktop"]),
-            ("share/icons/hicolor/128x128/apps", ["icons/hicolor/128x128/apps/dockbarx.png"]),
-            ("share/icons/hicolor/96x96/apps", ["icons/hicolor/96x96/apps/dockbarx.png"]),
-            ("share/icons/hicolor/72x72/apps", ["icons/hicolor/72x72/apps/dockbarx.png"]),
-            ("share/icons/hicolor/64x64/apps", ["icons/hicolor/64x64/apps/dockbarx.png"]),
-            ("share/icons/hicolor/48x48/apps", ["icons/hicolor/48x48/apps/dockbarx.png"]),
-            ("share/icons/hicolor/36x36/apps", ["icons/hicolor/36x36/apps/dockbarx.png"]),
-            ("share/icons/hicolor/24x24/apps", ["icons/hicolor/24x24/apps/dockbarx.png"]),
-            ("share/icons/hicolor/22x22/apps", ["icons/hicolor/22x22/apps/dockbarx.png"]),
-            ("share/icons/hicolor/16x16/apps", ["icons/hicolor/16x16/apps/dockbarx.png"]),
          ]
 
 setup(name="Dockbarx",

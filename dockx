@@ -32,7 +32,7 @@ import wnck
 import gobject
 from dockbarx.common import Globals
 from dockbarx.theme import DockTheme
-from dockbarx.applets import DockXApplets
+from dockbarx.applets import DockXApplets, DockXApplet
 from Xlib import display
 from math import pi, sin, cos, tan, atan
 import weakref
@@ -542,6 +542,8 @@ class DockX(CairoDockX):
                 rebuild = True
         if rebuild:
             self.__rebuild()
+        else:
+            self.__update_applets()
         mx, my, mw, mh = self.get_monitor_geometry()
         l, r, t, b = self.__get_monitor_and_strut_borders()
         sw = self.get_screen().get_width()
@@ -683,6 +685,15 @@ class DockX(CairoDockX):
         self.padding1.define_position(p1)
         self.padding2.define_position(p2)
         self.show_all()
+
+    def __update_applets(self):
+        if self.boxes:
+            applets = self.boxes[0] + self.boxes[1] + self.boxes[2]
+        else:
+            applets = self.box
+        for app in applets:
+            if isinstance(app, DockXApplet):
+                app.update()
 
     def __set_dock_strut(self, x, y, w, h):
         if not self.window:

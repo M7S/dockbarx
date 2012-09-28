@@ -1,0 +1,11 @@
+[Icon Theme]
+Name=Black
+
+Directories=scalable
+
+[scalable]
+Size=48
+MaxSize=256
+Context=Apps
+Type=Scalable
+

@@ -21,6 +21,7 @@ import gtk
 import dbus
 import os
 import gobject
+import weakref
 from dbus.mainloop.glib import DBusGMainLoop
 from dockbarx.applets import DockXApplet
 from dockbarx.unity import DBusMenu
@@ -30,17 +31,16 @@ DBusGMainLoop(set_as_default=True)
 BUS = dbus.SessionBus()
 
 class AppIndicator(gtk.EventBox):
-    def __init__(self, icon_name, position, address, obj,
+    def __init__(self, applet, icon_name, position, address, obj,
                   icon_path, label, labelguide, accessibledesc, hint, title):
+        self.applet_r = weakref.ref(applet)
         self.menu = None
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
-        self.box = gtk.HBox()
+        self.box = None
         self.icon = gtk.Image()
-        self.box.pack_start(self.icon)
         self.label = gtk.Label()
-        self.box.pack_start(self.label)
-        self.add(self.box)
+        self.repack()
         self.icon_themepath = icon_path
         self.on_icon_changed(icon_name, None)
         self.title = title
@@ -49,6 +49,22 @@ class AppIndicator(gtk.EventBox):
         
         self.show_all()
         self.connect("button-press-event", self.on_button_press_event)
+
+    def repack(self):
+        if self.box is not None:
+            self.box.remove(self.icon)
+            self.box.remove(self.label)
+            self.remove(self.box)
+            self.box.destroy()
+        if self.applet_r().get_position() in ("left", "right"):
+            self.box = gtk.VBox()
+            self.label.set_angle(270)
+        else:
+            self.box = gtk.HBox()
+            self.label.set_angle(0)
+        self.box.pack_start(self.icon)
+        self.box.pack_start(self.label)
+        self.add(self.box)
 
     def on_button_press_event(self, widget, event):
         self.show_menu(event)
@@ -86,8 +102,8 @@ class AppIndicator(gtk.EventBox):
     def on_icon_changed(self, icon_name=None, icon_desc=None):
         if icon_name is not None:
             self.icon_name = icon_name
-        icon_theme = gtk.IconTheme()
-        icon_theme.set_screen(gtk.gdk.screen_get_default())
+        icon_theme = gtk.icon_theme_get_default()
+        #~ icon_theme.set_screen(gtk.gdk.screen_get_default())
         if self.icon_themepath != "" and os.path.exists(self.icon_themepath):
             icon_theme.prepend_search_path(self.icon_themepath)
         pixbuf = icon_theme.load_icon(self.icon_name, 16, 0)
@@ -128,13 +144,12 @@ class AppIndicator(gtk.EventBox):
 class AppIndicatorApplet(DockXApplet):
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        alignment = gtk.Alignment(0.5, 0.5)
-        self.add(alignment)
-        alignment.show()
-        self.box = gtk.HBox(False, 2)
-        self.box.set_border_width(4)
-        self.box.show()
-        alignment.add(self.box)
+        self.alignment = gtk.Alignment(0.5, 0.5)
+        self.add(self.alignment)
+        self.alignment.show()
+
+        self.box = None
+        self.repack()
         self.show()
         self.fdo = BUS.get_object("org.freedesktop.DBus",
                                   "/org/freedesktop/DBus")
@@ -151,6 +166,26 @@ class AppIndicatorApplet(DockXApplet):
                                     "org.freedesktop.DBus")
         self.menu = None
 
+    def repack(self):
+        children = []
+        if self.box is not None:
+            children = self.box.get_children()
+            for child in children:
+                self.box.remove(child)
+            self.alignment.remove(self.box)
+            self.box.destroy()
+        if self.get_position() in ("left", "right"):
+            self.box = gtk.VBox(False, 2)
+        else:
+            self.box = gtk.HBox(False, 2)
+            self.container = gtk.HBox()
+        self.box.set_border_width(4)
+        self.alignment.add(self.box)
+        for child in children:
+            self.box.pack_start(child)
+            child.repack()
+        self.box.show_all()
+        
     def start_server(self):
         cmd = "/usr/lib/indicator-application/indicator-application-service"
         os.system("/bin/sh -c '%s' &" % cmd)
@@ -214,7 +249,7 @@ class AppIndicatorApplet(DockXApplet):
 
     def ind_added(self, *args):
         position = args[1]
-        ind = AppIndicator(*args)
+        ind = AppIndicator(self, *args)
         self.box.pack_start(ind)
         self.box.reorder_child(ind, position)
 
@@ -258,8 +293,8 @@ class AppIndicatorApplet(DockXApplet):
 def get_dbx_applet(dbx_dict):
     global aiapplet
     try:
-        return aiapplet
+        aiapplet.repack()
     except:
         # First run, make a new instance
         aiapplet = AppIndicatorApplet(dbx_dict)
-        return aiapplet
+    return aiapplet

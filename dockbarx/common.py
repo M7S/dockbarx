@@ -753,6 +753,10 @@ class Globals(gobject.GObject):
             key = "awn/" + key
         elif entry.get_key().split("/")[-2] == "applets":
             key = "applets/" + key
+        elif len(entry.get_key().split("/"))>=3 and \
+              entry.get_key().split("/")[-3] == "applets":
+                  # Ignore applet settings
+                  return
         if key in self.settings:
             value = self.settings[key]
             if entry_get[type(value)]() != value:

@@ -283,6 +283,10 @@ class DockXApplet(gtk.EventBox):
         value = get_value(entry.get_value())
         self.on_setting_changed(key, value)
 
+    def update(self):
+        # Method to be overriden by applet.
+        pass
+
     def get_full_size(self):
         if self.dockx_r:
             dockx = self.dockx_r()
@@ -298,6 +302,10 @@ class DockXApplet(gtk.EventBox):
     def get_position(self):
         if self.dockx_r:
             return self.dockx_r().globals.settings["dock/position"]
+
+    def get_monitor(self):
+        if self.dockx_r:
+            return self.dockx_r().monitor
 
     def get_expand(self):
         return self.expand
