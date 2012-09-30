@@ -53,10 +53,11 @@ class MediaButtons(gtk.Alignment):
         hbox.pack_start(self.next_button)
         self.add(hbox)
         hbox.show_all()
-        if self.get_property("PlaybackStatus")== "Playing":
-            self.playpause_button.set_pause(True)
+        self.update_plaback_status()
 
     def get_property(self, property):
+        # This function gets the property using a sync call
+        # (in other words: avoid using it).
         try:
             ret_str = str(self.player.Get("org.mpris.MediaPlayer2.Player",
                                           property,
@@ -71,12 +72,19 @@ class MediaButtons(gtk.Alignment):
                                    error_handler=self.__error_handler)
 
     def playpause(self, *args):
-        if "Playing" in self.get_property("PlaybackStatus"):
-            self.player_iface.Pause(reply_handler=self.__reply_handler,
-                                    error_handler=self.__error_handler)
-        else:
-            self.player_iface.Play(reply_handler=self.__reply_handler,
-                                   error_handler=self.__error_handler)
+        self.player_iface.PlayPause(reply_handler=self.__reply_handler,
+                                error_handler=self.__playpause_error_handler)
+
+    def __playpause_error_handler(self, err):
+        # Todo: There must be a less ugly way to catch this error.
+        if str(err).startswith("org.freedesktop.DBus.Error.UnknownMethod"):
+            # Todo: Would it be worth it to make this function async?
+            if "Playing" in self.get_property("PlaybackStatus"):
+                self.player_iface.Pause(reply_handler=self.__reply_handler,
+                                        error_handler=self.__error_handler)
+            else:
+                self.player_iface.Play(reply_handler=self.__reply_handler,
+                                       error_handler=self.__error_handler)
 
     def next(self, *args):
         self.player_iface.Next(reply_handler=self.__reply_handler,
@@ -103,12 +111,24 @@ class MediaButtons(gtk.Alignment):
     def __reply_handler(self, *args):
         pass
 
-    def __error_handler(self, *args):
-        pass
+    def __error_handler(self, err):
+        print "DBus error in media buttons:", err
 
-    def __on_properties_changed(self, *args):
-        pause = self.get_property("PlaybackStatus") == "Playing"
-        self.playpause_button.set_pause(pause)
+    def __on_properties_changed(self, iface, changed_props, inv_props):
+        if "PlaybackStatus" in changed_props:
+            pause = changed_props["PlaybackStatus"]== "Playing"
+            self.playpause_button.set_pause(pause)
+            print pause, changed_props["PlaybackStatus"] 
+
+    def update_plaback_status(self):
+        self.player.Get("org.mpris.MediaPlayer2.Player",
+                        "PlaybackStatus",
+                        dbus_interface="org.freedesktop.DBus.Properties",
+                        reply_handler=self.__playback_status_reply_handler,
+                        error_handler=self.__error_handler)
+
+    def __playback_status_reply_handler(self, status):
+        self.playpause_button.set_pause(status == "Playing")
 
 class Mpris2Watch():
     def __init__(self, dockbar):

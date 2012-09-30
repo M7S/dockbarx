@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Copyright (C) 2008 - 2010  onox <denkpadje@gmail.com>
-#               2012 Matias Särs
+#               2012 Matias Sars
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

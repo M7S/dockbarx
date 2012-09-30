@@ -901,11 +901,12 @@ class Group(ListOfWindows):
     def action_select(self, widget, event):
         wins = self.get_windows()
         if (self.pinned and not wins):
-            success = False
-            if self.media_controls:
-                success = self.media_controls.show_player()
-            if not self.media_controls or not success:
-                self.action_launch_application()
+            #~ success = False
+            #~ if self.media_controls:
+                #~ success = self.media_controls.show_player()
+            #~ if not self.media_controls or not success:
+                #~ self.action_launch_application()
+            self.action_launch_application()
         # One window
         elif len(wins) == 1:
             sow = self.globals.settings["select_one_window"]

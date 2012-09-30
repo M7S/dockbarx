@@ -175,9 +175,9 @@ class AppIndicatorApplet(DockXApplet):
             self.alignment.remove(self.box)
             self.box.destroy()
         if self.get_position() in ("left", "right"):
-            self.box = gtk.VBox(False, 2)
+            self.box = gtk.VBox(False, 4)
         else:
-            self.box = gtk.HBox(False, 2)
+            self.box = gtk.HBox(False, 4)
             self.container = gtk.HBox()
         self.box.set_border_width(4)
         self.alignment.add(self.box)
