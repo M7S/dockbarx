@@ -247,6 +247,8 @@ class DBusMenu(object):
         changed_items = [] 
         for props in changed_props:
             item = self.__recursive_match(self.layout, props[0])
+            if item is None:
+                continue
             for key, value in props[1].items():
                 item[1][key] = value
             changed_items.append(item)
@@ -255,6 +257,8 @@ class DBusMenu(object):
                 group.menu.set_properties(identifier, props[1])
         for props in removed_props:
             item = self.__recursive_match(self.layout, props[0])
+            if item is None:
+                continue
             for prop in props[1]:
                 if prop in item[1]:
                     del item[1][prop]

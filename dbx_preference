@@ -576,8 +576,16 @@ class PrefDialog():
         hbox.pack_start(button, False)
         appearance_box.pack_start(hbox, False, padding=5)
 
+        # Settings and Colors frame
+        frame = gtk.Frame()
+        self.theme_settings_frame = frame
+        frame.set_border_width(5)
+        table = gtk.Table(True)
         
+        align = gtk.Alignment(0.5, 0.5, 0, 0)
         hbox = gtk.HBox()
+        hbox.set_border_width(10)
+        align.add(hbox)
         label = gtk.Label(_("Window list style:"))
         label.set_alignment(1,0.5)
         self.popup_style_combo = gtk.combo_box_new_text()
@@ -594,13 +602,8 @@ class PrefDialog():
         hbox.pack_start(label, False, padding=5)
         hbox.pack_start(self.popup_style_combo, False)
         hbox.pack_start(button, False)
-        appearance_box.pack_start(hbox, False, padding=5)
-
-        # Colors frame
-        frame = gtk.Frame(_("Colors"))
-        frame.set_border_width(5)
-        table = gtk.Table(True)
-
+        table.attach(align, 0,6, 0,1)
+        
         self.default_color_names = {
             "color1": "Window list background",
             "color2": "Normal text",
@@ -621,24 +624,23 @@ class PrefDialog():
         self.clear_buttons = {}
         for i in range(0, 8):
             c = "color%s"%(i+1)
-            if color_names.has_key(c):
-                text = color_names[c].capitalize()
-            else:
-                text = self.default_color_names[c]
-            # Translate color name
-            text = dockbarx.i18n.theme.gettext(text)
-            self.color_labels[c] = gtk.Label(text)
+            self.color_labels[c] = gtk.Label()
+            self.color_labels[c].set_no_show_all(True)
+            self.color_labels[c].show()
             self.color_labels[c].set_alignment(1,0.5)
             self.color_buttons[c] = gtk.ColorButton()
-            self.color_buttons[c].set_title(text)
+            self.color_buttons[c].set_no_show_all(True)
+            self.color_buttons[c].show()
             self.color_buttons[c].connect("color-set",  self.__color_set, c)
             self.clear_buttons[c] = gtk.Button()
             image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,
                                              gtk.ICON_SIZE_SMALL_TOOLBAR)
             self.clear_buttons[c].add(image)
+            self.clear_buttons[c].show_all()
+            self.clear_buttons[c].set_no_show_all(True)
             self.clear_buttons[c].connect("clicked", self.__color_reset, c)
             # Every second label + combobox on a new row
-            row = i // 2
+            row = (i // 2) + 1
             # Pack odd numbered comboboxes from 3rd column
             column = (i % 2)*3
             table.attach(self.color_labels[c], column, column + 1, row,
@@ -650,6 +652,7 @@ class PrefDialog():
         table.set_border_width(5)
         frame.add(table)
         appearance_box.pack_start(frame, False, padding=5)
+        self.__update_color_labels()
 
 
         # Needs attention effect frame
@@ -1389,7 +1392,7 @@ class PrefDialog():
             if theme.lower() == self.globals.settings["theme"].lower():
                 self.theme = Theme(path)
                 break
-            if theme.lower == self.globals.DEFAULT_SETTINGS["theme"].lower():
+            if theme.lower() == self.globals.DEFAULT_SETTINGS["theme"].lower():
                 default_theme_path = path
         else:
             if default_theme_path:
@@ -1571,7 +1574,9 @@ class PrefDialog():
         dockmanager = self.globals.settings["dockmanager"]
         self.dockmanager_cb.set_active(dockmanager)
 
-        # Colors
+        # Colors and settings
+        self.theme_settings_frame.set_label(_("Settings and colors for %s") % \
+                                            self.globals.theme_name)
         if self.theme:
             self.theme_colors = self.theme.get_default_colors()
             self.theme_alphas = self.theme.get_default_alphas()
@@ -2029,16 +2034,7 @@ class PrefDialog():
             theme_names.sort()
             for theme in theme_names:
                     self.theme_combo.append_text(theme)
-            # Color labels
-            color_names = self.theme.get_color_names()
-            for i in range(1, 9):
-                c = "color%s"%i
-                if color_names.has_key(c):
-                    text = color_names[c].capitalize()
-                else:
-                    text = self.default_color_names[c]
-                self.color_labels[c].set_text(text)
-                self.color_buttons[c].set_title(text)
+            self.__update_color_labels()
             self.__update()
 
     def __on_theme_changed(self, arg):
@@ -2055,14 +2051,31 @@ class PrefDialog():
         style_names.sort()
         for style in style_names:
             self.popup_style_combo.append_text(style)
+        self.__update_color_labels()
+
+    def __update_color_labels(self):
         # Color labels
-        color_names = self.theme.get_color_names()
+        if self.theme:
+            color_names = self.theme.get_color_names()
+        else:
+            color_names={}
+            for i in range(1,9):
+                color_names["color%s"%i]="Not used"
         for i in range(1, 9):
             c = "color%s"%i
             if color_names.has_key(c):
                 text = color_names[c].capitalize()
             else:
                 text = self.default_color_names[c]
+            # Hide not used colors
+            if text == "Not used":
+                self.color_labels[c].hide()
+                self.color_buttons[c].hide()
+                self.clear_buttons[c].hide()
+            else:
+                self.color_labels[c].show()
+                self.color_buttons[c].show()
+                self.clear_buttons[c].show()
             # Translate
             text = dockbarx.i18n.theme.gettext(text)
             self.color_labels[c].set_text(text)

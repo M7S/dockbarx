@@ -43,6 +43,7 @@ class AppIndicator(gtk.EventBox):
         self.repack()
         self.icon_themepath = icon_path
         self.on_icon_changed(icon_name, None)
+        self.on_label_changed(label, labelguide)
         self.title = title
         
         self.dbusmenu = DBusMenu(self, address, obj)
@@ -102,11 +103,15 @@ class AppIndicator(gtk.EventBox):
     def on_icon_changed(self, icon_name=None, icon_desc=None):
         if icon_name is not None:
             self.icon_name = icon_name
-        icon_theme = gtk.icon_theme_get_default()
-        #~ icon_theme.set_screen(gtk.gdk.screen_get_default())
-        if self.icon_themepath != "" and os.path.exists(self.icon_themepath):
-            icon_theme.prepend_search_path(self.icon_themepath)
-        pixbuf = icon_theme.load_icon(self.icon_name, 16, 0)
+        if self.icon_name.startswith("/") and os.path.exists(self.icon_name):
+            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(self.icon_name,
+                                                          16, 16)
+        else:
+            icon_theme = gtk.icon_theme_get_default()
+            if self.icon_themepath != "" and \
+               os.path.exists(self.icon_themepath):
+                icon_theme.prepend_search_path(self.icon_themepath)
+            pixbuf = icon_theme.load_icon(self.icon_name, 16, 0)
         self.icon.set_from_pixbuf(pixbuf)
 
     def on_icon_themepath_changed(self, path):

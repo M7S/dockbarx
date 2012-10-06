@@ -706,6 +706,7 @@ class Globals(gobject.GObject):
             self.dragging = False
             self.theme_name = None
             self.popup_style_file = None
+            self.default_popup_style = None
             self.dock_colors = {}
             self.__compiz_version = None
 

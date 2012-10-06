@@ -405,7 +405,7 @@ class PopupStyle(gobject.GObject):
         if self.globals.popup_style_file in styles:
             self.style_path = styles[self.globals.popup_style_file]
         elif self.globals.default_popup_style in styles:
-            self.style_path = styles[self.globals.popup_style_file]
+            self.style_path = styles[self.globals.default_popup_style]
         else:
             self.style_path = styles.get("dbx.tar.gz", "dbx.tar.gz")
         self.reload()
