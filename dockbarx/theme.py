@@ -315,13 +315,17 @@ class Theme(gobject.GObject):
     def get_windows_cnt(self):
         return int(self.theme["button_pixmap"].get("windows_cnt", 1))
 
-    def get_aspect_ratio(self):
+    def get_aspect_ratio(self, vertical=False):
         ar = self.theme["button_pixmap"].get("aspect_ratio", "1")
+        if vertical:
+            ar = self.theme["button_pixmap"].get("aspect_ratio_v", ar)
         l = ar.split("/",1)
         if len(l) == 2:
             ar = float(l[0])/float(l[1])
         else:
             ar = float(ar)
+        if vertical and "aspect_ratio_v" in self.theme["button_pixmap"]:
+            ar = 1 / ar
         return ar
 
     def get_default_colors(self):

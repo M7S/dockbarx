@@ -147,12 +147,14 @@ class DockBar():
             import gnomeapplet
             self.applet.set_applet_flags(
                             gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
-            if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
-            or applet.get_orient() == gnomeapplet.ORIENT_UP:
-                self.orient = "h"
+            orients = {gnomeapplet.ORIENT_DOWN: "down",
+                       gnomeapplet.ORIENT_UP: "up",
+                       gnomeapplet.ORIENT_LEFT: "left",
+                       gnomeapplet.ORIENT_RIGHT: "right"}
+            self.orient = orients[self.applet.get_orient()]
+            if self.orient in ("down", "up"):
                 self.container = gtk.HBox()
             else:
-                self.orient = "v"
                 self.container = gtk.VBox()
             self.applet.add(self.container)
             self.pp_menu_xml = """
@@ -175,7 +177,7 @@ class DockBar():
             self.applet.connect("delete-event", self.__cleanup)
         else:
             self.container = gtk.HBox()
-            self.orient = "h"
+            self.orient = "down"
 
                         
         # Most of initializion must happen after dockbarx is
@@ -376,7 +378,7 @@ class DockBar():
             self.applet.remove(self.container)
         self.container.destroy()
         self.orient = orient
-        if orient == "h":
+        if orient in ("down", "up"):
             self.container = gtk.HBox()
         else:
             self.container = gtk.VBox()
@@ -386,12 +388,12 @@ class DockBar():
             self.container.pack_start(group.button, False)
             group.window_list.set_show_previews(
                                               self.globals.settings["preview"])
-            if orient == "h":
+            if orient in ("down", "up"):
                 # The direction of the pointer isn't important here, we only
                 # need the right amount of padding so that the popup has right
                 # width and height for placement calculations.
                 group.popup.point("down")
-            if orient == "v":
+            if orient in ("left", "right"):
                 group.popup.point("left")
         self.container.set_spacing(self.theme.get_gap())
         if self.globals.settings["show_only_current_desktop"]:
@@ -432,11 +434,11 @@ class DockBar():
                         group.button.dockbar_moved()
 
     def __on_change_orient(self, arg1, data):
-        if self.applet.get_orient() == gnomeapplet.ORIENT_DOWN \
-        or self.applet.get_orient() == gnomeapplet.ORIENT_UP:
-            self.set_orient("h")
-        else:
-            self.set_orient("v")
+        orients = {gnomeapplet.ORIENT_DOWN: "down",
+                   gnomeapplet.ORIENT_UP: "up",
+                   gnomeapplet.ORIENT_LEFT: "left",
+                   gnomeapplet.ORIENT_RIGHT: "right"}
+        self.orient = orients[self.applet.get_orient()]
 
     def __on_change_background(self, applet, type, color, pixmap):
         applet.set_style(None)

@@ -461,7 +461,7 @@ class CairoPopup(gtk.Window):
     __gsignals__ = {"expose-event": "override",
                     "enter-notify-event": "override",
                     "leave-notify-event": "override"}
-    def __init__(self, orient="h", no_arrow=False, type_="popup"):
+    def __init__(self, orient="down", no_arrow=False, type_="popup"):
         gtk.Window.__init__(self, gtk.WINDOW_POPUP)
         self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
         gtk_screen = gtk.gdk.screen_get_default()
@@ -480,7 +480,7 @@ class CairoPopup(gtk.Window):
         self.alignment.show()
         self.pointer = ""
         self.no_arrow = no_arrow
-        if orient == "h":
+        if orient in ("down", "up"):
             # The direction of the pointer isn't important here we only need
             # the right amount of padding so that the popup has right width and
             # height for placement calculations.

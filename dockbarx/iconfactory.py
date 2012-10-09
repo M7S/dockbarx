@@ -29,6 +29,7 @@ import gio
 import os
 import weakref
 from cStringIO import StringIO
+from math import pi
 
 from theme import Theme
 from common import Globals, connect, disconnect
@@ -144,13 +145,15 @@ class IconFactory():
               (type & self.DRAG_DROPP_END and "end")
         type = type & self.types_in_theme
         type += self.win_nr
+        self.orient = self.dockbar_r().orient
+        is_vertical = self.orient in ("left", "right")
         if type in self.surfaces:
             surface = self.surfaces[type]
         else:
             self.temp = {}
             surface = None
             commands = self.theme.get_icon_dict()
-            self.ar = self.theme.get_aspect_ratio()
+            self.ar = self.theme.get_aspect_ratio(is_vertical)
             self.type = type
             for command, args in commands.items():
                 try:
@@ -164,23 +167,22 @@ class IconFactory():
             del self.temp
             gc.collect()
         if dnd:
-            orient = self.dockbar_r().orient
             surface = self.__dd_highlight(surface, orient, dnd)
             gc.collect()
         return surface
 
 
-    def __dd_highlight(self, surface, direction = "h", position="start"):
+    def __dd_highlight(self, surface, is_vertical, position="start"):
         w = surface.get_width()
         h = surface.get_height()
-        if direction == "v":
+        if is_vertical:
             h = h + 4
         else:
             w = w + 4
         bg = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(bg)
 
-        if direction == "v" and position == "start":
+        if is_vertical and position == "start":
             ctx.move_to(1, 1.5)
             ctx.line_to(w - 1, 1.5)
             ctx.set_source_rgba(1, 1, 1, 0.2)
@@ -191,7 +193,7 @@ class IconFactory():
             ctx.set_source_rgba(0, 0, 0, 0.7)
             ctx.set_line_width(1)
             ctx.stroke()
-        elif direction == "v":
+        elif is_vertical:
             ctx.move_to(1, h - 1.5)
             ctx.line_to(w - 1, h - 1.5)
             ctx.set_source_rgba(1, 1, 1, 0.2)
@@ -226,7 +228,7 @@ class IconFactory():
             ctx.stroke()
 
         x, y  = 0, 0
-        if direction == "v" and position == "start":
+        if is_vertical and position == "start":
             y = 4
         elif position == "start":
             x = 4
@@ -315,7 +317,7 @@ class IconFactory():
 
     #### Flow commands
     def __command_if(self, surface, type=None, windows=None,
-                   size=None, content=None):
+                     size=None, orient=None, content=None):
         if content is None:
             return surface
         # TODO: complete this
@@ -387,12 +389,19 @@ class IconFactory():
                       "an <if> statement can\'t look like this:" + \
                       " \"%s\". See Theming HOWTO for more information" % size)
                 return surface
+            us = int(round(self.__get_use_size()))
             if len(l) == 1:
                 if not ((l[0] == self.win_nr) ^ negation):
                     return surface
             else:
-                if not ((l[0]<=self.size and self.size<=l[1]) ^ negation):
+                if not ((l[0]<=us and us<=l[1]) ^ negation):
                     return surface
+
+        # Test if the orient condition is satisfied.
+        if orient is not None:
+            orients = orient.split(",")
+            if not self.orient in orients:
+                return surface
 
         # All tests passed, proceed.
         for command, args in content.items():
@@ -428,9 +437,10 @@ class IconFactory():
     def __command_pixmap(self, surface, name, content=None, size=None):
         if size is not None:
             # TODO: Fix for different height and width
-            w = h = self.size + int(size)
+            w = h = int(round(self.__get_use_size() + \
+                              self.__process_size(size)))
         elif surface is None:
-            w = h = self.size
+            w = h = int(round(self.__get_use_size()))
         else:
             w = surface.get_width()
             h = surface.get_height()
@@ -448,19 +458,19 @@ class IconFactory():
 
 
     #### Get icon
-    def __command_get_icon(self,surface=None, size=0):
-        size = int(size)
-        size = self.size + size
+    def __command_get_icon(self,surface=None, size="0"):
+        size = int(self.__get_use_size() + self.__process_size(size))
         if size <= 0:
             # To avoid chrashes.
             size = 15
-        if self.icon \
-        and self.icon.get_width() == size \
-        and self.icon.get_height() == size:
+        if self.icon and\
+           self.icon.get_width() == size and \
+           self.icon.get_height() == size:
             return self.icon
         del self.icon
         self.icon = None
         pb = self.__find_icon_pixbuf(size)
+
         if pb.get_width() != pb.get_height():
             if pb.get_width() < pb.get_height():
                 h = size
@@ -584,25 +594,39 @@ class IconFactory():
 
 
     #### Other commands
-    def __command_get_pixmap(self, surface, name, size=0):
+    def __command_clear(self, surface):
+        if self.dockbar_r().orient in ("left", "right"):
+            w = self.size
+            h = int(self.size * self.ar)
+        else:
+            w = int(self.size * self.ar)
+            h = self.size
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+        ctx.set_source_rgba(0, 0, 0)
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
+        ctx.paint_with_alpha(0)
+        return new
+            
+    def __command_get_pixmap(self, surface, name, size="0"):
         if surface is None:
-            if self.dockbar_r().orient == "h":
-                width = int(self.size * ar)
-                height = self.size
-            else:
+            if self.dockbar_r().orient in ("left", "right"):
                 width = self.size
-                height = int(self.size * ar)
+                height = int(self.size * self.ar)
+            else:
+                width = int(self.size * self.ar)
+                height = self.size
         else:
             width = surface.get_width()
             height = surface.get_height()
         if self.theme.has_surface(name):
             surface = self.__resize_surface(self.theme.get_surface(name),
-                                          width, height)
+                                            width, height)
         else:
             logger.warning("theme error: pixmap %s not found" % name)
         return surface
 
-    def __command_fill(self, surface, color, opacity=100):
+    def __command_fill(self, surface, color, opacity="100"):
         w = surface.get_width()
         h = surface.get_height()
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
@@ -621,7 +645,7 @@ class IconFactory():
         return new
 
 
-    def __command_combine(self, surface, pix1, pix2, degrees=90):
+    def __command_combine(self, surface, pix1, pix2, degrees="90"):
         # Combines left half of surface with right half of surface2.
         # The transition between the two halves are soft.
         w = surface.get_width()
@@ -670,7 +694,7 @@ class IconFactory():
             pass
         return surface
 
-    def __command_transp_sat(self, surface, opacity=100, saturation=100):
+    def __command_transp_sat(self, surface, opacity="100", saturation="100"):
         # Makes the icon desaturized and/or transparent.
         w = surface.get_width()
         h = surface.get_height()
@@ -701,8 +725,8 @@ class IconFactory():
         return new
 
     def __command_composite(self, surface, bg, fg,
-                          opacity=100, xoffset=0, yoffset=0):
-        if fg=="self":
+                            opacity="100", xoffset="0", yoffset="0"):
+        if fg == "self":
             foreground = surface
         elif fg in self.temp:
             foreground = self.temp[fg]
@@ -714,7 +738,7 @@ class IconFactory():
             logger.warning("theme error: pixmap %s not found" % fg)
             return surface
 
-        if bg=="self":
+        if bg == "self":
             background = surface
         elif bg in self.temp:
             w = self.temp[bg].get_width()
@@ -732,14 +756,14 @@ class IconFactory():
             return surface
 
         opacity = self.__get_alpha(opacity)
-        xoffset = float(xoffset)
-        yoffset = float(yoffset)
+        xoffset = self.__process_size(xoffset)
+        yoffset = self.__process_size(yoffset)
         ctx = cairo.Context(background)
         ctx.set_source_surface(foreground, xoffset, yoffset)
         ctx.paint_with_alpha(opacity)
         return background
 
-    def __command_shrink(self, surface, percent=0, pixels=0):
+    def __command_shrink(self, surface, percent="0", pixels="0"):
         w0 = surface.get_width()
         h0 = surface.get_height()
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w0, h0)
@@ -755,10 +779,24 @@ class IconFactory():
         del shrinked
         return new
 
+    def __command_rotate(self, surface, angle="0"):
+        
+        w = surface.get_width()
+        h = surface.get_height()
+        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        ctx = cairo.Context(new)
+
+        ctx.translate(w/2.0, h/2.0)
+        ctx.rotate(float(angle)/180*pi)
+        ctx.translate(-w/2.0, -h/2.0)
+        ctx.set_source_surface(surface, 0, 0)
+        ctx.paint()
+        return new
+
     def __command_correct_size(self, surface):
         if surface is None:
             return
-        if self.dockbar_r().orient == "v":
+        if self.dockbar_r().orient in ("left", "right"):
             width = self.size
             height = int(self.size * self.ar)
         else:
@@ -774,7 +812,7 @@ class IconFactory():
         ctx.paint()
         return new
 
-    def __command_glow(self, surface, color, opacity=100):
+    def __command_glow(self, surface, color, opacity="100"):
         # Adds a glow around the parts of the surface
         # that isn't completely transparent.
 
@@ -905,6 +943,28 @@ class IconFactory():
         surface = cairo.ImageSurface.create_for_data (a, cairo.FORMAT_ARGB32,
                                                       w, h, stride)
         return surface
+
+    def __process_size(self, size_str):
+        us = self.__get_use_size()
+        size = 0
+        for s in size_str.split("+"):
+            if s[-1] == "%":
+                size += float(s[:-1]) / 100 * us
+                continue
+            if s.endswith("px"):
+                s = s[:-2]
+            size += float(s)
+        return size
+
+    def __get_use_size(self):
+        is_vertical = self.dockbar_r().orient in ("left", "right")
+        if "aspect_ratio_v" in self.theme.theme["button_pixmap"] or \
+           not is_vertical:
+            us = self.size * self.ar if self.ar < 1 else self.size
+        else:
+            # For old vertical themes
+            us = self.size
+        return us
 
     def __resize_surface(self, surface, w, h):
         im = self.__surface2pil(surface)

@@ -532,14 +532,11 @@ class DockX(CairoDockX):
         cornered = self.globals.settings["dock/mode"] == "corner"
         ed = self.globals.settings["dock/end_decorations"]
         pos = self.globals.settings["dock/position"]
-        if pos in ("left", "right"):
-            if self.dockbar.orient != "v" or not self.box.get_children():
-                self.dockbar.set_orient("v")
-                rebuild = True
-        else:
-            if self.dockbar.orient != "h" or not self.box.get_children():
-                self.dockbar.set_orient("h")
-                rebuild = True
+        orient = {"top": "up", "left": "left",
+                   "right": "right", "bottom": "down"}[pos]
+        if self.dockbar.orient != orient or not self.box.get_children():
+            self.dockbar.set_orient(orient)
+            rebuild = True
         if rebuild:
             self.__rebuild()
         else:
