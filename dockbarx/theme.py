@@ -24,6 +24,8 @@ import gtk
 import gobject
 import cairo
 import os
+import Image
+import array
 from common import ODict
 from common import Globals
 from log import logger
@@ -197,8 +199,8 @@ class Theme(gobject.GObject):
         pixmaps = {}
         if self.theme.has_key("pixmaps"):
             pixmaps = self.theme["pixmaps"]["content"]
-        for (type, d) in pixmaps.items():
-            if type == "pixmap_from_file":
+        for (type_, d) in pixmaps.items():
+            if type_ == "pixmap_from_file":
                 self.surfaces[d["name"]] = self.load_surface(tar, d["file"])
 
         # Popup style
@@ -239,6 +241,15 @@ class Theme(gobject.GObject):
                                     "(\"0\"-\"100\") or the words " + \
                                     "\"not used\".")
 
+
+        # Sets
+        self.sets = {}
+        sets = {}
+        if self.theme.has_key("sets"):
+            sets = self.theme["sets"]["content"]
+        for (type_, d) in sets.items():
+            if type_ == "set":
+                self.sets[d["name"]] = d
         config.close()
         tar.close()
 
@@ -327,6 +338,12 @@ class Theme(gobject.GObject):
         if vertical and "aspect_ratio_v" in self.theme["button_pixmap"]:
             ar = 1 / ar
         return ar
+
+    def get_from_set(self, sname, orient):
+        if not sname in self.sets:
+            return None
+        s = self.sets[sname]
+        return s.get(orient, "0")
 
     def get_default_colors(self):
         return self.default_colors
@@ -583,6 +600,17 @@ class DockTheme(gobject.GObject):
     def get(self, key, default=None):
         return self.settings.get(key, default)
 
+    
+    def get_bg(self, bar, size=None):
+        if size is None:
+            return self.bg[bar]
+        if size != self.bg_sizes[bar]:
+            bg = self.bg[bar]
+            w = bg.get_width()
+            self.resized_bg[bar] = self.__resize_surface(bg, w, size)
+            self.bg_sizes[bar] = size
+        return self.resized_bg[bar]
+
     def find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes/dock_themes and
         # ~/.dockbarx/themes/dock_themes and returns a dict
@@ -618,7 +646,8 @@ class DockTheme(gobject.GObject):
             logger.debug("Error opening dock theme %s" % self.theme_path)
             self.settings = {}
             self.name = "DBX"
-            self.bg = None
+            self.bg = {1: None, 2:None}
+            self.bg_sizes = {1: -1, 2:-1}
             self.globals.set_dock_theme("dbx.tar.gz", self.default_colors)
             self.emit("dock-theme-reloaded")
             return
@@ -674,18 +703,17 @@ class DockTheme(gobject.GObject):
             self.emit("dock-theme-reloaded")
             return
         # Load background
+        self.bg = {1:None, 2:None}
+        self.bg_sizes = {1: -1, 2: -1}
+        self.resized_bg = {}
         if "background.png" in tar.getnames():
             bgf = tar.extractfile("background.png")
-            self.bg = cairo.ImageSurface.create_from_png(bgf)
+            self.bg[1] = cairo.ImageSurface.create_from_png(bgf)
             bgf.close()
-        else:
-            self.bg = None
         if "bar2_background.png" in tar.getnames():
             bgf = tar.extractfile("bar2_background.png")
-            self.bar2_bg = cairo.ImageSurface.create_from_png(bgf)
+            self.bg[2] = cairo.ImageSurface.create_from_png(bgf)
             bgf.close()
-        else:
-            self.bar2_bg = None
         tar.close()
 
         for key in self.default_colors.keys():
@@ -757,3 +785,25 @@ class DockTheme(gobject.GObject):
                 break
         tar.close()
         return name
+
+    def __surface2pil(self, surface):
+        w = surface.get_width()
+        h = surface.get_height()
+        return Image.frombuffer("RGBA", (w, h), surface.get_data(),
+                                "raw", "RGBA", 0,1)
+
+
+    def __pil2surface(self, im):
+        imgd = im.tostring("raw","RGBA",0,1)
+        a = array.array("B",imgd)
+        w = im.size[0]
+        h = im.size[1]
+        stride = im.size[0] * 4
+        surface = cairo.ImageSurface.create_for_data (a, cairo.FORMAT_ARGB32,
+                                                      w, h, stride)
+        return surface
+
+    def __resize_surface(self, surface, w, h):
+        im = self.__surface2pil(surface)
+        im = im.resize((w, h), Image.ANTIALIAS)
+        return self.__pil2surface(im)

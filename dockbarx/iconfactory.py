@@ -2,20 +2,20 @@
 
 #   iconfactory.py
 #
-#	Copyright 2009, 2010 Matias Sars
+#   Copyright 2009, 2010 Matias Sars
 #
-#	DockbarX is free software: you can redistribute it and/or modify
-#	it under the terms of the GNU General Public License as published by
-#	the Free Software Foundation, either version 3 of the License, or
-#	(at your option) any later version.
+#   DockbarX is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
 #
-#	DockbarX is distributed in the hope that it will be useful,
-#	but WITHOUT ANY WARRANTY; without even the implied warranty of
-#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#	GNU General Public License for more details.
+#   DockbarX is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
 #
-#	You should have received a copy of the GNU General Public License
-#	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU General Public License
+#   along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 import pygtk
 pygtk.require("2.0")
@@ -29,7 +29,7 @@ import gio
 import os
 import weakref
 from cStringIO import StringIO
-from math import pi
+from math import pi, cos, sin
 
 from theme import Theme
 from common import Globals, connect, disconnect
@@ -167,7 +167,7 @@ class IconFactory():
             del self.temp
             gc.collect()
         if dnd:
-            surface = self.__dd_highlight(surface, orient, dnd)
+            surface = self.__dd_highlight(surface, self.orient, dnd)
             gc.collect()
         return surface
 
@@ -608,7 +608,7 @@ class IconFactory():
         ctx.paint_with_alpha(0)
         return new
             
-    def __command_get_pixmap(self, surface, name, size="0"):
+    def __command_get_pixmap(self, surface, name):
         if surface is None:
             if self.dockbar_r().orient in ("left", "right"):
                 width = self.size
@@ -645,9 +645,11 @@ class IconFactory():
         return new
 
 
-    def __command_combine(self, surface, pix1, pix2, degrees="90"):
+    def __command_combine(self, surface, pix1, pix2, degrees=None):
         # Combines left half of surface with right half of surface2.
         # The transition between the two halves are soft.
+
+        # Degrees keyword are kept of compability reasons. 
         w = surface.get_width()
         h = surface.get_height()
         if pix1=="self":
@@ -724,20 +726,29 @@ class IconFactory():
             ctx.paint_with_alpha(alpha)
         return new
 
-    def __command_composite(self, surface, bg, fg,
-                            opacity="100", xoffset="0", yoffset="0"):
+    def __command_composite(self, surface, bg, fg, opacity="100",
+                            xoffset="0", yoffset="0", angle="0"):
         if fg == "self":
             foreground = surface
+            if angle and angle != "0":
+                foreground = self.__command_rotate(foreground,
+                                                   angle, True)
         elif fg in self.temp:
             foreground = self.temp[fg]
+            if angle and angle != "0":
+                foreground = self.__command_rotate(foreground,
+                                                   angle, True)
         elif self.theme.has_surface(fg):
+            foreground = self.theme.get_surface(fg)
+            if angle and angle != "0":
+                foreground = self.__command_rotate(foreground,
+                                                   angle, True)
             w = surface.get_width()
             h = surface.get_height()
-            foreground = self.__resize_surface(self.theme.get_surface(fg), w, h)
+            foreground = self.__resize_surface(foreground, w, h)
         else:
             logger.warning("theme error: pixmap %s not found" % fg)
             return surface
-
         if bg == "self":
             background = surface
         elif bg in self.temp:
@@ -755,6 +766,8 @@ class IconFactory():
             logger.warning("theme error: pixmap %s not found" % bg)
             return surface
 
+        xoffset = self.__get_from_set(xoffset)
+        yoffset = self.__get_from_set(yoffset)
         opacity = self.__get_alpha(opacity)
         xoffset = self.__process_size(xoffset)
         yoffset = self.__process_size(yoffset)
@@ -769,6 +782,8 @@ class IconFactory():
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w0, h0)
         ctx = cairo.Context(new)
 
+        pixels = self.__get_from_set(pixels)
+        percent = self.__get_from_set(percent)
         w = int(((100-int(percent)) * w0)/100)-int(pixels)
         h = int(((100-int(percent)) * h0)/100)-int(pixels)
         shrinked = self.__resize_surface(surface, w, h)
@@ -779,17 +794,25 @@ class IconFactory():
         del shrinked
         return new
 
-    def __command_rotate(self, surface, angle="0"):
-        
-        w = surface.get_width()
-        h = surface.get_height()
+    def __command_rotate(self, surface, angle="0", resize="False"):
+        w0 = surface.get_width()
+        h0 = surface.get_height()
+        # Check if the angle should be taken from a set.
+        angle = self.__get_from_set(angle)
+        a =  float(angle)/180*pi
+        if not resize or resize in ("False", "0"):
+            w = w0
+            h = h0
+        else:
+            w = abs(int(round(cos(a) * w0 + sin(a) * h0)))
+            h = abs(int(round(cos(a) * h0 + sin(a) * w0)))
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(new)
 
-        ctx.translate(w/2.0, h/2.0)
-        ctx.rotate(float(angle)/180*pi)
-        ctx.translate(-w/2.0, -h/2.0)
-        ctx.set_source_surface(surface, 0, 0)
+        ctx.translate(w/2.0, h/2.0) 
+        ctx.rotate(a)
+        ctx.translate(-w0/2.0, -h0/2.0)
+        ctx.set_source_surface(surface, 0,0)
         ctx.paint()
         return new
 
@@ -885,14 +908,18 @@ class IconFactory():
         ctx.paint_with_alpha(alpha)
         return new
 
-    def __command_alpha_mask(self, surface, mask):
+    def __command_alpha_mask(self, surface, mask, angle="0"):
         if mask in self.temp:
             mask = self.temp[mask]
+            if angle and angle != "0":
+                mask = self.__command_rotate(mask, angle, True)
         elif self.theme.has_surface(mask):
-            m = self.__surface2pixbuf(self.theme.get_surface(mask))
-            m = m.scale_simple(surface.get_width(), surface.get_height(),
-                               gtk.gdk.INTERP_BILINEAR)
-            mask = self.__pixbuf2surface(m)
+            mask = self.theme.get_surface(mask)
+            if angle and angle != "0":
+                mask = self.__command_rotate(mask, angle, True)
+            w = surface.get_width()
+            h = surface.get_height()
+            mask = self.__resize_surface(mask, w, h)
         w = surface.get_width()
         h = surface.get_height()
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
@@ -947,12 +974,19 @@ class IconFactory():
     def __process_size(self, size_str):
         us = self.__get_use_size()
         size = 0
+        size_str = size_str.replace("-", "+-")
         for s in size_str.split("+"):
+            if s=="":
+                continue
             if s[-1] == "%":
-                size += float(s[:-1]) / 100 * us
+                # Rounding to whole pixels to avoid uninteded bluring.
+                size += round(float(s[:-1]) / 100 * us)
                 continue
             if s.endswith("px"):
                 s = s[:-2]
+            # Here no rounding is done. Let's assume that the
+            # theme maker knows what he is doing if he chooses
+            # to use decimal pixel values.
             size += float(s)
         return size
 
@@ -966,10 +1000,23 @@ class IconFactory():
             us = self.size
         return us
 
+    def __get_from_set(self, setname):
+        s = self.theme.get_from_set(setname, self.orient)
+        if s is not None:
+            return s
+        else:
+            return setname
+
     def __resize_surface(self, surface, w, h):
         im = self.__surface2pil(surface)
         im = im.resize((w, h), Image.ANTIALIAS)
         return self.__pil2surface(im)
+
+    def __command_print_size(self, surface):
+        w = surface.get_width()
+        h = surface.get_height()
+        print w, h
+        return surface
 
 
 

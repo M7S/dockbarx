@@ -944,6 +944,8 @@ class Globals(gobject.GObject):
         if self.popup_style_file != style:
             self.popup_style_file = style
             theme_name = self.theme_name
+            if theme_name is None:
+                return
             theme_name = theme_name.replace(" ", "_").encode()
             for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
                 theme_name = theme_name.replace(sign, "")

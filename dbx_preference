@@ -440,7 +440,11 @@ class PrefDialog():
         self.globals = Globals()
         self.__load_theme()
         self.popup_style = PopupStyle()
-        self.popup_styles = self.popup_style.get_styles(self.theme.get_name())
+        if self.theme:
+            self.popup_styles = \
+                    self.popup_style.get_styles(self.theme.get_name())
+        else:
+            self.popup_styles = {}
         self.dock_theme = DockTheme()
         self.dock_themes = self.dock_theme.get_themes()
         self.globals.connect("theme-changed", self.__on_theme_changed)

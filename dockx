@@ -135,7 +135,7 @@ class CairoDockX(gtk.Window):
         stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=False)
         color = self.globals.dock_colors["bg_color"]
         red, green, blue = self.__parse_color(color)
-        alpha= self.globals.dock_colors["bg_alpha"] / 255.0
+        alpha = self.globals.dock_colors["bg_alpha"] / 255.0
         ctx.new_path()
         ctx.append_path(fill_path)
         if self.is_composited():
@@ -168,8 +168,11 @@ class CairoDockX(gtk.Window):
             ctx.set_source(pattern)
             ctx.fill_preserve()
         # Background picture
-        if self.theme.bg is not None:
-            pattern = cairo.SurfacePattern(self.theme.bg)
+        if self.theme.bg[1] is not None:
+            if self.theme.get("strech_bg_img", False):
+                pattern = cairo.SurfacePattern(self.theme.get_bg(1, h))
+            else:
+                pattern = cairo.SurfacePattern(self.theme.get_bg(1))
             pattern.set_extend(cairo.EXTEND_REPEAT)
             ctx.set_source(pattern)
             ctx.fill_preserve()
@@ -223,8 +226,11 @@ class CairoDockX(gtk.Window):
             ctx.set_source(pattern)
             ctx.fill_preserve()
         # Background picture
-        if self.theme.bar2_bg is not None:
-            pattern = cairo.SurfacePattern(self.theme.bar2_bg)
+        if self.theme.bg[2] is not None:
+            if self.theme.get("bar2_strech_bg_img", False):
+                pattern = cairo.SurfacePattern(self.theme.get_bg(2, h))
+            else:
+                pattern = cairo.SurfacePattern(self.theme.get_bg(2))
             pattern.set_extend(cairo.EXTEND_REPEAT)
             ctx.set_source(pattern)
             ctx.fill_preserve()
