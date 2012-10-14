@@ -6,8 +6,6 @@ This is a branch of DockBar (a task bar with grouping and group manipulation).
 
 Dockbar is made by Aleksey Shaferov. 
 DockbarX branch is developed by Matias Särs.
-Both the default theme "DBX" and "Sunny Colors" as well as the DockbarX icon is made by BigRZA.
-"Gaia" is made by Izobalax.
 
 Dockbar and DockbarX are licensed under GPL3.
 
@@ -17,22 +15,33 @@ Dockbar and DockbarX are licensed under GPL3.
 INSTALL
 =======
 
-1. Install zeitgeist, python-wnck, python-gnomeapplet, python-imaging, python-keybinder, python-xlib and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt to install it). 
+1. Install zeitgeist, python-wnck, python-imaging, python-keybinder, python-xlib and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt to install it). 
 $ sudo apt-get install python-gnomeapplet python-imaging python-wnck python-keybinder python-numpy python-xlib zeitgeist
 
-2. Download and extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install
+1b. Install python-gnomeapplet if you want to use DockbarX as a gnome-panel applet (gnome2) you should install python-gnomeapplet.
+$ sudo apt-get install python-gnomeapplet
+
+1c. Some of the stand alone dock applets require dependencies:
+- Cardapio applet: Cardapio
+  $ sudo add-apt-repository ppa:cardapio-team/cardapio-ppa
+  $ sudo apt-get install cardapio
+- Appindicators: indicator-application
+  $ sudo apt-get install indicator-application
+
+2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install
 $ sudo ./setup.py install
 
-3. Add DockBarX applet to panel (kill gnome-panel first if necessary)
+3. To run DockbarX as a stand alone dock use the command "dockx".
+$ dockx
+
+3b. For panel applet, simply add DockBarX applet to the panel (kill gnome-panel first if necessary)
+
 
 DockManager helpers
 - To use DockManager helpers, you need to install dockmanager and dockmanager-daemon (available from dockbar ppa and awn-testing ppa) as well as libdesktop-agnostic-cfg-gconf and libdesktop-agnostic-vfs-gio (these two might not need to be installed separately on distributions that aren't Debian based). Then you need to activate DockManager and the helpers you like to use from DockbarX prefeference.
 
 
 NOTE! To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". (Alternatively you can use kwin as window manager instead of compiz. That will give you previews for minimized windows as well.) There's a bug in compiz 0.9.x that makes the preview show behind the popup instead of ontop of it, so you might have to decrease the opacity of the popup to see it.
-
-You can also run dockbarx in window (meant for debugging purposes, mostly):
-$dockbarx_factory run-in-window
 
 ===
 AWN
@@ -41,6 +50,11 @@ To install dockbarx as an AWN 0.4 applet, you should first do an normal install 
 
 Preference dialog: AWN gives you no handle so you can't access preference dialog by right clicking and choosing preference. You can access dockbarx preference window from your gnome menu (Accessories->Dockbarx Preference). If you like you can also pin it to dockbarx.
 
+====
+MATE
+====
+DockbarX for Mate-panel
+Use these instructions: http://airinux.blogspot.fi/2012/07/howto-make-dockbarx-for-mate.html
 
 =====
 USAGE

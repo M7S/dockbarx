@@ -1,4 +1,29 @@
 Changelog:
+0.90 - Jump in version number to signal that a 1.0 version is closing in.
+Features:
+- The stand alone dock supports applets now. See list of applets below.
+- The selection of themes that comes with DockbarX is renewed. All themes should work both horizontal and vertical.
+- The appearence tab in dockbarx preferences has gotten a little face lift and all themes now comes with a info text that is shown when pushing the info button in appearence tab.
+- The width of window titles in window list can be specified now if no previews are used.
+
+Theme making:
+- Rotate command to rotate pixmaps and icons. The composite command can also rotate the foreground pixmap by using the option angle.
+- The if command has gotten a new option orient so that themes can look differently depending on the docks position (left, right, up or down).
+- To simplify things different values for different orientations can also be set by usining sets. More info on this will be added later. For now read theme config to see examples (DMD glass is a good choise).
+- Offsets and sizes can be set with in percent of the button size instead of only in absolut pixels. Combinations can also be used like "-3px-15%".
+- Aspect ratios can be set separately when themes are used vertically by setting the option aspect_ratio_v in button_pixmap command.
+
+Applets:
+- DockbarX (duh)
+- Cardapio: An alternative gnome menu, launcher and much more. Cardapio has to be installed for it to work.
+- Clock: Show time and if you want the date. The looks is changeable by changing fonts or using custom gnome clock applet strings (google it). On clicks orage will be launched if installed. If you want to launch something else change the gconf key /apps/dockbarx/applets/clock/command.
+- Appindicator: Shows appindicators. Indicator-application needs to be installed for it to work.
+- Volume control: Controls volume. Ported from AWN.
+- Namebar/window titile/windowbuttons: Shows window title and/or close/maximize/minimize buttons on the panel to save screen space.
+
+And some bug fixes as well.
+
+
 0.48
 Features:
 - More intuitive placement of drag-dropped launchers, they don't always end up on the right side of the button you drop them on anymore.

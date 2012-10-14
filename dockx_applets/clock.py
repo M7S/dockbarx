@@ -109,14 +109,14 @@ class ClockApplet(DockXApplet):
             self.menu.popup(None, None, None, event.button, event.time)
 
     def open_preferences(self, *args):
-        run_applet_dialog()
+        run_applet_dialog(self.APPLET_NAME)
 
 
 class ClockAppletPreferences(DockXAppletDialog):
     Title = "Clock Applet Preferences"
     
-    def __init__(self):
-        DockXAppletDialog.__init__(self, APPLET_NAME)
+    def __init__(self, applet_name):
+        DockXAppletDialog.__init__(self, applet_name)
         table = gtk.Table(2, 3)
         self.vbox.pack_start(table)
         
@@ -234,8 +234,8 @@ def get_dbx_applet(dbx_dict):
     applet = ClockApplet(dbx_dict)
     return applet
 
-def run_applet_dialog():
-    dialog = ClockAppletPreferences()
+def run_applet_dialog(name):
+    dialog = ClockAppletPreferences(name)
     dialog.run()
     dialog.destroy()
         

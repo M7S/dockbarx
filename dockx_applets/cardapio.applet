@@ -3,4 +3,4 @@ name=Cardapio
 exec=cardapio_dbx.py
 
 @description
-A alternative gnome menu, launcher and much more.
+An alternative gnome menu, launcher and much more.
