@@ -1119,8 +1119,8 @@ class CairoVBox(gtk.VBox):
     __gsignals__ = {"expose-event" : "override"}
 
     def __init__(self, label=None, show_menu=False):
-        self.set_app_paintable(1)
         gtk.VBox.__init__(self)
+        self.set_app_paintable(1)
         self.globals = Globals()
         self.popup_style = PopupStyle()
 
