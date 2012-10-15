@@ -35,7 +35,7 @@ class ClockApplet(DockXApplet):
 
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        alignment = gtk.Alignment(yalign=0.5)
+        alignment = gtk.Alignment(xalign=0.5, yalign=0.5)
         self.add(alignment)
         self.label = gtk.Label()
         self.label.set_use_markup(True)
