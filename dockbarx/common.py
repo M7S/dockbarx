@@ -558,7 +558,7 @@ class Globals(gobject.GObject):
     }
 
     DEFAULT_SETTINGS = {
-          "theme": "DBX",
+          "theme": "Glassified",
           "popup_style_file": "dbx.tar.gz",
           "groupbutton_attention_notification_type": "red",
           "workspace_behavior": "switch",
