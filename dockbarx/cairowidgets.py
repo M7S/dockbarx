@@ -554,12 +554,14 @@ class CairoPopup(gtk.Window):
             make_path(ctx, 0, 0, w, h, r, 0,
                       self.__get_arrow_size(), self.pointer, self.ap)
             ctx.set_source_rgba(1, 1, 1, 1)
+            ctx.fill()
+            self.input_shape_combine_mask(pixmap, 0, 0)
         else:
             make_path(ctx, 0, 0, w, h, r, 1,
                       self.__get_arrow_size(), self.pointer, self.ap)
             ctx.set_source_rgb(0, 0, 0)
-        ctx.fill()
-        self.shape_combine_mask(pixmap, 0, 0)
+            ctx.fill()
+            self.shape_combine_mask(pixmap, 0, 0)
         del pixmap
 
     def draw_frame(self, ctx, w, h):
