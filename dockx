@@ -132,12 +132,12 @@ class CairoDockX(gtk.Window):
     def draw_frame(self, ctx, w, h):
         pos = self.globals.settings["dock/position"]
         w, h = self.__set_rotation(pos, ctx, w, h)
-        stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=False)
+        self.__make_path(ctx, w, h, bar2=False)
         color = self.globals.dock_colors["bg_color"]
         red, green, blue = self.__parse_color(color)
         alpha = self.globals.dock_colors["bg_alpha"] / 255.0
-        ctx.new_path()
-        ctx.append_path(fill_path)
+        #~ ctx.new_path()
+        #~ ctx.append_path(fill_path)
         if self.is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:
@@ -178,7 +178,10 @@ class CairoDockX(gtk.Window):
             ctx.fill_preserve()
         # Stroke the outer border
         ctx.set_operator(cairo.OPERATOR_SOURCE)
-        ctx.append_path(stroke_path)
+        #~ ctx.append_path(stroke_path)
+        # Since copy_path/append_path puts the path in the wrong position
+        # in cairo 1.12 we have to call make path again to make the stroke path
+        self.__make_path(ctx, w, h, bar2=False, stroke_only=True)
         color = self.theme.get("border_color", "#000000")
         red, green, blue = self.__parse_color(color)
         ctx.set_source_rgb(red, green, blue)
@@ -190,12 +193,12 @@ class CairoDockX(gtk.Window):
 
         if self.theme.get("bar2_type") == "layer":
             ctx.set_operator(cairo.OPERATOR_OVER)
-        stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=True)
+        self.__make_path(ctx, w, h, bar2=True)
         color = self.globals.dock_colors["bar2_bg_color"]
         red, green, blue = self.__parse_color(color)
         alpha= self.globals.dock_colors["bar2_bg_alpha"] / 255.0
-        ctx.new_path()
-        ctx.append_path(fill_path)
+        #~ ctx.new_path()
+        #~ ctx.append_path(fill_path)
         if self.is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:
@@ -238,7 +241,10 @@ class CairoDockX(gtk.Window):
         ctx.set_operator(cairo.OPERATOR_SOURCE)
         color = self.theme.get("bar2_border_color", "#000000")
         red, green, blue = self.__parse_color(color)
-        ctx.append_path(stroke_path)
+        # Since copy_path/append_path puts the path in the wrong position
+        # in cairo 1.12 we have to call make path again to make the stroke path
+        self.__make_path(ctx, w, h, bar2=False, stroke_only=True)
+        #~ ctx.append_path(stroke_path)
         ctx.set_source_rgb(red, green, blue)
         bw = float(self.theme.get("bar2_border_width", 0.8))
         ctx.set_line_width(bw)
@@ -267,7 +273,7 @@ class CairoDockX(gtk.Window):
             ctx.translate(0, -h)
         return w, h
 
-    def __make_path(self, ctx, w, h, bar2=False):
+    def __make_path(self, ctx, w, h, bar2=False, stroke_only=False):
         # Create the stroke and fill paths
         mode = self.globals.settings["dock/mode"]
         ed = self.globals.settings["dock/end_decorations"]
@@ -356,6 +362,9 @@ class CairoDockX(gtk.Window):
             ctx.curve_to(x2, y2, x2, y2, x3, y3)
         else:
             ctx.line_to(w, t + 0.5)
+        if stroke_only:
+            # Only stroke path is interesting and it is used right away.
+            return
         stroke_path = ctx.copy_path()
         ctx.line_to(w, h)
         ctx.line_to(0, h)
