@@ -1,4 +1,17 @@
 Changelog:
+0.90.1
+Features:
+- Appindicator menus pop up next to the dock instead of at mouse pointer. Appindicator icon size is increased to 18.
+- Added a launcher for DockX.
+
+Bug fixes:
+- Bug #970737: DockX background disappeared on mouse over with cairo 1.12.
+- Bug #1066875: Visual glitches in right click menu for ubuntu 12.10 (compiz bug).
+- Namebar themes were installed in the wrong folder which made the applet crash.
+
+Translations are updated as well.
+
+
 0.90 - Jump in version number to signal that a 1.0 version is closing in.
 Features:
 - The stand alone dock supports applets now. See list of applets below.

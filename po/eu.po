@@ -7,428 +7,545 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dockbar\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-09-18 22:31+0300\n"
+"POT-Creation-Date: 2012-10-14 15:17+0300\n"
 "PO-Revision-Date: 2010-12-08 20:11+0000\n"
 "Last-Translator: Ander Elortondo <ander.elor@gmail.com>\n"
 "Language-Team: Basque <eu@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-09-29 20:48+0000\n"
-"X-Generator: Launchpad (build 14063)\n"
+"X-Launchpad-Export-Date: 2012-10-20 14:31+0000\n"
+"X-Generator: Launchpad (build 16165)\n"
 
-#: dbx_preference:222
+#: dockbarx/theme.py:174 dbx_preference:1448
+msgid ""
+"No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
+msgstr ""
+"/usr/share/dockbarx/themes edo ~/.dockbarx/themes kokapeneko gaiak ez "
+"dabiltza."
+
+#: dockbarx/groupbutton.py:331 dockbarx/groupbutton.py:623
+#: dockbarx/groupbutton.py:834
+msgid "_Launch application"
+msgstr "_Abiarazi aplikazioa"
+
+#: dockbarx/groupbutton.py:625 dockbarx/groupbutton.py:833
+msgid "_Pin application"
+msgstr ""
+
+#: dockbarx/groupbutton.py:627 dockbarx/groupbutton.py:832
+msgid "Make custom launcher"
+msgstr "Egin abiarazle pertsonalizatua"
+
+#: dockbarx/groupbutton.py:629 dockbarx/groupbutton.py:831
+msgid "Unpin application"
+msgstr ""
+
+#: dockbarx/groupbutton.py:630 dockbarx/groupbutton.py:631
+#: dockbarx/groupbutton.py:632
+msgid "Properties"
+msgstr "Propietateak"
+
+#: dockbarx/groupbutton.py:631 dockbarx/groupbutton.py:830
+msgid "Edit Identifier"
+msgstr "Editatu identifikatzailea"
+
+#: dockbarx/groupbutton.py:632 dockbarx/groupbutton.py:829
+msgid "Edit Launcher"
+msgstr "Abiarazlea editatu"
+
+#: dockbarx/groupbutton.py:671
+msgid "Recent"
+msgstr "Azkenekoak"
+
+#: dockbarx/groupbutton.py:672
+msgid "Most used"
+msgstr "Erabilienak"
+
+#: dockbarx/groupbutton.py:673
+msgid "Related"
+msgstr "Harremana dutenak"
+
+#: dockbarx/groupbutton.py:691 dockbarx/groupbutton.py:836
+msgid "Remove locked list"
+msgstr ""
+
+#: dockbarx/groupbutton.py:694 dockbarx/groupbutton.py:835
+msgid "Show locked list"
+msgstr ""
+
+#: dockbarx/groupbutton.py:701 dockbarx/groupbutton.py:816
+#: dockbarx/groupbutton.py:818 dockbarx/groupbutton.py:821
+#: dockbarx/groupbutton.py:824 dockbarx/groupbutton.py:827
+msgid " all windows"
+msgstr " leiho denak"
+
+#: dockbarx/groupbutton.py:703 dockbarx/groupbutton.py:826
+#: dockbarx/groupbutton.py:827 dockbarx/windowbutton.py:634
+msgid "Un_minimize"
+msgstr "des _minimizatu"
+
+#: dockbarx/groupbutton.py:705 dockbarx/groupbutton.py:823
+#: dockbarx/groupbutton.py:824 dockbarx/windowbutton.py:631
+msgid "_Minimize"
+msgstr "_minimizatu"
+
+#: dockbarx/groupbutton.py:709 dockbarx/groupbutton.py:817
+#: dockbarx/groupbutton.py:818 dockbarx/windowbutton.py:643
+msgid "Ma_ximize"
+msgstr "Ma_ximizatu"
+
+#: dockbarx/groupbutton.py:712 dockbarx/groupbutton.py:820
+#: dockbarx/groupbutton.py:821 dockbarx/windowbutton.py:646
+msgid "Unma_ximize"
+msgstr "Desma_ximizatu"
+
+#: dockbarx/groupbutton.py:713 dockbarx/groupbutton.py:815
+#: dockbarx/groupbutton.py:816 dockbarx/windowbutton.py:652
+msgid "_Close"
+msgstr "_Itxi"
+
+#: dockbarx/groupbutton.py:2454 dockbarx/dockbar.py:1127
+msgid "Identifier"
+msgstr "Identifikatzailea"
+
+#: dockbarx/dockbar.py:1128
+msgid "Enter the identifier here"
+msgstr "Sartu identifikatzailea hemen"
+
+#: dockbarx/dockbar.py:1130
+msgid ""
+"You should have to do this only if the program fails to recognice its "
+"windows. "
+msgstr ""
+"Programak bere leihoak ezagutzen ez dituenean bakarrik egin behar duzu hau. "
+
+#: dockbarx/dockbar.py:1131
+msgid ""
+"If the program is already running you should be able to find the identifier "
+"of the program from the dropdown list."
+msgstr ""
+"Programa jadanik exekutatzen badabil bere identifikatzailea aurkitzeko gai "
+"izan beharko zinateke goitibehera zerrendan."
+
+#: dockbarx/dockbar.py:1148
+msgid "Identifier:"
+msgstr "Identifikatzailea:"
+
+#: dockbarx/dockbar.py:1311 dbx_preference:1159
+msgid "Select next group"
+msgstr "Aukeratu hurrengo taldea"
+
+#: dockbarx/dockbar.py:1312 dbx_preference:1161
+msgid "Select previous group"
+msgstr "Aukeratu aurreko taldea"
+
+#: dockbarx/dockbar.py:1313 dbx_preference:1163
+msgid "Select next window in group"
+msgstr "Aukeratu taldeko hurrengo leihoa"
+
+#: dockbarx/dockbar.py:1314 dbx_preference:1165
+msgid "Select previous window in group"
+msgstr "Aukeratu taldeko aurreko leihoa"
+
+#: dbx_preference:453
 msgid "DockBarX preferences"
 msgstr "DockBarX hobespenak"
 
-#: dbx_preference:244
+#: dbx_preference:477
 msgid "Window item actions"
 msgstr "Leihoen ekintzak"
 
-#: dbx_preference:250 dbx_preference:643
+#: dbx_preference:483 dbx_preference:894
 msgid "Left mouse button"
 msgstr "Saguaren ezkerreko botoia"
 
-#: dbx_preference:251 dbx_preference:644
+#: dbx_preference:484 dbx_preference:895
 msgid "Shift + left mouse button"
 msgstr "Shift + saguaren ezkerreko botoia"
 
-#: dbx_preference:253 dbx_preference:646
+#: dbx_preference:486 dbx_preference:897
 msgid "Middle mouse button"
 msgstr "Saguaren erdiko botoia"
 
-#: dbx_preference:255 dbx_preference:647
+#: dbx_preference:488 dbx_preference:898
 msgid "Shift + middle mouse button"
 msgstr "Shift + saguaren erdiko botoia"
 
-#: dbx_preference:257 dbx_preference:649
+#: dbx_preference:490 dbx_preference:900
 msgid "Right mouse button"
 msgstr "Saguaren eskuineko botoia"
 
-#: dbx_preference:259 dbx_preference:650
+#: dbx_preference:492 dbx_preference:901
 msgid "Shift + right mouse button"
 msgstr "Shift + saguaren eskuineko botoia"
 
-#: dbx_preference:261 dbx_preference:652
+#: dbx_preference:494 dbx_preference:903
 msgid "Scroll up"
 msgstr "Korritu gora"
 
-#: dbx_preference:262 dbx_preference:653
+#: dbx_preference:495 dbx_preference:904
 msgid "Scroll down"
 msgstr "Korritu behera"
 
-#: dbx_preference:267 dbx_preference:719 dbx_preference:1363
-#: dbx_preference:1674
+#: dbx_preference:500 dbx_preference:970 dbx_preference:1610
+#: dbx_preference:1840
 msgid "select or minimize window"
 msgstr "Aukeratu edo minimizatu leihoa"
 
-#: dbx_preference:268 dbx_preference:718 dbx_preference:1362
-#: dbx_preference:1673
+#: dbx_preference:501 dbx_preference:969 dbx_preference:1609
+#: dbx_preference:1839
 msgid "select window"
 msgstr "Aukeratu leihoa"
 
-#: dbx_preference:269
+#: dbx_preference:502
 msgid "maximize window"
 msgstr "maximizatu leihoa"
 
-#: dbx_preference:270
+#: dbx_preference:503
 msgid "close window"
 msgstr "Itxi leihoa"
 
-#: dbx_preference:271 dbx_preference:662
+#: dbx_preference:504 dbx_preference:913
 msgid "show menu"
 msgstr "Ikusi menua"
 
-#: dbx_preference:272
+#: dbx_preference:505
 msgid "shade window"
 msgstr "Itzaldu leihoa"
 
-#: dbx_preference:273
+#: dbx_preference:506
 msgid "unshade window"
 msgstr "Desitzaldu leihoa"
 
-#: dbx_preference:274 dbx_preference:671
+#: dbx_preference:507 dbx_preference:922
 msgid "no action"
 msgstr "Ekintzarik ez"
 
-#: dbx_preference:303
+#: dbx_preference:536
 msgid "Close window list"
 msgstr "Itxi leiho zerrenda"
 
-#: dbx_preference:317
+#: dbx_preference:550
 msgid "Show close button"
 msgstr ""
 
-#: dbx_preference:327
+#: dbx_preference:560
 msgid "Theme:"
 msgstr "Gaia:"
 
-#: dbx_preference:346
+#: dbx_preference:593
 msgid "Window list style:"
 msgstr ""
 
-#: dbx_preference:365 dbx_preference:1053
-msgid "Colors"
-msgstr "Koloreak"
-
-#: dbx_preference:422
+#: dbx_preference:664
 msgid "Needs attention effect"
 msgstr "Efektua harreta behar denean"
 
-#: dbx_preference:426
+#: dbx_preference:668
 msgid "Compiz water"
 msgstr "Compiz ura"
 
-#: dbx_preference:428
+#: dbx_preference:670
 msgid "Blinking"
 msgstr "Keinuka"
 
-#: dbx_preference:430
+#: dbx_preference:672
 msgid "Static"
 msgstr "Estatikoa"
 
-#: dbx_preference:432
+#: dbx_preference:674
 msgid "No effect"
 msgstr "Efekturik ez"
 
-#: dbx_preference:443
+#: dbx_preference:685
 msgid "Use gtk menu (old style) instead of DockbarX style menu."
 msgstr ""
 
-#: dbx_preference:453
+#: dbx_preference:695
 msgid "Badge"
 msgstr ""
 
-#: dbx_preference:457 dbx_preference:505
+#: dbx_preference:699 dbx_preference:747
 msgid "Custom colors"
 msgstr ""
 
-#: dbx_preference:463
+#: dbx_preference:705
 msgid "Text"
 msgstr ""
 
-#: dbx_preference:463 dbx_preference:511
+#: dbx_preference:705 dbx_preference:753
 msgid "Background"
 msgstr ""
 
-#: dbx_preference:470
+#: dbx_preference:712
 msgid "Custom badge text color"
 msgstr ""
 
-#: dbx_preference:471
+#: dbx_preference:713
 msgid "Custom badge background color"
 msgstr ""
 
-#: dbx_preference:483
+#: dbx_preference:725
 msgid "Custom font and size"
 msgstr ""
 
-#: dbx_preference:491
+#: dbx_preference:733
 msgid "Badge font"
 msgstr ""
 
-#: dbx_preference:501
+#: dbx_preference:743
 msgid "Progress bar"
 msgstr ""
 
-#: dbx_preference:511
+#: dbx_preference:753
 msgid "Foreground"
 msgstr ""
 
-#: dbx_preference:512
-msgid "progress_custom_fg_color"
-msgstr ""
-
-#: dbx_preference:513
-msgid "progress_custom_bg_color"
-msgstr ""
-
-#: dbx_preference:519
+#: dbx_preference:761
 msgid "Custom progress bar foreground color"
 msgstr ""
 
-#: dbx_preference:520
+#: dbx_preference:762
 msgid "Custom progress bar background color"
 msgstr ""
 
-#: dbx_preference:538
+#: dbx_preference:780
 msgid "Show window list only if more than one window is open"
 msgstr "Ikusi leiho zerrenda leiho bat baino gehiago zabalik dagoenean"
 
-#: dbx_preference:544
+#: dbx_preference:786
 msgid "Show tooltip when no window is open"
 msgstr "Erakutsi argibidea leihorik ez dagoenean irekita"
 
-#: dbx_preference:551
-msgid "Alignment"
-msgstr "Lerrokatzea"
-
-#: dbx_preference:555
-msgid "Align left"
-msgstr "Lerrokatu ezkerrean"
-
-#: dbx_preference:557
-msgid "Align center"
-msgstr "Lerrokatu erdian"
-
-#: dbx_preference:559
-msgid "Align right"
-msgstr "Lerrokatu eskuinean"
-
-#: dbx_preference:568 dbx_preference:573
-msgid "Delay"
-msgstr "Denbora tartea"
-
-#: dbx_preference:583
-msgid "Delay for switching between window lists"
-msgstr "Leiho zerrenden aldaketa arteko denbora"
-
-#: dbx_preference:596
-msgid "Previews"
-msgstr "Aurrebistak"
-
-#: dbx_preference:600
-msgid "Show previews"
-msgstr "Erakutsi aurrebistak"
-
-#: dbx_preference:605
+#: dbx_preference:793
 msgid "Preview size"
 msgstr "Aurrebistaren tamaina"
 
-#: dbx_preference:617
+#: dbx_preference:807
+msgid "Window title width"
+msgstr ""
+
+#: dbx_preference:822 dbx_preference:827
+msgid "Delay"
+msgstr "Denbora tartea"
+
+#: dbx_preference:837
+msgid "Delay for switching between window lists"
+msgstr "Leiho zerrenden aldaketa arteko denbora"
+
+#: dbx_preference:850
+msgid "Previews"
+msgstr "Aurrebistak"
+
+#: dbx_preference:854
+msgid "Show previews"
+msgstr "Erakutsi aurrebistak"
+
+#: dbx_preference:857
+msgid "Show previews for minimized windows"
+msgstr ""
+
+#: dbx_preference:858
+msgid ""
+"To get previews for minimized windows you need to active \"Keep previews of "
+"minimized windows\" in Compiz plugin Workarounds."
+msgstr ""
+
+#: dbx_preference:868
 msgid "Locked list"
 msgstr ""
 
-#: dbx_preference:622
+#: dbx_preference:873
 msgid "Show \"locked list\" option in menu"
 msgstr ""
 
-#: dbx_preference:623
+#: dbx_preference:874
 msgid ""
 "The option is only shown when a program has more than one window opened."
 msgstr ""
 
-#: dbx_preference:628
+#: dbx_preference:879
 msgid "Maximized windows should not overlap the locked list"
 msgstr ""
 
-#: dbx_preference:637
+#: dbx_preference:888
 msgid "Group button actions"
 msgstr "Talde botoi ekintzak"
 
-#: dbx_preference:657
+#: dbx_preference:908
 msgid "select"
 msgstr "Hautatu"
 
-#: dbx_preference:658
+#: dbx_preference:909
 msgid "close all windows"
 msgstr "Itxi leiho denak"
 
-#: dbx_preference:659
+#: dbx_preference:910
 msgid "minimize all windows"
 msgstr "Minimizatu leiho denak"
 
-#: dbx_preference:660
+#: dbx_preference:911
 msgid "maximize all windows"
 msgstr "Maximizatu leiho denak"
 
-#: dbx_preference:661
+#: dbx_preference:912
 msgid "launch application"
 msgstr "Abiarazi aplikazioa"
 
-#: dbx_preference:663
+#: dbx_preference:914
 msgid "remove launcher"
 msgstr "Kendu abiarazlea"
 
-#: dbx_preference:664
+#: dbx_preference:915
 msgid "select next window"
 msgstr "Aukeratu hurrengo leihoa"
 
-#: dbx_preference:665
+#: dbx_preference:916
 msgid "select previous window"
 msgstr "Aukeratu aurreko leihoa"
 
-#: dbx_preference:666
+#: dbx_preference:917
 msgid "minimize all other groups"
 msgstr "Minimizatu beste talde denak"
 
-#: dbx_preference:667
+#: dbx_preference:918
 msgid "compiz scale windows"
 msgstr "compiz leiho eskalatzea"
 
-#: dbx_preference:668
+#: dbx_preference:919
 msgid "compiz shift windows"
 msgstr "compiz leiho aldatzea"
 
-#: dbx_preference:669
+#: dbx_preference:920
 msgid "compiz scale all"
 msgstr "compiz dena eskalatu"
 
-#: dbx_preference:670
+#: dbx_preference:921
 msgid "show preference dialog"
 msgstr "Erakutsi hobespenen elkarrizketa"
 
-#: dbx_preference:698
+#: dbx_preference:949
 msgid "Double click"
 msgstr "Klik bikoitza"
 
-#: dbx_preference:709
+#: dbx_preference:960
 msgid "\"Select\" action options"
 msgstr "\"aukeratu\" ekintzaren aukerak"
 
-#: dbx_preference:715
+#: dbx_preference:966
 msgid "One window open"
 msgstr "Leiho bat irekita"
 
-#: dbx_preference:724
+#: dbx_preference:975
 msgid "Multiple windows open"
 msgstr "Hainbat leiho irekita"
 
-#: dbx_preference:727 dbx_preference:1372 dbx_preference:1683
+#: dbx_preference:978 dbx_preference:1619 dbx_preference:1849
 msgid "select all"
 msgstr "aukeratu denak"
 
-#: dbx_preference:728 dbx_preference:1373 dbx_preference:1684
+#: dbx_preference:979 dbx_preference:1620 dbx_preference:1850
 msgid "select or minimize all"
 msgstr "aukeratu edo minimizatu denak"
 
-#: dbx_preference:729 dbx_preference:1374 dbx_preference:1685
+#: dbx_preference:980 dbx_preference:1621 dbx_preference:1851
 msgid "compiz scale"
 msgstr "compiz eskala"
 
-#: dbx_preference:730 dbx_preference:1375 dbx_preference:1686
+#: dbx_preference:981 dbx_preference:1622 dbx_preference:1852
 msgid "cycle through windows"
 msgstr ""
 
-#: dbx_preference:731 dbx_preference:1376 dbx_preference:1687
+#: dbx_preference:982 dbx_preference:1623 dbx_preference:1853
 msgid "show window list"
 msgstr "erakutsi leiho zerrenda"
 
-#: dbx_preference:736
+#: dbx_preference:987
 msgid "Workspace behavior"
 msgstr "Idazmahaiaren portaera"
 
-#: dbx_preference:740 dbx_preference:1695
+#: dbx_preference:991 dbx_preference:1861
 msgid "Ignore windows on other workspaces"
 msgstr "Ezikusi beste idazmahaietako leihoak"
 
-#: dbx_preference:741 dbx_preference:1386 dbx_preference:1696
+#: dbx_preference:992 dbx_preference:1633 dbx_preference:1862
 msgid "Switch workspace when needed"
 msgstr "Aldatu idazmahaia behar denean"
 
-#: dbx_preference:743 dbx_preference:1387 dbx_preference:1697
+#: dbx_preference:994 dbx_preference:1634 dbx_preference:1863
 msgid "Move windows from other workspaces"
 msgstr "Mugitu leihoak beste mahaigainetatik"
 
-#: dbx_preference:754
+#: dbx_preference:1005
 msgid "\"Select next\" options"
 msgstr ""
 
-#: dbx_preference:756
+#: dbx_preference:1007
 msgid "\"Select next\" selects the most recently used window in the group"
 msgstr ""
 
-#: dbx_preference:757
+#: dbx_preference:1008
 msgid ""
 "If set, \"Select Next\" action selects the window that has been used most "
 "recently, otherwise it activates the next window in the window list."
 msgstr ""
 
-#: dbx_preference:763
+#: dbx_preference:1014
 msgid "Use no delay with \"Select next\""
 msgstr ""
 
-#: dbx_preference:764
+#: dbx_preference:1015
 msgid ""
 "If set, \"Select Next\" action selects the next window immediately without "
 "any delay"
 msgstr ""
 
-#: dbx_preference:774
+#: dbx_preference:1025
 msgid "Use media buttons"
 msgstr ""
 
-#: dbx_preference:781
+#: dbx_preference:1032
 msgid "Use Unity static quicklists"
 msgstr ""
 
-#: dbx_preference:788
+#: dbx_preference:1039
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr ""
 
-#: dbx_preference:795
+#: dbx_preference:1046
 msgid "DockManager"
 msgstr ""
 
-#: dbx_preference:799
+#: dbx_preference:1050
 msgid "Use DockManager"
 msgstr ""
 
-#: dbx_preference:804
+#: dbx_preference:1055
 msgid "Helpers"
 msgstr ""
 
-#: dbx_preference:813
+#: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Ezikusi leihoak beste lehiatila/mahaiganetan"
 
-#: dbx_preference:819
+#: dbx_preference:1070
 msgid "Ignore windows on other monitors"
 msgstr "Ezikusi leihoak beste monitoretan"
 
-#: dbx_preference:826
+#: dbx_preference:1077
 msgid "Give each wine application its own group button"
 msgstr "Wine aplikazio bakoitzari eman bere talde botoia"
 
-#: dbx_preference:833
+#: dbx_preference:1084
 msgid "Keep open office application (Writer, Calc, etc.) separated"
 msgstr "Mantendu banatuta bulego aplikazioak (Writer, Calc, etab.)"
 
-#: dbx_preference:840
+#: dbx_preference:1091
 msgid "Delay on select all (Workaround for order problems)"
 msgstr "Atzerapena denak batera aukeratzean (ordena arazoak ekiditeko)"
 
-#: dbx_preference:841
+#: dbx_preference:1092
 msgid ""
 "Compiz can't handle the order of multiple windows that are brought up at "
 "once. This problem can be solved by adding short delays between the "
@@ -438,222 +555,222 @@ msgstr ""
 "gordetzeko. Arazo hau leiho bakoitzaren aktibazioan atzerapen txiki bat "
 "txertatuz konpontzen da."
 
-#: dbx_preference:849 dbx_preference:853
+#: dbx_preference:1100 dbx_preference:1104
 msgid "Opacify"
 msgstr ""
 
-#: dbx_preference:854
+#: dbx_preference:1105
 msgid ""
 "Opacify will make all other windows transparent when hovering a name or "
 "preview of a window in the window list."
 msgstr ""
 
-#: dbx_preference:857
+#: dbx_preference:1108
 msgid "Opacify group"
 msgstr ""
 
-#: dbx_preference:858
+#: dbx_preference:1109
 msgid ""
 "Opacify group will make all other groups transparent when hovering a group "
 "button."
 msgstr ""
 
-#: dbx_preference:862
+#: dbx_preference:1113
 msgid "Use smooth fade in/out"
 msgstr ""
 
-#: dbx_preference:868
+#: dbx_preference:1119
 msgid "Opacity"
 msgstr "Opakotasuna"
 
-#: dbx_preference:880
+#: dbx_preference:1131
 msgid "Smoothness"
 msgstr ""
 
-#: dbx_preference:889
+#: dbx_preference:1140
 msgid "Duration"
 msgstr ""
 
-#: dbx_preference:903
+#: dbx_preference:1154
 msgid "Global Keyboard Shortcuts"
 msgstr "Laster-tekla orokorrak"
 
-#: dbx_preference:908 dockbarx/dockbar.py:1302
-msgid "Select next group"
-msgstr "Aukeratu hurrengo taldea"
-
-#: dbx_preference:910 dockbarx/dockbar.py:1303
-msgid "Select previous group"
-msgstr "Aukeratu aurreko taldea"
-
-#: dbx_preference:912 dockbarx/dockbar.py:1304
-msgid "Select next window in group"
-msgstr "Aukeratu taldeko hurrengo leihoa"
-
-#: dbx_preference:914 dockbarx/dockbar.py:1305
-msgid "Select previous window in group"
-msgstr "Aukeratu taldeko aurreko leihoa"
-
-#: dbx_preference:949
+#: dbx_preference:1200
 msgid "Note! Compiz keyboard shortcuts will override these."
 msgstr ""
 
-#: dbx_preference:951
+#: dbx_preference:1202
 msgid "Skip pinned apps without open windows"
 msgstr ""
 
-#: dbx_preference:957
+#: dbx_preference:1208
 msgid "Use Unity style number shortcuts (Super+number)"
 msgstr ""
 
-#: dbx_preference:971
+#: dbx_preference:1222
 msgid "Type"
 msgstr ""
 
-#: dbx_preference:974 dbx_preference:1002
+#: dbx_preference:1225 dbx_preference:1253
 msgid "panel"
 msgstr ""
 
-#: dbx_preference:974
+#: dbx_preference:1225
 msgid "corner"
 msgstr ""
 
-#: dbx_preference:974
+#: dbx_preference:1225
 msgid "centered"
 msgstr ""
 
-#: dbx_preference:987
+#: dbx_preference:1238
 msgid "Position"
 msgstr ""
 
-#: dbx_preference:990
+#: dbx_preference:1241
 msgid "left"
 msgstr ""
 
-#: dbx_preference:990
+#: dbx_preference:1241
 msgid "right"
 msgstr ""
 
-#: dbx_preference:990
+#: dbx_preference:1241
 msgid "top"
 msgstr ""
 
-#: dbx_preference:990
+#: dbx_preference:1241
 msgid "bottom"
 msgstr ""
 
-#: dbx_preference:999
+#: dbx_preference:1250
 msgid "Behavior"
 msgstr ""
 
-#: dbx_preference:1002
+#: dbx_preference:1253
 msgid "standard"
 msgstr ""
 
-#: dbx_preference:1002 dbx_preference:1103
+#: dbx_preference:1253 dbx_preference:1354
 msgid "dodge windows"
 msgstr ""
 
-#: dbx_preference:1003 dbx_preference:1104
+#: dbx_preference:1254 dbx_preference:1355
 msgid "dodge active window"
 msgstr ""
 
-#: dbx_preference:1003
+#: dbx_preference:1254
 msgid "always autohide"
 msgstr ""
 
-#: dbx_preference:1012
+#: dbx_preference:1263
 msgid "Size"
 msgstr ""
 
-#: dbx_preference:1024
+#: dbx_preference:1275
 msgid "Offset"
 msgstr ""
 
-#: dbx_preference:1025
+#: dbx_preference:1276
 msgid ""
 "Use this if the dock isn't able to automatically aviod overlapping with "
 "other panels"
 msgstr ""
 
-#: dbx_preference:1035
+#: dbx_preference:1286
 msgid "Dock theme:"
 msgstr ""
 
-#: dbx_preference:1058 dbx_preference:1061
+#: dbx_preference:1304
+msgid "Colors"
+msgstr "Koloreak"
+
+#: dbx_preference:1309 dbx_preference:1312
 msgid "Background color"
 msgstr ""
 
-#: dbx_preference:1075 dbx_preference:1079
+#: dbx_preference:1326 dbx_preference:1330
 msgid "Second background color"
 msgstr ""
 
-#: dbx_preference:1100
+#: dbx_preference:1351
 msgid "Dodge behavior"
 msgstr ""
 
-#: dbx_preference:1103
+#: dbx_preference:1354
 msgid "disabled"
 msgstr ""
 
-#: dbx_preference:1109
+#: dbx_preference:1360
 msgid ""
 "AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
 "awn applet Taskmanager is not running. Set dodge behavior here instead."
 msgstr ""
 
-#: dbx_preference:1114
+#: dbx_preference:1365
 msgid "AWN"
 msgstr ""
 
-#: dbx_preference:1115
+#: dbx_preference:1366
 msgid "Dock"
 msgstr ""
 
-#: dbx_preference:1116
+#: dbx_preference:1367
+msgid "Dock Applets"
+msgstr ""
+
+#: dbx_preference:1368
 msgid "Appearance"
 msgstr "Itxura"
 
-#: dbx_preference:1117
+#: dbx_preference:1369
 msgid "Window List"
 msgstr "Leiho Zerrenda"
 
-#: dbx_preference:1118
+#: dbx_preference:1370
 msgid "Group Button"
 msgstr "Talde botoia"
 
-#: dbx_preference:1119
+#: dbx_preference:1371
 msgid "Window Item"
 msgstr "Leihoa"
 
-#: dbx_preference:1120
+#: dbx_preference:1372
 msgid "Plugins"
 msgstr ""
 
-#: dbx_preference:1121
+#: dbx_preference:1373
 msgid "Advanced"
 msgstr "Aurreratua"
 
-#: dbx_preference:1194 dockbarx/theme.py:168
-msgid ""
-"No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
+#: dbx_preference:1582
+#, python-format
+msgid "Settings and colors for %s"
 msgstr ""
-"/usr/share/dockbarx/themes edo ~/.dockbarx/themes kokapeneko gaiak ez "
-"dabiltza."
 
-#: dbx_preference:1385
+#: dbx_preference:1632
 msgid "Ignore windows on other workspace"
 msgstr "Ezikusi leihoak beste mahaiganetan"
 
-#: dbx_preference:1458
+#: dbx_preference:1716
 msgid "Show corner decorations"
 msgstr ""
 
-#: dbx_preference:1462
+#: dbx_preference:1720
 msgid "Show decorations in both corners"
 msgstr ""
 
-#: dbx_preference:1568
+#: dbx_preference:1982
+msgid ""
+"You need to have at least one mod key (<control>, <alt> or <super>) in the "
+"keyboard string."
+msgstr ""
+
+#: dbx_preference:2097
+msgid "Theme Info"
+msgstr ""
+
+#: dbx_preference:2191
 msgid ""
 "Previews requires the compiz plugin KDE Compability to be activated. Should "
 "dockbarx activate it for you?"
@@ -661,7 +778,7 @@ msgstr ""
 "Aurrebistak compizeko KDE konpatibilitate plugina aktibatua behar du.Nahi "
 "duzu dockbarx zugatik aktibatzea?"
 
-#: dbx_preference:1582
+#: dbx_preference:2205
 msgid ""
 "The compiz plugin KDE Compability that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
@@ -671,128 +788,27 @@ msgstr ""
 "instalatzeke duzula. Ubuntu erabiltzen bazabiltza instalatu compiz-fusion-"
 "plugins-main paketea."
 
-#: dbx_preference:1600
+#: dbx_preference:2223
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
 "Compability plugin. Should dockbarx activate it for you?"
 msgstr ""
 
-#: dbx_preference:1623
+#: dbx_preference:2250
+msgid ""
+"Previews for minimzied windows requires the compiz plugin Workarounds to be "
+"activated. Should dockbarx activate it for you?"
+msgstr ""
+
+#: dbx_preference:2272
+msgid ""
+"Previews for minimzied windows requires the option \"Keep previews of "
+"minimized windows\" to be activated in compiz plugin Workarounds. Should "
+"DockbarX activate it for you?"
+msgstr ""
+
+#: dbx_preference:2296
 msgid ""
 "Opacify requires the compiz plugin Opacity, Brightness and Saturation to be "
 "activated. Should dockbarx activate it for you?"
 msgstr ""
-
-#: dbx_preference:1816
-msgid ""
-"You need to have at least one mod key (<control>, <alt> or <super>) in the "
-"keyboard string."
-msgstr ""
-
-#: dockbarx/dockbar.py:1118 dockbarx/groupbutton.py:2435
-msgid "Identifier"
-msgstr "Identifikatzailea"
-
-#: dockbarx/dockbar.py:1119
-msgid "Enter the identifier here"
-msgstr "Sartu identifikatzailea hemen"
-
-#: dockbarx/dockbar.py:1121
-msgid ""
-"You should have to do this only if the program fails to recognice its "
-"windows. "
-msgstr ""
-"Programak bere leihoak ezagutzen ez dituenean bakarrik egin behar duzu hau. "
-
-#: dockbarx/dockbar.py:1122
-msgid ""
-"If the program is already running you should be able to find the identifier "
-"of the program from the dropdown list."
-msgstr ""
-"Programa jadanik exekutatzen badabil bere identifikatzailea aurkitzeko gai "
-"izan beharko zinateke goitibehera zerrendan."
-
-#: dockbarx/dockbar.py:1139
-msgid "Identifier:"
-msgstr "Identifikatzailea:"
-
-#: dockbarx/windowbutton.py:603 dockbarx/groupbutton.py:704
-#: dockbarx/groupbutton.py:822 dockbarx/groupbutton.py:823
-msgid "_Minimize"
-msgstr "_minimizatu"
-
-#: dockbarx/windowbutton.py:606 dockbarx/groupbutton.py:702
-#: dockbarx/groupbutton.py:825 dockbarx/groupbutton.py:826
-msgid "Un_minimize"
-msgstr "des _minimizatu"
-
-#: dockbarx/windowbutton.py:615 dockbarx/groupbutton.py:708
-#: dockbarx/groupbutton.py:816 dockbarx/groupbutton.py:817
-msgid "Ma_ximize"
-msgstr "Ma_ximizatu"
-
-#: dockbarx/windowbutton.py:618 dockbarx/groupbutton.py:711
-#: dockbarx/groupbutton.py:819 dockbarx/groupbutton.py:820
-msgid "Unma_ximize"
-msgstr "Desma_ximizatu"
-
-#: dockbarx/windowbutton.py:624 dockbarx/groupbutton.py:712
-#: dockbarx/groupbutton.py:814 dockbarx/groupbutton.py:815
-msgid "_Close"
-msgstr "_Itxi"
-
-#: dockbarx/groupbutton.py:339 dockbarx/groupbutton.py:622
-#: dockbarx/groupbutton.py:833
-msgid "_Launch application"
-msgstr "_Abiarazi aplikazioa"
-
-#: dockbarx/groupbutton.py:624 dockbarx/groupbutton.py:832
-msgid "_Pin application"
-msgstr ""
-
-#: dockbarx/groupbutton.py:626 dockbarx/groupbutton.py:831
-msgid "Make custom launcher"
-msgstr "Egin abiarazle pertsonalizatua"
-
-#: dockbarx/groupbutton.py:628 dockbarx/groupbutton.py:830
-msgid "Unpin application"
-msgstr ""
-
-#: dockbarx/groupbutton.py:629 dockbarx/groupbutton.py:630
-#: dockbarx/groupbutton.py:631
-msgid "Properties"
-msgstr "Propietateak"
-
-#: dockbarx/groupbutton.py:630 dockbarx/groupbutton.py:829
-msgid "Edit Identifier"
-msgstr "Editatu identifikatzailea"
-
-#: dockbarx/groupbutton.py:631 dockbarx/groupbutton.py:828
-msgid "Edit Launcher"
-msgstr "Abiarazlea editatu"
-
-#: dockbarx/groupbutton.py:670
-msgid "Recent"
-msgstr "Azkenekoak"
-
-#: dockbarx/groupbutton.py:671
-msgid "Most used"
-msgstr "Erabilienak"
-
-#: dockbarx/groupbutton.py:672
-msgid "Related"
-msgstr "Harremana dutenak"
-
-#: dockbarx/groupbutton.py:690 dockbarx/groupbutton.py:835
-msgid "Remove locked list"
-msgstr ""
-
-#: dockbarx/groupbutton.py:693 dockbarx/groupbutton.py:834
-msgid "Show locked list"
-msgstr ""
-
-#: dockbarx/groupbutton.py:700 dockbarx/groupbutton.py:815
-#: dockbarx/groupbutton.py:817 dockbarx/groupbutton.py:820
-#: dockbarx/groupbutton.py:823 dockbarx/groupbutton.py:826
-msgid " all windows"
-msgstr " leiho denak"

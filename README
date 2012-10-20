@@ -18,7 +18,7 @@ INSTALL
 1. Install zeitgeist, python-wnck, python-imaging, python-keybinder, python-xlib and python-numpy (DockbarX might be able to run without python-numpy, but it shouldn't hurt to install it). 
 $ sudo apt-get install python-gnomeapplet python-imaging python-wnck python-keybinder python-numpy python-xlib zeitgeist
 
-1b. Install python-gnomeapplet if you want to use DockbarX as a gnome-panel applet (gnome2) you should install python-gnomeapplet.
+1b. Install python-gnomeapplet if you want to use DockbarX as a gnome-panel applet (gnome2) you should install python-gnomeapplet. (This doesn't work in newer releases of Ubuntu.)
 $ sudo apt-get install python-gnomeapplet
 
 1c. Some of the stand alone dock applets require dependencies:
@@ -56,50 +56,7 @@ MATE
 DockbarX for Mate-panel
 Use these instructions: http://airinux.blogspot.fi/2012/07/howto-make-dockbarx-for-mate.html
 
-=====
-USAGE
-=====
-The default actions are listed here. There are more actions in dockbarx. You can assign them to different buttons via preference dialog.
 
-
-DEFAULT GROUP BUTTON ACTIONS:
-left click:
-- activate / minimize / unminimize group (launch application if no window is open)
-
-shift + left click:
-- launch application
-
-middle double click:
-- close group of windows
-
-right click:
-- open 'menu'
-
-scroll up/down: 
-- Select next/previous window of the group
-
-
-DEFAULT WINDOW ITEM ACTIONS:
-left click:
-- activate / minimize / unminimize
-
-middle click:
-- close window
-
-right click:
-- minimize and lock
-
-
-WORKSPACE/VIEWPORT BEHAVIOR OPTIONS:
-You can change how DockbarX reacts when you select a group (left click on the group icon if the default is used) from preference window.
-
-Ignore: Acts as if windows on other workspaces and viewport doesn't exist.
-
-Switch: Behaves as ignore if there are windows belonging to the group on the current workspace/viewport. If there are no windows belonging to the group on the current workspace/viewport it switches to the workspace/viewport with most windows that belong to the group. This is the default behavior.
-
-Move: Moves windows from other workspaces/viewports to current workspace/viewport. This is the behavior vanilla Dockbar uses.
-
-If you select a window in the window list you will always switch to the workspace/viewport of the window. This is not configurable (vanilla Dockbar behaves the same way).
 
 
 ===
