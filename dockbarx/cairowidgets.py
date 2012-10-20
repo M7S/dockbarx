@@ -1166,10 +1166,8 @@ class CairoPreview(gtk.Image):
         ctx.set_operator(cairo.OPERATOR_SOURCE)
         ctx.set_source_rgba(1,1,1,0)
         ctx.paint()
-        print "drawn"
 
     def do_expose_event(self, event, arg=None):
-        print "exposed"
         a = self.get_allocation()
         ctx = self.window.cairo_create()
         ctx.rectangle(event.area.x, event.area.y,
@@ -1180,7 +1178,6 @@ class CairoPreview(gtk.Image):
         ctx.paint()
 
     def do_visibility_notify_event(self, *args):
-        print "visibility"
         self.draw()
 
 def make_path(ctx, x=0, y=0, w=0, h=0, r=6, b=0.5,

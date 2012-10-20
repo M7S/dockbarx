@@ -118,7 +118,6 @@ class MediaButtons(gtk.Alignment):
         if "PlaybackStatus" in changed_props:
             pause = changed_props["PlaybackStatus"]== "Playing"
             self.playpause_button.set_pause(pause)
-            print pause, changed_props["PlaybackStatus"] 
 
     def update_plaback_status(self):
         self.player.Get("org.mpris.MediaPlayer2.Player",

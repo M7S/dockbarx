@@ -82,7 +82,8 @@ class AppIndicator(gtk.EventBox):
                                          #~ self.__on_menu_resized)
         gtkmenu = self.menu.get_menu()
         self.sd_sid = gtkmenu.connect("selection-done", self.menu_closed)
-        gtkmenu.popup(None, None, None, event.button, event.time)
+        gtkmenu.popup(None, None, self.position_menu,
+                      event.button, event.time)
 
     def menu_closed(self, *args):
         if self.menu is not None:
@@ -124,25 +125,26 @@ class AppIndicator(gtk.EventBox):
         self.title = title
 
     def position_menu(self, menu):
-        # Used only with the gtk menu
-        x, y = self.window.get_origin()
+        x, y = self.get_window().get_origin()
         a = self.get_allocation()
-        x += a.x
-        y += a.y
         w, h = menu.size_request()
-        if self.dockbar_r().orient == "v":
-            if x < (self.screen.get_width() / 2):
-                x += a.width
-            else:
-                x -= w
-            if y + h > self.screen.get_height():
+        size = self.applet_r().get_size()
+        if self.applet_r().get_position() == "left":
+            x += size
+            y += a.y
+        if self.applet_r().get_position() == "right":
+            x -= w
+            y += a.y
+        if self.applet_r().get_position() == "top":
+            x += a.x
+            y += size
+        if self.applet_r().get_position() == "bottom":
+            x += a.x
+            y -= h
+        screen = self.get_window().get_screen()
+        if y + h > screen.get_height():
                 y -= h - a.height
-        if self.dockbar_r().orient == "h":
-            if y < (self.screen.get_height() / 2):
-                y += a.height
-            else:
-                y -= h
-            if x + w >= self.screen.get_width():
+        if x + w >= screen.get_width():
                 x -= w - a.width
         return (x, y, False)
 

@@ -243,7 +243,7 @@ class CairoDockX(gtk.Window):
         red, green, blue = self.__parse_color(color)
         # Since copy_path/append_path puts the path in the wrong position
         # in cairo 1.12 we have to call make path again to make the stroke path
-        self.__make_path(ctx, w, h, bar2=False, stroke_only=True)
+        self.__make_path(ctx, w, h, bar2=True, stroke_only=True)
         #~ ctx.append_path(stroke_path)
         ctx.set_source_rgb(red, green, blue)
         bw = float(self.theme.get("bar2_border_width", 0.8))

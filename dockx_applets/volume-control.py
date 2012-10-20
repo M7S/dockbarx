@@ -445,14 +445,12 @@ class VolumeControlApplet:
 
     def combobox_device_changed_cb(self, cb):
         value = cb.get_active_text()
-        print "device", value
         self.applet.set_setting("device", str(value))
         self.backend.set_device(value)
         self.reload_tracks()
 
     def combobox_track_changed_cb(self, cb):
         value = cb.get_active_text()
-        print "track", value
         if value == None:
             return
         self.applet.set_setting("track", value)
@@ -821,7 +819,6 @@ class DbxVolumeApplet(DockXApplet):
         self.vca = VolumeControlApplet(self)
 
     def update(self):
-        print "Updateing"
         self.vca.refresh_orientation()
         self.refresh_icon()
 
