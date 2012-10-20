@@ -30,6 +30,8 @@ from dockbarx.groupbutton import GroupMenu as Menu
 DBusGMainLoop(set_as_default=True)
 BUS = dbus.SessionBus()
 
+ICONSIZE = 18
+
 class AppIndicator(gtk.EventBox):
     def __init__(self, applet, icon_name, position, address, obj,
                   icon_path, label, labelguide, accessibledesc, hint, title):
@@ -106,13 +108,13 @@ class AppIndicator(gtk.EventBox):
             self.icon_name = icon_name
         if self.icon_name.startswith("/") and os.path.exists(self.icon_name):
             pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(self.icon_name,
-                                                          16, 16)
+                                                          ICONSIZE, ICONSIZE)
         else:
             icon_theme = gtk.icon_theme_get_default()
             if self.icon_themepath != "" and \
                os.path.exists(self.icon_themepath):
                 icon_theme.prepend_search_path(self.icon_themepath)
-            pixbuf = icon_theme.load_icon(self.icon_name, 16, 0)
+            pixbuf = icon_theme.load_icon(self.icon_name, ICONSIZE, 0)
         self.icon.set_from_pixbuf(pixbuf)
 
     def on_icon_themepath_changed(self, path):
@@ -143,9 +145,9 @@ class AppIndicator(gtk.EventBox):
             y -= h
         screen = self.get_window().get_screen()
         if y + h > screen.get_height():
-                y -= h - a.height
+                y = screen.get_height() - h
         if x + w >= screen.get_width():
-                x -= w - a.width
+                x = screen.get_width() - w
         return (x, y, False)
 
 class AppIndicatorApplet(DockXApplet):
