@@ -130,6 +130,7 @@ data_files=[
             ("/usr/bin", ["dockbarx_factory", "dbx_preference", "dockx"]),
             ("/usr/lib/bonobo/servers", ["GNOME_DockBarXApplet.server"]),
             ("/usr/share/applications/", ["dbx_preference.desktop"]),
+            ("/usr/share/applications/", ["DockX.desktop"]),
          ]
 
 setup(name="Dockbarx",
