@@ -20,6 +20,7 @@
 import gtk
 import dbus
 import os
+import os.path
 import gobject
 import weakref
 from dbus.mainloop.glib import DBusGMainLoop
@@ -31,6 +32,11 @@ DBusGMainLoop(set_as_default=True)
 BUS = dbus.SessionBus()
 
 ICONSIZE = 18
+
+# List of possible commands to launch indicator-application-service
+service_cmds = ["/usr/lib/x86_64-linux-gnu/indicator-application-service",
+               "/usr/lib/i386-linux-gnu/indicator-application-service",
+               "/usr/lib/indicator-application/indicator-application-service"]
 
 class AppIndicator(gtk.EventBox):
     def __init__(self, applet, icon_name, position, address, obj,
@@ -168,7 +174,7 @@ class AppIndicatorApplet(DockXApplet):
                 self.connect(address)
                 break
         else:
-            gobject.idle_add(self.start_server)
+            gobject.idle_add(self.start_service)
         self.fdo.connect_to_signal("NameOwnerChanged",
                                     self.on_name_change_detected,
                                     dbus_interface=\
@@ -195,9 +201,10 @@ class AppIndicatorApplet(DockXApplet):
             child.repack()
         self.box.show_all()
         
-    def start_server(self):
-        cmd = "/usr/lib/indicator-application/indicator-application-service"
-        os.system("/bin/sh -c '%s' &" % cmd)
+    def start_service(self):
+        for cmd in service_cmds:
+            if os.path.exists(cmd):
+                os.system("/bin/sh -c '%s' &" % cmd)
         return False
     
     def on_name_change_detected(self, name, previous_owner, current_owner):
