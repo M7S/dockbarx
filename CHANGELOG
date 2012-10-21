@@ -1,4 +1,10 @@
 Changelog:
+0.90.2
+Bug fixes:
+- Appindicators: indicator-application-service wasn't started with the applet in ubuntu 12.10 since the path to the file differs from previous ubuntu releases.
+- Appindicators: older versions of indicator-application-service are now supported. Appindicator applet works in ubuntu 11.10 (and perhaps eariler versions as well).
+
+
 0.90.1
 Features:
 - Appindicator menus pop up next to the dock instead of at mouse pointer. Appindicator icon size is increased to 18.

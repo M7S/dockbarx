@@ -208,6 +208,7 @@ class AppIndicatorApplet(DockXApplet):
         for cmd in service_cmds:
             if os.path.exists(cmd):
                 os.system("/bin/sh -c '%s' &" % cmd)
+                break
         return False
     
     def on_name_change_detected(self, name, previous_owner, current_owner):
