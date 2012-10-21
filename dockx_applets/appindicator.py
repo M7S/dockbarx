@@ -40,7 +40,8 @@ service_cmds = ["/usr/lib/x86_64-linux-gnu/indicator-application-service",
 
 class AppIndicator(gtk.EventBox):
     def __init__(self, applet, icon_name, position, address, obj,
-                  icon_path, label, labelguide, accessibledesc, hint, title):
+                  icon_path, label, labelguide,
+                  accessibledesc, hint, title=None):
         self.applet_r = weakref.ref(applet)
         self.menu = None
         gtk.EventBox.__init__(self)
@@ -52,6 +53,8 @@ class AppIndicator(gtk.EventBox):
         self.icon_themepath = icon_path
         self.on_icon_changed(icon_name, None)
         self.on_label_changed(label, labelguide)
+        
+        # Older versions of application-indicator-service doesn't give a tilte.
         self.title = title
         
         self.dbusmenu = DBusMenu(self, address, obj)
