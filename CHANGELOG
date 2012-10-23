@@ -1,4 +1,9 @@
 Changelog:
+0.90.3
+Bug fixes:
+- Volume-control was not installed with the rest of the applets.
+- A small bug stopped volume-controll from starting on a fresh setup.
+
 0.90.2
 Bug fixes:
 - Appindicators: indicator-application-service wasn't started with the applet in ubuntu 12.10 since the path to the file differs from previous ubuntu releases.
