@@ -387,7 +387,8 @@ class VolumeControlApplet:
         self.themes = [system_theme_name] + sorted(themes) + sorted(os.listdir(moonbeam_theme_dir))
         
         if self.applet.get_setting("theme") not in self.themes:
-            self.applet.set_setting("theme", system_theme_name)
+            # Todo: check if there is a problem with using str() here.
+            self.applet.set_setting("theme", str(system_theme_name))
         combobox_theme = prefs.get_object("combobox-theme")
         add_cell_renderer_text(combobox_theme)
         for i in self.themes:
