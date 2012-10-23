@@ -33,7 +33,7 @@ GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = '/apps/namebar'
 
 DEFAULT_SETTINGS = { 'theme': 'Dust-ish',
-                     'show_title':'maximized',
+                     'show_title':'always',
                      'expand': True,
                      'size': 500,
                      'active_color': "#EEEEEE",
