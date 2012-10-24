@@ -41,7 +41,7 @@ service_cmds = ["/usr/lib/x86_64-linux-gnu/indicator-application-service",
 class AppIndicator(gtk.EventBox):
     def __init__(self, applet, icon_name, position, address, obj,
                   icon_path, label, labelguide,
-                  accessibledesc, hint, title=None):
+                  accessibledesc, hint=None, title=None):
         self.applet_r = weakref.ref(applet)
         self.menu = None
         gtk.EventBox.__init__(self)
@@ -226,10 +226,7 @@ class AppIndicatorApplet(DockXApplet):
         except:
             print "Error: Couldn't make dbus connection with %s" % address
             return
-        # Todo: Should version and service version arguments be something
-        #       other than 0 and 0?
-        self.ayatana.Watch(0, 0,
-                           dbus_interface="org.ayatana.indicator.service",
+        self.ayatana.Watch(dbus_interface="org.ayatana.indicator.service",
                            reply_handler=self.reply_handler,
                            error_handler=self.error_handler)
         self.obj = BUS.get_object(address,
