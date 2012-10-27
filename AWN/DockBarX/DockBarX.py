@@ -54,31 +54,35 @@ class DockBarApp (awn.AppletSimple):
         gdk_screen = gtk.gdk.screen_get_default()
         self.icon = self.get_icon()
         self.remove(self.old_child)
+        self.alignment = gtk.Alignment()
+        self.add(self.alignment)
+        self.alignment.show()
         self.db = dockbarx.dockbar.DockBar(awn_applet=self)
         self.db.load()
-        if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_TOP):
-            self.box = gtk.VBox()
-            self.db.set_orient("h")
+        if self.get_pos_type() == gtk.POS_RIGHT:
+            self.db.set_orient("right")
+            self.alignment.set(1, 0, 0, 0)
+        elif self.get_pos_type() == gtk.POS_TOP:
+            self.db.set_orient("up")
+            self.alignment.set(0, 0, 0, 0)
+        elif self.get_pos_type() == gtk.POS_LEFT:
+            self.db.set_orient("left")
+            self.alignment.set(0, 0, 0, 0)
         else:
-            self.box = gtk.HBox()
-            self.db.set_orient("v")
-        if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_RIGHT):
-            self.box.pack_end(self.db.container, False, False)
-        else:
-            self.box.pack_start(self.db.container, False, False)
-        if self.db.orient == "h":
+            self.db.set_orient("down")
+            self.alignment.set(0, 1, 0, 0)
+        if self.db.orient in ("down", "up"):
             self.db.container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 5)
         else:
             self.db.container.set_size_request(self.get_size() + \
                                                self.icon.get_offset() + 5, -1)
-        self.add(self.box)
+        self.alignment.add(self.db.container)
         self.connect("size-changed", self.__on_size_changed)
         self.connect("offset-changed", self.__on_size_changed)
         self.connect("position-changed", self.__on_position_changed)
         self.globals.connect("awn-behavior-changed",
                              self.__on_behavior_changed)
-        self.box.show()
         self.db.container.show()
         self.show()
         self.wnck_screen.connect("active-window-changed",
@@ -90,7 +94,7 @@ class DockBarApp (awn.AppletSimple):
         self.__compute_should_autohide()
 
     def __on_size_changed(self, *args):
-        if self.db.orient == "h":
+        if self.db.orient in ("down", "up"):
             self.db.container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 5)
         else:
@@ -99,26 +103,26 @@ class DockBarApp (awn.AppletSimple):
         self.__compute_should_autohide()
 
     def __on_position_changed(self, applet, position):
-        self.box.remove(self.db.container)
-        self.remove(self.box)
-        if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_TOP):
-            self.box = gtk.VBox()
-            self.db.set_orient("h")
+        self.alignment.remove(self.db.container)
+        if self.get_pos_type() == gtk.POS_RIGHT:
+            self.db.set_orient("right")
+            self.alignment.set(1, 0, 0, 0)
+        elif self.get_pos_type() == gtk.POS_TOP:
+            self.db.set_orient("up")
+            self.alignment.set(0, 0, 0, 0)
+        elif self.get_pos_type() == gtk.POS_LEFT:
+            self.db.set_orient("left")
+            self.alignment.set(0, 0, 0, 0)
         else:
-            self.box = gtk.HBox()
-            self.db.set_orient("v")
-        if self.get_pos_type() in (gtk.POS_BOTTOM, gtk.POS_RIGHT):
-            self.box.pack_end(self.db.container, False, False)
-        else:
-            self.box.pack_start(self.db.container, False, False)
-        if self.db.orient == "h":
+            self.db.set_orient("down")
+            self.alignment.set(0, 1, 0, 0)
+        if self.db.orient in ("up", "down"):
             self.db.container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 5)
         else:
             self.db.container.set_size_request(self.get_size() + \
                                                self.icon.get_offset() + 5, -1)
-        self.add(self.box)
-        self.box.show()
+        self.alignment.add(self.db.container)
         self.db.container.show()
         self.show()
         self.__compute_should_autohide()
