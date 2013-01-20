@@ -927,7 +927,10 @@ class DockX(CairoDockX):
     def remove_window(self, window, reset_should_autohide=True, forced=False):
         if not self.autohide and not forced:
             return
-        del self.border_distances[window]
+        try:
+            del self.border_distances[window]
+        except KeyError:
+            pass
         if window in self.windows:
             sids = self.windows.pop(window)
             if sids is not None:
