@@ -141,8 +141,8 @@ class UnityWatcher():
         dockbar = self.dockbar_r()
         if app_uri in self.props_by_app and \
            sender == self.props_by_app[app_uri]["sender"]:
-               for key, value in properties.items():
-                   self.props_by_app[app_uri][key] = value
+            for key, value in properties.items():
+            self.props_by_app[app_uri][key] = value
         else:
             self.props_by_app[app_uri] = properties
             properties["sender"] = sender
@@ -188,6 +188,8 @@ class DBusMenu(object):
 
     def __layout_loaded(self, revision, layout):
         group = self.group_r()
+        if group is None:
+            return
         self.layout = layout
         self.revision = revision
         self.sids.append(self.iface.connect_to_signal("ItemsPropertiesUpdated",

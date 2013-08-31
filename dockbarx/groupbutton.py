@@ -2642,7 +2642,7 @@ class GroupMenu(gobject.GObject):
             item = gtk.MenuItem(name)
             item.show()
             if submenu:
-                submenu.append(item)
+                self.submenus[submenu].append(item)
             else:
                 self.menu.append(item)
             menu = gtk.Menu()
