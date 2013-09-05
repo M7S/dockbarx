@@ -75,7 +75,6 @@ class UnityFakeDBus(dbus.service.Object):
 
 class UnityWatcher():
     def __init__(self, dockbar):
-        BUS = dbus.SessionBus()
         self.dockbar_r = weakref.ref(dockbar)
         self.fake_unity = None
         self.sid = None
@@ -123,26 +122,12 @@ class UnityWatcher():
     def __on_signal_recieved(self, app_uri, properties, sender):
         if not app_uri or not sender:
             return
-        # Apparently python dbus doensn't handle all kinds of int/long 
-        # variables correctly. Try the UnityFox firefox addon for example.
-        # This is a hack to fix that. There's perhaps a more correct way
-        # to do this?
-        count = properties.get("count", 0)
-        if count < -(1<<35):
-            # We assume that the actual int value contains 36(?) bits but
-            # python-dbus has made a number of 64 bits instead. The first bits
-            # then contains garbage.
-            count = int(bin(count)[-36:], 2)
-            # The nuber will now start from 1<<35 and go downwards as the
-            # actual number increases (because count was negative before we
-            # cut the first half). Let's fix that.
-            count = (1<<35) - count
-            properties["count"] = count
+        properties["count"] = self.__fix_long(properties.get("count", 0))
         dockbar = self.dockbar_r()
         if app_uri in self.props_by_app and \
            sender == self.props_by_app[app_uri]["sender"]:
             for key, value in properties.items():
-            self.props_by_app[app_uri][key] = value
+                self.props_by_app[app_uri][key] = value
         else:
             self.props_by_app[app_uri] = properties
             properties["sender"] = sender
@@ -152,6 +137,22 @@ class UnityWatcher():
         else:
             return
         group.set_unity_properties(self.props_by_app[app_uri], sender)
+
+    def __fix_long(self, count):
+        # Apparently python dbus doensn't handle all kinds of int/long 
+        # variables correctly. Try the UnityFox firefox addon for example.
+        # This is a hack to fix that. There's perhaps a more correct way
+        # to do this?
+        if count < -(1<<35):
+            # We assume that the actual int value contains 36(?) bits but
+            # python-dbus has made a number of 64 bits instead. The first bits
+            # then contains garbage.
+            count = int(bin(count)[-36:], 2)
+            # The nuber will now start from 1<<35 and go downwards as the
+            # actual number increases (because count was negative before we
+            # cut the first half). Let's fix that.
+            count = (1<<35) - count
+        return count
 
     def __on_name_owner_changed(self, name, before, after):
         dockbar = self.dockbar_r()
@@ -175,6 +176,7 @@ class DBusMenu(object):
     def __init__(self, group, bus_name, path):
         self.group_r = weakref.ref(group)
         self.sids = []
+        self.__needed_menu_updates = []
         self.bus_name = bus_name
         self.path = path
         self.obj = BUS.get_object(bus_name, path)
@@ -212,17 +214,32 @@ class DBusMenu(object):
     def __error_handler(self, *args):
         pass
 
-    def get_layout(self, parent=0):
+    def __reply_handler(self, *args):
+        pass
+
+    def fetch_layout(self):
         empty_list = dbus.Array([], "s")
-        if parent != 0:
+        self.iface.GetLayout(0, -1, empty_list,
+                             reply_handler=self.__fetch_layout_reply_handler,
+                             error_handler=self.__fetch_layout_error_handler)
+                             
+    def __fetch_layout_reply_handler(self, revision, layout):
+        self.revision = revision
+        self.layout = layout
+        self.__update_group_menus()
+
+    def __fetch_layout_error_handler(self, *args):
+       logger.warning("Couldn't fetch layout %s" % args)
+
+    def __update_group_menus(self):
+        group = self.group_r()
+        if group is None or not group.menu:
+            self.__needed_menu_updates = []
+            return
+        while self.__needed_menu_updates:
+            parent = self.__needed_menu_updates.pop()
             layout = self.__recursive_match(self.layout, parent)
-            self.revision, new_layout = self.iface.GetLayout(parent, -1,
-                                                             empty_list)
-            layout[1] = new_layout[1]
-            layout[2] = new_layout[2]
-        else:
-            self.revision, self.layout = self.iface.GetLayout(0, -1,
-                                                              empty_list)
+            group.menu.update_quicklist_menu(layout)
 
     def __recursive_match(self, a, k):
         if a[0] == k:
@@ -236,13 +253,16 @@ class DBusMenu(object):
     def __on_layout_updated(self, revision, parent):
         group = self.group_r()
         if revision != self.revision:
-            self.get_layout(parent)
-        layout = self.__recursive_match(self.layout, parent)
-        if group.menu:
-            group.menu.update_quicklist_menu(layout)
+            if not parent in self.__needed_menu_updates:
+                # Append parent number to the __needed_menu_updates so that
+                # the menu can be updated when the layout has been reloaded.
+                self.__needed_menu_updates.append(parent)
+            self.fetch_layout()
             
     def send_event(self, id, event, data, event_time):
-        self.iface.Event(id, event, data, event_time)
+        self.iface.Event(id, event, data, event_time,
+                         reply_handler=self.__reply_handler,
+                         error_handler=self.__error_handler)
         
     def __on_properties_updated(self, changed_props, removed_props):
         group = self.group_r()

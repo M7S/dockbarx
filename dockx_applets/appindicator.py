@@ -54,7 +54,7 @@ class AppIndicator(gtk.EventBox):
         self.on_icon_changed(icon_name, None)
         self.on_label_changed(label, labelguide)
         
-        # Older versions of application-indicator-service doesn't give a tilte.
+        # Older versions of application-indicator-service doesn't give a title.
         self.title = title
         
         self.dbusmenu = DBusMenu(self, address, obj)
