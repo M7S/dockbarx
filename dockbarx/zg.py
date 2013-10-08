@@ -32,15 +32,27 @@ except:
 else:
     try:
         iface = client.ZeitgeistDBusInterface()
+        zgclient = client.ZeitgeistClient()
     except RuntimeError:
         print "Error: Could not connect to Zeitgeist."
         iface = None
+
+def pythonify_zg_events(events):
+    return_list = []
+    for event in events:
+        for subject in event.subjects:
+            return_list.append((str(subject.text), str(subject.uri)))
+    return return_list
+
+def err_handler(*args):
+    print "Zeitgeist error:", args
 
 def _get(name=None,
          result_type=None,
          days=14,
          number_of_results=5,
-         mimetypes=[]):
+         mimetypes=[],
+         handler=None):
     if iface is None:
         return
     if result_type is None:
@@ -62,59 +74,58 @@ def _get(name=None,
                         datamodel.Subject.new_for_values(mimetype=mimetype))
             event_templates.append(event_template)
 
-    results = iface.FindEvents(time_range,
-                               event_templates,
-                               datamodel.StorageState.Any,
-                               number_of_results,
-                               result_type)
+    #~ results = iface.FindEvents(time_range,
+                               #~ event_templates,
+                               #~ datamodel.StorageState.Any,
+                               #~ number_of_results,
+                               #~ result_type)
+    #print "results", results
+    zgclient.find_events_for_templates(event_templates,
+                                    handler,
+                                    timerange=time_range,
+                                    storage_state=datamodel.StorageState.Any,
+                                    num_events=number_of_results,
+                                    result_type=result_type,
+                                    error_handler=err_handler)
 
-    # Pythonize the result
-    return_list = []
-    for result in results:
-        for subject in datamodel.Event(result).get_subjects():
-            return_list.append((str(subject.text), str(subject.uri)))
-    return return_list
+    #~ # Pythonize the result
+    #~ return_list = []
+    #~ for result in results:
+        #~ for subject in datamodel.Event(result).get_subjects():
+            #~ return_list.append((str(subject.text), str(subject.uri)))
+    #~ return return_list
 
 
-def get_recent_for_app(name, days=14, number_of_results=5):
+def get_recent_for_app(name, days=14, number_of_results=5, handler=None):
     if iface is None:
         return []
     return _get(name, datamodel.ResultType.MostRecentSubjects,
-                days, number_of_results)
+                days, number_of_results, handler=handler)
 
-def get_most_used_for_app(name, days=14, number_of_results=5):
+def get_most_used_for_app(name, days=14, number_of_results=5, handler=None):
     if iface is None:
         return []
     return _get(name, datamodel.ResultType.MostPopularSubjects,
-                days, number_of_results)
+                days, number_of_results, handler=handler)
 
-def get_most_used_for_mimetypes(mimetypes, days=1, number_of_results=5):
+def get_most_used_for_mimetypes(mimetypes, days=1, \
+                                number_of_results=5, handler=None):
     if iface is None:
         return []
     return _get(mimetypes=mimetypes,
                 result_type=datamodel.ResultType.MostPopularSubjects,
                 days=days,
-                number_of_results=number_of_results)
+                number_of_results=number_of_results,
+                handler=handler)
 
-def get_recent_for_mimetypes(mimetypes, days=1, number_of_results=5):
+def get_recent_for_mimetypes(mimetypes, days=1, number_of_results=5, \
+                             handler=None):
     if iface is None:
         return []
     return _get(mimetypes=mimetypes,
                 result_type=datamodel.ResultType.MostRecentSubjects,
                 days=days,
-                number_of_results=number_of_results)
-
-# Mimetypes to use for programs that has no/bad support for zeitgeist
-# Format: {name:[mimetypes]}
-workrounds = {}
-
-
-
-if __name__ == "__main__":
-    app = "gedit.desktop"
-    print "Testing with %s"%app
-    results = get_recent_for_app(app)
-    for result in results:
-        print result
+                number_of_results=number_of_results,
+                handler=handler)
     
 

@@ -616,101 +616,7 @@ class Group(ListOfWindows):
             self.popup.hide()
         else:
             self.menu_is_shown = True
-        # Build menu
-        self.menu = GroupMenu(self.globals.settings["old_menu"])
-        # Launcher stuff
-        if self.desktop_entry:
-            self.menu.add_item(_("_Launch application"))
-        if self.desktop_entry and not self.pinned:
-            self.menu.add_item(_("_Pin application"))
-        if not self.pinned:
-            self.menu.add_item(_("Make custom launcher"))
-        if self.pinned:
-            self.menu.add_item(_("Unpin application"))
-            self.menu.add_submenu(_("Properties"))
-            self.menu.add_item(_("Edit Identifier"), _("Properties"))
-            self.menu.add_item(_("Edit Launcher"), _("Properties"))
-        # DockManager
-        if self.dockmanager:
-            dm_menu_items = self.dockmanager.get_menu_items()
-            if dm_menu_items:
-                self.menu.add_separator()
-            for (id, item) in dm_menu_items.items():
-                submenu = item.get("container-title", None)
-                if submenu and not self.menu.has_submenu(submenu):
-                    self.menu.add_submenu(submenu)
-                if item["label"]:
-                    id = "dockmanager_%s" % id
-                    self.menu.add_item(item["label"], submenu, identifier=id)
-        # Unity static quicklists
-        static_quicklist = None
-        if self.desktop_entry and self.globals.settings["quicklist"]:
-            static_quicklist = self.desktop_entry.get_quicklist()
-            if static_quicklist:
-                self.menu.add_separator()
-            for label in static_quicklist:
-                id = "quicklist_%s" % label
-                self.menu.add_item(label, identifier=id)
-        # Unity dynamic quicklists
-        if self.quicklist:
-            layout = self.quicklist.layout
-        else:
-            layout = None
-        if not bool(static_quicklist) and layout is not None:
-            for item in layout[2]:
-                if item[1].get("visible", True):
-                    self.menu.add_separator()
-                    break
-        self.menu.add_quicklist(layout)
-        # Recent and most used files
-        self.zg_files = {}
-        if self.desktop_entry:
-            recent, most_used, related = self.__menu_get_zg_files()
-            if recent or most_used or related:
-                self.menu.add_separator()
-            for files, name in ((recent, _("Recent")),
-                                (most_used, _("Most used")),
-                                (related, _("Related"))):
-                if files:
-                    self.menu.add_submenu(name)
-                    for text, uri in files:
-                        label = text or uri
-                        if len(label)>40:
-                            label = label[:20]+"..."+label[-17:]
-                        id = "zg_%s" % label
-                        n = 0
-                        while id in self.zg_files:
-                            n += 1
-                            id = "zg_%s%s" % (label, n)
-                        self.zg_files[id] = uri
-                        self.menu.add_item(label, name, identifier=id)
-        win_nr = self.get_count()
-        # Locked list
-        if self.locked_popup:
-            self.menu.add_separator()
-            self.menu.add_item(_("Remove locked list"))
-        elif win_nr > 1 and self.globals.settings["locked_list_in_menu"]:
-            self.menu.add_separator()
-            self.menu.add_item(_("Show locked list"))
-        # Windows stuff
-        if win_nr:
-            self.menu.add_separator()
-            if win_nr == 1:
-                t = ""
-            else:
-                t = _(" all windows")
-            if self.get_unminimized_count() == 0:
-                self.menu.add_item(_("Un_minimize") + t)
-            else:
-                self.menu.add_item(_("_Minimize") + t)
-            for window in self:
-                if not window.wnck.is_maximized() \
-                and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
-                    self.menu.add_item(_("Ma_ximize") + t)
-                    break
-            else:
-                self.menu.add_item(_("Unma_ximize") + t)
-            self.menu.add_item(_("_Close") + t)
+        self.menu = self.__menu_build()
 
         connect(self.menu, "item-activated", self.__on_menuitem_activated)
         connect(self.menu, "item-hovered", self.__on_menuitem_hovered)
@@ -726,58 +632,105 @@ class Group(ListOfWindows):
             self.popup.set_child_(self.menu.get_menu())
             self.popup.show(force=True)
 
+    def __menu_build(self):
+        win_nr = self.get_count()
+        if self.locked_popup or \
+           (win_nr > 1 and self.globals.settings["locked_list_in_menu"]):
+            use_locked_popup = True
+        else:
+            use_locked_popup = False
+        for window in self:
+            if not window.wnck.is_maximized() \
+            and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
+                maximize = True
+        else:
+            maximize = False
+        minimize = self.get_unminimized_count() > 0
+
+        menu = GroupMenu(self.globals.settings["old_menu"])
+        menu.build_group_menu(self.desktop_entry, self.dockmanager, \
+                              self.quicklist, self.pinned, self.locked_popup, \
+                              use_locked_popup, win_nr, minimize, maximize)
+        
+        self.__menu_get_zg_files()
+        return menu
+                        
     def __menu_get_zg_files(self):
         # Get information from zeitgeist
+        self.zg_most_used_files = None
+        self.zg_recent_files = None
+        self.zg_related_files = None
+        self.zg_recent_today_files = None
         appname = self.desktop_entry.getFileName().split("/")[-1]
         try:
-            recent_files = zg.get_recent_for_app(appname,
-                                                 days=30,
-                                                 number_of_results=8)
+            zg.get_recent_for_app(appname, days=30,
+                                  number_of_results=8,
+                                  handler=self.__menu_recent_handler)
         except:
             logger.exception("Couldn't get zeitgeist recent files for %s" % \
                              self.name)
-            recent_files = []
         try:
-            most_used_files = zg.get_most_used_for_app(appname,
-                                                       days=30,
-                                                       number_of_results=8)
+            zg.get_most_used_for_app(appname,
+                                     days=30,
+                                     number_of_results=8,
+                                     handler=self.__menu_most_used_handler)
         except:
             logger.exception("Couldn't get zeitgeist most used files" +
                              " for %s" % self.name)
-            most_used_files = []
-        # For programs that work badly with zeitgeist (openoffice for now),
-        # mimetypes should be used to identify recent and most used as well.
-        if self.identifier in zg.workrounds:
-            mimetypes = zg.workrounds[self.identifier]
-            recent_files += zg.get_recent_for_mimetypes(mimetypes,
-                                                        days=30,
-                                                        number_of_results=8)
-            most_used_files += zg.get_most_used_for_mimetypes(mimetypes,
-                                                              days=30,
-                                                           number_of_results=8)
         # Related files contains files that can be used by the program and
         # has been used by other programs (but not this program) today.
-        related_files = []
         try:
             mimetypes = self.desktop_entry.getMimeTypes()
         except AttributeError:
             mimetypes = None
         if mimetypes:
             try:
-                related_candidates = zg.get_recent_for_mimetypes(mimetypes,
-                                                                 days=1,
-                                                        number_of_results=20)
-                other_recent = zg.get_recent_for_app(appname,
-                                                     days=1,
-                                                     number_of_results=20)
-                related_files = [rf for rf in related_candidates \
-                                 if not (rf in recent_files or \
-                                         rf in other_recent)]
+                zg.get_recent_for_mimetypes(mimetypes,
+                                        days=1,
+                                        number_of_results=20,
+                                        handler=self.__menu_related_handler)
+                zg.get_recent_for_app(appname,
+                                    days=1,
+                                    number_of_results=20,
+                                    handler=self.__menu_recent_today_handler)
             except:
                 logger.exception("Couldn't get zeitgeist related" + \
                                  " files for %s" % self.name)
+
+    def __menu_recent_handler(self, events):
+        self.zg_recent_files = zg.pythonify_zg_events(events)
+        self.__menu_update_zg()
+
+    def __menu_most_used_handler(self, events):
+        self.zg_most_used_files = zg.pythonify_zg_events(events)
+        self.__menu_update_zg()
+
+    def __menu_related_handler(self, events):
+        self.zg_related_files = zg.pythonify_zg_events(events)
+        self.__menu_update_zg()
+
+    def __menu_recent_today_handler(self, events):
+        self.zg_recent_today_files = zg.pythonify_zg_events(events)
+        self.__menu_update_zg()
+        
+    def __menu_update_zg(self):
+        # Updates zeitgeist recent, most used and related menus when
+        # all of them has been received.
+        if self.zg_most_used_files is not None and \
+           self.zg_recent_files is not None and \
+           self.zg_related_files is not None and \
+           self.zg_recent_today_files is not None:
+            related_files = [rf for rf in self.zg_related_files \
+                             if not (rf in self.zg_recent_files or \
+                             rf in self.zg_recent_today_files)]
             related_files = related_files[:3]
-        return recent_files, most_used_files, related_files
+            self.zg_files = self.menu.populate_zg_menus(self.zg_recent_files,
+                                                    self.zg_most_used_files,
+                                                    related_files)
+            self.zg_most_used_files = None
+            self.zg_recent_files = None
+            self.zg_related_files = None
+            self.zg_recent_today_files = None
 
     def __on_menuitem_hovered(self, arg, event, identifier):
         if identifier.startswith("unity_") and self.quicklist:
@@ -832,8 +785,7 @@ class Group(ListOfWindows):
              _("Make custom launcher"): self.__menu_edit_launcher,
              _("_Pin application"): self.__menu_pin,
              _("_Launch application"): self.action_launch_application,
-             _("Show locked list"): self.action_toggle_locked_list,
-             _("Remove locked list"): self.action_toggle_locked_list}
+             _("Floating Window Panel"): self.action_toggle_locked_list}
         func = menu_funcs.get(identifier, None)
         if func:
             func()
@@ -2306,6 +2258,10 @@ class LockedPopup(GroupPopup):
         if allocation == self.last_allocation:
             return
         group = self.group_r()
+        if group.locked_popup is None:
+            # The group doesn't seem to be remove properly when a new
+            # locked popup is opened.
+            return
         mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
                                                         group.get_monitor())
         
@@ -2594,6 +2550,7 @@ class GroupMenu(gobject.GObject):
         self.submenus = {}
         self.items = {}
         self.quicklist_position = 0
+        self.globals = Globals()
         if gtk_menu:
             self.menu = gtk.Menu()
         else:
@@ -2603,8 +2560,131 @@ class GroupMenu(gobject.GObject):
             self.menu.on_popup_reallocate = lambda p: p.set_previews(None)
         self.menu.show()
 
-    def add_item(self, name, 
-                 submenu=None, identifier=None, toggle_type=""):
+    def build_group_menu(self, desktop_entry, dockmanager, quicklist, \
+                         pinned, locked_popup, use_locked_popup, \
+                         win_nr, minimize, maximize):
+        # Launcher stuff
+        if desktop_entry:
+            self.add_item(_("_Launch application"))
+        if desktop_entry and not pinned:
+            self.add_item(_("_Pin application"))
+        if not pinned:
+            self.add_item(_("Make custom launcher"))
+        if pinned:
+            self.add_item(_("Unpin application"))
+            self.add_submenu(_("Properties"))
+            self.add_item(_("Edit Identifier"), _("Properties"))
+            self.add_item(_("Edit Launcher"), _("Properties"))
+        # DockManager
+        if dockmanager:
+            self.__build_dockmanager_menu(dockmanager)
+        # Quicklist
+        self.__build_quicklist_menu(desktop_entry, quicklist)
+        # Recent and most used files
+        zg_identifier = self.add_separator(identifier="zg_separator")
+        zg_identifier.set_no_show_all(True)
+        for name in (_("Recent"), _("Most used"), _("Related")):
+            sm = self.add_submenu(name)
+            sm.set_no_show_all(True)
+        # Floating Window Panel
+        if locked_popup or use_locked_popup:
+            self.add_separator()
+            item = self.add_item(_("Floating Window Panel"), None, None,
+                                 "checkmark")
+        if locked_popup:
+            item.set_active(True)
+        # Windows stuff
+        if win_nr:
+            self.add_separator()
+            if win_nr == 1:
+                t = ""
+            else:
+                t = _(" all windows")
+            if minimize:
+                self.add_item(_("_Minimize") + t)
+            else:
+                self.add_item(_("Un_minimize") + t)
+            if maximize:
+                self.add_item(_("Ma_ximize") + t)
+            else:
+                self.add_item(_("Unma_ximize") + t)
+            self.add_item(_("_Close") + t)
+
+    def __build_dockmanager_menu(self, dockmanager):
+        dm_menu_items = dockmanager.get_menu_items()
+        if dm_menu_items:
+            self.add_separator()
+        for (identifier, item) in dm_menu_items.items():
+            submenu = item.get("container-title", None)
+            if submenu and not self.has_submenu(submenu):
+                self.add_submenu(submenu)
+            if item["label"]:
+                identifier = "dockmanager_%s" % identifier
+                self.add_item(item["label"], submenu,
+                              identifier=identifier)
+
+    def __build_quicklist_menu(self, desktop_entry, quicklist):
+        # Unity static quicklist
+        static_quicklist = None
+        if desktop_entry and self.globals.settings["quicklist"]:
+            static_quicklist = desktop_entry.get_quicklist()
+            if static_quicklist:
+                self.add_separator()
+            for label in static_quicklist:
+                identifier = "quicklist_%s" % label
+                self.add_item(label, identifier=identifier)
+        # Unity dynamic quicklists
+        if quicklist:
+            layout = quicklist.layout
+        else:
+            layout = None
+        if not bool(static_quicklist) and layout is not None:
+            for item in layout[2]:
+                if item[1].get("visible", True):
+                    self.add_separator()
+                    break
+        self.quicklist_position = len(self.menu.get_children())
+        if not layout:
+            return False
+        return self.add_quicklist_menu(layout, None)
+                                  
+    def populate_zg_menus(self, recent, most_used, related):
+        zg_files = {}
+        if recent or most_used or related:
+            self.items["zg_separator"].show()
+        else:
+            self.items["zg_separator"].hide()
+        self.__populate_zg_menu(_("Recent"), recent, zg_files)
+        self.__populate_zg_menu(_("Most used"), most_used, zg_files)
+        self.__populate_zg_menu(_("Related"), related, zg_files)
+        return zg_files
+            
+    def __populate_zg_menu(self, name, files, zg_files):
+        menu = self.submenus[name]
+        # Remove old menu items
+        if self.gtk_menu:
+            for child in menu.get_children():
+                child.destroy()
+        else:
+            for item in menu.get_items():
+                menu.remove_item(item)
+                item.destroy()
+        if not files:
+            menu.hide()
+        # Add new items
+        for text, uri in files:
+            label = text or uri
+            if len(label)>40:
+                label = label[:19]+"..."+label[-18:]
+            identifier = "zg_%s" % label
+            n = 0
+            while identifier in zg_files:
+                n += 1
+                identifier = "zg_%s%s" % (label, n)
+            zg_files[identifier] = uri
+            self.add_item(label, name, identifier=identifier)
+
+    def add_item(self, name, submenu=None, identifier=None, toggle_type=""):
         # Todo: add toggle types
         if not identifier:
             identifier = name
@@ -2686,12 +2766,6 @@ class GroupMenu(gobject.GObject):
 
     def has_submenu(self, name):
         return name in self.submenus
-        
-    def add_quicklist(self, layout):
-        self.quicklist_position = len(self.menu.get_children())
-        if not layout:
-            return False
-        return self.add_quicklist_menu(layout, None)
         
     def add_quicklist_menu(self, layout, parent):
         for layout_item in layout[2]:
