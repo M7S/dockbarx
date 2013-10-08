@@ -2643,10 +2643,7 @@ class GroupMenu(gobject.GObject):
                 if item[1].get("visible", True):
                     self.add_separator()
                     break
-        self.quicklist_position = len(self.menu.get_children())
-        if not layout:
-            return False
-        return self.add_quicklist_menu(layout, None)
+        self.add_quicklist(layout)
                                   
     def populate_zg_menus(self, recent, most_used, related):
         zg_files = {}
@@ -2766,6 +2763,12 @@ class GroupMenu(gobject.GObject):
 
     def has_submenu(self, name):
         return name in self.submenus
+
+    def add_quicklist(self, layout):
+        self.quicklist_position = len(self.menu.get_children())
+        if not layout:
+            return False
+        return self.add_quicklist_menu(layout, None)
         
     def add_quicklist_menu(self, layout, parent):
         for layout_item in layout[2]:
