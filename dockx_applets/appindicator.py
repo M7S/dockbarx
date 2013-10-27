@@ -2,20 +2,20 @@
 
 #   dockbar.py
 #
-#	Copyright 2008, 2009, 2010 Aleksey Shaferov and Matias Sars
+#   Copyright 2008, 2009, 2010 Aleksey Shaferov and Matias Sars
 #
-#	DockbarX is free software: you can redistribute it and/or modify
-#	it under the terms of the GNU General Public License as published by
-#	the Free Software Foundation, either version 3 of the License, or
-#	(at your option) any later version.
+#   DockbarX is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
 #
-#	DockbarX is distributed in the hope that it will be useful,
-#	but WITHOUT ANY WARRANTY; without even the implied warranty of
-#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#	GNU General Public License for more details.
+#   DockbarX is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
 #
-#	You should have received a copy of the GNU General Public License
-#	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU General Public License
+#   along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 import gtk
 import dbus
@@ -48,6 +48,8 @@ class AppIndicator(gtk.EventBox):
         self.set_visible_window(False)
         self.box = None
         self.icon = gtk.Image()
+        self.icon_name = None
+        self.icon_pixbufs = {}
         self.label = gtk.Label()
         self.repack()
         self.icon_themepath = icon_path
@@ -113,21 +115,42 @@ class AppIndicator(gtk.EventBox):
             self.dbusmenu.send_event(identifier, "clicked", data, t)
 
     def on_icon_changed(self, icon_name=None, icon_desc=None):
+        if self.icon_name == icon_name:
+            return
         if icon_name is not None:
             self.icon_name = icon_name
-        if self.icon_name.startswith("/") and os.path.exists(self.icon_name):
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(self.icon_name,
-                                                          ICONSIZE, ICONSIZE)
+        self.update_icon()
+        
+    def update_icon(self):
+        if self.icon_name in self.icon_pixbufs:
+            pixbuf = self.icon_pixbufs[self.icon_name]
+        else:
+            pixbuf = self.get_icon(self.icon_name)
+            self.icon_pixbufs[self.icon_name] = pixbuf
+        self.icon.set_from_pixbuf(pixbuf)
+        
+    def get_icon(self, icon_name):
+        if icon_name.startswith("/") and os.path.exists(icon_name):
+            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_name,
+                                                          ICONSIZE, 
+                                                          ICONSIZE)
         else:
             icon_theme = gtk.icon_theme_get_default()
             if self.icon_themepath != "" and \
                os.path.exists(self.icon_themepath):
                 icon_theme.prepend_search_path(self.icon_themepath)
             pixbuf = icon_theme.load_icon(self.icon_name, ICONSIZE, 0)
-        self.icon.set_from_pixbuf(pixbuf)
+        return pixbuf
 
     def on_icon_themepath_changed(self, path):
+        if self.icon_themepath = path:
+            return
         self.icon_themepath = path
+        #reset icon_pixbufs so that the icons will be reloaded.
+        self.icon_pixbufs = {}
+        # Update the icon
+        if self.icon_name is not None:
+            self.update_icon()
 
     def on_label_changed(self, label, guide):
         self.label.set_text(label)
