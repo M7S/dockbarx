@@ -123,6 +123,8 @@ data_files=[
                                              "dockx_applets/appindicator.applet",
                                              "dockx_applets/hello_world.py",
                                              "dockx_applets/hello_world.applet",
+                                             "dockx_applets/battery_status.py",
+                                             "dockx_applets/battery_status.applet",
                                              "dockx_applets/volume-control.py",
                                              "dockx_applets/volume-control.applet",
                                              "dockx_applets/volume-control.ui",

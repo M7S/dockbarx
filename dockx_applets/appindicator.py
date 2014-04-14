@@ -85,6 +85,10 @@ class AppIndicator(gtk.EventBox):
 
     def show_menu(self, event):
         self.menu = Menu(gtk_menu=True)
+        # Since some application menus doesn't seem to be
+        # update, let's try to fetch just in case.
+        self.dbusmenu.fetch_layout()
+        
         self.menu.add_quicklist(self.dbusmenu.layout)
         self.sids = {}
         self.sids[0] = self.menu.connect("item-activated",
@@ -143,7 +147,7 @@ class AppIndicator(gtk.EventBox):
         return pixbuf
 
     def on_icon_themepath_changed(self, path):
-        if self.icon_themepath = path:
+        if self.icon_themepath == path:
             return
         self.icon_themepath = path
         #reset icon_pixbufs so that the icons will be reloaded.

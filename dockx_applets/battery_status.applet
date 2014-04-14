@@ -1,0 +1,6 @@
+@dbx applet
+name=Battery Status
+exec=battery_status.py
+
+@description
+Battery Status applet for the GNOME desktop 1.1 by Ivan Zorin ported to DockX 
