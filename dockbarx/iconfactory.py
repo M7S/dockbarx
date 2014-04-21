@@ -22,7 +22,6 @@ pygtk.require("2.0")
 import gtk
 import gc
 gc.enable()
-import Image
 import array
 import cairo
 import gio
@@ -30,6 +29,10 @@ import os
 import weakref
 from cStringIO import StringIO
 from math import pi, cos, sin
+try:
+    import Image
+except ImportError:
+    from PIL import Image
 
 from theme import Theme
 from common import Globals, connect, disconnect

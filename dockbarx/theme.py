@@ -24,11 +24,14 @@ import gtk
 import gobject
 import cairo
 import os
-import Image
 import array
 from common import ODict
 from common import Globals
 from log import logger
+try:
+    import Image
+except ImportError:
+    from PIL import Image
 
 import i18n
 _ = i18n.language.gettext
