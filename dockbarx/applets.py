@@ -309,6 +309,16 @@ class DockXApplet(gtk.EventBox):
 
     def get_expand(self):
         return self.expand
+        
+    def get_applet_size(self):
+        if not self.dockx_r:
+            return 0
+        if not self.get_visible():
+            return 0
+        if self.get_position() in ("top", "bottom"):
+            return self.get_allocation().width
+        else:
+            return self.get_allocation().height
 
     def set_expand(self, expand):
         self.expand = expand

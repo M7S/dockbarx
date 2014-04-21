@@ -59,6 +59,10 @@ class DockBarApp (awn.AppletSimple):
         self.alignment.show()
         self.db = dockbarx.dockbar.DockBar(awn_applet=self)
         self.db.load()
+        
+        # Inactive dockbarx's size overflow management
+        self.db.groups.max_size = 3000
+        
         if self.get_pos_type() == gtk.POS_RIGHT:
             self.db.set_orient("right")
             self.alignment.set(1, 0, 0, 0)

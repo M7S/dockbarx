@@ -201,7 +201,7 @@ class AppIndicatorApplet(DockXApplet):
         addresses = self.fdo.ListNames(dbus_interface="org.freedesktop.DBus")
         for address in addresses:
             if str(address) == "com.canonical.indicator.application":
-                self.connect(address)
+                self.connect_dbus(address)
                 break
         else:
             gobject.idle_add(self.start_service)
@@ -241,12 +241,12 @@ class AppIndicatorApplet(DockXApplet):
     def on_name_change_detected(self, name, previous_owner, current_owner):
         if str(name) == "com.canonical.indicator.application":
             if previous_owner == "" and current_owner !="":
-                self.connect(name)
+                self.connect_dbus(name)
             if previous_owner != "" and current_owner == "":
                 print "indicator-application-service disappeared"
-                self.disconnect()
+                self.disconnect_dbus()
 
-    def connect(self, address):
+    def connect_dbus(self, address):
         try:
             self.ayatana = BUS.get_object(address,
                                       "/org/ayatana/indicator/service")
@@ -263,7 +263,7 @@ class AppIndicatorApplet(DockXApplet):
                 reply_handler=self.indicators_loaded,
                 error_handler=self.error_loading)
 
-    def disconnect(self):
+    def disconnect_dbus(self):
         for sid in self.sids[:]:
             sid.remove()
             self.sids.remove(sid)

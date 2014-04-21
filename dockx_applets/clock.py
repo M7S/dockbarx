@@ -42,6 +42,7 @@ class ClockApplet(DockXApplet):
         alignment.add(self.label)
         alignment.show_all()
         self.show()
+        self.label_text = ""
         self.set_text_direction(self.get_setting("text_direction", "default"))
         self.font = self.get_setting("font", "Sans 14")
         self.color = self.get_setting("color", "#FFFFFF")
@@ -64,7 +65,9 @@ class ClockApplet(DockXApplet):
         if self.use_custom_format:
             # Todo: User made markup errors needs to be catched but how?
             text = time.strftime(self.custom_format)
-            self.label.set_label(text)
+            if text != self.label_text:
+                self.label.set_label(text)
+                self.label_text = text
             return True
         if self.show_date:
             tstr = time.strftime("%x %H:%M")
@@ -73,7 +76,9 @@ class ClockApplet(DockXApplet):
         text ="<span foreground=\"%s\" font=\"%s\">%s</span>" % (self.color,
                                                                  self.font,
                                                                  tstr)
-        self.label.set_label(text)
+        if text != self.label_text:
+            self.label.set_label(text)
+            self.label_text = text
         return True
 
     def on_setting_changed(self, key, value):

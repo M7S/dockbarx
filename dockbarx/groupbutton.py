@@ -225,7 +225,7 @@ class Group(ListOfWindows):
             self.window_list.destroy()
 
     def get_monitor(self):
-        window = self.dockbar_r().container.window
+        window = self.dockbar_r().groups.box.window
         gdk_screen = gtk.gdk.screen_get_default()
         if window is not None:
             return gdk_screen.get_monitor_at_window(window)
@@ -1397,8 +1397,6 @@ class GroupButton(CairoAppButton):
         self.icon_factory = IconFactory(group,
                                         identifier=group.identifier,
                                         desktop_entry=group.desktop_entry)
-        
-        self.show()
         self.old_alloc = self.get_allocation()
 
         self.opacify_sid = None
@@ -1451,10 +1449,11 @@ class GroupButton(CairoAppButton):
         group = self.group_r()
         window_count = min(group.get_count(), 15)
         if window_count == 0 and not group.pinned:
+            # Hide the button if no windows are on the current screen.
             self.hide()
             return
-        else:
-            self.show()
+        #~ else:
+            #~ self.show() # Todo: is this needed.
 
 
         state_type = 0

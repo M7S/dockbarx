@@ -261,9 +261,11 @@ class CairoSmallButton(gtk.Button):
                     "leave-notify-event": "override",
                     "button-press-event": "override",
                     "button-release-event": "override",}
-    def __init__(self, size):
+    def __init__(self, width, height=None):
         gtk.Button.__init__(self)
-        self.set_size_request(size, size)
+        if height is None:
+            height = width
+        self.set_size_request(width, height)
         self.mousedown = False
         self.mouseover = False
 
@@ -451,6 +453,47 @@ class CairoNextButton(CairoSmallButton):
             bctx.set_line_width(2.0/w)
             bctx.set_source_rgba(1, 1, 1, 0)
             bctx.stroke()
+
+        ctx.set_source_surface(button_source, x, y)
+        ctx.paint()
+        
+class CairoArrowButton(CairoSmallButton):
+    def __init__(self, direction="right"):
+        self.direction = direction
+        CairoSmallButton.__init__(self, 14, 14)
+
+    def draw_button(self, ctx, x, y, w, h):
+        if self.mouseover and self.get_sensitive():
+            alpha = 1
+        elif not self.get_sensitive():
+            alpha = 0.05
+        else:
+            alpha = 0.5
+        button_source = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+        bctx = cairo.Context(button_source)
+        if self.mousedown and self.mouseover:
+            bctx.set_source_rgba(1, 0.4, 0.2, alpha)
+        else:
+            bctx.set_source_rgba(1, 1, 1, alpha)
+        bctx.scale(w, h)
+        bctx.set_operator(cairo.OPERATOR_SOURCE)
+        bctx.translate(0.5, 0.5)
+        if self.direction == "left":
+            bctx.rotate(pi)
+        elif self.direction == "up":
+            bctx.rotate(-pi/2)
+        elif self.direction == "down":
+            bctx.rotate(pi/2)
+        bctx.translate(-0.5, -0.5)
+            
+        bctx.move_to(0.2, 0.0)
+        bctx.line_to(0.8, 0.5)
+        bctx.line_to(0.2, 1.0)
+        bctx.close_path()
+        bctx.fill_preserve()
+        bctx.set_line_width(2.0/w)
+        bctx.set_source_rgba(1, 1, 1, 0)
+        bctx.stroke()
 
         ctx.set_source_surface(button_source, x, y)
         ctx.paint()

@@ -101,7 +101,7 @@ class CairoDockX(gtk.Window):
         if self.is_composited():
             if self.dockbar is not None:
                 ctx.set_source_rgba(1, 1, 1, 1)
-                ctx.rectangle(*self.dockbar.container.get_allocation())
+                ctx.rectangle(*self.dockbar.groups.box.get_allocation())
                 ctx.fill()
         w, h = self.__set_rotation(pos, ctx, w, h)
         stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=False)
@@ -508,12 +508,14 @@ class DockX(CairoDockX):
         self.autohide_sid = None
         self.autounhide_sid = None
         self.autounhide_sid = None
+        self.dockbar_max_size = None
         self.old_x = 0
         self.old_y = 0
         self.old_width = 0
         self.old_height = 0
         self.box = gtk.HBox()
         self.boxes = None
+        self.applet_sids = {}
         self.padding1 = EventPadding(self)
         self.padding2 = EventPadding(self)
         self.spacer1 = EventPadding(self)
@@ -596,23 +598,17 @@ class DockX(CairoDockX):
         for group in self.dockbar.groups:
             group.button.icon_factory.set_size(db_size)
             group.button.update_state(force_update=True)
-        self.dockbar_allocation = self.dockbar.container.get_allocation()
+        #TODO: Does this line do anything? Is it safe to remove?
+        self.dockbar_allocation = self.dockbar.groups.box.get_allocation()
 
     def __rebuild(self):
+        self.__destroy_old()
         centered = self.globals.settings["dock/mode"] == "centered"
         cornered = self.globals.settings["dock/mode"] == "corner"
         panel = self.globals.settings["dock/mode"] == "panel"
         ed = self.globals.settings["dock/end_decorations"]
         pos = self.globals.settings["dock/position"]
-        # Clean up the old box
-        for child in self.box.get_children():
-            self.box.remove(child)
-        self.box.destroy()
-        if self.boxes:
-            for box in self.boxes:
-                for child in box.get_children():
-                    box.remove(child)
-                box.destroy()
+        
         if pos in ("left", "right"):
             gtk_box = gtk.VBox
         else:
@@ -624,6 +620,44 @@ class DockX(CairoDockX):
         self.padding1.compute_size(centered or ed)
         # Add the applets to the dock
         alist = self.applets.get_list()
+        expanded = self.__add_applets(alist, pos, panel)
+        # Append a spacer after the last applet if no spacer/expanded applet
+        # is used and the mode is panel.
+        if panel and not expanded:
+            spacer = EventPadding(self)
+            self.box.pack_start(spacer, True, True)
+            if alist[-1] == "DockbarX":
+                spacer.define_position("after")
+        # Padding/End decorations after applets
+        self.box.pack_start(self.padding2, False, False)
+        self.padding2.compute_size(centered or cornered or ed)
+        # Define if the paddings has a position right
+        # before or after the dockbarx applet.
+        # Needed for drag and drop behavior.
+        p1 = p2 = None
+        if alist[0] == "DockbarX":
+            p1 = "before"
+        if alist[-1] == "DockbarX":
+            p2 = "after"
+        self.padding1.define_position(p1)
+        self.padding2.define_position(p2)
+        self.show_all()
+        self.connect_applet_signals()
+
+    def __destroy_old(self):
+        self.disconnect_applet_signals()
+        # Clean up the old box
+        for child in self.box.get_children():
+            self.box.remove(child)
+        self.box.destroy()
+        if self.boxes:
+            for box in self.boxes:
+                for child in box.get_children():
+                    box.remove(child)
+                box.destroy()
+                
+    def __add_applets(self, alist, pos, panel):
+        # Add the applets to the dock
         if alist.count("Spacer") == 2 and panel:
             self.boxes = [gtk_box(), gtk_box(),gtk_box()]
             # Use tre boxes to enable centered applets. 
@@ -665,8 +699,8 @@ class DockX(CairoDockX):
             if name == "Spacer":
                 continue
             if name == "DockbarX":
-                applet = self.dockbar.container
-                expand = False
+                applet = self.dockbar.groups.box
+                expand = True
             else:
                 appletscr = self.applets.get(name)
                 if appletscr is None:
@@ -676,28 +710,25 @@ class DockX(CairoDockX):
             if expand:
                 expanded = True
             box.pack_start(applet, expand, expand)
-        # Append a spacer after the last applet if no spacer/expanded applet
-        # is used and the mode is panel.
-        if panel and not expanded:
-            spacer = EventPadding(self)
-            self.box.pack_start(spacer, True, True)
-            if alist[-1] == "DockbarX":
-                spacer.define_position("after")
-        # Padding/End decorations after applets
-        self.box.pack_start(self.padding2, False, False)
-        self.padding2.compute_size(centered or cornered or ed)
-        # Define if the paddings has a position right
-        # before or after the dockbarx applet.
-        # Needed for drag and drop behavior.
-        p1 = p2 = None
-        if alist[0] == "DockbarX":
-            p1 = "before"
-        if alist[-1] == "DockbarX":
-            p2 = "after"
-        self.padding1.define_position(p1)
-        self.padding2.define_position(p2)
-        self.show_all()
-
+        return expanded
+    
+    def connect_applet_signals(self):
+        # Adds size-allocate signals for all applets.
+        self.applet_sids = {}
+        if self.boxes:
+            applets = self.boxes[0] + self.boxes[1] + self.boxes[2]
+        else:
+            applets = self.box
+        for app in applets:
+            if isinstance(app, DockXApplet) and not app.get_expand():
+                sid = app.connect("size-allocate", self.__on_applet_size_allocate)
+                self.applet_sids[app]=sid
+                
+    def disconnect_applet_signals(self):
+        while self.applet_sids:
+            app, sid = self.applet_sids.popitem()
+            app.disconnect(sid)
+        
     def __update_applets(self):
         if self.boxes:
             applets = self.boxes[0] + self.boxes[1] + self.boxes[2]
@@ -846,7 +877,7 @@ class DockX(CairoDockX):
             self.old_width, self.old_height = w, h
         if self.globals.settings["dock/mode"] != "panel":
             self.__set_dock_strut(x, y, w, h)
-
+            
     def show_dock(self):
         self.show()
         if self.globals.settings["dock/mode"] != "centered":
@@ -1079,6 +1110,43 @@ class DockX(CairoDockX):
             self.__set_dock_strut(x, y, a.width, a.height)
         if self.autohide:
             self.__compute_should_autohide()
+        self.calculate_dockbar_max_size()
+        
+    def __on_applet_size_allocate(self, widget, allocate):
+        self.calculate_dockbar_max_size()
+            
+    def calculate_dockbar_max_size(self):
+        centered = self.globals.settings["dock/mode"] == "centered"
+        pos = self.globals.settings["dock/position"]
+        o = self.globals.settings["dock/offset"]
+        mx, my, mwidth, mheight = self.get_monitor_geometry()
+        # Get the size of all no expanding applets
+        asize = 0
+        if self.boxes:
+            applets = self.boxes[0] + self.boxes[1] + self.boxes[2]
+        else:
+            applets = self.box
+        for app in applets:
+            if isinstance(app, DockXApplet) and not app.get_expand():
+                asize = asize + app.get_applet_size()
+        # Get monitor size and padding size
+        if pos in ("top", "bottom"):
+            msize = mwidth
+            psize = self.padding1.get_allocation().width + \
+                           self.padding2.get_allocation().width
+        else:
+            msize = mheight
+            psize = self.padding1.get_allocation().height + \
+                           self.padding2.get_allocation().height
+        # Subtract the sizes from monitor size
+        max_size = msize - psize - asize
+        # And subtract offset unless the dock is centered.
+        if not centered:
+            max_size = max_size - o
+        if max_size != self.dockbar_max_size:
+            self.dockbar_max_size = max_size
+            self.dockbar.groups.set_max_size(max_size)
+                
 
     def get_monitor_geometry(self):
         screen = self.get_screen()
@@ -1099,6 +1167,47 @@ class DockX(CairoDockX):
     def do_destroy(self, *args):
         CairoDockX.do_destroy(self)
         gtk.main_quit()
+        
+    #### Menu stuff
+    def create_popup_menu(self, event):
+        #Create popup menu
+        menu = gtk.Menu()
+        menu.connect("selection-done", self.__menu_closed)
+        preference_item = gtk.ImageMenuItem("gtk-properties", "Preference")
+        menu.append(preference_item)
+        preference_item.connect("activate",
+                                self.__menu_preferences_selected)
+        preference_item.show()
+        reload_item = gtk.ImageMenuItem("gtk-refresh", "Reload")
+        menu.append(reload_item)
+        reload_item.connect("activate", self.__menu_reload_selected)
+        reload_item.show()
+        about_item = gtk.ImageMenuItem("gtk-about", "About Item")
+        menu.append(about_item)
+        about_item.connect("activate",
+                           lambda e: dockbarx.dockbar.AboutDialog())
+        about_item.show()
+        close_item = gtk.ImageMenuItem("gtk-close", "Close")
+        menu.append(close_item)
+        close_item.connect("activate", self.__menu_close_selected)
+        close_item.show()
+        menu.popup(None, None, None, event.button, event.time)
+        self.globals.gtkmenu_showing = True
+        
+    def __menu_closed(self, menushell):
+        self.globals.gtkmenu_showing = False
+        menushell.destroy()
+
+    def __menu_close_selected(self, *args):
+        self.destroy()
+        
+    def __menu_preferences_selected(self, *args):
+        os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
+                   "/usr/bin/dbx_preference")
+            
+    def __menu_reload_selected(self, *args):
+        self.reload()
+        
         
 
 class EventPadding(gtk.EventBox):
@@ -1149,42 +1258,7 @@ class EventPadding(gtk.EventBox):
     def do_button_release_event(self, event):
         if event.button != 3:
             return
-        #Create popup menu
-        menu = gtk.Menu()
-        menu.connect("selection-done", self.__menu_closed)
-        preference_item = gtk.ImageMenuItem("gtk-properties", "Preference")
-        menu.append(preference_item)
-        preference_item.connect("activate", self.__open_preference)
-        preference_item.show()
-        reload_item = gtk.ImageMenuItem("gtk-refresh", "Reload")
-        menu.append(reload_item)
-        reload_item.connect("activate", self.__reload)
-        reload_item.show()
-        about_item = gtk.ImageMenuItem("gtk-about", "About Item")
-        menu.append(about_item)
-        about_item.connect("activate",
-                           lambda e: dockbarx.dockbar.AboutDialog())
-        about_item.show()
-        close_item = gtk.ImageMenuItem("gtk-close", "Close")
-        menu.append(close_item)
-        close_item.connect("activate", self.__close_selected)
-        close_item.show()
-        menu.popup(None, None, None, event.button, event.time)
-        self.globals.gtkmenu_showing = True
-        
-    def __menu_closed(self, menushell):
-        self.globals.gtkmenu_showing = False
-        menushell.destroy()
-
-    def __close_selected(self, *args):
-        self.dock_r().destroy()
-        
-    def __open_preference(self, *args):
-        os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
-                   "/usr/bin/dbx_preference")
-
-    def __reload(self, *args):
-        self.dock_r().reload()
+        self.dock_r().create_popup_menu(event)
 
     def do_drag_drop(self, drag_context, x, y, t):
         if "text/groupbutton_name" in drag_context.targets:

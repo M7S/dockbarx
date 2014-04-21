@@ -86,7 +86,6 @@ class BatteryApplet():
         self.init_first_run()
         self.init_cpufreq()
         self.init_power_dbus()
-        print type(event_box)
     
     
     def init_widgets(self, event_box):
@@ -1784,55 +1783,9 @@ class DockXBatteryApplet(DockXApplet):
         self.battery_applet = BatteryApplet(self)
         self.show()
 
-
-
 # All applets needs to have this function
 def get_dbx_applet(dbx_dict):
     # This is the function that dockx will be calling.
     # Returns an instance of the applet.
     applet = DockXBatteryApplet(dbx_dict)
     return applet
-
-
-
-
-
-
-def run_in_indicator():
-    # start main loop for D-Bus
-    DBusGMainLoop(set_as_default=True)
-    # create indicator
-    indicator = appindicator.Indicator("battery-indicator", "gpm-ac-adapter", appindicator.CATEGORY_APPLICATION_STATUS)
-    # init class for indicator
-    BatteryIndicator(indicator)
-    # start main gtk loop
-    gtk.main()
-    # init exit
-    sys.exit(0)
-
-
-
-
-def main(args):
-    if len(args) == 2:
-        if args[1] == "--window":
-            # for debug and testing
-            run_in_window()
-        elif args[1] == "--indicator" and module_indicator:
-            # for daily usage as indicator
-            run_in_indicator()
-        elif args[1] == "--indicator" and not module_indicator:
-            print "Sorry, python-appindicator module for indicator mode not available in the system."
-            sys.exit(1)
-        else:
-            print "Usage: battery-status OPTION"
-            print "Available options:"
-            print "\t--indicator\t- run battery status in indicator applet area"
-            sys.exit(0)
-    else:
-        # for daily usage as applet
-        run_in_panel()
-
-
-if __name__ == '__main__':
-    main(sys.argv)
