@@ -2,20 +2,20 @@
 
 #   groupbutton.py
 #
-#	Copyright 2008, 2009, 2010 Aleksey Shaferov and Matias Sars
+#   Copyright 2008, 2009, 2010 Aleksey Shaferov and Matias Sars
 #
-#	DockbarX is free software: you can redistribute it and/or modify
-#	it under the terms of the GNU General Public License as published by
-#	the Free Software Foundation, either version 3 of the License, or
-#	(at your option) any later version.
+#   DockbarX is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
 #
-#	DockbarX is distributed in the hope that it will be useful,
-#	but WITHOUT ANY WARRANTY; without even the implied warranty of
-#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#	GNU General Public License for more details.
+#   DockbarX is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
 #
-#	You should have received a copy of the GNU General Public License
-#	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU General Public License
+#   along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import pygtk
@@ -2359,7 +2359,9 @@ class WindowList(gtk.VBox):
         self.group_r = weakref.ref(group)
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.window_box = None
+        self.scrolled_window = None
         self.show_previews = False
+        self.size_overflow = False
         self.mini_mode = False
 
         gtk.VBox.__init__(self)
@@ -2421,10 +2423,14 @@ class WindowList(gtk.VBox):
         self.window_box.pack_start(item, True, True)
 
     def shrink_size(self):
-        """This function is called if the window list is too big.
-
-        It only turns of previews for now."""
-        self.set_show_previews(False)
+        """This function is called if the window list is too big."""
+        if self.show_previews:
+            # Turn of the previews as a first messure
+            self.set_show_previews(False)
+        else:
+            # make the list
+            self.size_overflow = True
+            self.__rebuild_list()
 
     def get_previews_list(self):
         group = self.group_r()
@@ -2494,9 +2500,45 @@ class WindowList(gtk.VBox):
                 oldbox.remove(c)
                 self.window_box.pack_start(c, True, True)
             oldbox.destroy()
-        self.alignment.add(self.window_box)
-        self.window_box.show_all()
-
+        if self.scrolled_window:
+            self.adjustment.disconnect(self.scroll_changed_sid)
+            self.adjustment = None
+            self.scrolled_window.destroy()
+            self.scrolled_window = None
+        if self.size_overflow:
+            self.scrolled_window = self.__create_scrolled_window()
+            self.scrolled_window.add_with_viewport(self.window_box)
+            self.alignment.add(self.scrolled_window)
+            self.scrolled_window.show_all()
+        else:
+            self.alignment.add(self.window_box)
+            self.window_box.show_all()
+            
+    def __create_scrolled_window(self):
+        group = self.group_r()
+        scrolled_window = gtk.ScrolledWindow()
+        scrolled_window.set_shadow_type(gtk.SHADOW_NONE)
+        scrolled_window.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        self.adjustment = scrolled_window.get_vadjustment()
+        self.scroll_changed_sid = self.adjustment.connect("changed", 
+                                            self.__on_scroll_changed)
+        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
+                                                    group.get_monitor())
+        # Todo: Size is hardcoded to monitor height - 100.
+        #       Does this need to be more gracefully calculated?
+        scrolled_window.set_size_request(-1, mgeo.height - 100)
+        return scrolled_window
+        
+    def __on_scroll_changed(self, adjustment):
+        if adjustment.upper == 1:
+            # Not yet realised.
+            return
+        if adjustment.upper <= adjustment.page_size:
+            # The scrolled window is no longer needed.
+            self.size_overflow = False
+            self.__rebuild_list()
+        
+        
     def on_popup_reallocate(self, popup):
         popup.set_previews(self.get_previews_list())
         if not self.window_box:
