@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 #   iconfactory.py
 #
@@ -22,17 +22,14 @@ pygtk.require("2.0")
 import gtk
 import gc
 gc.enable()
-import array
 import cairo
 import gio
 import os
 import weakref
+import array
 from cStringIO import StringIO
 from math import pi, cos, sin
-try:
-    import Image
-except ImportError:
-    from PIL import Image
+from PIL import Image
 
 from theme import Theme
 from common import Globals, connect, disconnect
@@ -961,18 +958,31 @@ class IconFactory():
         w = surface.get_width()
         h = surface.get_height()
         return Image.frombuffer("RGBA", (w, h), surface.get_data(),
-                                "raw", "RGBA", 0,1)
+                                "raw", "BGRA", 0,1)
 
 
+
+        
     def __pil2surface(self, im):
-        imgd = im.tostring("raw","RGBA",0,1)
-        a = array.array("B",imgd)
-        w = im.size[0]
-        h = im.size[1]
-        stride = im.size[0] * 4
-        surface = cairo.ImageSurface.create_for_data (a, cairo.FORMAT_ARGB32,
-                                                      w, h, stride)
-        return surface
+        """Transform a PIL Image into a Cairo ImageSurface."""
+
+        # This function is only supposed to work with little endinan
+        # systems. Could that be a problem ever? 
+        if im.mode != 'RGBA':
+            im = im.convert('RGBA')
+
+        s = im.tostring('raw', 'BGRA')
+        a = array.array('B', s)
+        dest = cairo.ImageSurface(cairo.FORMAT_ARGB32, 
+                                  im.size[0], im.size[1])
+        ctx = cairo.Context(dest)
+        non_premult_src_wo_alpha = cairo.ImageSurface.create_for_data(
+            a, cairo.FORMAT_RGB24, im.size[0], im.size[1])
+        non_premult_src_alpha = cairo.ImageSurface.create_for_data(
+            a, cairo.FORMAT_ARGB32, im.size[0], im.size[1])
+        ctx.set_source_surface(non_premult_src_wo_alpha)
+        ctx.mask_surface(non_premult_src_alpha)
+        return dest
 
     def __process_size(self, size_str):
         us = self.__get_use_size()

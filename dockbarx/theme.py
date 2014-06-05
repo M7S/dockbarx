@@ -1,21 +1,21 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 #   theme.py
 #
-#	Copyright 2009, 2010 Matias Sars
+#   Copyright 2009, 2010 Matias Sars
 #
-#	DockbarX is free software: you can redistribute it and/or modify
-#	it under the terms of the GNU General Public License as published by
-#	the Free Software Foundation, either version 3 of the License, or
-#	(at your option) any later version.
+#   DockbarX is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
 #
-#	DockbarX is distributed in the hope that it will be useful,
-#	but WITHOUT ANY WARRANTY; without even the implied warranty of
-#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#	GNU General Public License for more details.
+#   DockbarX is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
 #
-#	You should have received a copy of the GNU General Public License
-#	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU General Public License
+#   along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 from tarfile import open as taropen
 from xml.sax import make_parser
@@ -28,10 +28,7 @@ import array
 from common import ODict
 from common import Globals
 from log import logger
-try:
-    import Image
-except ImportError:
-    from PIL import Image
+from PIL import Image
 
 import i18n
 _ = i18n.language.gettext
@@ -797,14 +794,25 @@ class DockTheme(gobject.GObject):
 
 
     def __pil2surface(self, im):
-        imgd = im.tostring("raw","RGBA",0,1)
-        a = array.array("B",imgd)
-        w = im.size[0]
-        h = im.size[1]
-        stride = im.size[0] * 4
-        surface = cairo.ImageSurface.create_for_data (a, cairo.FORMAT_ARGB32,
-                                                      w, h, stride)
-        return surface
+        """Transform a PIL Image into a Cairo ImageSurface."""
+
+        # This function is only supposed to work with little endinan
+        # systems. Could that be a problem ever? 
+        if im.mode != 'RGBA':
+            im = im.convert('RGBA')
+
+        s = im.tostring('raw', 'BGRA')
+        a = array.array('B', s)
+        dest = cairo.ImageSurface(cairo.FORMAT_ARGB32, 
+                                  im.size[0], im.size[1])
+        ctx = cairo.Context(dest)
+        non_premult_src_wo_alpha = cairo.ImageSurface.create_for_data(
+            a, cairo.FORMAT_RGB24, im.size[0], im.size[1])
+        non_premult_src_alpha = cairo.ImageSurface.create_for_data(
+            a, cairo.FORMAT_ARGB32, im.size[0], im.size[1])
+        ctx.set_source_surface(non_premult_src_wo_alpha)
+        ctx.mask_surface(non_premult_src_alpha)
+        return dest
 
     def __resize_surface(self, surface, w, h):
         im = self.__surface2pil(surface)

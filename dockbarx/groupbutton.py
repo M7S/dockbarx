@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 #   groupbutton.py
 #
@@ -2400,15 +2400,15 @@ class WindowList(gtk.VBox):
         if group.name is None:
             return
         self.title.set_label(
-                    "<span foreground='%s'>"%self.globals.colors["color2"] + \
-                    "<big><b>%s</b></big></span>"%escape(group.name))
+              "<span foreground='%s'>"%self.globals.colors["color2"] + \
+              "<big><b>%s</b></big></span>"%escape(group.name))
         self.title.set_use_markup(True)
 
     def update_title_tooltip(self):
         group = self.group_r()
         if group.identifier:
             self.title.set_tooltip_text(
-                                "%s: %s"%(_("Identifier"), group.identifier))
+                        "%s: %s"%(_("Identifier"), group.identifier))
 
     def can_be_shown(self):
         group = self.group_r()
@@ -2425,10 +2425,10 @@ class WindowList(gtk.VBox):
     def shrink_size(self):
         """This function is called if the window list is too big."""
         if self.show_previews:
-            # Turn of the previews as a first messure
+            # Turn of the previews as a first meassure
             self.set_show_previews(False)
         else:
-            # make the list
+            # make the list scrollable
             self.size_overflow = True
             self.__rebuild_list()
 

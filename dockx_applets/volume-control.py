@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # Copyright (C) 2008 - 2010  onox <denkpadje@gmail.com>
 #               2012 Matias Sars
 #

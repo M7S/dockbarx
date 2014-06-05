@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #   zg.py
 #	Copyright 2010 Siegfried-Angel Gevatter Pujals and Matias Sars
