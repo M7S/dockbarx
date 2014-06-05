@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys # Todo: remove me!
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -27,7 +28,6 @@ import gio
 import os
 import weakref
 import array
-from cStringIO import StringIO
 from math import pi, cos, sin
 from PIL import Image
 
@@ -290,19 +290,17 @@ class IconFactory():
         b = 0
         g = 0
         i = 0
-        pb = self.__surface2pixbuf(self.icon)
-        for row in pb.get_pixels_array():
-            for pix in row:
-                try:
-                    if pix[3] > 30:
-                        i += 1
-                        r += pix[0]
-                        g += pix[1]
-                        b += pix[2]
-                except:
-                    # If there are no icon there's no pix[3], or something?
-                    # Just leave it.
-                    pass
+        im = self.__surface2pil(self.icon)
+        pixels = im.load()
+        width, height = im.size
+        for x in range(width):
+            for y in range(height):
+                pix = pixels[x, y]
+                if pix[3] > 30:
+                    i += 1
+                    r += pix[0]
+                    g += pix[1]
+                    b += pix[2]
         if i > 0:
             r = int(round(float(r) / i))
             g = int(round(float(g) / i))
@@ -311,7 +309,6 @@ class IconFactory():
         g = ("0%s"%hex(g)[2:])[-2:]
         b = ("0%s"%hex(b)[2:])[-2:]
         self.average_color = "#"+r+g+b
-        del pb
         return self.average_color
 
 
@@ -698,33 +695,30 @@ class IconFactory():
 
     def __command_transp_sat(self, surface, opacity="100", saturation="100"):
         # Makes the icon desaturized and/or transparent.
-        w = surface.get_width()
-        h = surface.get_height()
-        new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        ctx = gtk.gdk.CairoContext(cairo.Context(new))
         alpha = self.__get_alpha(opacity)
         # Todo: Add error check for saturation
-        if int(saturation) < 100:
-            sio = StringIO()
-            surface.write_to_png(sio)
-            sio.seek(0)
-            loader = gtk.gdk.PixbufLoader()
-            loader.write(sio.getvalue())
-            loader.close()
-            sio.close()
-            pixbuf = loader.get_pixbuf()
-            saturation = min(1.0, float(saturation)/100)
-            pixbuf.saturate_and_pixelate(pixbuf, saturation, False)
-            ctx.set_source_pixbuf(pixbuf, 0, 0)
-            ctx.paint_with_alpha(alpha)
-            del loader
-            del sio
-            del pixbuf
-            gc.collect()
+        sat = float(saturation)
+        if sat < 100:
+            im = self.__surface2pil(surface)
+            w, h = im.size
+            pixels = im.load()
+            for x in range(w):
+                for y in range(h):
+                    r, g, b, a = pixels[x, y]
+                    l = (r + g + b) / 3.0 * (100 - sat) / 100.0
+                    r = int(r * sat / 100.0 + l)
+                    g = int(g * sat / 100.0 + l)
+                    b = int(b * sat / 100.0 + l)
+                    a = int(a * alpha)
+                    pixels[x, y] = (r, g, b, a)
+            return self.__pil2surface(im)
         else:
+            new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+            ctx = gtk.gdk.CairoContext(cairo.Context(new))
             ctx.set_source_surface(surface)
             ctx.paint_with_alpha(alpha)
-        return new
+            return new
+        
 
     def __command_composite(self, surface, bg, fg, opacity="100",
                             xoffset="0", yoffset="0", angle="0"):
@@ -941,28 +935,12 @@ class IconFactory():
         del pixbuf
         return surface
 
-    def __surface2pixbuf(self, surface):
-        if surface is None:
-            return None
-        sio = StringIO()
-        surface.write_to_png(sio)
-        sio.seek(0)
-        loader = gtk.gdk.PixbufLoader()
-        loader.write(sio.getvalue())
-        loader.close()
-        sio.close()
-        pixbuf = loader.get_pixbuf()
-        return pixbuf
-
     def __surface2pil(self, surface):
         w = surface.get_width()
         h = surface.get_height()
         return Image.frombuffer("RGBA", (w, h), surface.get_data(),
                                 "raw", "BGRA", 0,1)
 
-
-
-        
     def __pil2surface(self, im):
         """Transform a PIL Image into a Cairo ImageSurface."""
 
