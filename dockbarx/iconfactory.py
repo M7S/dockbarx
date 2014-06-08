@@ -17,7 +17,6 @@
 #   You should have received a copy of the GNU General Public License
 #   along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys # Todo: remove me!
 import pygtk
 pygtk.require("2.0")
 import gtk

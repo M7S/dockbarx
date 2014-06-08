@@ -444,8 +444,9 @@ class DockBar():
         if self.applet is not None:
             global gnomeapplet
             import gnomeapplet
-            self.applet.set_applet_flags(
-                            gnomeapplet.HAS_HANDLE|gnomeapplet.EXPAND_MINOR)
+            self.applet.set_applet_flags(gnomeapplet.HAS_HANDLE | \
+                                         gnomeapplet.EXPAND_MINOR | \
+                                         gnomeapplet.EXPAND_MAJOR)
             orients = {gnomeapplet.ORIENT_DOWN: "down",
                        gnomeapplet.ORIENT_UP: "up",
                        gnomeapplet.ORIENT_LEFT: "left",
