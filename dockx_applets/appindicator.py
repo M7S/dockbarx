@@ -34,9 +34,11 @@ BUS = dbus.SessionBus()
 ICONSIZE = 18
 
 # List of possible commands to launch indicator-application-service
-service_cmds = ["/usr/lib/x86_64-linux-gnu/indicator-application-service",
-               "/usr/lib/i386-linux-gnu/indicator-application-service",
-               "/usr/lib/indicator-application/indicator-application-service"]
+service_cmds = ["/usr/lib/x86_64-linux-gnu/indicator-application/indicator-application-service", 
+                "/usr/lib/x86_64-linux-gnu/indicator-application-service",
+                "/usr/lib/i386-linux-gnu/indicator-application/indicator-application-service",
+                "/usr/lib/i386-linux-gnu/indicator-application-service",
+                "/usr/lib/indicator-application/indicator-application-service"]
 
 class AppIndicator(gtk.EventBox):
     def __init__(self, applet, icon_name, position, address, obj,
