@@ -690,6 +690,12 @@ class BatteryApplet():
         self.g_conf.notify_add("/apps/battery_status/powermode_as_submenu", self.init_gconf_changes, "powermenu")
         self.g_conf.notify_add("/apps/battery_status/power_manager", self.init_gconf_changes, "powermanager")
         self.g_conf.notify_add("/apps/gnome-power-manager/ui/icon_policy", self.init_gconf_changes, "gpm_icon")
+            
+        # Fix to make battery app icon centered when only the icon is shown.
+        if self.option_show == "icon":
+            self.label.hide()
+        else:
+            self.label.show()
     
     
     def init_gconf_changes(self, client, connection_id, entry, option):
@@ -783,7 +789,6 @@ class BatteryApplet():
             self.power_dbus_signal_error("dbus")
             
         # Fix to make battery app icon centered when only the icon is shown.
-        # Should this be done here or elsewhere?
         if self.option_show == "icon":
             self.label.hide()
         else:
