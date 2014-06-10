@@ -514,7 +514,7 @@ class DockX(CairoDockX):
         self.old_width = 0
         self.old_height = 0
         self.box = gtk.HBox()
-        self.boxes = None
+        self.position_boxes = None
         self.applet_sids = {}
         self.padding1 = EventPadding(self)
         self.padding2 = EventPadding(self)
@@ -620,14 +620,7 @@ class DockX(CairoDockX):
         self.padding1.compute_size(centered or ed)
         # Add the applets to the dock
         alist = self.applets.get_list()
-        expanded = self.__add_applets(alist, pos, panel)
-        # Append a spacer after the last applet if no spacer/expanded applet
-        # is used and the mode is panel.
-        if panel and not expanded:
-            spacer = EventPadding(self)
-            self.box.pack_start(spacer, True, True)
-            if alist[-1] == "DockbarX":
-                spacer.define_position("after")
+        self.__add_applets(alist, pos, panel)
         # Padding/End decorations after applets
         self.box.pack_start(self.padding2, False, False)
         self.padding2.compute_size(centered or cornered or ed)
@@ -650,57 +643,52 @@ class DockX(CairoDockX):
         for child in self.box.get_children():
             self.box.remove(child)
         self.box.destroy()
-        if self.boxes:
-            for box in self.boxes:
+        if self.position_boxes:
+            for box in self.position_boxes:
                 for child in box.get_children():
                     box.remove(child)
                 box.destroy()
                 
     def __add_applets(self, alist, pos, panel):
         # Add the applets to the dock
-        if alist.count("Spacer") == 2 and panel:
-            self.boxes = [gtk_box(), gtk_box(),gtk_box()]
-            # Use tre boxes to enable centered applets. 
-            self.box.pack_start(self.boxes[0], True, True)
-            self.box.pack_start(self.boxes[1], False, False)
-            self.box.pack_start(self.boxes[2], True, True)
-            # Push up the size request so that boxes gets equaly large.
-            if pos in ("left", "right"):
-                self.boxes[0].set_size_request(-1, 3000)
-                self.boxes[2].set_size_request(-1, 3000)
-            else:
-                self.boxes[0].set_size_request(3000, -1)
-                self.boxes[2].set_size_request(3000, -1)
-            box = self.boxes[0]
+        self.position_boxes = self.__setup_boxes(alist, pos, panel)
+        if self.position_boxes:
+            box = self.position_boxes[0]
         else:
-            self.boxes = None
             box = self.box
         expanded = False
         spacer = self.spacer1
         for i in range(len(alist)):
             name = alist[i]
             if name == "Spacer" and panel:
-                if self.boxes and box == self.boxes[1]:
-                    # Put the second spacer in the last box.
-                    box = self.boxes[2]
+                if self.position_boxes and box == self.position_boxes[1]:
+                    # Put the second spacer in the right/bottom box.
+                    # Start putting applets in the right/bottom box.
+                    box = self.position_boxes[2]
                 box.pack_start(spacer, True, True)
                 # Define spacer posistion relative to dbx
                 # Needed for correct drag and drop behavior.
                 if i != 0 and alist[i - 1] == "DockbarX":
+                    if not self.position_boxes:
+                        # Instead of adding a spacer after the dockbar
+                        # we set dockbar to expand.
+                        self.__dockbar_set_expand(box, True)
+                        expanded = True
+                        continue
                     spacer.define_position("after")
                 elif i + 1 != len(alist) and alist[i + 1] == "DockbarX":
                     spacer.define_position("before")
-                expanded = True
-                if self.boxes and box == self.boxes[0]:
-                    # The first spacer is in the first box.
+                if self.position_boxes and box == self.position_boxes[0]:
+                    # The first spacer is in the left/top box.
                     # Start putting applets in the middle box.
-                    box = self.boxes[1]
+                    box = self.position_boxes[1]
                     spacer = self.spacer2
+                expanded = True
             if name == "Spacer":
                 continue
             if name == "DockbarX":
                 applet = self.dockbar.groups.box
-                expand = True
+                expand = False
             else:
                 appletscr = self.applets.get(name)
                 if appletscr is None:
@@ -710,15 +698,46 @@ class DockX(CairoDockX):
             if expand:
                 expanded = True
             box.pack_start(applet, expand, expand)
+        if panel and not expanded:
+            # The dockbar should expand if nothing else on the panel does.
+            self.__dockbar_set_expand(box, True)
+            expanded = True
         return expanded
     
+    def __setup_boxes(self, alist, pos, panel):
+        # Three boxes (left/center/right or top/middle/bottom)
+        # are needed if the dock should contain centered applets,
+        # which happens if two spacers are used and panel mode is selected.
+        if alist.count("Spacer") == 2 and panel:
+            # Make three boxes and prepare them
+            if pos in ("left", "right"):
+                gtk_box = gtk.VBox
+            else:
+                gtk_box = gtk.HBox
+            boxes = [gtk_box(), gtk_box(),gtk_box()]
+            self.box.pack_start(boxes[0], True, True)
+            self.box.pack_start(boxes[1], False, False)
+            self.box.pack_start(boxes[2], True, True)
+            # Use hugh size requests so that the boxes get equaly large.
+            if pos in ("left", "right"):
+                boxes[0].set_size_request(-1, 3000)
+                boxes[2].set_size_request(-1, 3000)
+            else:
+                boxes[0].set_size_request(3000, -1)
+                boxes[2].set_size_request(3000, -1)
+        else:
+            boxes = None
+        return boxes
+
+    def __dockbar_set_expand(self, box, expand):
+        cp = box.query_child_packing(self.dockbar.groups.box)
+        cp = (expand, expand, cp[2], cp[3])
+        box.set_child_packing(self.dockbar.groups.box, *cp)
+        
     def connect_applet_signals(self):
         # Adds size-allocate signals for all applets.
         self.applet_sids = {}
-        if self.boxes:
-            applets = self.boxes[0] + self.boxes[1] + self.boxes[2]
-        else:
-            applets = self.box
+        applets = self.__get_applets()
         for app in applets:
             if isinstance(app, DockXApplet) and not app.get_expand():
                 sid = app.connect("size-allocate", self.__on_applet_size_allocate)
@@ -730,13 +749,21 @@ class DockX(CairoDockX):
             app.disconnect(sid)
         
     def __update_applets(self):
-        if self.boxes:
-            applets = self.boxes[0] + self.boxes[1] + self.boxes[2]
-        else:
-            applets = self.box
+        applets = self.__get_applets()
         for app in applets:
             if isinstance(app, DockXApplet):
                 app.update()
+                
+    def __get_applets(self):
+        # Returns a list of all applets on the dock.
+        applets = []
+        if self.position_boxes:
+            for box in self.position_boxes:
+                applets.extend(box)
+        else:
+            applets.extend(self.box)
+        return applets
+            
 
     def __set_dock_strut(self, x, y, w, h):
         if not self.window:
@@ -1122,24 +1149,46 @@ class DockX(CairoDockX):
         mx, my, mwidth, mheight = self.get_monitor_geometry()
         # Get the size of all no expanding applets
         asize = 0
-        if self.boxes:
-            applets = self.boxes[0] + self.boxes[1] + self.boxes[2]
+        applets = self.__get_applets()
+        if self.position_boxes:
+            asizes = [0 ,0, 0]
+            for i in (0, 1, 2):
+                for app in self.position_boxes[i]:
+                    if isinstance(app, DockXApplet) and not app.get_expand():
+                        asizes[i] = asizes[i] + app.get_applet_size()
+                    elif app == self.dockbar.groups.box:
+                        dockbar_in_box = i
         else:
-            applets = self.box
-        for app in applets:
-            if isinstance(app, DockXApplet) and not app.get_expand():
-                asize = asize + app.get_applet_size()
+            for app in self.box:
+                if isinstance(app, DockXApplet) and not app.get_expand():
+                    asize = asize + app.get_applet_size()
         # Get monitor size and padding size
         if pos in ("top", "bottom"):
             msize = mwidth
-            psize = self.padding1.get_allocation().width + \
-                           self.padding2.get_allocation().width
+            p1size = self.padding1.get_allocation().width
+            p2size = self.padding2.get_allocation().width
         else:
             msize = mheight
-            psize = self.padding1.get_allocation().height + \
-                           self.padding2.get_allocation().height
+            p1size = self.padding1.get_allocation().height
+            p2size = self.padding2.get_allocation().height
         # Subtract the sizes from monitor size
-        max_size = msize - psize - asize
+        if self.position_boxes:
+            if dockbar_in_box == 0:
+                # Dockbar is in the first box and can only use half the
+                # screen size minus apps and first padding
+                asize = asizes[0] + asizes[1] / 2
+                max_size = msize / 2 - p1size - asize
+            elif dockbar_in_box == 1:
+                # Dockbar is in the centered box
+                asize = asizes[1] + 2 * max(asizes[0], asizes[2])
+                max_size = msize - p1size - p2size - asize
+            elif dockbar_in_box == 2:
+                # Dockbar is in the first box and can only use half the
+                # screen size minus apps and first padding.
+                asize = asizes[2] + asizes[1] / 2
+                max_size = msize / 2 - p1size - asize
+        else:
+            max_size = msize - p1size - p2size - asize
         # And subtract offset unless the dock is centered.
         if not centered:
             max_size = max_size - o
