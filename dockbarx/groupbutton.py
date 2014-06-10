@@ -2098,9 +2098,10 @@ class GroupPopup(CairoPopup):
 
     def show(self, delay=None, force=False):
         group = self.group_r()
+        if self.show_sid is not None:
+            gobject.source_remove(self.show_sid)
+            self.show_sid = None
         if delay:
-            if self.show_sid is not None:
-                gobject.source_remove(self.show_sid)
             self.show_sid = gobject.timeout_add(delay, self.show)
             return
         if group.locked_popup:
