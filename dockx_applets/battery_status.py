@@ -94,7 +94,7 @@ class BatteryApplet():
         # get current icon theme for icons
         self.icon_theme = gtk.icon_theme_get_default()
         self.icon_theme.append_search_path('/usr/share/gnome-power-manager/icons')
-        self.icon_theme.connect("changed", self.power_dbus_signal)
+        self.icon_theme.connect("changed", self.update_status)
         # icon of gnome-power-manager
         self.pixbuf_gpm_32 = self.icon_theme.load_icon("gnome-power-manager", 32, gtk.ICON_LOOKUP_FORCE_SVG)
         # icon of battery status
@@ -110,12 +110,12 @@ class BatteryApplet():
             self.box = gtk.VBox()
         else:
             self.box = gtk.HBox()
-        # add icon and label in hbox
+        # add icon and label in hbox/vbox
         self.box.add(self.icon)
         self.box.add(self.label)
         # EventBox for events and main container
         self.event_box = event_box
-        # add hbox in event_box
+        # add box in event_box
         self.event_box.add(self.box)
         # set up callback for button press
         self.event_box.connect("button-press-event", self.event_on_press)
@@ -182,7 +182,7 @@ class BatteryApplet():
         """Create main menu"""
         # update power state, if available
         if not self.power_error:
-            self.power_dbus_signal()
+            self.update_status()
         # update cpu frequency information
         self.init_cpufreq()
         ### init main menu with items
@@ -782,7 +782,7 @@ class BatteryApplet():
         if not self.power_error:
             try:
                 # to handle error, if it's occurs before detecting self.power_error state
-                self.power_dbus_signal()
+                self.update_status()
             except:
                 pass
         else:
@@ -921,7 +921,7 @@ class BatteryApplet():
         # lock main menu for prevent duplicating battery information dialog
         self.lock_battery_status = True
         # update power information
-        self.power_dbus_signal()
+        self.update_status()
         # text column for capacity data
         text_capacity = "State:\nPercentage:\nCapacity:\nLifetime:\nCharge time:\n"
         # text column for charge data
@@ -1175,7 +1175,8 @@ class BatteryApplet():
             # update power information
             self.power_dbus_signal()
             # connect to signals
-            self.power_interface.connect_to_signal("DeviceChanged", self.power_dbus_signal)
+            # "DeviceChanged" is not used in UPower >=0.99, PropertiesChanged will be used instead
+            #~ self.power_interface.connect_to_signal("DeviceChanged", self.power_dbus_signal) 
             self.power_interface.connect_to_signal("DeviceAdded", self.power_dbus_signal)
             self.power_interface.connect_to_signal("DeviceRemoved", self.power_dbus_signal)
             # if everything good
@@ -1277,8 +1278,7 @@ class BatteryApplet():
             self.event_box.set_tooltip_text(tooltip_text)
         else:
             self.event_box.set_tooltip_text(None)
-    
-    
+        
     def power_dbus_signal(self, device = None, signal = None):
         """Get battery power information on update"""
         # get list of available power devices
@@ -1338,12 +1338,17 @@ class BatteryApplet():
             # get battery information, if available
             power_battery_object = self.bus.get_object(self.power_bus, self.power_battery_address)
             self.power_battery_interface = dbus.Interface(power_battery_object, self.properties_bus)
+            self.power_battery_interface.connect_to_signal("PropertiesChanged", self.update_status)
             self.no_battery = False
         else:
             # keep working without battery information
             self.no_battery = True
             self.power_dbus_signal_error("no_battery")
             return False
+        self.update_status()
+        
+    
+    def update_status(self, *args):
         ### keep working with battery information
         if self.lock_battery_status or self.power_error or self.no_battery:
             self.item_status.set_sensitive(False)
@@ -1557,7 +1562,7 @@ class BatteryApplet():
         # local function for timer management
         def count(widget, timeout):
             # update power information
-            self.power_dbus_signal()
+            self.update_status()
             # if timer enabled, then handle it
             if timeout:
                 self.timer -= 1
@@ -1787,10 +1792,17 @@ class DockXBatteryApplet(DockXApplet):
         # so all you have to do is adding your widget with self.add()
         self.battery_applet = BatteryApplet(self)
         self.show()
+        
+    def update(self):
+        self.battery_applet.update_status()
 
-# All applets needs to have this function
+
+dockx_battery_applet = None
+
 def get_dbx_applet(dbx_dict):
-    # This is the function that dockx will be calling.
-    # Returns an instance of the applet.
-    applet = DockXBatteryApplet(dbx_dict)
-    return applet
+    global dockx_battery_applet
+    if dockx_battery_applet is None:
+        dockx_battery_applet = DockXBatteryApplet(dbx_dict)
+    else: 
+        dockx_battery_applet.update()
+    return dockx_battery_applet
