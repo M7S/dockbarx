@@ -731,6 +731,8 @@ class Group(ListOfWindows):
             self.zg_recent_files = None
             self.zg_related_files = None
             self.zg_recent_today_files = None
+        else:
+            self.zg_files = {}
 
     def __on_menuitem_hovered(self, arg, event, identifier):
         if identifier.startswith("unity_") and self.quicklist:
@@ -2688,17 +2690,21 @@ class GroupMenu(gobject.GObject):
         self.add_quicklist(layout)
                                   
     def populate_zg_menus(self, recent, most_used, related):
+        # Makes Recent, Most used and Related submenus and return a dict of all zeitgeist identifiers and uris.
         zg_files = {}
+        # Add a separator.
         if recent or most_used or related:
             self.items["zg_separator"].show()
         else:
             self.items["zg_separator"].hide()
+        # Make the menus.
         self.__populate_zg_menu(_("Recent"), recent, zg_files)
         self.__populate_zg_menu(_("Most used"), most_used, zg_files)
         self.__populate_zg_menu(_("Related"), related, zg_files)
         return zg_files
             
     def __populate_zg_menu(self, name, files, zg_files):
+        # Menu items for the files will be made and the indentifiers and uris will be saved in zg_files.
         menu = self.submenus[name]
         # Remove old menu items
         if self.gtk_menu:
@@ -2713,15 +2719,18 @@ class GroupMenu(gobject.GObject):
         # Add new items
         for text, uri in files:
             label = text or uri
+            # Shorten labels that are more than 40 chars long.
             if len(label)>40:
                 label = label[:19]+"..."+label[-18:]
             identifier = "zg_%s" % label
             n = 0
+            # If there are multiple identifiers with the same name, add a number to it.
             while identifier in zg_files:
                 n += 1
                 identifier = "zg_%s%s" % (label, n)
             zg_files[identifier] = uri
             self.add_item(label, name, identifier=identifier)
+        # zg_files is a dict so there is no need to return it. 
 
     def add_item(self, name, submenu=None, identifier=None, toggle_type=""):
         # Todo: add toggle types
