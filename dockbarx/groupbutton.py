@@ -162,6 +162,7 @@ class Group(ListOfWindows):
         self.unity_launcher_bus_name = None
         self.unity_urgent = False
         self.dm_attention = False
+        self.zg_files = {}
 
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
@@ -731,8 +732,6 @@ class Group(ListOfWindows):
             self.zg_recent_files = None
             self.zg_related_files = None
             self.zg_recent_today_files = None
-        else:
-            self.zg_files = {}
 
     def __on_menuitem_hovered(self, arg, event, identifier):
         if identifier.startswith("unity_") and self.quicklist:
