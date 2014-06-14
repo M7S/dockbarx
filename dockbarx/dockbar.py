@@ -25,12 +25,10 @@ import gobject
 import sys
 import os
 import dbus
-import gc
 import cairowidgets
 import weakref
 from time import time
 from xdg.DesktopEntry import ParsingError
-gc.enable()
 
 
 from common import *
@@ -418,20 +416,25 @@ class GroupList(list):
         
         
 class DockBar():
-    def __init__(self, applet=None, awn_applet=None,
-                 parent_window=None, run_as_dock=False):
+    def __init__(self, parent):
         logger.info("DockbarX %s"%VERSION)
         logger.info("DockbarX init")
-        self.applet = applet
-        self.awn_applet = awn_applet
-        self.parent_window = parent_window
-        self.is_dock = run_as_dock
+        self.parent = parent
         self.windows = None
         self.theme = None
         self.popup_style = None
         self.skip_tasklist_windows = None
         self.next_group = None
         self.dockmanager = None
+        self.groups = None
+
+        self.parent_window_reporting = False
+        self.parent_handles_menu = False
+        self.keyboard_show_dock = False
+        self.no_theme_change_reload = False
+        self.no_dbus_reload = False
+        self.expose_on_clear = False
+        self.orient = "down"
 
         self.globals = Globals()
         self.globals.connect("theme-changed", self.__on_theme_changed)
@@ -440,55 +443,14 @@ class DockBar():
         self.globals.connect("dockmanager-changed",
                              self.__on_dockmanager_changed)
 
-        #--- Applet / Window container
-        if self.applet is not None:
-            global gnomeapplet
-            import gnomeapplet
-            self.applet.set_applet_flags(gnomeapplet.HAS_HANDLE | \
-                                         gnomeapplet.EXPAND_MINOR | \
-                                         gnomeapplet.EXPAND_MAJOR)
-            orients = {gnomeapplet.ORIENT_DOWN: "down",
-                       gnomeapplet.ORIENT_UP: "up",
-                       gnomeapplet.ORIENT_LEFT: "left",
-                       gnomeapplet.ORIENT_RIGHT: "right"}
-            self.orient = orients[self.applet.get_orient()]
-            self.groups = GroupList(self, self.orient)
-            self.applet.add(self.groups.box)
-            self.pp_menu_xml = """
-           <popup name="button3">
-           <menuitem name="About Item" verb="About" stockid="gtk-about" />
-           <menuitem name="Preferences" verb="Pref" stockid="gtk-properties" />
-           <menuitem name="Reload" verb="Reload" stockid="gtk-refresh" />
-           </popup>
-            """
-
-            self.pp_menu_verbs = [("About", self.__on_ppm_about),
-                                  ("Pref", self.__on_ppm_pref),
-                                  ("Reload", self.reload)]
-            self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
-            self.applet_origin_x = -1000
-            self.applet_origin_y = -1000
-            # background bug workaround
-            self.applet.set_background_widget(applet)
-            self.applet.show_all()
-            self.applet.connect("delete-event", self.__cleanup)
-        else:
-            self.orient = "down"
-            self.groups = GroupList(self, self.orient)
-
-                        
-        # Most of initializion must happen after dockbarx is
-        # realized since python gnomeapplets crash if they
-        # take too much time to realize.
-        if not awn_applet and not run_as_dock:
-            gobject.idle_add(self.__load_on_realized)
-
-    def __load_on_realized(self):
-        while gtk.events_pending():
-                    gtk.main_iteration(False)
-        self.load()
-
+    #### Parent functions
+    # The dock/applet/widget interacts with dockbar through these functions.
+    
     def load(self):
+        """Loads DockbarX. Should be run once DockbarX is initiated."""
+        
+        # Most things are imported here instead of immediately at startup 
+        # since python gnomeapplet must be realized quickly to avoid crashes.
         global subprocess
         import subprocess
         global gio
@@ -513,38 +475,39 @@ class DockBar():
         from dbx_dbus import DockbarDBus
         global UnityWatcher
         from unity import UnityWatcher
-        
+
+        # Media Controls
         self.media_controls = {}
         self.mpris = Mpris2Watch(self)
+
+        # Dbus
         self.dbus = DockbarDBus(self)
 
-        self.gkeys = {
-                        "gkeys_select_next_group": None,
-                        "gkeys_select_previous_group": None,
-                        "gkeys_select_next_window": None,
-                        "gkeys_select_previous_window": None
-                     }
-
+        # Wnck for controlling windows
         wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.screen.force_update()
-        if self.applet is not None:
-            self.applet.connect("size-allocate", self.__on_applet_size_alloc)
-            self.applet.connect("change_background",
-                                self.__on_change_background)
-            self.applet.connect("change-orient", self.__on_change_orient)
+
+        # Keybord shortcut stuff
+        self.gkeys = {"gkeys_select_next_group": None,
+                      "gkeys_select_previous_group": None,
+                      "gkeys_select_next_window": None,
+                      "gkeys_select_previous_window": None}
         self.__gkeys_changed(dialog=False)
         self.__init_number_shortcuts()
         self.globals.connect("gkey-changed", self.__gkeys_changed)
         self.globals.connect("use-number-shortcuts-changed",
                              self.__init_number_shortcuts)
+
+        # Unity stuff
         self.unity_watcher = UnityWatcher(self)
         if self.globals.settings["unity"]:
             self.unity_watcher.start()
         self.globals.connect("unity-changed", self.__on_unity_changed)
         
-        #--- Generate Gio apps
+        # Generate Gio apps so that windows and .desktop files
+        # can be matched correctly with eachother.
         self.apps_by_id = {}
         self.app_ids_by_exec = {}
         self.app_ids_by_name = {}
@@ -582,33 +545,36 @@ class DockBar():
                         self.app_ids_by_exec[exe] = id
                     else:
                         self.app_ids_by_exec[exe] = id
+                        
         self.reload()
-        return False
-
 
     def reload(self, event=None, data=None):
+        """Reloads DockbarX."""
+        logger.info("DockbarX reload")
+        # Clear away the old stuff, if any.
         if self.windows:
             # Remove windows and unpinned group buttons
             for win in self.screen.get_windows():
                 self.__on_window_closed(None, win)
         # Remove pinned group buttons
-        for group in self.groups:
-            self.groups.remove(group)
-        disconnect(self.globals)
-        self.groups.destroy()
-        del self.groups
+        if self.groups is not None:
+            for group in self.groups:
+                self.groups.remove(group)
+            self.groups.destroy()
+            del self.groups
         del self.skip_tasklist_windows
         del self.windows
+        disconnect(self.globals)
         if self.theme:
             self.theme.remove()
-        gc.collect()
-
+            
+        # Start building up stuff again.
         self.skip_tasklist_windows = []
-
-        logger.info("DockbarX reload")
         self.windows = {}
         self.globals.set_shown_popup(None)
         self.next_group = None
+
+        # Reload theme.
         try:
             if self.theme is None:
                 self.theme = Theme()
@@ -618,11 +584,13 @@ class DockBar():
             logger.exception("Error: Couldn't find any themes")
             sys.exit(1)
 
+        # Reload popup style.
         if self.popup_style is None:
             self.popup_style = PopupStyle()
         else:
             self.popup_style.reload()
 
+        # Set up groups.
         self.groups = GroupList(self, self.orient)
         self.groups.set_spacing(self.theme.get_gap())
         self.groups.set_aspect_ratio(self.theme.get_aspect_ratio())
@@ -667,20 +635,26 @@ class DockBar():
 
         self.__on_active_window_changed(self.screen, None)
 
+
     def set_orient(self, orient):
+        """ Set the orient (up, down, left or right) and prepares the container.
+
+            Don't forget to add the new container
+            to the dock/applet/widget afterwards."""
         if orient == self.orient:
             return
-        if self.applet:
-            self.applet.remove(self.groups.box)
         self.orient = orient
+        if self.groups is None:
+            return
         self.groups.set_orient(orient)
+        
+        # Set aspect ratio and spacing.
         if self.orient in ("up", "down"):
             aspect_ratio = self.theme.get_aspect_ratio(False)
         else:
             aspect_ratio = self.theme.get_aspect_ratio(True)
         self.groups.set_aspect_ratio(aspect_ratio)
-        if self.applet:
-            self.applet.add(self.groups.box)
+        self.groups.set_spacing(self.theme.get_gap())
         
         # Add the group buttons to the new container.
         for group in self.groups:
@@ -694,33 +668,85 @@ class DockBar():
             if orient in ("left", "right"):
                 group.popup.point("left")
                 
-        self.groups.set_spacing(self.theme.get_gap())
         if self.globals.settings["show_only_current_desktop"]:
             self.__on_desktop_changed()
-        self.groups.manage_size_overflow()
-        if self.globals.get_locked_popup():
-            group = self.globals.get_locked_popup().group_r()
+        #~ self.groups.manage_size_overflow() # Don't think line does anything useful here. Remove if everything looks OK.
+        
+        # If a floating window panel is shown, close it.
+        lp = self.globals.get_locked_popup()
+        if lp:
+            group = lp.group_r()
             group.remove_locked_popup()
             group.add_locked_popup()
-        
+
+    def get_orient(self):
+        """Returns orient of DockbarX"""
+        return self.orient
+
+    def get_container(self):
+        """Returns the HBox/VBox that contains all group buttons"""
+        return self.groups.box
+
+    def get_windows(self):
+        """Returns the dict of wnck windows and identifiers"""
+        return self.windows
+
+    def dockbar_moved(self):
+        """This method should be called when dockbar has been moved"""
+        # Inform all groups about the change.
+        if self.groups:
+            for group in self.groups:
+                group.button.dockbar_moved()
+
+    def set_size(self, size):
+        """Manualy set and update the size of group buttons"""
+        for group in self.groups:
+            group.button.icon_factory.set_size(size)
+            group.button.update_state(force_update=True)
+
+    def set_max_size(self, max_size):
+        """Set the max size DockbarX is allowed to occupy."""
+        self.groups.set_max_size(max_size)
+
+    def set_parent_window_reporting(self, report):
+        """If True, dockbarx reports to the parent when windows are added or removed"""
+        self.parent_window_reporting = report
+
+    def set_parent_handles_menu(self, handles_menu):
+        """If True, the create_popup_menu function of the parent will be used instead of dockbar's own."""
+        self.parent_handles_menu = handles_menu
+
+    def set_keyboard_show_dock(self, keyboard_show_dock):
+        """For DockX. If true the dock is shown when dockbarx keyboard shortcuts are used."""
+        self.keyboard_show_dock = keyboard_show_dock
+
+    def set_no_theme_change_reload(self, no_theme_change_reload):
+        """If True, the dockbar won't reload automatically on theme change."""
+        self.no_theme_change_reload = no_theme_change_reload
+
+    def set_no_dbus_reload(self, no_dbus_reload):
+        """If True, the dockbar won't reload on dbus reload signal."""
+        self.no_dbus_reloadd = no_dbus_reload
+
+    def set_expose_on_clear(self, expose_on_clear):
+        """If True group button surfaces will be cleared with the clear_area_e function."""
+        self.expose_on_clear = expose_on_clear
+
     def open_preference(self):
         # Starts the preference dialog
         os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
                    "/usr/bin/dbx_preference")
-
-    def __on_theme_changed(self, *args):
-        if not self.is_dock:
-            self.reload()
-
+                   
+    #### Menu
     def create_popup_menu(self, event):
-        if self.is_dock:
-            self.parent_window.create_popup_menu(event)
+        if self.parent_handles_menu:
+            self.parent.create_popup_menu(event)
             return
         menu = gtk.Menu()
         menu.connect("selection-done", self.__menu_closed)
         preference_item = gtk.ImageMenuItem("gtk-properties", "Preference")
         menu.append(preference_item)
-        preference_item.connect("activate", self.__on_ppm_pref)
+        preference_item.connect("activate", self.on_ppm_pref)
         preference_item.show()
         reload_item = gtk.ImageMenuItem("gtk-refresh", "Reload")
         menu.append(reload_item)
@@ -737,50 +763,15 @@ class DockBar():
         self.globals.gtkmenu_showing = False
         menushell.destroy()
 
-    #### Applet events
-    def __on_ppm_pref(self,event=None,data=None):
+    def on_ppm_pref(self,event=None,data=None):
         self.open_preference()
 
-    def __on_ppm_about(self,event,data=None):
+    def on_ppm_about(self,event,data=None):
         AboutDialog()
 
-    def __on_applet_size_alloc(self, widget, allocation):
-        if widget.window:
-            x,y = widget.window.get_origin()
-            if x!=self.applet_origin_x or y!=self.applet_origin_y:
-                # Applet and/or panel moved, 
-                # icon_geo needs to be updated
-                self.applet_origin_x = x
-                self.applet_origin_y = y
-                if self.groups:
-                    for group in self.groups:
-                        group.button.dockbar_moved()
-
-    def __on_change_orient(self, arg1, data):
-        orients = {gnomeapplet.ORIENT_DOWN: "down",
-                   gnomeapplet.ORIENT_UP: "up",
-                   gnomeapplet.ORIENT_LEFT: "left",
-                   gnomeapplet.ORIENT_RIGHT: "right"}
-        self.set_orient(orients[self.applet.get_orient()])
-
-    def __on_change_background(self, applet, type, color, pixmap):
-        applet.set_style(None)
-        rc_style = gtk.RcStyle()
-        applet.modify_style(rc_style)
-        if type == gnomeapplet.COLOR_BACKGROUND:
-            applet.modify_bg(gtk.STATE_NORMAL, color)
-        elif type == gnomeapplet.PIXMAP_BACKGROUND:
-            style = applet.style
-            style.bg_pixmap[gtk.STATE_NORMAL] = pixmap
-            applet.set_style(style)
-        return
-
-    def __cleanup(self,event):
-        del self.applet
-        
-
-        
-
+    def __on_theme_changed(self, *args):
+        if not self.no_theme_change_reload:
+            self.reload()
 
     #### Wnck events
     def __on_active_window_changed(self, screen, previous_active_window):
@@ -796,9 +787,8 @@ class DockBar():
 
     def __on_window_closed(self, screen, window):
         if window in self.windows:
-            if self.is_dock or self.awn_applet:
-                dock = self.parent_window or self.awn_applet
-                dock.remove_window(window)
+            if self.parent_window_reporting:
+                self.parent.remove_window(window)
             disconnect(window)
             self.__remove_window(window)
         if window in self.skip_tasklist_windows:
@@ -813,23 +803,20 @@ class DockBar():
             self.skip_tasklist_windows.append(window)
             return
         self.__add_window(window)
-        if self.is_dock or self.awn_applet:
-            dock = self.parent_window or self.awn_applet
-            dock.add_window(window)
+        if self.parent_window_reporting:
+            self.parent.add_window(window)
 
     def __on_window_state_changed(self, window, changed_mask, new_state):
         if window in self.skip_tasklist_windows and \
            not window.is_skip_tasklist():
             self.__add_window(window)
             self.skip_tasklist_windows.remove(window)
-            if self.is_dock or self.awn_applet:
-                dock = self.parent_window or self.awn_applet
-                dock.add_window(window)
+            if self.parent_window_reporting:
+                self.parent.add_window(window)
         if window.is_skip_tasklist() and \
            not window in self.skip_tasklist_windows:
-            if self.is_dock or self.awn_applet:
-                dock = self.parent_window or self.awn_applet
-                dock.remove_window(window)
+            if self.parent_window_reporting:
+                self.parent.remove_window(window)
             self.__remove_window(window)
             self.skip_tasklist_windows.append(window)
 
@@ -1702,11 +1689,10 @@ class DockBar():
         self.__select_previous_window_in_group()
 
     def __grab_keyboard(self, keystr):
-        applet = self.parent_window or self.applet or self.awn_applet
-        if applet:
-            gtk.gdk.keyboard_grab(applet.window)
-            connect(applet, "key-release-event", self.__key_released)
-            connect(applet, "key-press-event", self.__key_pressed)
+        if self.parent:
+            gtk.gdk.keyboard_grab(self.parent.window)
+            connect(self.parent, "key-release-event", self.__key_released)
+            connect(self.parent, "key-press-event", self.__key_pressed)
 
             # Find the mod key(s) which realse should finnish the selection.
             mod_keys = ["Control", "Super", "Alt"]
@@ -1721,8 +1707,8 @@ class DockBar():
             if not self.mod_keys:
                 self.mod_keys = mod_keys
             
-            if self.is_dock:
-                applet.show_dock()
+            if self.keyboard_show_dock:
+                self.parent.show_dock()
 
     def __select_next_group(self, previous=False):
         if len(self.groups) == 0:
@@ -1832,9 +1818,8 @@ class DockBar():
                             group.action_launch_application()
                 self.next_group = None
                 gtk.gdk.keyboard_ungrab()
-                applet = self.parent_window or self.applet or self.awn_applet
-                if applet:
-                    disconnect(applet)
+                if self.parent:
+                    disconnect(self.parent)
                 break
 
     def __init_number_shortcuts(self, *args):
@@ -1868,27 +1853,26 @@ class DockBar():
         except IndexError:
             return
         windows = group.get_windows()
-        applet = self.parent_window or self.applet or self.awn_applet
         if len(windows) > 1:
             group.action_select_next(keyboard_select=True)
             if self.next_group is not None and self.next_group != group:
                 self.next_group.scrollpeak_abort()
             self.next_group = group
-            if applet and not keyboard_grabbed:
-                gtk.gdk.keyboard_grab(applet.window)
-                connect(applet, "key-release-event", self.__key_released)
-                connect(applet, "key-press-event", self.__key_pressed)
+            if self.parent and not keyboard_grabbed:
+                gtk.gdk.keyboard_grab(self.parent.window)
+                connect(self.parent, "key-release-event", self.__key_released)
+                connect(self.parent, "key-press-event", self.__key_pressed)
                 self.mod_keys = ["Super"]
         else:
             gtk.gdk.keyboard_ungrab()
             if self.next_group:
                 self.next_group.scrollpeak_abort()
-            if applet:
-                disconnect(applet)
+            if self.parent:
+                disconnect(self.parent)
             self.next_group = None
-            if self.is_dock:
-                self.parent_window.show()
-                gobject.timeout_add(600, self.parent_window.show_dock)
+            if self.keyboard_show_dock:
+                self.parent.show()
+                gobject.timeout_add(600, self.parent.show_dock)
         if not windows:
             success = False
             if group.media_controls:

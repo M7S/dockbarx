@@ -1384,7 +1384,7 @@ class GroupButton(CairoAppButton):
                     }
 
     def __init__(self, group):
-        CairoAppButton.__init__(self, None, group.dockbar_r().is_dock)
+        CairoAppButton.__init__(self, None, group.dockbar_r().expose_on_clear)
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.group_r = weakref.ref(group)
         self.mouse_over = False

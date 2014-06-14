@@ -40,7 +40,7 @@ class DockbarDBus(dbus.service.Object):
                          in_signature="", out_signature="",)
     def Reload(self):
         dockbar = self.dockbar_r()
-        if not dockbar.is_dock:
+        if not dockbar.no_dbus_reload:
             dockbar.reload()
 
     @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,

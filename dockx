@@ -55,7 +55,6 @@ class CairoDockX(gtk.Window):
         self.set_accept_focus(False)
         self.set_decorated(False)
         self.set_resizable(False)
-        self.dockbar_allocation = None
         gtk_screen = gtk.gdk.screen_get_default()
         colormap = gtk_screen.get_rgba_colormap()
         if colormap is None:
@@ -101,7 +100,8 @@ class CairoDockX(gtk.Window):
         if self.is_composited():
             if self.dockbar is not None:
                 ctx.set_source_rgba(1, 1, 1, 1)
-                ctx.rectangle(*self.dockbar.groups.box.get_allocation())
+                a = self.dockbar.get_container().get_allocation()
+                ctx.rectangle(*a)
                 ctx.fill()
         w, h = self.__set_rotation(pos, ctx, w, h)
         stroke_path, fill_path = self.__make_path(ctx, w, h, bar2=False)
@@ -498,9 +498,13 @@ class DockX(CairoDockX):
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
         self.db_loaded = False
-        self.dockbar = dockbarx.dockbar.DockBar(None,
-                                                parent_window=self,
-                                                run_as_dock=True)
+        self.dockbar = dockbarx.dockbar.DockBar(parent=self)
+        self.dockbar.set_parent_handles_menu(True)
+        self.dockbar.set_parent_window_reporting(True)
+        self.dockbar.set_no_theme_change_reload(True)
+        self.dockbar.set_no_dbus_reload(True)
+        self.dockbar.set_keyboard_show_dock(True)
+        self.dockbar.set_expose_on_clear(True)
         self.dockbar.load()
         self.db_loaded = True
         CairoDockX.__init__(self)
@@ -551,7 +555,7 @@ class DockX(CairoDockX):
         pos = self.globals.settings["dock/position"]
         orient = {"top": "up", "left": "left",
                    "right": "right", "bottom": "down"}[pos]
-        if self.dockbar.orient != orient or not self.box.get_children():
+        if self.dockbar.get_orient() != orient or not self.box.get_children():
             self.dockbar.set_orient(orient)
             rebuild = True
         if rebuild:
@@ -595,11 +599,7 @@ class DockX(CairoDockX):
             self.move(x, y)
             self.old_x = x
             self.old_y = y
-        for group in self.dockbar.groups:
-            group.button.icon_factory.set_size(db_size)
-            group.button.update_state(force_update=True)
-        #TODO: Does this line do anything? Is it safe to remove?
-        self.dockbar_allocation = self.dockbar.groups.box.get_allocation()
+        self.dockbar.set_size(db_size)
 
     def __rebuild(self):
         self.__destroy_old()
@@ -687,7 +687,7 @@ class DockX(CairoDockX):
             if name == "Spacer":
                 continue
             if name == "DockbarX":
-                applet = self.dockbar.groups.box
+                applet = self.dockbar.get_container()
                 expand = False
             else:
                 appletscr = self.applets.get(name)
@@ -730,9 +730,9 @@ class DockX(CairoDockX):
         return boxes
 
     def __dockbar_set_expand(self, box, expand):
-        cp = box.query_child_packing(self.dockbar.groups.box)
+        cp = box.query_child_packing(self.dockbar.get_container())
         cp = (expand, expand, cp[2], cp[3])
-        box.set_child_packing(self.dockbar.groups.box, *cp)
+        box.set_child_packing(self.dockbar.get_container(), *cp)
         
     def connect_applet_signals(self):
         # Adds size-allocate signals for all applets.
@@ -1047,7 +1047,7 @@ class DockX(CairoDockX):
             return True
         self.should_autohide = False
         active_workspace = self.screen.get_active_workspace()
-        for window in self.dockbar.windows:
+        for window in self.dockbar.get_windows():
             if window.is_minimized():
                 continue
             if beh == "dodge active window" and not window.is_active():
@@ -1102,7 +1102,7 @@ class DockX(CairoDockX):
                     gobject.source_remove(self.autounhide_sid)
                     self.autounhide_sid = None
                 self.show()
-                for window in self.dockbar.windows:
+                for window in self.dockbar.get_windows():
                     self.remove_window(window,
                                        reset_should_autohide=False,
                                        forced=True)
@@ -1110,7 +1110,7 @@ class DockX(CairoDockX):
             if not self.autohide:
                 self.autohide = True
                 self.hide_dock()
-                for window in self.dockbar.windows:
+                for window in self.dockbar.get_windows():
                     self.add_window(window, reset_should_autohide=False)
             self.__compute_should_autohide()
         self.position_dock()
@@ -1156,7 +1156,7 @@ class DockX(CairoDockX):
                 for app in self.position_boxes[i]:
                     if isinstance(app, DockXApplet) and not app.get_expand():
                         asizes[i] = asizes[i] + app.get_applet_size()
-                    elif app == self.dockbar.groups.box:
+                    elif app == self.dockbar.get_container():
                         dockbar_in_box = i
         else:
             for app in self.box:
@@ -1194,7 +1194,7 @@ class DockX(CairoDockX):
             max_size = max_size - o
         if max_size != self.dockbar_max_size:
             self.dockbar_max_size = max_size
-            self.dockbar.groups.set_max_size(max_size)
+            self.dockbar.set_max_size(max_size)
                 
 
     def get_monitor_geometry(self):

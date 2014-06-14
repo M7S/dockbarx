@@ -35,7 +35,7 @@ from log import logger
 class CairoAppButton(gtk.EventBox):
     __gsignals__ = {"expose-event" : "override",
                     "size_allocate": "override"}
-    def __init__(self, surface=None, in_dock=False):
+    def __init__(self, surface=None, expose_on_clear=False):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.area = gtk.Alignment(0, 0, 1, 1)
@@ -43,7 +43,7 @@ class CairoAppButton(gtk.EventBox):
         self.area.show()
         self.globals = Globals()
         self.surface = surface
-        self.in_dock = in_dock
+        self.expose_on_clear = expose_on_clear
         self.badge = None
         self.badge_text = None
         self.progress_bar = None
@@ -59,7 +59,7 @@ class CairoAppButton(gtk.EventBox):
             self.surface = surface
         if self.window is None:
             return
-        if self.in_dock:
+        if self.expose_on_clear:
             self.area.window.clear_area_e(a.x, a.y, a.width, a.height)
         else:
             self.area.window.clear_area(a.x, a.y, a.width, a.height)

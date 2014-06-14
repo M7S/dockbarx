@@ -29,6 +29,7 @@ pygtk.require("2.0")
 import gtk
 import gnomeapplet
 import dockbarx.dockbar
+import gobject
 
 class DockBarWindow():
     """DockBarWindow sets up the window if run-in-window is used."""
@@ -42,8 +43,7 @@ class DockBarWindow():
 
         applet = gnomeapplet.Applet()
         applet.reparent(self.window)
-        self.dockbar = dockbarx.dockbar.DockBar(applet,
-                                                parent_window=self.window)
+        self.dockbar = dockbarx.dockbar.DockBar(self)
 
     def __on_pref_clicked(self, *args):
         self.dockbar.open_preference()
@@ -54,11 +54,99 @@ class DockBarWindow():
     def main(self):
         gtk.main()
 
+class DockbarGnomeapplet():
+    def __init__(self, applet):
+        self.applet = applet
+        self.dockbar = dockbarx.dockbar.DockBar(applet)
+        applet.set_applet_flags(gnomeapplet.HAS_HANDLE | \
+                                gnomeapplet.EXPAND_MINOR | \
+                                gnomeapplet.EXPAND_MAJOR)
+        orients = {gnomeapplet.ORIENT_DOWN: "down",
+                   gnomeapplet.ORIENT_UP: "up",
+                   gnomeapplet.ORIENT_LEFT: "left",
+                   gnomeapplet.ORIENT_RIGHT: "right"}
+        self.dockbar.set_orient(orients[applet.get_orient()])
+        self.pp_menu_xml = """
+       <popup name="button3">
+       <menuitem name="About Item" verb="About" stockid="gtk-about" />
+       <menuitem name="Preferences" verb="Pref" stockid="gtk-properties" />
+       <menuitem name="Reload" verb="Reload" stockid="gtk-refresh" />
+       </popup>
+        """
+
+        self.pp_menu_verbs = [("About", self.dockbar.on_ppm_about),
+                              ("Pref", self.dockbar.on_ppm_pref),
+                              ("Reload", self.dockbar.reload)]
+        applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs,None)
+
+        # Set the applet coordinates to be way ofscreen until they've
+        # been set correctly by a size allocate call.
+        self.applet_origin_x = -1000
+        self.applet_origin_y = -1000
+        #~ applet.connect("delete-event", self.__cleanup)
+        # Background bug workaround
+        applet.set_background_widget(applet)
+        applet.show_all()
+        
+        # Most of initializion must happen after dockbarx is
+        # realized since python gnomeapplets crash if it
+        # takes too long to realize.
+        gobject.idle_add(self.__load_on_realized)
+
+    def __load_on_realized(self):
+        # Wait while gtk events are pending.
+        while gtk.events_pending():
+                    gtk.main_iteration(False)
+        # Load DockbarX.
+        self.dockbar.load()
+        # Add it to the applet.
+        self.applet.add(self.dockbar.get_container())
+        # Connect events.
+        self.applet.connect("size-allocate", self.__on_applet_size_alloc)
+        self.applet.connect("change_background", self.__on_change_background)
+        self.applet.connect("change-orient", self.__on_change_orient)
+
+    def __on_applet_size_alloc(self, widget, allocation):
+        if not widget.window:
+            return
+        x,y = widget.window.get_origin()
+        if x == self.applet_origin_x or y == self.applet_origin_y:
+            # Nothing moved.
+            return
+        # Applet and/or panel moved, 
+        # icon_geo needs to be updated.
+        self.applet_origin_x = x
+        self.applet_origin_y = y
+        self.dockbar.dockbar_moved()
+
+    def __on_change_orient(self, arg1, data):
+        orients = {gnomeapplet.ORIENT_DOWN: "down",
+                   gnomeapplet.ORIENT_UP: "up",
+                   gnomeapplet.ORIENT_LEFT: "left",
+                   gnomeapplet.ORIENT_RIGHT: "right"}
+        self.applet.remove(self.dockbar.get_container())
+        self.dockbar.set_orient(orients[self.applet.get_orient()])
+        self.applet.add(self.dockbar.get_container())
+
+    def __on_change_background(self, applet, type, color, pixmap):
+        applet.set_style(None)
+        rc_style = gtk.RcStyle()
+        applet.modify_style(rc_style)
+        if type == gnomeapplet.COLOR_BACKGROUND:
+            applet.modify_bg(gtk.STATE_NORMAL, color)
+        elif type == gnomeapplet.PIXMAP_BACKGROUND:
+            style = applet.style
+            style.bg_pixmap[gtk.STATE_NORMAL] = pixmap
+            applet.set_style(style)
+        return
+
+    def __cleanup(self,event):
+        pass
+        
+
 
 def dockbar_factory(applet, iid):
-    dockbar = dockbarx.dockbar.DockBar(applet)
-    applet.set_background_widget(applet)
-    applet.show_all()
+    DockbarGnomeapplet(applet)
     return True
 
 if len(sys.argv) == 2 and sys.argv[1] == "run-in-window":

@@ -57,11 +57,12 @@ class DockBarApp (awn.AppletSimple):
         self.alignment = gtk.Alignment()
         self.add(self.alignment)
         self.alignment.show()
-        self.db = dockbarx.dockbar.DockBar(awn_applet=self)
+        self.db = dockbarx.dockbar.DockBar(self)
+        self.db.set_parent_window_reporting(True)
         self.db.load()
         
         # Inactive dockbarx's size overflow management
-        self.db.groups.max_size = 3000
+        self.db.set_max_size(3000)
         
         if self.get_pos_type() == gtk.POS_RIGHT:
             self.db.set_orient("right")
@@ -75,39 +76,41 @@ class DockBarApp (awn.AppletSimple):
         else:
             self.db.set_orient("down")
             self.alignment.set(0, 1, 0, 0)
-        if self.db.orient in ("down", "up"):
-            self.db.container.set_size_request(-1, self.get_size() + \
+        container = self.db.get_container()
+        if self.db.get_orient() in ("down", "up"):
+            container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 5)
         else:
-            self.db.container.set_size_request(self.get_size() + \
+            container.set_size_request(self.get_size() + \
                                                self.icon.get_offset() + 5, -1)
-        self.alignment.add(self.db.container)
+        self.alignment.add(container)
         self.connect("size-changed", self.__on_size_changed)
         self.connect("offset-changed", self.__on_size_changed)
         self.connect("position-changed", self.__on_position_changed)
         self.globals.connect("awn-behavior-changed",
                              self.__on_behavior_changed)
-        self.db.container.show()
+        container.show_all()
         self.show()
         self.wnck_screen.connect("active-window-changed",
                                  self.__on_active_window_changed)
         gobject.timeout_add(200, self.__update_autohide)
-        for window in self.db.windows:
+        for window in self.db.get_windows():
             self.add_window(window)
         self.db_loaded = True
         self.__compute_should_autohide()
 
     def __on_size_changed(self, *args):
-        if self.db.orient in ("down", "up"):
-            self.db.container.set_size_request(-1, self.get_size() + \
+        container = self.db.get_container()
+        if self.db.get_orient() in ("down", "up"):
+            container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 5)
         else:
-            self.db.container.set_size_request(self.get_size() + \
+            container.set_size_request(self.get_size() + \
                                                self.icon.get_offset() + 5, -1)
         self.__compute_should_autohide()
 
     def __on_position_changed(self, applet, position):
-        self.alignment.remove(self.db.container)
+        self.alignment.remove(self.db.get_container())
         if self.get_pos_type() == gtk.POS_RIGHT:
             self.db.set_orient("right")
             self.alignment.set(1, 0, 0, 0)
@@ -120,14 +123,15 @@ class DockBarApp (awn.AppletSimple):
         else:
             self.db.set_orient("down")
             self.alignment.set(0, 1, 0, 0)
-        if self.db.orient in ("up", "down"):
-            self.db.container.set_size_request(-1, self.get_size() + \
+        container = self.db.get_container()
+        if self.db.get_orient() in ("up", "down"):
+            container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 5)
         else:
-            self.db.container.set_size_request(self.get_size() + \
+            container.set_size_request(self.get_size() + \
                                                self.icon.get_offset() + 5, -1)
-        self.alignment.add(self.db.container)
-        self.db.container.show()
+        self.alignment.add(container)
+        container.show_all()
         self.show()
         self.__compute_should_autohide()
 
@@ -216,7 +220,7 @@ class DockBarApp (awn.AppletSimple):
             return True
         self.should_autohide = False
         active_workspace = self.wnck_screen.get_active_workspace()
-        for window in self.db.windows:
+        for window in self.db.get_windows():
             if window.is_minimized():
                 continue
             if self.behavior == "dodge active window" and \
