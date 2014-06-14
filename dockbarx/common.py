@@ -68,6 +68,11 @@ def compiz_call_async(obj_path, func_name, *args):
         func(reply_handler=compiz_reply_handler,
              error_handler=compiz_error_handler, *args)
 
+def check_program(name):
+    for dir in os.environ['PATH'].split(':'):
+        prog = os.path.join(dir, name)
+        if os.path.exists(prog): return prog
+
 class Connector():
     """A class to simplify disconnecting of signals"""
     def __init__(self):

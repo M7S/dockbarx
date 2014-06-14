@@ -1292,8 +1292,15 @@ class DockBar():
                 os.system("cp %s %s"%(path, new_path))
         else:
             new_path = os.path.join(launcher_dir, "%s.desktop"%identifier)
-        process = subprocess.Popen(["gnome-desktop-item-edit", new_path],
-                                   env=os.environ)
+        programs = ("gnome-desktop-item-edit",
+                    "exo-desktop-item-edit")
+        for program in programs:
+            if check_program(program):
+                break
+        else:
+            logger.warning("Error: Found no program for editing .desktop files.")
+            return
+        process = subprocess.Popen([program, new_path], env=os.environ)
         gobject.timeout_add(100, self.__wait_for_launcher_editor,
                             process, path, new_path, identifier)
 
