@@ -1,4 +1,12 @@
 Changelog:
+0.91
+- DockbarX should now be able to handle situations where there are too many open applications to show them all in dockbarx.
+- Battery applet added for DockX.
+- Bug #652386 and Bug #1120940: DockbarX no longer freeze when there are more windows open than can fit into the window list.
+- Bug #1314868: A graphical glitch fixed. Icons no longer has junk pixels around them.
+- Code cleanups and possibly also some speedups.
+- Other small fixes.
+
 0.90.3
 Bug fixes:
 - Volume-control was not installed with the rest of the applets.

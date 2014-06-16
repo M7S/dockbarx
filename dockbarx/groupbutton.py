@@ -662,6 +662,8 @@ class Group(ListOfWindows):
         self.zg_recent_files = None
         self.zg_related_files = None
         self.zg_recent_today_files = None
+        if self.desktop_entry is None:
+            return
         appname = self.desktop_entry.getFileName().split("/")[-1]
         try:
             zg.get_recent_for_app(appname, days=30,
