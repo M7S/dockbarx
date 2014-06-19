@@ -256,7 +256,7 @@ class DockBarApp (awn.AppletSimple):
 
     def readd_container(self, container):
         # Dockbar calls back with this function when it is reloaded
-        # unless it's reloaded with tell_parent=True
+        # unless it's reloaded with tell_parent=False
         if self.db.get_orient() in ("up", "down"):
             container.set_size_request(-1, self.get_size() + \
                                                self.icon.get_offset() + 5)
