@@ -17,8 +17,8 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 import time
 import os
 from dockbarx.applets import DockXApplet, DockXAppletDialog
@@ -35,9 +35,9 @@ class ClockApplet(DockXApplet):
 
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        alignment = gtk.Alignment(xalign=0.5, yalign=0.5)
+        alignment = Gtk.Alignment.new(xalign=0.5, yalign=0.5)
         self.add(alignment)
-        self.label = gtk.Label()
+        self.label = Gtk.Label()
         self.label.set_use_markup(True)
         alignment.add(self.label)
         alignment.show_all()
@@ -52,11 +52,11 @@ class ClockApplet(DockXApplet):
                                               DEFAULT_CUSTOM_FORMAT)
         self.command = self.get_setting("command", DEFAULT_COMMAND)
         self.update()
-        gobject.timeout_add(1000, self.update)
+        GObject.timeout_add(1000, self.update)
         self.connect("clicked", self.on_clicked)
 
-        self.menu = gtk.Menu()
-        preferences_item = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+        self.menu = Gtk.Menu()
+        preferences_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
         preferences_item.connect('activate', self.open_preferences)
         self.menu.insert(preferences_item, 0)
         self.menu.show_all()
@@ -122,68 +122,68 @@ class ClockAppletPreferences(DockXAppletDialog):
     
     def __init__(self, applet_name):
         DockXAppletDialog.__init__(self, applet_name)
-        table = gtk.Table(2, 3)
-        self.vbox.pack_start(table)
+        table = Gtk.Table(2, 3)
+        self.vbox.pack_start(table, True, True, 0)
         
-        self.font_button = gtk.FontButton()
+        self.font_button = Gtk.FontButton()
         self.font_button.set_use_font(True)
         self.font_button.set_use_size(True)
         self.font_button.set_show_style(True)
-        label = gtk.Label(_("Font:"))
+        label = Gtk.Label(label=_("Font:"))
         table.attach(label, 0, 1, 0, 1)
         self.font_button.set_title(_("Clock font"))
         self.font_button.connect("font_set", self.__set_font)
         table.attach(self.font_button, 1, 2, 0, 1)
         
-        label = gtk.Label(_("Color:"))
+        label = Gtk.Label(label=_("Color:"))
         table.attach(label, 0, 1, 1, 2)
-        self.color_button = gtk.ColorButton()
+        self.color_button = Gtk.ColorButton()
         self.color_button.set_title(_("Font color"))
         self.color_button.connect("color-set",  self.__color_set)
         table.attach(self.color_button, 1, 2, 1, 2)
 
-        self.date_cb = gtk.CheckButton(_("Show Date"))
+        self.date_cb = Gtk.CheckButton(_("Show Date"))
         self.date_cb.connect("toggled", self.__cb_toggled, "show_date")
         table.attach(self.date_cb, 1, 2, 2, 3)
 
-        frame = gtk.Frame()
-        self.vbox.pack_start(frame)
-        vbox = gtk.VBox()
+        frame = Gtk.Frame()
+        self.vbox.pack_start(frame, True, True, 0)
+        vbox = Gtk.VBox()
         frame.add(vbox)
-        self.custom_clock_cb = gtk.CheckButton(_("Use custom clock"))
+        self.custom_clock_cb = Gtk.CheckButton(_("Use custom clock"))
         self.custom_clock_cb.connect("toggled",
                                      self.__cb_toggled, "use_custom_format")
-        vbox.pack_start(self.custom_clock_cb)
-        hbox = gtk.HBox()
-        vbox.pack_start(hbox)
-        self.cf_entry = gtk.Entry()
+        vbox.pack_start(self.custom_clock_cb, True, True, 0)
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, True, True, 0)
+        self.cf_entry = Gtk.Entry()
         self.cf_entry.set_tooltip_text("The format is identical to gnome-panel clock's custom format. Google 'gnome-panel custom clock' for exampels.")
-        hbox.pack_start(self.cf_entry)
-        self.cf_button = gtk.Button()
-        image = gtk.image_new_from_stock(gtk.STOCK_APPLY,
-                                         gtk.ICON_SIZE_SMALL_TOOLBAR)
+        hbox.pack_start(self.cf_entry, True, True, 0)
+        self.cf_button = Gtk.Button()
+        image = Gtk.Image.new_from_stock(Gtk.STOCK_APPLY,
+                                         Gtk.IconSize.SMALL_TOOLBAR)
         self.cf_button.add(image)
         self.cf_button.connect("clicked", self.__set_custom_format)
-        hbox.pack_start(self.cf_button)
+        hbox.pack_start(self.cf_button, True, True, 0)
 
-        hbox = gtk.HBox()
-        self.vbox.pack_start(hbox)
-        label = gtk.Label(_("Text direction: "))
-        hbox.pack_start(label)
-        self.td_cbt = gtk.combo_box_new_text()
+        hbox = Gtk.HBox()
+        self.vbox.pack_start(hbox, True, True, 0)
+        label = Gtk.Label(label=_("Text direction: "))
+        hbox.pack_start(label, True, True, 0)
+        self.td_cbt = Gtk.ComboBoxText()
         self.td_cbt.append_text(_("default"))
         self.td_cbt.append_text(_("left-right"))
         self.td_cbt.append_text(_("top-down"))
         self.td_cbt.append_text(_("bottom-up"))
         self.td_cbt.connect("changed",  self.__text_direction_changed)
-        hbox.pack_start(self.td_cbt)
+        hbox.pack_start(self.td_cbt, True, True, 0)
         
         self.show_all()
 
     def run(self):
         font = self.get_setting("font", "Sans 14")
         self.font_button.set_font_name(font)
-        color = gtk.gdk.color_parse(self.get_setting("color", "#FFFFFF"))
+        color = Gdk.color_parse(self.get_setting("color", "#FFFFFF"))
         self.color_button.set_color(color)
         self.cf_entry.set_text(self.get_setting("custom_format",
                                                 DEFAULT_CUSTOM_FORMAT))
@@ -204,7 +204,7 @@ class ClockAppletPreferences(DockXAppletDialog):
 
     def __color_set(self, button):
         # Read the value from color (and alpha) and write
-        # it as 8-bit/channel hex string for gconf.
+        # it as 8-bit/channel hex string for GConf.
         # (Alpha is written like int (0-255).)
         color = button.get_color().to_string()
         # cs has 16-bit per color, we want 8.

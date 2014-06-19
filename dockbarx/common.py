@@ -19,19 +19,19 @@
 
 
 import os
-import gconf
+from gi.repository import GConf
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
-import gobject
+from gi.repository import GObject
 import xdg.DesktopEntry
 from urllib import unquote
 from time import time
-import gtk
+from gi.repository import Gtk
 import weakref
 import locale
 from log import logger
 
-GCONF_CLIENT = gconf.client_get_default()
+GCONF_CLIENT = GConf.Client.get_default()
 GCONF_DIR = "/apps/dockbarx"
 
 DBusGMainLoop(set_as_default=True) # for async calls
@@ -362,7 +362,7 @@ class Opacify():
                 return
         # If last fade in/out isn't completed abort the rest of it.
         while self.sids:
-            gobject.source_remove(self.sids.popitem()[1])
+            GObject.source_remove(self.sids.popitem()[1])
 
         steps = self.globals.settings["opacify_smoothness"]
         interval = self.globals.settings["opacify_duration"] / steps
@@ -429,7 +429,7 @@ class Opacify():
                 if i == 1:
                     self.__compiz_call(v + values, matches)
                 else:
-                    self.sids[sid] = gobject.timeout_add((i - 1) * interval,
+                    self.sids[sid] = GObject.timeout_add((i - 1) * interval,
                                                          self.__compiz_call,
                                                          v+values,
                                                          None,
@@ -446,7 +446,7 @@ class Opacify():
             for i in range(1, steps+1):
                 v[max_index] = 100 - ( i * (100 - alpha) / steps)
                 sid = time()
-                self.sids[sid] = gobject.timeout_add(i * interval,
+                self.sids[sid] = GObject.timeout_add(i * interval,
                                                      self.__compiz_call,
                                                      v + values,
                                                      None,
@@ -458,7 +458,7 @@ class Opacify():
                 value = 100 - ((steps - i) * (100 - alpha) / steps)
                 v = [max(value, old_value) for old_value in old_values]
                 sid = time()
-                self.sids[sid] = gobject.timeout_add(i * interval,
+                self.sids[sid] = GObject.timeout_add(i * interval,
                                                      self.__compiz_call,
                                                      v + values,
                                                      None,
@@ -466,7 +466,7 @@ class Opacify():
             delay = steps * interval + 1
             sid = time()
             v = [100, alpha, alpha]
-            self.sids[sid] = gobject.timeout_add(delay,
+            self.sids[sid] = GObject.timeout_add(delay,
                                                  self.__compiz_call,
                                                  v + values,
                                                  matches,
@@ -500,66 +500,66 @@ class Opacify():
 
 
 
-class Globals(gobject.GObject):
+class Globals(GObject.GObject):
     """ Globals is a signletron containing all the "global" variables of dockbarx.
 
     It also keeps track of gconf settings and signals changes in gconf to other programs"""
 
     __gsignals__ = {
-        "color2-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "show-only-current-desktop-changed": (gobject.SIGNAL_RUN_FIRST,
-                                              gobject.TYPE_NONE,()),
-        "show-only-current-monitor-changed": (gobject.SIGNAL_RUN_FIRST,
-                                              gobject.TYPE_NONE,()),
-        "theme-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "popup-style-changed": (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,()),
-        "color-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "dockmanager-changed": (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,()),
-        "dockmanager-badge-changed": (gobject.SIGNAL_RUN_FIRST,
-                                      gobject.TYPE_NONE,()),
-        "badge-look-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "progress-bar-look-changed": (gobject.SIGNAL_RUN_FIRST,
-                                      gobject.TYPE_NONE,()),
-        "media-buttons-changed": (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,()),
-        "quicklist-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "unity-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "show-tooltip-changed": (gobject.SIGNAL_RUN_FIRST,
-                                 gobject.TYPE_NONE,()),
-        "show-previews-changed": (gobject.SIGNAL_RUN_FIRST,
-                                  gobject.TYPE_NONE,()),
-        "preview-size-changed": (gobject.SIGNAL_RUN_FIRST,
-                                 gobject.TYPE_NONE,()),
-        "window-title-width-changed": (gobject.SIGNAL_RUN_FIRST,
-                                       gobject.TYPE_NONE,()),
-        "locked-list-in-menu-changed": (gobject.SIGNAL_RUN_FIRST,
-                                         gobject.TYPE_NONE,()),
-        "locked-list-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
-                                         gobject.TYPE_NONE,()),
-        "preference-update": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "gkey-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "use-number-shortcuts-changed": (gobject.SIGNAL_RUN_FIRST,
-                                         gobject.TYPE_NONE,()),
-        "show-close-button-changed": (gobject.SIGNAL_RUN_FIRST,
-                                      gobject.TYPE_NONE,()),
-        "dock-size-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "dock-position-changed": (gobject.SIGNAL_RUN_FIRST,
-                                      gobject.TYPE_NONE,()),
-        "dock-mode-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "dock-offset-changed": (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,()),
-        "dock-overlap-changed": (gobject.SIGNAL_RUN_FIRST,
-                                 gobject.TYPE_NONE,()),
-        "dock-behavior-changed": (gobject.SIGNAL_RUN_FIRST,
-                                  gobject.TYPE_NONE,()),
-        "dock-theme-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "dock-color-changed": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
-        "dock-end-decorations-changed": (gobject.SIGNAL_RUN_FIRST,
-                                  gobject.TYPE_NONE,()),
-        "awn-behavior-changed": (gobject.SIGNAL_RUN_FIRST,
-                                  gobject.TYPE_NONE,())
+        "color2-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "show-only-current-desktop-changed": (GObject.SignalFlags.RUN_FIRST,
+                                              None,()),
+        "show-only-current-monitor-changed": (GObject.SignalFlags.RUN_FIRST,
+                                              None,()),
+        "theme-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "popup-style-changed": (GObject.SignalFlags.RUN_FIRST,
+                                None,()),
+        "color-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "dockmanager-changed": (GObject.SignalFlags.RUN_FIRST,
+                                None,()),
+        "dockmanager-badge-changed": (GObject.SignalFlags.RUN_FIRST,
+                                      None,()),
+        "badge-look-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "progress-bar-look-changed": (GObject.SignalFlags.RUN_FIRST,
+                                      None,()),
+        "media-buttons-changed": (GObject.SignalFlags.RUN_FIRST,
+                                None,()),
+        "quicklist-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "unity-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "show-tooltip-changed": (GObject.SignalFlags.RUN_FIRST,
+                                 None,()),
+        "show-previews-changed": (GObject.SignalFlags.RUN_FIRST,
+                                  None,()),
+        "preview-size-changed": (GObject.SignalFlags.RUN_FIRST,
+                                 None,()),
+        "window-title-width-changed": (GObject.SignalFlags.RUN_FIRST,
+                                       None,()),
+        "locked-list-in-menu-changed": (GObject.SignalFlags.RUN_FIRST,
+                                         None,()),
+        "locked-list-overlap-changed": (GObject.SignalFlags.RUN_FIRST,
+                                         None,()),
+        "preference-update": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "gkey-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "use-number-shortcuts-changed": (GObject.SignalFlags.RUN_FIRST,
+                                         None,()),
+        "show-close-button-changed": (GObject.SignalFlags.RUN_FIRST,
+                                      None,()),
+        "dock-size-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "dock-position-changed": (GObject.SignalFlags.RUN_FIRST,
+                                      None,()),
+        "dock-mode-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "dock-offset-changed": (GObject.SignalFlags.RUN_FIRST,
+                                None,()),
+        "dock-overlap-changed": (GObject.SignalFlags.RUN_FIRST,
+                                 None,()),
+        "dock-behavior-changed": (GObject.SignalFlags.RUN_FIRST,
+                                  None,()),
+        "dock-theme-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "dock-color-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "dock-end-decorations-changed": (GObject.SignalFlags.RUN_FIRST,
+                                  None,()),
+        "awn-behavior-changed": (GObject.SignalFlags.RUN_FIRST,
+                                  None,())
     }
 
     DEFAULT_SETTINGS = {
@@ -695,13 +695,13 @@ class Globals(gobject.GObject):
 
     def __new__(cls, *p, **k):
         if not "_the_instance" in cls.__dict__:
-            cls._the_instance = gobject.GObject.__new__(cls)
+            cls._the_instance = GObject.GObject.__new__(cls)
         return cls._the_instance
 
     def __init__(self):
         if not "settings" in self.__dict__:
             # First run.
-            gobject.GObject.__init__(self)
+            GObject.GObject.__init__(self)
 
             # "Global" variables
             self.gtkmenu_showing = False
@@ -723,7 +723,7 @@ class Globals(gobject.GObject):
                                                       self.DEFAULT_SETTINGS)
 
             # Set gconf notifiers
-            GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
+            GCONF_CLIENT.add_dir(GCONF_DIR, GConf.ClientPreloadType.PRELOAD_NONE)
             GCONF_CLIENT.notify_add(GCONF_DIR, self.__on_gconf_changed, None)
 
             # Change old gconf settings
@@ -980,14 +980,14 @@ class Globals(gobject.GObject):
         gconf_pinned_apps = []
         try:
             gconf_pinned_apps = GCONF_CLIENT.get_list(GCONF_DIR + "/launchers",
-                                                    gconf.VALUE_STRING)
+                                                    GConf.ValueType.STRING)
         except:
-            GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", gconf.VALUE_STRING,
+            GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", GConf.ValueType.STRING,
                                   gconf_pinned_apps)
         return gconf_pinned_apps
 
     def set_pinned_apps_list(self, pinned_apps):
-        GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", gconf.VALUE_STRING,
+        GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", GConf.ValueType.STRING,
                               pinned_apps)
 
     def set_shown_popup(self, popup):

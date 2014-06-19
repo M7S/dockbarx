@@ -17,11 +17,11 @@
 #   You should have received a copy of the GNU General Public License
 #   along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-import gtk
+from gi.repository import Gtk
 import dbus
 import os
 import os.path
-import gobject
+from gi.repository import GObject
 import weakref
 from dbus.mainloop.glib import DBusGMainLoop
 from dockbarx.applets import DockXApplet
@@ -40,19 +40,19 @@ service_cmds = ["/usr/lib/x86_64-linux-gnu/indicator-application/indicator-appli
                 "/usr/lib/i386-linux-gnu/indicator-application-service",
                 "/usr/lib/indicator-application/indicator-application-service"]
 
-class AppIndicator(gtk.EventBox):
+class AppIndicator(Gtk.EventBox):
     def __init__(self, applet, icon_name, position, address, obj,
                   icon_path, label, labelguide,
                   accessibledesc, hint=None, title=None):
         self.applet_r = weakref.ref(applet)
         self.menu = None
-        gtk.EventBox.__init__(self)
+        GObject.GObject.__init__(self)
         self.set_visible_window(False)
         self.box = None
-        self.icon = gtk.Image()
+        self.icon = Gtk.Image()
         self.icon_name = None
         self.icon_pixbufs = {}
-        self.label = gtk.Label()
+        self.label = Gtk.Label()
         self.repack()
         self.icon_themepath = icon_path
         self.on_icon_changed(icon_name, None)
@@ -73,13 +73,13 @@ class AppIndicator(gtk.EventBox):
             self.remove(self.box)
             self.box.destroy()
         if self.applet_r().get_position() in ("left", "right"):
-            self.box = gtk.VBox()
+            self.box = Gtk.VBox()
             self.label.set_angle(270)
         else:
-            self.box = gtk.HBox()
+            self.box = Gtk.HBox()
             self.label.set_angle(0)
-        self.box.pack_start(self.icon)
-        self.box.pack_start(self.label)
+        self.box.pack_start(self.icon, True, True, 0)
+        self.box.pack_start(self.label, True, True, 0)
         self.add(self.box)
 
     def on_button_press_event(self, widget, event):
@@ -137,11 +137,11 @@ class AppIndicator(gtk.EventBox):
         
     def get_icon(self, icon_name):
         if icon_name.startswith("/") and os.path.exists(icon_name):
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_name,
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_name,
                                                           ICONSIZE, 
                                                           ICONSIZE)
         else:
-            icon_theme = gtk.icon_theme_get_default()
+            icon_theme = Gtk.IconTheme.get_default()
             if self.icon_themepath != "" and \
                os.path.exists(self.icon_themepath):
                 icon_theme.prepend_search_path(self.icon_themepath)
@@ -191,7 +191,7 @@ class AppIndicator(gtk.EventBox):
 class AppIndicatorApplet(DockXApplet):
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        self.alignment = gtk.Alignment(0.5, 0.5)
+        self.alignment = Gtk.Alignment.new(0.5, 0.5)
         self.add(self.alignment)
         self.alignment.show()
 
@@ -206,7 +206,7 @@ class AppIndicatorApplet(DockXApplet):
                 self.connect_dbus(address)
                 break
         else:
-            gobject.idle_add(self.start_service)
+            GObject.idle_add(self.start_service)
         self.fdo.connect_to_signal("NameOwnerChanged",
                                     self.on_name_change_detected,
                                     dbus_interface=\
@@ -222,14 +222,14 @@ class AppIndicatorApplet(DockXApplet):
             self.alignment.remove(self.box)
             self.box.destroy()
         if self.get_position() in ("left", "right"):
-            self.box = gtk.VBox(False, 4)
+            self.box = Gtk.VBox(False, 4)
         else:
-            self.box = gtk.HBox(False, 4)
-            self.container = gtk.HBox()
+            self.box = Gtk.HBox(False, 4)
+            self.container = Gtk.HBox()
         self.box.set_border_width(4)
         self.alignment.add(self.box)
         for child in children:
-            self.box.pack_start(child)
+            self.box.pack_start(child, True, True, 0)
             child.repack()
         self.box.show_all()
         
@@ -296,7 +296,7 @@ class AppIndicatorApplet(DockXApplet):
     def ind_added(self, *args):
         position = args[1]
         ind = AppIndicator(self, *args)
-        self.box.pack_start(ind)
+        self.box.pack_start(ind, True, True, 0)
         self.box.reorder_child(ind, position)
 
     def ind_removed(self, position):

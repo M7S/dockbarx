@@ -17,17 +17,17 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses
 
-import gtk
+from gi.repository import Gtk
 import os
 import imp
-import gconf
+from gi.repository import GConf
 import dbus
 import weakref
-import gobject
+from gi.repository import GObject
 from dbus.mainloop.glib import DBusGMainLoop
 from log import logger
 
-GCONF_CLIENT = gconf.client_get_default()
+GCONF_CLIENT = GConf.Client.get_default()
 GCONF_DIR = "/apps/dockbarx"
 
 DBusGMainLoop(set_as_default=True) # for async calls
@@ -137,11 +137,11 @@ class DockXApplets():
         try:
             old_list = GCONF_CLIENT.get_list(GCONF_DIR + \
                                              "/applets/applet_list",
-                                             gconf.VALUE_STRING)
+                                             GConf.ValueType.STRING)
         except:
             raise
             GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
-                                  gconf.VALUE_STRING,
+                                  GConf.ValueType.STRING,
                                   ["DockbarX"])
             return ["DockbarX"]
         all_applets = self.applets.keys() + ["DockbarX", "Spacer"]
@@ -150,7 +150,7 @@ class DockXApplets():
             applet_list.append("DockbarX")
         if applet_list != old_list:
             GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
-                                  gconf.VALUE_STRING,
+                                  GConf.ValueType.STRING,
                                   applet_list)
         return applet_list
 
@@ -158,10 +158,10 @@ class DockXApplets():
         try:
             applet_list = GCONF_CLIENT.get_list(GCONF_DIR + \
                                                 "/applets/applet_list",
-                                                gconf.VALUE_STRING)
+                                                GConf.ValueType.STRING)
         except:
             GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
-                                  gconf.VALUE_STRING,
+                                  GConf.ValueType.STRING,
                                   ["DockbarX"])
             applet_list = ["DockbarX"]
         all_applets = self.applets.keys()
@@ -178,7 +178,7 @@ class DockXApplets():
         if not "DockbarX" in applet_list:
             applet_list.append("DockbarX")
         GCONF_CLIENT.set_list(GCONF_DIR+"/applets/applet_list",
-                              gconf.VALUE_STRING,
+                              GConf.ValueType.STRING,
                               applet_list)
 
 # Functions used by both DockXApplet and DockXAppletDialog
@@ -191,10 +191,10 @@ def set_setting(key, value, list_type=None, applet_name=None):
                   float: GCONF_CLIENT.set_float,
                   int: GCONF_CLIENT.set_int }
     if type(value) == list:
-        list_types = { str: gconf.VALUE_STRING,
-                       bool: gconf.VALUE_BOOL,
-                       float: gconf.VALUE_FLOAT,
-                       int: gconf.VALUE_INT }
+        list_types = { str: GConf.ValueType.STRING,
+                       bool: GConf.ValueType.BOOL,
+                       float: GConf.ValueType.FLOAT,
+                       int: GConf.ValueType.INT }
         if len(value) == 0:
             if type(list_type) in list_types:
                 lt = list_types[type(list_type)]
@@ -230,7 +230,7 @@ def get_setting(key, default=None, applet_name=None):
 
 
 def get_value(value):
-    if value.type == gconf.VALUE_LIST:
+    if value.type == GConf.ValueType.LIST:
         return [get_value(item) for item in value.get_list()]
     else:
         return {
@@ -241,11 +241,11 @@ def get_value(value):
                 "list": value.get_list
                }[value.type.value_nick]()
 
-class DockXApplet(gtk.EventBox):
+class DockXApplet(Gtk.EventBox):
     """This is the base class for DockX applets"""
     
-    __gsignals__ = {"clicked": (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,(gtk.gdk.Event, )),
+    __gsignals__ = {"clicked": (GObject.SignalFlags.RUN_FIRST,
+                                None,(Gdk.Event, )),
                     "enter-notify-event": "override",
                     "leave-notify-event": "override",
                     "button-release-event": "override",
@@ -254,14 +254,14 @@ class DockXApplet(gtk.EventBox):
     def __init__(self, dbx_dict):
         self.dockx_r = weakref.ref(dbx_dict["dock"])
         self.APPLET_NAME = dbx_dict["name"].lower().replace(" ", "")
-        gtk.EventBox.__init__(self)
+        GObject.GObject.__init__(self)
         self.set_visible_window(False)
         self.set_no_show_all(True)
         self.mouse_pressed = False
         self.expand = False
         # Set gconf notifiers
         gdir = "%s/applets/%s" % (GCONF_DIR, self.APPLET_NAME)
-        GCONF_CLIENT.add_dir(gdir, gconf.CLIENT_PRELOAD_NONE)
+        GCONF_CLIENT.add_dir(gdir, GConf.ClientPreloadType.PRELOAD_NONE)
         GCONF_CLIENT.notify_add(gdir, self.__on_gconf_changed, None)
 
     def get_setting(self, *args, **kwargs):
@@ -338,17 +338,17 @@ class DockXApplet(gtk.EventBox):
         pass
         
 
-class DockXAppletDialog(gtk.Dialog):
+class DockXAppletDialog(Gtk.Dialog):
     Title = "Applet Preferences"
     def __init__(self, name, t=None, flags=0,
-                 buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)):
+                 buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)):
         if not name:
             logger.error("Error: DockXAppletDialog can't be initialized" \
                          "without a name as it's first argument")
         self.APPLET_NAME = name.lower().replace(" ", "")
         if t is None:
             t = self.Title
-        gtk.Dialog.__init__(self, _(t), None, flags, buttons)
+        GObject.GObject.__init__(self, _(t), None, flags, buttons)
 
     def get_setting(self, *args, **kwargs):
         kwargs["applet_name"]=self.APPLET_NAME

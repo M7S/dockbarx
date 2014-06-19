@@ -17,7 +17,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-import gtk
+from gi.repository import Gtk
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 
@@ -28,7 +28,7 @@ import weakref
 DBusGMainLoop(set_as_default=True)
 BUS = dbus.SessionBus()
 
-class MediaButtons(gtk.Alignment):
+class MediaButtons(Gtk.Alignment):
     def __init__(self, name):
         self.sids = []
         self.player = BUS.get_object("org.mpris.MediaPlayer2.%s" % name,
@@ -40,17 +40,17 @@ class MediaButtons(gtk.Alignment):
                                       self.__on_properties_changed,
                                       dbus_interface=\
                                       "org.freedesktop.DBus.Properties")
-        gtk.Alignment.__init__(self, 0.5, 0.5, 0, 0)
-        hbox = gtk.HBox()
+        GObject.GObject.__init__(self, 0.5, 0.5, 0, 0)
+        hbox = Gtk.HBox()
         self.previous_button = CairoNextButton(previous=True)
         self.playpause_button = CairoPlayPauseButton()
         self.next_button = CairoNextButton()
         connect(self.previous_button, "clicked", self.previous)
         connect(self.playpause_button,"clicked", self.playpause)
         connect(self.next_button, "clicked", self.next)
-        hbox.pack_start(self.previous_button)
-        hbox.pack_start(self.playpause_button, padding=4)
-        hbox.pack_start(self.next_button)
+        hbox.pack_start(self.previous_button, True, True, 0)
+        hbox.pack_start(self.playpause_button, True, True, 4)
+        hbox.pack_start(self.next_button, True, True, 0)
         self.add(hbox)
         hbox.show_all()
         self.update_plaback_status()

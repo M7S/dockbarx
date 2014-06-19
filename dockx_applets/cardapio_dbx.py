@@ -16,7 +16,7 @@
 #
 
 import sys
-import gtk
+from gi.repository import Gtk
 from dockbarx.applets import DockXApplet
 sys.path.insert(0, "/usr/lib/cardapio")
 from misc import *
@@ -48,20 +48,20 @@ class CardapioDockXApplet(CardapioAppletInterface):
 
         self.cardapio = cardapio
 
-        self.preferences = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
-        self.edit = gtk.ImageMenuItem(gtk.STOCK_EDIT)
-        self.about = gtk.ImageMenuItem(gtk.STOCK_ABOUT)
+        self.preferences = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
+        self.edit = Gtk.ImageMenuItem(Gtk.STOCK_EDIT)
+        self.about = Gtk.ImageMenuItem(Gtk.STOCK_ABOUT)
 
         self.preferences.connect('activate', self._open_options_dialog)
         self.edit.connect('activate', self._launch_edit_app)
         self.about.connect('activate', self._open_about_dialog)
         self.applet.connect('unmap-event', self._on_applet_destroy)
 
-        self.menu = gtk.Menu()
+        self.menu = Gtk.Menu()
         self.menu.insert(self.preferences, 0)
         self.menu.insert(self.edit, 1)
         self.menu.insert(self.about, 2)
-        self.menu.insert(gtk.SeparatorMenuItem(), 3)
+        self.menu.insert(Gtk.SeparatorMenuItem(), 3)
         self.menu.show_all()
 
 
@@ -184,8 +184,8 @@ class MenuButtonApplet(DockXApplet):
 
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        self.icon = gtk.Image()
-        self.icon.set_from_icon_name("cardapio-dark256", gtk.ICON_SIZE_DIALOG)
+        self.icon = Gtk.Image()
+        self.icon.set_from_icon_name("cardapio-dark256", Gtk.IconSize.DIALOG)
         self.icon.set_pixel_size(self.get_size())
         self.add(self.icon)
         self.icon.show()
@@ -195,7 +195,7 @@ class MenuButtonApplet(DockXApplet):
         if os.path.isfile(name):
             self.icon.set_from_file(name)
         else:
-            self.icon.set_from_icon_name(name, gtk.ICON_SIZE_DIALOG)
+            self.icon.set_from_icon_name(name, Gtk.IconSize.DIALOG)
         self.icon.set_pixel_size(self.get_size())
 
 def get_dbx_applet(dbx_dict):

@@ -20,12 +20,12 @@
 import awn
 import dockbarx.dockbar
 from dockbarx.common import Globals
-import gobject
+from gi.repository import GObject
 import weakref
 import time
 import sys
-import gtk
-import wnck
+from gi.repository import Gtk
+from gi.repository import Wnck
 import dbus
 import dbus.service
 
@@ -35,7 +35,7 @@ class DockBarApp (awn.AppletSimple):
     def __init__ (self, uid, panel_id):
         awn.AppletSimple.__init__(self, "DockbarX", uid, panel_id)
         self.set_icon_name("gtk-apply")
-        gobject.idle_add(self.__on_idle)
+        GObject.idle_add(self.__on_idle)
         self.db_loaded = False
         self.awn_applet_dbus = AWNappletDBus(self)
 
@@ -50,11 +50,11 @@ class DockBarApp (awn.AppletSimple):
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
         self.old_child = self.get_child()
-        self.wnck_screen = wnck.screen_get_default()
-        gdk_screen = gtk.gdk.screen_get_default()
+        self.wnck_screen = Wnck.Screen.get_default()
+        gdk_screen = Gdk.Screen.get_default()
         self.icon = self.get_icon()
         self.remove(self.old_child)
-        self.alignment = gtk.Alignment()
+        self.alignment = Gtk.Alignment.new()
         self.add(self.alignment)
         self.alignment.show()
         self.db = dockbarx.dockbar.DockBar(self)
@@ -64,13 +64,13 @@ class DockBarApp (awn.AppletSimple):
         # Inactive dockbarx's size overflow management
         self.db.set_max_size(3000)
         
-        if self.get_pos_type() == gtk.POS_RIGHT:
+        if self.get_pos_type() == Gtk.PositionType.RIGHT:
             self.db.set_orient("right")
             self.alignment.set(1, 0, 0, 0)
-        elif self.get_pos_type() == gtk.POS_TOP:
+        elif self.get_pos_type() == Gtk.PositionType.TOP:
             self.db.set_orient("up")
             self.alignment.set(0, 0, 0, 0)
-        elif self.get_pos_type() == gtk.POS_LEFT:
+        elif self.get_pos_type() == Gtk.PositionType.LEFT:
             self.db.set_orient("left")
             self.alignment.set(0, 0, 0, 0)
         else:
@@ -93,7 +93,7 @@ class DockBarApp (awn.AppletSimple):
         self.show()
         self.wnck_screen.connect("active-window-changed",
                                  self.__on_active_window_changed)
-        gobject.timeout_add(200, self.__update_autohide)
+        GObject.timeout_add(200, self.__update_autohide)
         for window in self.db.get_windows():
             self.add_window(window)
         self.db_loaded = True
@@ -111,13 +111,13 @@ class DockBarApp (awn.AppletSimple):
 
     def __on_position_changed(self, applet, position):
         self.alignment.remove(self.db.get_container())
-        if self.get_pos_type() == gtk.POS_RIGHT:
+        if self.get_pos_type() == Gtk.PositionType.RIGHT:
             self.db.set_orient("right")
             self.alignment.set(1, 0, 0, 0)
-        elif self.get_pos_type() == gtk.POS_TOP:
+        elif self.get_pos_type() == Gtk.PositionType.TOP:
             self.db.set_orient("up")
             self.alignment.set(0, 0, 0, 0)
-        elif self.get_pos_type() == gtk.POS_LEFT:
+        elif self.get_pos_type() == Gtk.PositionType.LEFT:
             self.db.set_orient("left")
             self.alignment.set(0, 0, 0, 0)
         else:
@@ -180,7 +180,7 @@ class DockBarApp (awn.AppletSimple):
                return
         self.last_geometry_window = weakref.ref(window)
         self.geometry_time = time.time()
-        gobject.timeout_add(120, self.__calc_border_distance, window, True)
+        GObject.timeout_add(120, self.__calc_border_distance, window, True)
 
     def __on_active_window_changed(self, screen, previous_active_window):
         if self.globals.settings["awn/behavior"] == "dodge active window":
@@ -192,7 +192,7 @@ class DockBarApp (awn.AppletSimple):
     def __calc_border_distance(self, window, reset_should_autohide=False):
         bd = {"left": 1000, "right": 1000, "top": 1000, "bottom": 1000}
         x, y, w, h = window.get_geometry()
-        gdk_screen = gtk.gdk.screen_get_default()
+        gdk_screen = Gdk.Screen.get_default()
         monitor = gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
         if monitor != self.get_monitor():
             return
@@ -239,13 +239,13 @@ class DockBarApp (awn.AppletSimple):
     def get_monitor(self):
         screen = self.get_screen()
         if screen is None:
-            screen = gtk.gdk.screen_get_default()
+            screen = Gdk.Screen.get_default()
         return screen.get_monitor_at_window(self.window)
         
     def get_monitor_geometry(self):
         screen = self.get_screen()
         if screen is None:
-            screen = gtk.gdk.screen_get_default()
+            screen = Gdk.Screen.get_default()
         monitor = screen.get_monitor_at_window(self.window)
         return screen.get_monitor_geometry(monitor)
 
@@ -307,4 +307,4 @@ if __name__ == "__main__":
     applet = DockBarApp(awn.uid, awn.panel_id)
     awn.embed_applet(applet)
     applet.show_all()
-    gtk.main()
+    Gtk.main()

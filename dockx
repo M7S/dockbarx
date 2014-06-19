@@ -23,13 +23,13 @@ log_to_file()
 sys.stderr = StdErrWrapper()
 sys.stdout = StdOutWrapper()
 
-import pygtk
-pygtk.require("2.0")
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 import cairo
 import dockbarx.dockbar
-import wnck
-import gobject
+from gi.repository import Wnck
+from gi.repository import GObject
 from dockbarx.common import Globals
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
@@ -43,26 +43,26 @@ import dbus.service
 WNCK_WINDOW_STATE_MINIMIZED = 1
 
 
-class CairoDockX(gtk.Window):
+class CairoDockX(Gtk.Window):
     """The Dock Window for running DockbarX as a standalone dock"""
     __gsignals__ = {"expose-event": "override"}
     def __init__(self):
-        gtk.Window.__init__(self)
+        GObject.GObject.__init__(self)
         self.globals = Globals()
         self.theme = DockTheme()
-        self.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_DOCK)
+        self.set_type_hint(Gdk.WindowTypeHint.DOCK)
         self.stick()
         self.set_accept_focus(False)
         self.set_decorated(False)
         self.set_resizable(False)
-        gtk_screen = gtk.gdk.screen_get_default()
+        gtk_screen = Gdk.Screen.get_default()
         colormap = gtk_screen.get_rgba_colormap()
         if colormap is None:
             colormap = gtk_screen.get_rgb_colormap()
         self.set_colormap(colormap)
         self.set_app_paintable(1)
-        self.button_area = gtk.Alignment(0,0,1,1)
-        gtk.Window.add(self, self.button_area)
+        self.button_area = Gtk.Alignment.new(0,0,1,1)
+        Gtk.Window.add(self, self.button_area)
         self.compute_padding()
         self.globals.connect("dock-color-changed", self.__on_color_changed)
 
@@ -82,7 +82,7 @@ class CairoDockX(gtk.Window):
                            event.area.width, event.area.height)
         self.ctx.clip()
         self.draw_frame(self.ctx, w, h)
-        gtk.Window.do_expose_event(self, event)
+        Gtk.Window.do_expose_event(self, event)
         if self.get_child():
             self.propagate_expose(self.get_child(), event)
 
@@ -92,7 +92,7 @@ class CairoDockX(gtk.Window):
         w, h = self.get_size()
         if w==0 or h==0:
             return
-        pixmap = gtk.gdk.Pixmap (None, w, h, 1)
+        pixmap = Gdk.Pixmap (None, w, h, 1)
         ctx = pixmap.cairo_create()
         ctx.set_source_rgba(0, 0, 0, 0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
@@ -493,7 +493,7 @@ class DockX(CairoDockX):
             self.autohide = False
         else:
             self.autohide = True
-        self.screen = wnck.screen_get_default()
+        self.screen = Wnck.Screen.get_default()
         self.monitor = monitor
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
@@ -517,7 +517,7 @@ class DockX(CairoDockX):
         self.old_y = 0
         self.old_width = 0
         self.old_height = 0
-        self.box = gtk.HBox()
+        self.box = Gtk.HBox()
         self.position_boxes = None
         self.applet_sids = {}
         self.padding1 = EventPadding(self)
@@ -542,7 +542,7 @@ class DockX(CairoDockX):
                            self.__on_end_decorations_changed)
         self.theme.connect("dock-theme-reloaded",
                            self.__on_dock_theme_reloaded)
-        screen = gtk.gdk.screen_get_default()
+        screen = Gdk.Screen.get_default()
         screen.connect("size-changed", self.__on_screen_size_changed)
         if self.autohide:
             self.show_dock()
@@ -610,9 +610,9 @@ class DockX(CairoDockX):
         pos = self.globals.settings["dock/position"]
         
         if pos in ("left", "right"):
-            gtk_box = gtk.VBox
+            gtk_box = Gtk.VBox
         else:
-            gtk_box = gtk.HBox
+            gtk_box = Gtk.HBox
         self.box = gtk_box()
         self.add_box(self.box)
         # Padding/End decorations before applets
@@ -711,9 +711,9 @@ class DockX(CairoDockX):
         if alist.count("Spacer") == 2 and panel:
             # Make three boxes and prepare them
             if pos in ("left", "right"):
-                gtk_box = gtk.VBox
+                gtk_box = Gtk.VBox
             else:
-                gtk_box = gtk.HBox
+                gtk_box = Gtk.HBox
             boxes = [gtk_box(), gtk_box(),gtk_box()]
             self.box.pack_start(boxes[0], True, True)
             self.box.pack_start(boxes[1], False, False)
@@ -799,9 +799,9 @@ class DockX(CairoDockX):
             self.window.property_delete("_NET_WM_STRUT_PARTIAL")
             return
         self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                    gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
+                                    Gdk.PropMode.REPLACE, strut[:4])  
         self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
-                                    32, gtk.gdk.PROP_MODE_REPLACE, strut)
+                                    32, Gdk.PropMode.REPLACE, strut)
             
     def __get_monitor_and_strut_borders(self):
         # This function returns the distance from screen edges to
@@ -910,20 +910,20 @@ class DockX(CairoDockX):
         if self.globals.settings["dock/mode"] != "centered":
             self.move(self.old_x, self.old_y)
         if self.autohide_sid is not None:
-            gobject.source_remove(self.autohide_sid)
+            GObject.source_remove(self.autohide_sid)
         if self.autounhide_sid is not None:
-            gobject.source_remove(self.autounhide_sid)
+            GObject.source_remove(self.autounhide_sid)
             self.autounhide_sid = None
-        self.autohide_sid = gobject.timeout_add(200, self.__hide_check)
+        self.autohide_sid = GObject.timeout_add(200, self.__hide_check)
                                                   
     def hide_dock(self):
         self.hide()
         if self.autohide_sid is not None:
-            gobject.source_remove(self.autohide_sid)
+            GObject.source_remove(self.autohide_sid)
             self.autohide_sid = None
         if self.autounhide_sid is not None:
-            gobject.source_remove(self.autounhide_sid)
-        display = gtk.gdk.display_get_default()
+            GObject.source_remove(self.autounhide_sid)
+        display = Gdk.Display.get_default()
         mx, my, mw, mh = self.get_monitor_geometry()
         if self.globals.settings["dock/position"] == "left":
             x1 = x2 = mx
@@ -941,7 +941,7 @@ class DockX(CairoDockX):
             x1 = mx
             x2 = mx + mw - 1
             y1 = y2 = my + mh - 1
-        self.autounhide_sid = gobject.timeout_add(200, self.__unhide_check,
+        self.autounhide_sid = GObject.timeout_add(200, self.__unhide_check,
                                                   display, x1, x2, y1, y2)
 
     def __unhide_check(self, display, x1, x2, y1, y2):
@@ -1009,7 +1009,7 @@ class DockX(CairoDockX):
                return
         self.last_geometry_window = weakref.ref(window)
         self.geometry_time = time.time()
-        gobject.timeout_add(120, self.__calc_border_distance, window, True)
+        GObject.timeout_add(120, self.__calc_border_distance, window, True)
 
     def __on_active_window_changed(self, screen, previous_active_window):
         if self.globals.settings["dock/behavior"] == "dodge active window":
@@ -1019,7 +1019,7 @@ class DockX(CairoDockX):
     def __calc_border_distance(self, window, reset_should_autohide=False):
         bd = {"left": 1000, "right": 1000, "top": 1000, "bottom": 1000}
         x, y, w, h = window.get_geometry()
-        gdk_screen = gtk.gdk.screen_get_default()
+        gdk_screen = Gdk.Screen.get_default()
         monitor = gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
         if monitor != self.monitor:
             return
@@ -1096,10 +1096,10 @@ class DockX(CairoDockX):
             if self.autohide:
                 self.autohide = False
                 if self.autohide_sid is not None:
-                    gobject.source_remove(self.autohide_sid)
+                    GObject.source_remove(self.autohide_sid)
                     self.autohide_sid = None
                 if self.autounhide_sid is not None:
-                    gobject.source_remove(self.autounhide_sid)
+                    GObject.source_remove(self.autounhide_sid)
                     self.autounhide_sid = None
                 self.show()
                 for window in self.dockbar.get_windows():
@@ -1200,7 +1200,7 @@ class DockX(CairoDockX):
     def get_monitor_geometry(self):
         screen = self.get_screen()
         if screen is None:
-            screen = gtk.gdk.screen_get_default()
+            screen = Gdk.Screen.get_default()
         return screen.get_monitor_geometry(self.monitor)
 
     def reload(self, *args):
@@ -1215,28 +1215,28 @@ class DockX(CairoDockX):
 
     def do_destroy(self, *args):
         CairoDockX.do_destroy(self)
-        gtk.main_quit()
+        Gtk.main_quit()
         
     #### Menu stuff
     def create_popup_menu(self, event):
         #Create popup menu
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         menu.connect("selection-done", self.__menu_closed)
-        preference_item = gtk.ImageMenuItem("gtk-properties", "Preference")
+        preference_item = Gtk.ImageMenuItem("gtk-properties", "Preference")
         menu.append(preference_item)
         preference_item.connect("activate",
                                 self.__menu_preferences_selected)
         preference_item.show()
-        reload_item = gtk.ImageMenuItem("gtk-refresh", "Reload")
+        reload_item = Gtk.ImageMenuItem("gtk-refresh", "Reload")
         menu.append(reload_item)
         reload_item.connect("activate", self.__menu_reload_selected)
         reload_item.show()
-        about_item = gtk.ImageMenuItem("gtk-about", "About Item")
+        about_item = Gtk.ImageMenuItem("gtk-about", "About Item")
         menu.append(about_item)
         about_item.connect("activate",
                            lambda e: dockbarx.dockbar.AboutDialog())
         about_item.show()
-        close_item = gtk.ImageMenuItem("gtk-close", "Close")
+        close_item = Gtk.ImageMenuItem("gtk-close", "Close")
         menu.append(close_item)
         close_item.connect("activate", self.__menu_close_selected)
         close_item.show()
@@ -1259,14 +1259,14 @@ class DockX(CairoDockX):
         
         
 
-class EventPadding(gtk.EventBox):
+class EventPadding(Gtk.EventBox):
     __gsignals__ = {"button-release-event": "override",
                     "drag-motion" : "override",
                     "drag-leave" : "override",
                     "drag-drop" : "override",
                     "drag-data-received" : "override"}
     def __init__(self, dock):
-        gtk.EventBox.__init__(self)
+        GObject.GObject.__init__(self)
         self.globals = Globals()
         self.dock_r = weakref.ref(dock)
         self.set_visible_window(False)
@@ -1341,11 +1341,11 @@ class EventPadding(gtk.EventBox):
         if not self.drag_entered:
             self.do_drag_enter(drag_context, x, y, t)
         if "text/groupbutton_name" in drag_context.targets:
-            drag_context.drag_status(gtk.gdk.ACTION_MOVE, t)
+            drag_context.drag_status(Gdk.DragAction.MOVE, t)
         elif "text/uri-list" in drag_context.targets:
-            drag_context.drag_status(gtk.gdk.ACTION_COPY, t)
+            drag_context.drag_status(Gdk.DragAction.COPY, t)
         else:
-            drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
+            drag_context.drag_status(Gdk.DragAction.PRIVATE, t)
         return True
 
     def do_drag_enter(self, drag_context, x, y, t):
@@ -1431,6 +1431,6 @@ if "--monitor" in sys.argv:
         raise
 dockx = DockX(monitor)
 del monitor
-gtk.main()
+Gtk.main()
         
 

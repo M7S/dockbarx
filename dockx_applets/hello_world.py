@@ -17,7 +17,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses
 
-import gtk
+from gi.repository import Gtk
 from dockbarx.applets import DockXApplet #, DockXAppletDialog 
 
 
@@ -26,9 +26,9 @@ class HelloWorldApplet(DockXApplet):
 
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        label = gtk.Label("<span foreground=\"#FFFFFF\">Hello World!</span>")
+        label = Gtk.Label(label="<span foreground=\"#FFFFFF\">Hello World!</span>")
         label.set_use_markup(True)
-        # DockXApplet base class is pretty much a gtk.EventBox.
+        # DockXApplet base class is pretty much a Gtk.EventBox.
         # so all you have to do is adding your widget with self.add()
         self.add(label)
         label.show()

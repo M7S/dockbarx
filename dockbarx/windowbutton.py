@@ -17,12 +17,12 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-import wnck
-import pygtk
-pygtk.require("2.0")
-import gtk
-import gobject
-import pango
+from gi.repository import Wnck
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import Pango
 import weakref
 import gc
 gc.enable()
@@ -37,10 +37,10 @@ _ = i18n.language.gettext
 
 
 try:
-    WNCK_WINDOW_ACTION_MINIMIZE = wnck.WINDOW_ACTION_MINIMIZE
-    WNCK_WINDOW_ACTION_UNMINIMIZE = wnck.WINDOW_ACTION_UNMINIMIZE
-    WNCK_WINDOW_ACTION_MAXIMIZE = wnck.WINDOW_ACTION_MAXIMIZE
-    WNCK_WINDOW_STATE_MINIMIZED = wnck.WINDOW_STATE_MINIMIZED
+    WNCK_WINDOW_ACTION_MINIMIZE = Wnck.WindowType.ACTION_MINIMIZE
+    WNCK_WINDOW_ACTION_UNMINIMIZE = Wnck.WindowType.ACTION_UNMINIMIZE
+    WNCK_WINDOW_ACTION_MAXIMIZE = Wnck.WindowType.ACTION_MAXIMIZE
+    WNCK_WINDOW_STATE_MINIMIZED = Wnck.WindowType.STATE_MINIMIZED
 except:
     WNCK_WINDOW_ACTION_MINIMIZE = 1 << 12
     WNCK_WINDOW_ACTION_UNMINIMIZE = 1 << 13
@@ -55,37 +55,37 @@ class Window():
         self.opacify_obj = Opacify()
         connect(self.globals, "show-only-current-monitor-changed",
                              self.__on_show_only_current_monitor_changed)
-        self.screen = wnck.screen_get_default()
+        self.screen = Wnck.Screen.get_default()
         self.wnck = wnck_window
         self.deopacify_sid = None
         self.opacify_sid = None
         self.select_sid = None
-        self.xid = self.wnck.get_xid()
+        self.xid = self.Wnck.get_xid()
         self.is_active_window = False
         self.on_current_desktop = self.is_on_current_desktop()
 
-        self.state_changed_event = self.wnck.connect("state-changed",
+        self.state_changed_event = self.Wnck.connect("state-changed",
                                                 self.__on_window_state_changed)
-        self.icon_changed_event = self.wnck.connect("icon-changed",
+        self.icon_changed_event = self.Wnck.connect("icon-changed",
                                                 self.__on_window_icon_changed)
-        self.name_changed_event = self.wnck.connect("name-changed",
+        self.name_changed_event = self.Wnck.connect("name-changed",
                                                 self.__on_window_name_changed)
-        self.geometry_changed_event = self.wnck.connect("geometry-changed",
+        self.geometry_changed_event = self.Wnck.connect("geometry-changed",
                                                 self.__on_geometry_changed)
 
         self.item = WindowItem(self, group)
-        self.needs_attention = self.wnck.needs_attention()
+        self.needs_attention = self.Wnck.needs_attention()
         self.item.show()
         self.__on_show_only_current_monitor_changed()
 
     def __ne__(self, window):
-        if isinstance(window, wnck.Window):
+        if isinstance(window, Wnck.Window):
             return self.wnck != window
         else:
             return window is not self
 
     def __eq__(self, window):
-        if isinstance(window, wnck.Window):
+        if isinstance(window, Wnck.Window):
             return self.wnck == window
         else:
             return window is self
@@ -97,9 +97,9 @@ class Window():
 
     def is_on_current_desktop(self):
         aws = self.screen.get_active_workspace()
-        if (self.wnck.get_workspace() is None or \
-           self.wnck.get_workspace() == aws) and \
-           self.wnck.is_in_viewport(aws):
+        if (self.Wnck.get_workspace() is None or \
+           self.Wnck.get_workspace() == aws) and \
+           self.Wnck.is_in_viewport(aws):
             return True
         else:
             return False
@@ -107,11 +107,11 @@ class Window():
     def get_monitor(self):
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
-        gdk_screen = gtk.gdk.screen_get_default()
-        win = gtk.gdk.window_lookup(self.wnck.get_xid())
+        gdk_screen = Gdk.Screen.get_default()
+        win = Gdk.window_lookup(self.Wnck.get_xid())
         if win is None:
             logger.warning("Error: couldn't find out on which " + \
-                  "monitor window \"%s\" is located" % self.wnck.get_name())
+                  "monitor window \"%s\" is located" % self.Wnck.get_name())
             logger.warning("Guessing it's monitor 0")
             return 0
         x, y, w, h, bit_depth = win.get_geometry()
@@ -119,17 +119,17 @@ class Window():
 
     def destroy(self):
         if self.deopacify_sid:
-            gobject.source_remove(self.deopacify_sid)
+            GObject.source_remove(self.deopacify_sid)
             self.deopacify()
         self.remove_delayed_select()
 
         self.item.clean_up()
         self.item.destroy()
-        self.wnck.disconnect(self.state_changed_event)
-        self.wnck.disconnect(self.icon_changed_event)
-        self.wnck.disconnect(self.name_changed_event)
+        self.Wnck.disconnect(self.state_changed_event)
+        self.Wnck.disconnect(self.icon_changed_event)
+        self.Wnck.disconnect(self.name_changed_event)
         if self.geometry_changed_event is not None:
-            self.wnck.disconnect(self.geometry_changed_event)
+            self.Wnck.disconnect(self.geometry_changed_event)
         del self.screen
         del self.wnck
         del self.globals
@@ -139,12 +139,12 @@ class Window():
 
     def select_after_delay(self, delay):
         if self.select_sid:
-            gobject.source_remove(self.select_sid)
-        self.select_sid = gobject.timeout_add(delay, self.action_select_window)
+            GObject.source_remove(self.select_sid)
+        self.select_sid = GObject.timeout_add(delay, self.action_select_window)
 
     def remove_delayed_select(self):
         if self.select_sid:
-            gobject.source_remove(self.select_sid)
+            GObject.source_remove(self.select_sid)
             self.select_sid = None
 
     #### Windows's Events
@@ -154,8 +154,8 @@ class Window():
             self.group_r().button.update_state_if_shown()
 
         # Check if the window needs attention
-        if self.wnck.needs_attention() != self.needs_attention:
-            self.needs_attention = self.wnck.needs_attention()
+        if self.Wnck.needs_attention() != self.needs_attention:
+            self.needs_attention = self.Wnck.needs_attention()
             self.item.needs_attention_changed()
             self.group_r().needs_attention_changed()
 
@@ -191,12 +191,12 @@ class Window():
 
     #### Opacify
     def opacify(self):
-        self.xid = self.wnck.get_xid()
+        self.xid = self.Wnck.get_xid()
         opacify(self.xid, self.xid)
 
     def deopacify(self):
         if self.item.deopacify_sid:
-            gobject.source_remove(self.item.deopacify_sid)
+            GObject.source_remove(self.item.deopacify_sid)
             self.item.deopacify_sid = None
         if self.deopacify_sid:
             self.deopacify_sid = None
@@ -215,11 +215,11 @@ class Window():
             t = event.time
         else:
             t = 0
-        if self.wnck.get_workspace() is not None \
-        and self.screen.get_active_workspace() != self.wnck.get_workspace():
-            self.wnck.get_workspace().activate(t)
-        if not self.wnck.is_in_viewport(self.screen.get_active_workspace()):
-            win_x,win_y,win_w,win_h = self.wnck.get_geometry()
+        if self.Wnck.get_workspace() is not None \
+        and self.screen.get_active_workspace() != self.Wnck.get_workspace():
+            self.Wnck.get_workspace().activate(t)
+        if not self.Wnck.is_in_viewport(self.screen.get_active_workspace()):
+            win_x,win_y,win_w,win_h = self.Wnck.get_geometry()
             self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),
                                       win_y-(win_y%self.screen.get_height()))
             # Hide popup since mouse movment won't
@@ -227,12 +227,12 @@ class Window():
             # which means popup list can be left open.
             group = self.group_r()
             group.popup.hide()
-        if self.wnck.is_minimized():
-            self.wnck.unminimize(t)
-        elif self.wnck.is_active() and minimize:
-            self.wnck.minimize()
+        if self.Wnck.is_minimized():
+            self.Wnck.unminimize(t)
+        elif self.Wnck.is_active() and minimize:
+            self.Wnck.minimize()
         else:
-            self.wnck.activate(t)
+            self.Wnck.activate(t)
         # Deopacify is needed here since this function is called from
         # the group button class as well.
         self.deopacify()
@@ -245,32 +245,32 @@ class Window():
             t = event.time
         else:
             t = 0
-        self.wnck.close(t)
+        self.Wnck.close(t)
 
     def action_maximize_window(self, widget=None, event=None):
-        if self.wnck.is_maximized():
-            self.wnck.unmaximize()
+        if self.Wnck.is_maximized():
+            self.Wnck.unmaximize()
         else:
-            self.wnck.maximize()
+            self.Wnck.maximize()
 
     def action_shade_window(self, widget, event):
-        self.wnck.shade()
+        self.Wnck.shade()
 
     def action_unshade_window(self, widget, event):
-        self.wnck.unshade()
+        self.Wnck.unshade()
 
     def action_show_menu(self, widget, event):
         self.item.show_menu(event)
 
     def action_minimize_window(self, widget=None, event=None):
-        if self.wnck.is_minimized():
+        if self.Wnck.is_minimized():
             if event:
                 t = event.time
             else:
                 t = 0
-            self.wnck.unminimize(t)
+            self.Wnck.unminimize(t)
         else:
-            self.wnck.minimize()
+            self.Wnck.minimize()
 
     def action_none(self, widget=None, event=None):
         pass
@@ -313,25 +313,25 @@ class WindowItem(CairoButton):
         self.close_button.set_no_show_all(True)
         if self.globals.settings["show_close_button"]:
             self.close_button.show()
-        self.label = gtk.Label()
-        self.label.set_ellipsize(pango.ELLIPSIZE_END)
+        self.label = Gtk.Label()
+        self.label.set_ellipsize(Pango.EllipsizeMode.END)
         self.label.set_alignment(0, 0.5)
         self.__update_label()
-        self.area.set_needs_attention(window.wnck.needs_attention())
-        hbox = gtk.HBox()
-        icon = window.wnck.get_mini_icon()
-        self.icon_image = gtk.image_new_from_pixbuf(icon)
+        self.area.set_needs_attention(window.Wnck.needs_attention())
+        hbox = Gtk.HBox()
+        icon = window.Wnck.get_mini_icon()
+        self.icon_image = Gtk.image_new_from_pixbuf(icon)
         hbox.pack_start(self.icon_image, False)
         hbox.pack_start(self.label, True, True, padding = 4)
-        alignment = gtk.Alignment(1, 0.5, 0, 0)
+        alignment = Gtk.Alignment.new(1, 0.5, 0, 0)
         alignment.add(self.close_button)
         hbox.pack_start(alignment, False, False)
 
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
         vbox.pack_start(hbox, False)
-        self.preview_box = gtk.Alignment(0.5, 0.5, 0, 0)
+        self.preview_box = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         self.preview_box.set_padding(4, 2, 0, 0)
-        self.preview = gtk.Image()
+        self.preview = Gtk.Image()
         self.preview_box.add(self.preview)
         self.preview.show()
         vbox.pack_start(self.preview_box, True, True)
@@ -359,12 +359,12 @@ class WindowItem(CairoButton):
     def clean_up(self):
         window = self.window_r()
         if self.deopacify_sid:
-            gobject.source_remove(self.deopacify_sid)
+            GObject.source_remove(self.deopacify_sid)
             window.deopacify()
         if self.opacify_sid:
-            gobject.source_remove(self.opacify_sid)
+            GObject.source_remove(self.opacify_sid)
         if self.press_sid:
-            gobject.source_remove(self.press_sid)
+            GObject.source_remove(self.press_sid)
         self.close_button.destroy()
 
     def show(self):
@@ -382,8 +382,8 @@ class WindowItem(CairoButton):
     def __update_label(self, arg=None):
         """Updates the style of the label according to window state."""
         window = self.window_r()
-        text = escape(str(window.wnck.get_name()))
-        if window.wnck.is_minimized():
+        text = escape(str(window.Wnck.get_name()))
+        if window.Wnck.is_minimized():
             color = self.globals.colors["color4"]
         else:
             color = self.globals.colors["color2"]
@@ -399,27 +399,27 @@ class WindowItem(CairoButton):
         self.label.set_size_request(size, -1)
 
     def __make_minimized_icon(self, icon):
-        pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True,
+        pixbuf = GdkPixbuf.Pixbuf(GdkPixbuf.Colorspace.RGB, True,
                                           8, icon.get_width(),
                                           icon.get_height())
         pixbuf.fill(0x00000000)
         minimized_icon = pixbuf.copy()
         icon.composite(pixbuf, 0, 0, pixbuf.get_width(),
                          pixbuf.get_height(), 0, 0, 1, 1,
-                         gtk.gdk.INTERP_BILINEAR, 190)
+                         GdkPixbuf.InterpType.BILINEAR, 190)
         pixbuf.saturate_and_pixelate(minimized_icon, 0.12, False)
         return minimized_icon
 
     def __update_icon(self):
         window = self.window_r()
-        icon = window.wnck.get_mini_icon()
-        if window.wnck.is_minimized():
+        icon = window.Wnck.get_mini_icon()
+        if window.Wnck.is_minimized():
             pixbuf = self.__make_minimized_icon(icon)
             self.icon_image.set_from_pixbuf(pixbuf)
             if self.globals.settings["preview"] and \
                (self.globals.get_compiz_version() < "0.9" or \
                not self.globals.settings["preview_minimized"]):
-                   self.preview.set_from_pixbuf(window.wnck.get_icon())
+                   self.preview.set_from_pixbuf(window.Wnck.get_icon())
         else:
             self.icon_image.set_from_pixbuf(icon)
             self.preview.clear()
@@ -428,7 +428,7 @@ class WindowItem(CairoButton):
         window = self.window_r()
         self.__update_label()
         self.__update_icon()
-        self.area.set_minimized(window.wnck.is_minimized())
+        self.area.set_minimized(window.Wnck.is_minimized())
 
     def active_changed(self):
         window = self.window_r()
@@ -440,7 +440,7 @@ class WindowItem(CairoButton):
 
     def needs_attention_changed(self):
         window = self.window_r()
-        self.area.set_needs_attention(window.wnck.needs_attention())
+        self.area.set_needs_attention(window.Wnck.needs_attention())
         self.__update_label()
 
     def name_changed(self):
@@ -463,8 +463,8 @@ class WindowItem(CairoButton):
     def update_preview(self, *args):
         window = self.window_r()
         group = self.group_r()
-        width = window.wnck.get_geometry()[2]
-        height = window.wnck.get_geometry()[3]
+        width = window.Wnck.get_geometry()[2]
+        height = window.Wnck.get_geometry()[3]
         ar = group.monitor_aspect_ratio
         size = self.globals.settings["preview_size"]
         if width*ar < size and height < size:
@@ -499,7 +499,7 @@ class WindowItem(CairoButton):
             return
         if self.globals.settings["opacify"]:
             self.opacify_sid = \
-                gobject.timeout_add(100, self.__opacify)
+                GObject.timeout_add(100, self.__opacify)
 
     def do_leave_notify_event(self, event):
         # In compiz there is a enter and a leave
@@ -509,17 +509,17 @@ class WindowItem(CairoButton):
         self.pressed = False
         if self.globals.settings["opacify"]:
             self.deopacify_sid = \
-                            gobject.timeout_add(200, self.__deopacify)
+                            GObject.timeout_add(200, self.__deopacify)
 
     def do_button_press_event(self,event):
         # In compiz there is a enter and a leave event before
         # a press event.
         # self.pressed is used to stop functions started with
-        # gobject.timeout_add from self.__on_mouse_enter
+        # GObject.timeout_add from self.__on_mouse_enter
         # or self.__on_mouse_leave.
         CairoButton.do_button_press_event(self, event)
         self.pressed = True
-        self.press_sid = gobject.timeout_add(600, self.__set_pressed_false)
+        self.press_sid = GObject.timeout_add(600, self.__set_pressed_false)
 
     def __set_pressed_false(self):
         # Helper function for __on_press_event.
@@ -531,10 +531,10 @@ class WindowItem(CairoButton):
         window = self.window_r()
         if self.globals.settings["opacify"]:
             window.deopacify()
-        if not event.direction in (gtk.gdk.SCROLL_UP, gtk.gdk.SCROLL_DOWN):
+        if not event.direction in (Gdk.ScrollDirection.UP, Gdk.ScrollDirection.DOWN):
             return
-        direction = {gtk.gdk.SCROLL_UP: "scroll_up",
-                     gtk.gdk.SCROLL_DOWN: "scroll_down"}[event.direction]
+        direction = {Gdk.ScrollDirection.UP: "scroll_up",
+                     Gdk.ScrollDirection.DOWN: "scroll_down"}[event.direction]
         action = self.globals.settings["windowbutton_%s"%direction]
         window.action_function_dict[action](window, self, event)
         if self.globals.settings["windowbutton_close_popup_on_%s"%direction]:
@@ -548,7 +548,7 @@ class WindowItem(CairoButton):
         if not event.button in (1, 2, 3):
             return
         button = {1:"left", 2: "middle", 3: "right"}[event.button]
-        if event.state & gtk.gdk.SHIFT_MASK:
+        if event.get_state() & Gdk.ModifierType.SHIFT_MASK:
             mod = "shift_and_"
         else:
             mod = ""
@@ -576,20 +576,20 @@ class WindowItem(CairoButton):
             self.group_r().popup.expose()
             self.drag_entered = True
             self.dnd_select_window = \
-                gobject.timeout_add(600, self.window_r().action_select_window)
-        drag_context.drag_status(gtk.gdk.ACTION_PRIVATE, t)
+                GObject.timeout_add(600, self.window_r().action_select_window)
+        drag_context.drag_status(Gdk.DragAction.PRIVATE, t)
         return True
 
     def do_drag_leave(self, drag_context, t):
         self.drag_entered = False
-        gobject.source_remove(self.dnd_select_window)
+        GObject.source_remove(self.dnd_select_window)
         self.group_r().popup.expose()
         self.group_r().popup.hide_if_not_hovered()
 
     #### Opacify
     def __opacify(self):
         window = self.window_r()
-        if window.wnck.is_minimized():
+        if window.Wnck.is_minimized():
             return False
         # if self.pressed is true, opacity_request is called by an
         # wrongly sent out enter_notification_event sent after a
@@ -602,7 +602,7 @@ class WindowItem(CairoButton):
             window.opacify()
             # Just for safety in case no leave-signal is sent
             self.deopacify_sid = \
-                            gobject.timeout_add(500, self.__deopacify)
+                            GObject.timeout_add(500, self.__deopacify)
         return False
 
     def __deopacify(self):
@@ -615,41 +615,41 @@ class WindowItem(CairoButton):
             return True
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
-        window.deopacify_sid = gobject.timeout_add(150, window.deopacify)
+        window.deopacify_sid = GObject.timeout_add(150, window.deopacify)
         return False
 
     #### Menu functions
     def show_menu(self, event):
         window = self.window_r()
         #Creates a popup menu
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         menu.connect("selection-done", self.__menu_closed)
         #(Un)Minimize
         minimize_item = None
-        if window.wnck.get_actions() & WNCK_WINDOW_ACTION_MINIMIZE \
-        and not window.wnck.is_minimized():
-            minimize_item = gtk.MenuItem(_("_Minimize"))
-        elif window.wnck.get_actions() & WNCK_WINDOW_ACTION_UNMINIMIZE \
-        and window.wnck.is_minimized():
-            minimize_item = gtk.MenuItem(_("Un_minimize"))
+        if window.Wnck.get_actions() & WNCK_WINDOW_ACTION_MINIMIZE \
+        and not window.Wnck.is_minimized():
+            minimize_item = Gtk.MenuItem(_("_Minimize"))
+        elif window.Wnck.get_actions() & WNCK_WINDOW_ACTION_UNMINIMIZE \
+        and window.Wnck.is_minimized():
+            minimize_item = Gtk.MenuItem(_("Un_minimize"))
         if minimize_item:
             menu.append(minimize_item)
             minimize_item.connect("activate", window.action_minimize_window)
             minimize_item.show()
         # (Un)Maximize
         maximize_item = None
-        if not window.wnck.is_maximized() \
-        and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
-            maximize_item = gtk.MenuItem(_("Ma_ximize"))
-        elif window.wnck.is_maximized() \
-        and window.wnck.get_actions() & WNCK_WINDOW_ACTION_UNMINIMIZE:
-            maximize_item = gtk.MenuItem(_("Unma_ximize"))
+        if not window.Wnck.is_maximized() \
+        and window.Wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
+            maximize_item = Gtk.MenuItem(_("Ma_ximize"))
+        elif window.Wnck.is_maximized() \
+        and window.Wnck.get_actions() & WNCK_WINDOW_ACTION_UNMINIMIZE:
+            maximize_item = Gtk.MenuItem(_("Unma_ximize"))
         if maximize_item:
             menu.append(maximize_item)
             maximize_item.connect("activate", window.action_maximize_window)
             maximize_item.show()
         # Close
-        close_item = gtk.MenuItem(_("_Close"))
+        close_item = Gtk.MenuItem(_("_Close"))
         menu.append(close_item)
         close_item.connect("activate", window.action_close_window)
         close_item.show()
