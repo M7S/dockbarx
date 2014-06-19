@@ -1212,7 +1212,7 @@ class DockX(CairoDockX):
 
     def reload(self, *args):
         self.db_loaded = False
-        self.dockbar.reload()
+        self.dockbar.reload(tell_parent=False)
         self.db_loaded = True
         self.applets.find_applets()
         self.theme.reload()

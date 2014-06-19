@@ -549,7 +549,7 @@ class DockBar():
                         
         self.reload()
 
-    def reload(self, event=None, data=None):
+    def reload(self, event=None, data=None, tell_parent=True):
         """Reloads DockbarX."""
         logger.info("DockbarX reload")
         # Clear away the old stuff, if any.
@@ -635,6 +635,10 @@ class DockBar():
                             self.__on_desktop_changed)
 
         self.__on_active_window_changed(self.screen, None)
+        # Since the old container is destroyed we need to tell
+        # parent to readd it.
+        if tell_parent:
+            self.parent.readd_container(self.get_container())
 
 
     def set_orient(self, orient):
