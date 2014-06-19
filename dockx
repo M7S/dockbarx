@@ -45,7 +45,7 @@ WNCK_WINDOW_STATE_MINIMIZED = 1
 
 class CairoDockX(Gtk.Window):
     """The Dock Window for running DockbarX as a standalone dock"""
-    __gsignals__ = {"expose-event": "override"}
+    __gsignals__ = {"draw": "override"}
     def __init__(self):
         GObject.GObject.__init__(self)
         self.globals = Globals()

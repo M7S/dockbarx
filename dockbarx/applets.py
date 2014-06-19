@@ -18,6 +18,7 @@
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses
 
 from gi.repository import Gtk
+from gi.repository import Gdk
 import os
 import imp
 from gi.repository import GConf
