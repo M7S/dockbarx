@@ -1,9 +1,15 @@
 Changelog:
+0.91.2
+- Updated DockbarX with need changes to fix a reloading bug in the xfce plug.
+
+0.91.1
+- Fix for Bug #1331820 (lp): DockX shows arrows instead of adjusting width to show all icons.
+
 0.91
 - DockbarX should now be able to handle situations where there are too many open applications to show them all in dockbarx.
 - Battery applet added for DockX.
 - Bug #652386 and Bug #1120940: DockbarX no longer freeze when there are more windows open than can fit into the window list.
-- Bug #1314868: A graphical glitch fixed. Icons no longer has junk pixels around them.
+- Bug #1314868: A graphical glitch fixed. Icons no longer have junk pixels around them.
 - Code cleanups and possibly also some speedups.
 - Other small fixes.
 
