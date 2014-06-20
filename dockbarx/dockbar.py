@@ -547,7 +547,7 @@ class DockBar():
                     else:
                         self.app_ids_by_exec[exe] = id
                         
-        self.reload()
+        self.reload(tell_parent=False)
 
     def reload(self, event=None, data=None, tell_parent=True):
         """Reloads DockbarX."""
