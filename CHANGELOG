@@ -1,4 +1,7 @@
 Changelog:
+0.91.3
+- Fixed bug that broke DockX in 0.91.2
+
 0.91.2
 - Updated DockbarX with need changes to fix a reloading bug in the xfce plug.
 
