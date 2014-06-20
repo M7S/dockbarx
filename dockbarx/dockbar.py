@@ -37,7 +37,7 @@ from log import logger
 import i18n
 _ = i18n.language.gettext
 
-VERSION = "0.91.2"
+VERSION = "0.91.3"
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -547,7 +547,7 @@ class DockBar():
                     else:
                         self.app_ids_by_exec[exe] = id
                         
-        self.reload()
+        self.reload(tell_parent=False)
 
     def reload(self, event=None, data=None, tell_parent=True):
         """Reloads DockbarX."""
