@@ -712,6 +712,8 @@ class IconFactory():
                     pixels[x, y] = (r, g, b, a)
             return self.__pil2surface(im)
         else:
+            w = surface.get_width()
+            h = surface.get_height()
             new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
             ctx = gtk.gdk.CairoContext(cairo.Context(new))
             ctx.set_source_surface(surface)
