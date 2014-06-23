@@ -35,7 +35,7 @@ class DockBarApp (awn.AppletSimple):
     def __init__ (self, uid, panel_id):
         awn.AppletSimple.__init__(self, "DockbarX", uid, panel_id)
         self.set_icon_name("gtk-apply")
-        GObject.idle_add(self.__on_idle)
+        gobject.idle_add(self.__on_idle)
         self.db_loaded = False
         self.awn_applet_dbus = AWNappletDBus(self)
 
@@ -93,7 +93,7 @@ class DockBarApp (awn.AppletSimple):
         self.show()
         self.wnck_screen.connect("active-window-changed",
                                  self.__on_active_window_changed)
-        GObject.timeout_add(200, self.__update_autohide)
+        gobject.timeout_add(200, self.__update_autohide)
         for window in self.db.get_windows():
             self.add_window(window)
         self.db_loaded = True
@@ -180,7 +180,7 @@ class DockBarApp (awn.AppletSimple):
                return
         self.last_geometry_window = weakref.ref(window)
         self.geometry_time = time.time()
-        GObject.timeout_add(120, self.__calc_border_distance, window, True)
+        gobject.timeout_add(120, self.__calc_border_distance, window, True)
 
     def __on_active_window_changed(self, screen, previous_active_window):
         if self.globals.settings["awn/behavior"] == "dodge active window":
@@ -192,7 +192,7 @@ class DockBarApp (awn.AppletSimple):
     def __calc_border_distance(self, window, reset_should_autohide=False):
         bd = {"left": 1000, "right": 1000, "top": 1000, "bottom": 1000}
         x, y, w, h = window.get_geometry()
-        gdk_screen = Gdk.Screen.get_default()
+        gdk_screen = gtk.gdk.screen_get_default()
         monitor = gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
         if monitor != self.get_monitor():
             return
@@ -253,6 +253,20 @@ class DockBarApp (awn.AppletSimple):
         self.db_loaded = False
         self.db.reload()
         self.db_loaded = True
+
+    def readd_container(self, container):
+        # Dockbar calls back to this function when it is reloaded
+        if self.db.get_orient() in ("up", "down"):
+            container.set_size_request(-1, self.get_size() + \
+                                               self.icon.get_offset() + 5)
+        else:
+            container.set_size_request(self.get_size() + \
+                                               self.icon.get_offset() + 5, -1)
+        self.alignment.add(container)
+        container.show_all()
+        self.__compute_should_autohide()
+
+
 
 class AWNappletDBus(dbus.service.Object):
 

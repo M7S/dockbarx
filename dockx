@@ -636,6 +636,8 @@ class DockX(CairoDockX):
         self.padding2.define_position(p2)
         self.show_all()
         self.connect_applet_signals()
+        # Do a first calculation of dockbarx max size after everything has been realised.
+        gobject.idle_add(self.__calulate_db_max_size_on_realized)
 
     def __destroy_old(self):
         self.disconnect_applet_signals()
@@ -1196,6 +1198,11 @@ class DockX(CairoDockX):
             self.dockbar_max_size = max_size
             self.dockbar.set_max_size(max_size)
                 
+    def __calulate_db_max_size_on_realized(self):
+        # Wait while gtk events are pending.
+        while gtk.events_pending():
+                    gtk.main_iteration(False)
+        self.calculate_dockbar_max_size()
 
     def get_monitor_geometry(self):
         screen = self.get_screen()
@@ -1205,7 +1212,7 @@ class DockX(CairoDockX):
 
     def reload(self, *args):
         self.db_loaded = False
-        self.dockbar.reload()
+        self.dockbar.reload(tell_parent=False)
         self.db_loaded = True
         self.applets.find_applets()
         self.theme.reload()
