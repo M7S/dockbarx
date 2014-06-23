@@ -22,6 +22,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GdkX11
 from gi.repository import GObject
 import sys
 import os
@@ -161,9 +162,9 @@ class GroupList(list):
             self.box = Gtk.VBox()
         self.allocation_sid = self.box.connect("size-allocate", 
                                                self.on_size_allocate)
-        self.box.pack_start(self.container, False)
+        self.box.pack_start(self.container, False, False, 0)
         self.empty = Spacer(dockbar)
-        self.box.pack_start(self.empty, True, True)
+        self.box.pack_start(self.empty, True, True, 0)
         self.box.show_all()
         self.__make_arrow_buttons()
 
@@ -203,12 +204,12 @@ class GroupList(list):
         
     def append(self, group):
         list.append(self, group)
-        self.container.pack_start(group.button, False)
+        self.container.pack_start(group.button, False, False, 0)
         self.manage_size_overflow()
         
     def insert(self, index, group):
         list.insert(self, index, group)
-        self.container.pack_start(group.button, False)
+        self.container.pack_start(group.button, False, False, 0)
         self.container.reorder_child(button, index)
         self.manage_size_overflow()
         
@@ -259,9 +260,9 @@ class GroupList(list):
         self.box.destroy()
         self.box = box
         self.container = container
-        self.box.pack_start(self.container, False)
+        self.box.pack_start(self.container, False, False, 0)
         self.empty = Spacer(self.dockbar_r())
-        self.box.pack_start(self.empty, True, True)
+        self.box.pack_start(self.empty, True, True, 0)
         self.__make_arrow_buttons()
         self.allocation_sid = self.box.connect("size-allocate", 
                                                self.on_size_allocate)
@@ -283,7 +284,7 @@ class GroupList(list):
         self.arrow_box.add(box)
         box.pack_start(self.next_button, True, True, 0)
         box.pack_start(self.previous_button, True, True, 0)
-        self.box.pack_start(self.arrow_box, False)
+        self.box.pack_start(self.arrow_box, False, False, 0)
         
         #Connections
         next_sid = self.next_button.connect("clicked", self.on_next_button_clicked)
@@ -454,13 +455,19 @@ class DockBar():
         # Most things are imported here instead of immediately at startup 
         # since python gnomeapplet must be realized quickly to avoid crashes.
         global subprocess
+        print "import subprocess"
         import subprocess
-        global gio
+        global Gio
+        print "import Gio"
         from gi.repository import Gio
-        global keybinder
-        import keybinder
-        global wnck
+        gi.require_version('Keybinder', '3.0')
+        global Keybinder
+        print "import keybinder"
+        from gi.repository import Keybinder
+        global Wnck
+        print "import Wnck"
         from gi.repository import Wnck
+        
         global Group
         global GroupIdentifierError
         from groupbutton import Group, GroupIdentifierError
@@ -486,9 +493,9 @@ class DockBar():
         self.dbus = DockbarDBus(self)
 
         # Wnck for controlling windows
-        Wnck.set_client_type(Wnck.CLIENT_TYPE_PAGER)
+        Wnck.set_client_type(2) # 2=CLIENT_TYPE_PAGER
         self.screen = Wnck.Screen.get_default()
-        self.root_xid = int(Gdk.Screen.get_default().get_root_window().xid)
+        self.root_xid = int(Gdk.Screen.get_default().get_root_window().get_xid())
         self.screen.force_update()
 
         # Keybord shortcut stuff
@@ -519,15 +526,15 @@ class DockBar():
         for app in Gio.app_info_get_all():
             id = app.get_id()
             id = id[:id.rfind(".")].lower()
-            name = u""+app.get_name().lower()
+            name = app.get_name().lower()
             exe = app.get_executable()
             if exe:
                 self.apps_by_id[id] = app
                 try:
-                    cmd = u""+app.get_commandline().lower()
+                    cmd = app.get_commandline().lower()
                 except AttributeError:
                     # Older versions of gio doesn't have get_comandline.
-                    cmd = u""
+                    cmd = ""
                 if id[:5] == "wine-":
                     if cmd.find(".exe") > 0:
                         program = cmd[:cmd.rfind(".exe")+4]
@@ -971,7 +978,7 @@ class DockBar():
 
     def __find_desktop_entry_id(self, identifier):
         id = None
-        rc = u""+identifier.lower()
+        rc = identifier.lower()
         if rc != "":
             if rc in self.desktop_entry_by_id:
                 id = rc
@@ -1006,7 +1013,7 @@ class DockBar():
     def __find_gio_app(self, identifier):
         app = None
         app_id = None
-        rc = u""+identifier.lower()
+        rc = identifier.lower()
         if rc != "":
             if rc in self.apps_by_id:
                 app_id = rc
@@ -1136,7 +1143,7 @@ class DockBar():
 
         # Try to match the launcher against the groups that aren't pinned.
         id = path[path.rfind("/")+1:path.rfind(".")].lower()
-        name = u"" + desktop_entry.getName()
+        name = desktop_entry.getName()
         exe = desktop_entry.getExec()
         wine = False
         chromium = False
@@ -1175,7 +1182,7 @@ class DockBar():
             if group.pinned:
                 continue
             identifier = group.identifier
-            rc = u"" + identifier.lower()
+            rc = identifier.lower()
             if not rc:
                 continue
             if wine:
@@ -1389,7 +1396,7 @@ class DockBar():
             if exe != "":
                 self.d_e_ids_by_exec[exe] = id
 
-            name = u"" + desktop_entry.getName().lower()
+            name = desktop_entry.getName().lower()
             if name.find(" ")>-1:
                 self.d_e_ids_by_longname[name] = id
             else:
@@ -1470,7 +1477,7 @@ class DockBar():
         entry.connect("activate",
                       lambda widget: dialog.response(Gtk.ResponseType.OK))
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label(_("Identifier:", True, True, 0)), False, 5, 5)
+        hbox.pack_start(Gtk.Label(_("Identifier:", True, True, 0)), False, False, 5)
         hbox.pack_end(combobox, True, True, 0)
         dialog.vbox.pack_end(hbox, True, True, 0)
         dialog.show_all()
@@ -1640,7 +1647,7 @@ class DockBar():
                        }
         for (s, f) in functions.items():
             if self.gkeys[s] is not None:
-                keybinder.unbind(self.gkeys[s])
+                Keybinder.unbind(self.gkeys[s])
                 self.gkeys[s] = None
             if not self.globals.settings[s]:
                 # The global key is not in use
@@ -1654,7 +1661,7 @@ class DockBar():
                     keystr = keystr.replace("Tab", "ISO_Left_Tab")
 
             try:
-                if keybinder.bind(keystr, f):
+                if Keybinder.bind(keystr, f):
                     # Key succesfully bound.
                     self.gkeys[s]= keystr
                     error = False
@@ -1664,7 +1671,7 @@ class DockBar():
                     # Keybinder sometimes doesn't unbind faulty binds.
                     # We have to do it manually.
                     try:
-                        keybinder.unbind(keystr)
+                        Keybinder.unbind(keystr)
                     except:
                         pass
             except KeyError:
@@ -1840,7 +1847,7 @@ class DockBar():
             key = "<super>%s" % i
             if self.globals.settings["use_number_shortcuts"]:
                 try:
-                    success = keybinder.bind(key,
+                    success = Keybinder.bind(key,
                                          self.__on_number_shortcut_pressed, i)
                 except:
                     success = False
@@ -1848,12 +1855,12 @@ class DockBar():
                     # Keybinder sometimes doesn't unbind faulty binds.
                     # We have to do it manually.
                     try:
-                        keybinder.unbind(key)
+                        Keybinder.unbind(key)
                     except:
                         pass
             else:
                 try:
-                    keybinder.unbind(key)
+                    Keybinder.unbind(key)
                 except:
                     pass
 

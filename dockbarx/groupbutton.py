@@ -21,6 +21,8 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GdkX11
 from gi.repository import GObject
 from gi.repository import GConf
 from gi.repository import Wnck
@@ -165,7 +167,7 @@ class Group(ListOfWindows):
         self.zg_files = {}
 
         self.screen = Wnck.Screen.get_default()
-        self.root_xid = int(Gdk.Screen.get_default().get_root_window().xid)
+        self.root_xid = int(Gdk.Screen.get_default().get_root_window().get_xid())
         self.update_name()
         
         monitor = self.get_monitor()
@@ -226,7 +228,7 @@ class Group(ListOfWindows):
             self.window_list.destroy()
 
     def get_monitor(self):
-        window = self.dockbar_r().groups.box.window
+        window = self.dockbar_r().groups.box.get_window()
         gdk_screen = Gdk.Screen.get_default()
         if window is not None:
             return gdk_screen.get_monitor_at_window(window)
@@ -1422,9 +1424,8 @@ class GroupButton(CairoAppButton):
         self.dd_uri = None
 
         #Make buttons drag-able
-        self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK,
-                                    [("text/groupbutton_name", 0, 47593)],
-                                    Gdk.DragAction.MOVE)
+        target_entry = Gtk.TargetEntry("text/groupbutton_name", 0, 47593)
+        self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK,[target_entry], Gdk.DragAction.MOVE)
         self.drag_source_set_icon_pixbuf(self.icon_factory.get_icon(32))
         self.is_current_drag_source = False
 
@@ -2376,7 +2377,7 @@ class WindowList(Gtk.VBox):
         self.title.set_use_markup(True)
         self.update_title()
         self.update_title_tooltip()
-        self.pack_start(self.title, False)
+        self.pack_start(self.title, False, False, 0)
         self.pack_start(self.alignment, True, True, 0)
         self.set_show_previews(self.globals.settings["preview"])
 
@@ -2424,7 +2425,7 @@ class WindowList(Gtk.VBox):
     def add_item(self, item):
         item.set_show_preview(self.show_previews)
         item.update_preview()
-        self.window_box.pack_start(item, True, True)
+        self.window_box.pack_start(item, True, True, 0)
 
     def shrink_size(self):
         """This function is called if the window list is too big."""
@@ -2502,7 +2503,7 @@ class WindowList(Gtk.VBox):
         if oldbox:
             for c in oldbox.get_children():
                 oldbox.remove(c)
-                self.window_box.pack_start(c, True, True)
+                self.window_box.pack_start(c, True, True, 0)
             oldbox.destroy()
         if self.scrolled_window:
             self.adjustment.disconnect(self.scroll_changed_sid)

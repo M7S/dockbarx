@@ -616,13 +616,13 @@ class DockX(CairoDockX):
         self.box = gtk_box()
         self.add_box(self.box)
         # Padding/End decorations before applets
-        self.box.pack_start(self.padding1, False, False)
+        self.box.pack_start(self.padding1, False, False, 0)
         self.padding1.compute_size(centered or ed)
         # Add the applets to the dock
         alist = self.applets.get_list()
         self.__add_applets(alist, pos, panel)
         # Padding/End decorations after applets
-        self.box.pack_start(self.padding2, False, False)
+        self.box.pack_start(self.padding2, False, False, 0)
         self.padding2.compute_size(centered or cornered or ed)
         # Define if the paddings has a position right
         # before or after the dockbarx applet.
@@ -667,7 +667,7 @@ class DockX(CairoDockX):
                     # Put the second spacer in the right/bottom box.
                     # Start putting applets in the right/bottom box.
                     box = self.position_boxes[2]
-                box.pack_start(spacer, True, True)
+                box.pack_start(spacer, True, True, 0)
                 # Define spacer posistion relative to dbx
                 # Needed for correct drag and drop behavior.
                 if i != 0 and alist[i - 1] == "DockbarX":
@@ -699,7 +699,7 @@ class DockX(CairoDockX):
                 expand = applet.get_expand() and panel
             if expand:
                 expanded = True
-            box.pack_start(applet, expand, expand)
+            box.pack_start(applet, expand, expand, 0)
         if panel and not expanded:
             # The dockbar should expand if nothing else on the panel does.
             self.__dockbar_set_expand(box, True)
@@ -717,9 +717,9 @@ class DockX(CairoDockX):
             else:
                 gtk_box = Gtk.HBox
             boxes = [gtk_box(), gtk_box(),gtk_box()]
-            self.box.pack_start(boxes[0], True, True)
-            self.box.pack_start(boxes[1], False, False)
-            self.box.pack_start(boxes[2], True, True)
+            self.box.pack_start(boxes[0], True, True, 0)
+            self.box.pack_start(boxes[1], False, False, 0)
+            self.box.pack_start(boxes[2], True, True, 0)
             # Use hugh size requests so that the boxes get equaly large.
             if pos in ("left", "right"):
                 boxes[0].set_size_request(-1, 3000)

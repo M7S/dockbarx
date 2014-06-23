@@ -982,13 +982,13 @@ class Globals(GObject.GObject):
             gconf_pinned_apps = GCONF_CLIENT.get_list(GCONF_DIR + "/launchers",
                                                     GConf.ValueType.STRING)
         except:
-            GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", GConf.ValueType.STRING,
-                                  gconf_pinned_apps)
+            pass
+            #GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", GConf.ValueType.STRING, gconf_pinned_apps)
         return gconf_pinned_apps
 
     def set_pinned_apps_list(self, pinned_apps):
-        GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", GConf.ValueType.STRING,
-                              pinned_apps)
+        pass
+        #GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", GConf.ValueType.STRING, pinned_apps)
 
     def set_shown_popup(self, popup):
         if popup is None:
