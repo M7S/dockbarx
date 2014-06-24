@@ -6,7 +6,35 @@ DockBarX is a lightweight taskbar / panel replacement for Linux which works as a
 
 DockbarX is free software and is licensed under GPL3.
 
-## Installation
+## Install in Ubuntu from ppa
+To add the main DockBarX PPA and install the application in Ubuntu (and derivatives), use the following commands:
+
+```
+sudo add-apt-repository ppa:dockbar-main/ppa
+sudo apt-get update
+sudo apt-get install dockbarx
+```
+
+If you want to use dockbarx as a Xfce panel applet you also need this command
+
+```
+sudo apt-get install xfce4-dockbarx-plugin
+```
+
+To get more themes for DockbarX and DockX use this command
+
+```
+sudo apt-get install dockbarx-themes-extra
+```
+
+## Install in archlinux
+There is an aur for DockbarX
+https://aur.archlinux.org/packages/dockbarx/
+
+And there is also one for xfce4-dockbarx-plugin
+https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
+
+## Manual Installation
 
 1. Following dependecies needs to be installed: 
   - zeitgeist, python-wnck, python-imaging, python-keybinder and python-xlib. 
