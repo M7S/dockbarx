@@ -29,9 +29,11 @@ sudo apt-get install dockbarx-themes-extra
 
 ## Install in archlinux
 There is an aur for DockbarX
+
 https://aur.archlinux.org/packages/dockbarx/
 
 And there is also one for xfce4-dockbarx-plugin
+
 https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
 
 ## Manual Installation
@@ -45,7 +47,9 @@ https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
     - Appindicators: indicator-application
   - To use DockManager helpers, you need to install dockmanager and dockmanager-daemon as well as libdesktop-agnostic-cfg-gconf and libdesktop-agnostic-vfs-gio. The last two might not need to be installed separately on distributions that aren't Debian based.
 2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install `$ sudo ./setup.py install`
-3. Start DockbarX
+
+## Usage
+To start DockbarX you can
   - To run DockbarX as a stand alone dock use the command `dockx`.
   - For gnomepanel or matepanel applet, simply add DockBarX applet to the panel (kill the panel or re-login first if necessary).
   - For XFCE panel you need to install [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin)
@@ -58,6 +62,7 @@ https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
 A: I don't. The goal of DockbarX isn't to be a clone of the Windows 7 task bar. Windows 7 task bar has a good principle, though.  When it comes to your most used programs it's more productive to do all window handling - launching, selecting, closing, etc. from the same few pixels. If I need a Firefox window I move my mouse cursor to the same spot on the screen regardless of which Firefox window I want and or if I even have opened a Firefox window yet. This behavior is good and it would be stupid not to implement it just because "Windows had it first". Don't reduce your productivity out of stubbornness. When it comes to looks it's up to you to choose a theme that looks like windows 7 or a theme that doesn't look that way.
 
 Here are some historical references about docks:
+
 http://en.wikipedia.org/wiki/Dock_(computing)
 http://en.wikipedia.org/wiki/Icon_bar
 
