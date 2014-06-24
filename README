@@ -1,5 +1,5 @@
 # DockbarX
-### Version 0.91.3
+### Version 0.91.4
 
 ## About DockbarX
 DockBarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as an an Avant Window Navigator applet, as a Xfce4 panel applet[^1], as a matepanel applet[^2] or as a legacy gnome2 panel applet. DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.

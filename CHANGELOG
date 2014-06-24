@@ -1,4 +1,7 @@
 Changelog:
+0.91.4
+- Fixed issue #4 (bug): DockbarX froze when minimizing applications if certain themes were used.
+
 0.91.3
 - Fixed bug that broke DockX in 0.91.2
 
