@@ -52,9 +52,16 @@ https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
 To start DockbarX you can
   - To run DockbarX as a stand alone dock use the command `dockx`.
   - For gnomepanel or matepanel applet, simply add DockBarX applet to the panel (kill the panel or re-login first if necessary).
-  - For XFCE panel you need to install [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin)
+  - For XFCE panel you need to [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin), if you haven't installed it already. Click the link for further usage information.
+
+The preferences dialog of DockbarX can be found from your applications menu or (if you use DockX or mate-/xfce-/gnome-applet) by right clicking and choosing Preferences.
 
 **NOTE!** To use previews with Compiz you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". *You can **not** use previews with other window manager than Compiz and Kwin.*
+
+## Contribute
+DockbarX is a free and open source project I am developing in my free time. I will gladly accept any help I can get to improve DockbarX. Test out new code, **report bugs** to the issue tracker and make pull request with code you like to contribute.
+
+You can also translate DockbarX into your language at [DockbarX launchpad translation page](https://translations.launchpad.net/dockbar). DockbarX is translated into many languages but few of the translations are complete. Even if DockbarX should be fully translated into your language at the moment, you could check in after a new release is done to see if there some new words that needs translating.
 
 ##FAQ
 *Q: Why do you want to make Linux into a Microsoft Windows 7 clone?*
