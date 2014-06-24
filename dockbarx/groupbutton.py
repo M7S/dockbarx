@@ -102,11 +102,11 @@ class ListOfWindows(list):
         return ListOfWindows(windows)
 
     def get_unminimized_windows(self):
-        windows = [w for w in self.get_windows() if not w.Wnck.is_minimized()]
+        windows = [w for w in self.get_windows() if not w.wnck.is_minimized()]
         return ListOfWindows(windows)
 
     def get_minimized_windows(self):
-        windows = [w for w in self.get_windows() if w.Wnck.is_minimized()]
+        windows = [w for w in self.get_windows() if w.wnck.is_minimized()]
         return ListOfWindows(windows)
 
     def get_count(self):
@@ -267,7 +267,7 @@ class Group(ListOfWindows):
             # like "Amarok" from "Amarok - [SONGNAME]"
             # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
             # totally screwed up. So far no such program has been reported.
-            self.name = self[0].Wnck.get_class_group().get_name()
+            self.name = self[0].wnck.get_class_group().get_name()
             self.name = self.name.split(" - ", 1)[0]
         if self.name is None and self.identifier:
             self.name = self.identifier
@@ -320,8 +320,8 @@ class Group(ListOfWindows):
 
 
     def show_launch_popup(self):
-        if self.popup.window:
-            self.popup.window.property_change(ATOM_PREVIEWS,
+        if self.popup.get_window():
+            self.popup.get_window().property_change(ATOM_PREVIEWS,
                                               ATOM_PREVIEWS,
                                               32,
                                               Gdk.PropMode.REPLACE,
@@ -364,7 +364,7 @@ class Group(ListOfWindows):
         if len(self)==1:
             if self.name is None:
                 self.update_name()
-            class_group = window.Wnck.get_class_group()
+            class_group = window.wnck.get_class_group()
             self.button.icon_factory.set_class_group(class_group)
         if self.button.launch_effect:
             self.button.remove_launch_effect()
@@ -438,7 +438,7 @@ class Group(ListOfWindows):
             self.needs_attention = True
         else:
             for window in self:
-                if window.Wnck.needs_attention():
+                if window.wnck.needs_attention():
                     self.needs_attention = True
                     break
             else:
@@ -468,7 +468,7 @@ class Group(ListOfWindows):
                 # a delay already is set?
                 self.opacify_sid = GObject.timeout_add(delay, self.opacify)
             return
-        xids = [window.Wnck.get_xid() for window in self]
+        xids = [window.wnck.get_xid() for window in self]
         opacify(xids, self.identifier)
         self.opacified = True
         self.opacify_sid = None
@@ -551,14 +551,14 @@ class Group(ListOfWindows):
     def get_dm_path_by_pid(self, pid):
         if self.dockmanager is None:
             return None
-        pids = [window.Wnck.get_pid() for window in self]
+        pids = [window.wnck.get_pid() for window in self]
         if pid in pids:
             return self.dockmanager.get_path()
 
     def get_dm_path_by_xid(self, xid):
         if self.dockmanager is None:
             return None
-        xids = [window.Wnck.get_xid() for window in self]
+        xids = [window.wnck.get_xid() for window in self]
         if xid in xids:
             return self.dockmanager.get_path()
 
@@ -643,8 +643,8 @@ class Group(ListOfWindows):
         else:
             use_locked_popup = False
         for window in self:
-            if not window.Wnck.is_maximized() \
-            and window.Wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
+            if not window.wnck.is_maximized() \
+            and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
                 maximize = True
         else:
             maximize = False
@@ -800,7 +800,7 @@ class Group(ListOfWindows):
 
     def __menu_position(self, menu):
         # Used only with the gtk menu
-        x, y = self.button.window.get_origin()
+        dummy, x, y = self.button.get_window().get_origin()
         a = self.button.get_allocation()
         x += a.x
         y += a.y
@@ -920,7 +920,7 @@ class Group(ListOfWindows):
         windows_stacked = screen.get_windows_stacked()
         grp_win_stacked = []
         ignorelist = []
-        minimized_win_cnt = len([w for w in self if w.Wnck.is_minimized()])
+        minimized_win_cnt = len([w for w in self if w.wnck.is_minimized()])
         moved = False
         grtop = False
         wingr = False
@@ -935,26 +935,26 @@ class Group(ListOfWindows):
         unminimized = False
         if minimized_win_cnt > 0:
             for window in self:
-                if window.Wnck.is_minimized():
+                if window.wnck.is_minimized():
                     ignored = False
-                    if not window.Wnck.is_pinned() \
-                    and window.Wnck.get_workspace() is not None \
-                    and window.Wnck.get_workspace() != active_workspace:
+                    if not window.wnck.is_pinned() \
+                    and window.wnck.get_workspace() is not None \
+                    and window.wnck.get_workspace() != active_workspace:
                         if mode == "move":
                             ws = screen.get_active_workspace()
-                            window.Wnck.move_to_workspace(ws)
+                            window.wnck.move_to_workspace(ws)
                         else: # mode == "ignore" or "switch"
                             ignored = True
-                    if not window.Wnck.is_in_viewport(active_workspace):
+                    if not window.wnck.is_in_viewport(active_workspace):
                         if mode == "move":
-                            wx, wy, ww, wh = window.Wnck.get_geometry()
-                            window.Wnck.set_geometry(0,3,wx%screen.get_width(),
+                            wx, wy, ww, wh = window.wnck.get_geometry()
+                            window.wnck.set_geometry(0,3,wx%screen.get_width(),
                                              wy%screen.get_height(),
                                              ww, wh)
                         else: # mode == "ignore" or "switch"
                             ignored = True
                     if not ignored:
-                        window.Wnck.unminimize(event.time)
+                        window.wnck.unminimize(event.time)
                         unminimized = True
         if unminimized:
             return
@@ -1008,10 +1008,10 @@ class Group(ListOfWindows):
             # has most windows.
             workspaces ={}
             for window in self:
-                if window.Wnck.get_workspace() is None:
+                if window.wnck.get_workspace() is None:
                     continue
-                workspace = window.Wnck.get_workspace()
-                wx,wy,ww,wh = window.Wnck.get_geometry()
+                workspace = window.wnck.get_workspace()
+                wx,wy,ww,wh = window.wnck.get_geometry()
                 vpx = wx/screen.get_width()
                 vpy = wy/screen.get_height()
                 if not workspace in workspaces:
@@ -1059,8 +1059,8 @@ class Group(ListOfWindows):
             if not (x == 0 and y == 0):
                 self.popup.hide()
             for window in grp_win_stacked:
-                if window.Wnck.is_minimized():
-                    window.Wnck.unminimize(event.time)
+                if window.wnck.is_minimized():
+                    window.wnck.unminimize(event.time)
                     unminimized = True
             if unminimized:
                 return
@@ -1070,11 +1070,11 @@ class Group(ListOfWindows):
 
         if grtop and not moved and minimize:
             for window in grp_win_stacked:
-                window.Wnck.minimize()
+                window.wnck.minimize()
         elif not grtop:
             delay = self.globals.settings["delay_on_select_all"]
             while grp_win_stacked:
-                grp_win_stacked.pop(0).Wnck.activate(event.time)
+                grp_win_stacked.pop(0).wnck.activate(event.time)
                 if grp_win_stacked and delay:
                     sleep(0.05)
                     
@@ -1093,20 +1093,20 @@ class Group(ListOfWindows):
 
     def action_minimize_all_windows(self, widget=None, event=None):
         for window in self.get_windows():
-            window.Wnck.minimize()
+            window.wnck.minimize()
         self.popup.hide()
         self.deopacify()
 
     def action_maximize_all_windows(self, widget=None, event=None):
         maximized = False
         for window in self.get_windows():
-            if not window.Wnck.is_maximized() \
-            and window.Wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
-                window.Wnck.maximize()
+            if not window.wnck.is_maximized() \
+            and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
+                window.wnck.maximize()
                 maximized = True
         if not maximized:
             for window in self:
-                window.Wnck.unmaximize()
+                window.wnck.unmaximize()
         self.popup.hide()
         self.deopacify()
 
@@ -1144,7 +1144,7 @@ class Group(ListOfWindows):
                     while self.nextlist[0] != topwindow:
                         window = self.nextlist.pop(0)
                         self.nextlist.append(window)
-            if self.nextlist[0].Wnck.is_active():
+            if self.nextlist[0].wnck.is_active():
                 if previous:
                     window = self.nextlist.pop(-1)
                     self.nextlist.insert(0, window)
@@ -1213,7 +1213,7 @@ class Group(ListOfWindows):
         else:
             t = 1
         for window in self.get_windows():
-            window.Wnck.close(t)
+            window.wnck.close(t)
         self.popup.hide()
         self.deopacify()
 
@@ -1275,7 +1275,7 @@ class Group(ListOfWindows):
             path = "scale/%s/initiate_all_key"%screen_path
         try:
             compiz_call_async(path, "activate","root", self.root_xid,"match", \
-                "iclass=%s"%windows[0].Wnck.get_class_group().get_res_class())
+                "iclass=%s"%windows[0].wnck.get_class_group().get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
@@ -1304,7 +1304,7 @@ class Group(ListOfWindows):
             path = "shift/%s/initiate_all_key"%screen_path
         try:
             compiz_call_async(path, "activate","root", self.root_xid,"match", \
-                "iclass=%s"%windows[0].Wnck.get_class_group().get_res_class())
+                "iclass=%s"%windows[0].wnck.get_class_group().get_res_class())
         except:
             return
         # A new button enter signal is sent when compiz is called,
@@ -1399,6 +1399,7 @@ class GroupButton(CairoAppButton):
         self.state_type = None
         self.badge_backend = None
         self.progress_backend = None
+        self.allocation = Gdk.Rectangle(0, 0, 0, 0)
         self.icon_factory = IconFactory(group,
                                         identifier=group.identifier,
                                         desktop_entry=group.desktop_entry)
@@ -1525,7 +1526,7 @@ class GroupButton(CairoAppButton):
             gant = self.globals.settings[
                                     "groupbutton_attention_notification_type"]
             if gant == "compwater":
-                x,y = self.window.get_origin()
+                dummy, x,y = self.get_window().get_origin()
                 alloc = self.get_allocation()
                 x = x + alloc.x + alloc.width/2
                 y = y + alloc.y + alloc.height/2
@@ -1593,17 +1594,18 @@ class GroupButton(CairoAppButton):
             #~ if self.globals.settings["show_only_current_desktop"] and \
                #~ not window.is_on_current_desktop():
                 #~ # Todo: Fix this for multiple dockbarx:s
-                #~ window.Wnck.set_icon_geometry(0, 0, 0, 0)
+                #~ window.wnck.set_icon_geometry(0, 0, 0, 0)
                 #~ continue
             if self.globals.settings["show_only_current_desktop"] and \
                window.monitor != group.get_monitor():
                 continue
             alloc = self.get_allocation()
-            if self.window:
-                x,y = self.window.get_origin()
+            if self.get_window():
+                print self.get_window().get_origin()
+                dummy, x,y = self.get_window().get_origin() # Why three values?
                 x += alloc.x
                 y += alloc.y
-                window.Wnck.set_icon_geometry(x, y, alloc.width, alloc.height)
+                window.wnck.set_icon_geometry(x, y, alloc.width, alloc.height)
 
     def apply_launch_effect(self, length=None):
         group = self.group_r()
@@ -1613,9 +1615,9 @@ class GroupButton(CairoAppButton):
                 length = 2000
             else:
                 length = 10000
-        self.window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
-        if group.popup.window is not None:
-            group.popup.window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+        self.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+        if group.popup.get_window() is not None:
+            group.popup.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         self.launch_effect_timeout = GObject.timeout_add(length,
                                                 self.remove_launch_effect)
                                                 
@@ -1624,9 +1626,9 @@ class GroupButton(CairoAppButton):
         if self.launch_effect_timeout:
             GObject.source_remove(self.launch_effect_timeout)
             self.launch_effect_timeout = None
-        self.window.set_cursor(None)
-        if group.popup.window is not None:
-            group.popup.window.set_cursor(None)
+        self.get_window().set_cursor(None)
+        if group.popup.get_window() is not None:
+            group.popup.get_window().set_cursor(None)
         self.launch_effect = False
         self.update_state()
         return False
@@ -2019,7 +2021,7 @@ class GroupPopup(CairoPopup):
         group = self.group_r()
         # Move popup to it's right spot
         offset = int(self.popup_style.get("%s_distance" % self.popup_type, -7))
-        wx, wy = group.button.window.get_origin()
+        dummy, wx, wy = group.button.get_window().get_origin()
         b_alloc = group.button.get_allocation()
         width, height = self.get_size()
         mgeo = Gdk.Screen.get_default().get_monitor_geometry(
@@ -2089,12 +2091,13 @@ class GroupPopup(CairoPopup):
         # Tell the compiz/kwin where to put the previews.
         if previews is None:
             previews = [0,5,0,0,0,0,0]
-        if self.window:
-            self.window.property_change(ATOM_PREVIEWS,
-                                        ATOM_PREVIEWS,
-                                        32,
-                                        Gdk.PropMode.REPLACE,
-                                        previews)
+        if self.get_window():
+            pass
+            #~ self.get_window().property_change(ATOM_PREVIEWS,
+                                        #~ ATOM_PREVIEWS,
+                                        #~ 32,
+                                        #~ Gdk.PropMode.REPLACE,
+                                        #~ previews)
 
     def do_leave_notify_event(self, event):
         CairoPopup.do_leave_notify_event(self, event)
@@ -2139,7 +2142,7 @@ class GroupPopup(CairoPopup):
         if self.globals.gtkmenu_showing:
             return
         group = self.group_r()
-        if self.window:
+        if self.get_window():
             self.set_previews(None)
         CairoPopup.hide(self)
         self.popup_showing = False
@@ -2165,7 +2168,7 @@ class GroupPopup(CairoPopup):
 
     def __hide_if_not_hovered(self):
         group = self.group_r()
-        if self.window is None:
+        if self.get_window() is None:
             # Popup isn't shown.
             return
         display = Gdk.Display.get_default()
@@ -2205,7 +2208,7 @@ class GroupPopup(CairoPopup):
 
     def expose(self):
         event = Gdk.Event(Gdk.EXPOSE)
-        event.window = self.window
+        event.window = self.get_window() # Does this work?
         event.area = self.get_allocation()
         self.send_expose(event)
 
@@ -2223,9 +2226,9 @@ class LockedPopup(GroupPopup):
         self.globals = Globals()
         mgeo = Gdk.Screen.get_default().get_monitor_geometry(
                                                         group.get_monitor())
-        button_window = group.button.window
+        button_window = group.button.get_window()
         if button_window:
-            wx, wy = button_window.get_origin()
+            dummy, wx, wy = button_window.get_origin()
         else:
             wx, wy = (0, 0)
         if group.dockbar_r().orient in ("left", "right") or wy < mgeo.height / 2:
@@ -2271,9 +2274,9 @@ class LockedPopup(GroupPopup):
         
         width, height = self.get_size()
         if self.dockbar_r().orient in ("down", "up"):
-            button_window = group.button.window
+            button_window = group.button.get_window()
             if button_window:
-                wx, wy = button_window.get_origin()
+                dummy, wx, wy = button_window.get_origin()
             else:
                 wx, wy = (0, 0)
             if wy > mgeo.height / 2:
@@ -2294,11 +2297,11 @@ class LockedPopup(GroupPopup):
             child_func(self)
 
     def __set_own_strut(self, *args):
-        if self.window:
+        win = self.get_window()
+        if win:
             if self.globals.settings["locked_list_no_overlap"] is False:
-                self.window.property_get("_NET_WM_STRUT", pdelete=True)
-                self.window.property_get("_NET_WM_STRUT_PARTIAL",
-                                          pdelete=True)
+                win.property_get("_NET_WM_STRUT", pdelete=True)
+                win.property_get("_NET_WM_STRUT_PARTIAL", pdelete=True)
                 return
             group = self.group_r()
             a = self.get_allocation()
@@ -2309,10 +2312,10 @@ class LockedPopup(GroupPopup):
             x1 = mgeo.x + x 
             x2 = mgeo.x + x + a.width
             strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
-            self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                        Gdk.PropMode.REPLACE, strut[:4])  
-            self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
-                                        32, Gdk.PropMode.REPLACE, strut)
+            #~ win.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
+                                        #~ Gdk.PropMode.REPLACE, strut[:4])  
+            #~ win.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
+                                        #~ 32, Gdk.PropMode.REPLACE, strut)
 
     def __get_other_strut(self, x1, x2):
         global display
@@ -2344,8 +2347,8 @@ class LockedPopup(GroupPopup):
         return strut
 
     def __on_realized(self):
-        while not self.window:
-            Gtk.main_iteration(False)
+        while not self.get_window():
+            Gtk.main_iteration()
         self.__set_own_strut()
 
     def destroy(self):
@@ -2445,14 +2448,14 @@ class WindowList(Gtk.VBox):
             previews.append(group.get_count())
             for window in group.get_windows():
                 previews.append(5)
-                previews.append(window.Wnck.get_xid())
+                previews.append(window.wnck.get_xid())
                 x, y, w, h = window.item.get_preview_allocation()
                 if self.globals.get_compiz_version() > "0.9":
                     # Compensate for a bug in compiz.
                     # The size is wrong with twice the size of the
                     # window decorations.
-                    ww, wh = window.Wnck.get_geometry()[2:4]
-                    cw, ch = window.Wnck.get_client_window_geometry()[2:4]
+                    ww, wh = window.wnck.get_geometry()[2:4]
+                    cw, ch = window.wnck.get_client_window_geometry()[2:4]
                     #~ w = int(w - 2 * (float(w) / ww) * (ww - cw))
                     h = int(h - 2 * (float(h) / wh) * (wh - ch))
                 previews.extend([x, y, w, h]) 

@@ -1126,7 +1126,7 @@ class DockBar():
         for g in self.groups:
             if group != g:
                 for window in g.get_list():
-                    window.Wnck.minimize()
+                    window.wnck.minimize()
 
 
     #### Launchers

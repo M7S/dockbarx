@@ -20,6 +20,8 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 import gc
 gc.enable()
 import cairo
@@ -930,8 +932,8 @@ class IconFactory():
         w = pixbuf.get_width()
         h = pixbuf.get_height()
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        ctx = Gdk.CairoContext(cairo.Context(surface))
-        ctx.set_source_pixbuf(pixbuf, 0, 0)
+        ctx = cairo.Context(surface)
+        Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0, 0)
         ctx.paint()
         del pixbuf
         return surface

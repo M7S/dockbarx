@@ -26,6 +26,7 @@ sys.stdout = StdOutWrapper()
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from gi.repository import Gdk
 import cairo
 import dockbarx.dockbar
 from gi.repository import Wnck
@@ -55,11 +56,11 @@ class CairoDockX(Gtk.Window):
         self.set_accept_focus(False)
         self.set_decorated(False)
         self.set_resizable(False)
-        gtk_screen = Gdk.Screen.get_default()
-        colormap = gtk_screen.get_rgba_colormap()
-        if colormap is None:
-            colormap = gtk_screen.get_rgb_colormap()
-        self.set_colormap(colormap)
+        gdk_screen = Gdk.Screen.get_default()
+        visual = gdk_screen.get_rgba_visual()
+        if visual is None:
+            visual = gdk_screen.get_rgb_visual()
+        self.set_visual(visual)
         self.set_app_paintable(1)
         self.button_area = Gtk.Alignment.new(0,0,1,1)
         Gtk.Window.add(self, self.button_area)
@@ -489,6 +490,7 @@ class DockX(CairoDockX):
                             "top": 1000, "bottom":1000}
         self.geometry_time = 0
         self.last_geometry_window = lambda: None
+        self.window = None
         if self.globals.settings["dock/behavior"] in ("panel", "standard"):
             self.autohide = False
         else:
@@ -562,7 +564,8 @@ class DockX(CairoDockX):
             self.__rebuild()
         else:
             self.__update_applets()
-        mx, my, mw, mh = self.get_monitor_geometry()
+        mr = self.get_monitor_geometry()
+        mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
         l, r, t, b = self.__get_monitor_and_strut_borders()
         sw = self.get_screen().get_width()
         sh = self.get_screen().get_height()
@@ -637,7 +640,7 @@ class DockX(CairoDockX):
         self.show_all()
         self.connect_applet_signals()
         # Do a first calculation of dockbarx max size after everything has been realised.
-        gobject.idle_add(self.__calulate_db_max_size_on_realized)
+        GObject.idle_add(self.__calulate_db_max_size_on_realized)
 
     def __destroy_old(self):
         self.disconnect_applet_signals()
@@ -800,16 +803,17 @@ class DockX(CairoDockX):
             self.window.property_delete("_NET_WM_STRUT")
             self.window.property_delete("_NET_WM_STRUT_PARTIAL")
             return
-        self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                    Gdk.PropMode.REPLACE, strut[:4])  
-        self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
-                                    32, Gdk.PropMode.REPLACE, strut)
+        #~ self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
+                                    #~ Gdk.PropMode.REPLACE, strut[:4])  
+        #~ self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
+                                    #~ 32, Gdk.PropMode.REPLACE, strut)
             
     def __get_monitor_and_strut_borders(self):
         # This function returns the distance from screen edges to
         # the monitor edges including strut.
         size = self.globals.settings["dock/size"]
-        mx, my, mw, mh = self.get_monitor_geometry()
+        mr = self.get_monitor_geometry()
+        mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
         sw = self.get_screen().get_width()
         sh = self.get_screen().get_height()
         strut = [mx, sw - (mx + mw), my,  sh - (my + mh)]
@@ -1148,7 +1152,8 @@ class DockX(CairoDockX):
         centered = self.globals.settings["dock/mode"] == "centered"
         pos = self.globals.settings["dock/position"]
         o = self.globals.settings["dock/offset"]
-        mx, my, mwidth, mheight = self.get_monitor_geometry()
+        mr = self.get_monitor_geometry()
+        mx, my, mwidth, mheight = mr.x, mr.y, mr.width, mr.height
         # Get the size of all no expanding applets
         asize = 0
         applets = self.__get_applets()
@@ -1200,8 +1205,8 @@ class DockX(CairoDockX):
                 
     def __calulate_db_max_size_on_realized(self):
         # Wait while gtk events are pending.
-        while gtk.events_pending():
-                    gtk.main_iteration(False)
+        while Gtk.events_pending():
+                    Gtk.main_iteration()
         self.calculate_dockbar_max_size()
 
     def get_monitor_geometry(self):

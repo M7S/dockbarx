@@ -140,19 +140,15 @@ class DockXApplets():
                                              "/applets/applet_list",
                                              GConf.ValueType.STRING)
         except:
-            raise
-            GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
-                                  GConf.ValueType.STRING,
-                                  ["DockbarX"])
+            #GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list", GConf.ValueType.STRING,["DockbarX"])
             return ["DockbarX"]
         all_applets = self.applets.keys() + ["DockbarX", "Spacer"]
         applet_list = [a for a in old_list if a in all_applets]
         if not "DockbarX" in applet_list:
             applet_list.append("DockbarX")
         if applet_list != old_list:
-            GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
-                                  GConf.ValueType.STRING,
-                                  applet_list)
+            #GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",GConf.ValueType.STRING, applet_list)
+            pass
         return applet_list
 
     def get_unused_list(self):

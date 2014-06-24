@@ -723,8 +723,8 @@ class Globals(GObject.GObject):
                                                       self.DEFAULT_SETTINGS)
 
             # Set gconf notifiers
-            GCONF_CLIENT.add_dir(GCONF_DIR, GConf.ClientPreloadType.PRELOAD_NONE)
-            GCONF_CLIENT.notify_add(GCONF_DIR, self.__on_gconf_changed, None)
+            #~ GCONF_CLIENT.add_dir(GCONF_DIR, GConf.ClientPreloadType.PRELOAD_NONE)
+            #~ GCONF_CLIENT.notify_add(GCONF_DIR, self.__on_gconf_changed, None)
 
             # Change old gconf settings
             group_button_actions_d = {"select or minimize group": "select",
@@ -735,12 +735,10 @@ class Globals(GObject.GObject):
                    ("click" in name or "scroll" in name) and \
                    (value in group_button_actions_d):
                     self.settings[name] = group_button_actions_d[value]
-                    GCONF_CLIENT.set_string(GCONF_DIR + "/" + name,
-                                            self.settings[name])
+                    #~ GCONF_CLIENT.set_string(GCONF_DIR + "/" + name, self.settings[name])
             if self.settings.get("workspace_behavior") == "ingore":
                 self.settings["workspace_behavior"] = "ignore"
-                GCONF_CLIENT.set_string(GCONF_DIR + "/workspace_behavior",
-                                        "ignore")
+                #~ GCONF_CLIENT.set_string(GCONF_DIR + "/workspace_behavior", "ignore")
 
             self.colors = {}
 
@@ -878,10 +876,12 @@ class Globals(GObject.GObject):
             try:
                 gc_value = GCONF_CLIENT.get_value(gdir + "/" + name)
             except:
-                gconf_set[type(value)](gdir + "/" + name, value)
+                #~ gconf_set[type(value)](gdir + "/" + name, value)
+                pass
             else:
                 if type(gc_value) != type(value):
-                    gconf_set[type(value)](gdir + "/" + name, value)
+                    #~ gconf_set[type(value)](gdir + "/" + name, value)
+                    pass
                 else:
                     settings[name] = gc_value
         return settings
@@ -910,7 +910,7 @@ class Globals(GObject.GObject):
                     self.colors[c] = theme_colors[c]
                 else:
                     self.colors[c] = self.DEFAULT_COLORS[c]
-                GCONF_CLIENT.set_string(color_dir + "/" + c , self.colors[c])
+                #~ GCONF_CLIENT.set_string(color_dir + "/" + c , self.colors[c])
             try:
                 self.colors[a] = GCONF_CLIENT.get_value(color_dir + "/" + a)
             except:
@@ -924,7 +924,7 @@ class Globals(GObject.GObject):
                     self.colors[a] = self.DEFAULT_COLORS[a]
                 else:
                     continue
-                GCONF_CLIENT.set_int(color_dir + "/" + a , self.colors[a])
+                #~ GCONF_CLIENT.set_int(color_dir + "/" + a , self.colors[a])
 
     def update_popup_style(self, theme_name, default_style):
         # Runs when the theme has changed.
@@ -940,7 +940,7 @@ class Globals(GObject.GObject):
                 self.emit("popup-style-changed")
         except:
             self.popup_style_file = default_style
-            GCONF_CLIENT.set_string(psf, default_style)
+            #~ GCONF_CLIENT.set_string(psf, default_style)
             self.emit("popup-style-changed")
         self.emit("preference-update")
 
@@ -955,13 +955,13 @@ class Globals(GObject.GObject):
             for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
                 theme_name = theme_name.replace(sign, "")
             psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
-            GCONF_CLIENT.set_string(psf, style)
+            #~ GCONF_CLIENT.set_string(psf, style)
             self.emit("preference-update")
 
     def set_dock_theme(self, theme, colors):
         if self.settings["dock/theme_file"] != theme:
             self.settings["dock/theme_file"] = theme
-            GCONF_CLIENT.set_string(GCONF_DIR + "/dock/theme_file", theme)
+            #~ GCONF_CLIENT.set_string(GCONF_DIR + "/dock/theme_file", theme)
         
         td = GCONF_DIR + "/dock/themes/" + theme
         for key, value in colors.items():
@@ -972,7 +972,7 @@ class Globals(GObject.GObject):
                 self.dock_colors[key] = value
                 gset = {str: GCONF_CLIENT.set_string,
                         int: GCONF_CLIENT.set_int }[type(value)]
-                gset("%s/%s" % (td, key), value)
+                #~ gset("%s/%s" % (td, key), value)
         self.emit("preference-update")
 
     def get_pinned_apps_from_gconf(self):
