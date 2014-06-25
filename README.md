@@ -61,7 +61,7 @@ The preferences dialog of DockbarX can be found from your applications menu or (
 ## Contribute
 DockbarX is a free and open source project I am developing in my free time. I will gladly accept any help I can get to improve DockbarX. Test out new code, **report bugs** to the issue tracker and make pull request with code you like to contribute.
 
-You can also translate DockbarX into your language at [DockbarX launchpad translation page](https://translations.launchpad.net/dockbar). DockbarX is translated into many languages but few of the translations are complete. Even if DockbarX should be fully translated into your language at the moment, you could check in after a new release is done to see if there some new words that needs translating.
+You can also translate DockbarX into your language at [DockbarX launchpad translation page](https://translations.launchpad.net/dockbar). DockbarX is translated into many languages but few of the translations are complete. Even if DockbarX should be fully translated into your language at the moment, you could check in after a new release is out to see if there some new words that needs translating.
 
 ##FAQ
 *Q: Why do you want to make Linux into a Microsoft Windows 7 clone?*
