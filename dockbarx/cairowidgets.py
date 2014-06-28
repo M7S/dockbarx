@@ -22,11 +22,12 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkX11
-import cairo
 from math import pi, tan
 from xml.sax.saxutils import escape
 from gi.repository import GObject
 from gi.repository import Pango
+from gi.repository import cairo as gicairo
+import cairo
 
 from common import Globals, connect, disconnect
 from theme import PopupStyle
@@ -536,7 +537,7 @@ class CairoPopup(Gtk.Window):
             self.alignment.set_padding(*padding)
 
     def on_draw(self, widget, ctx):
-        self.set_shape_mask()
+        #~ self.set_shape_mask()
         w,h = self.get_size()
         if self.is_composited():
             ctx.set_source_rgba(1, 1, 1, 0)
@@ -563,15 +564,15 @@ class CairoPopup(Gtk.Window):
                       self.__get_arrow_size(), self.pointer, self.ap)
             ctx.set_source_rgba(1, 1, 1, 1)
             ctx.fill()
-            #~ region = Gdk.cairo_region_create_from_surface(surface)
-            #~ self.input_shape_combine_region(surface)
+            region = gicairo.Region.create_from_surface(surface)
+            self.input_shape_combine_region(surface)
         else:
             make_path(ctx, 0, 0, w, h, r, 1,
                       self.__get_arrow_size(), self.pointer, self.ap)
             ctx.set_source_rgb(0, 0, 0)
             ctx.fill()
-            #~ region = Gdk.cairo_region_create_from_surface(surface)
-            #~ self.shape_combine_region(region)
+            region = Gdk.cairo_region_create_from_surface(surface)
+            self.shape_combine_region(region)
 
     def draw_frame(self, ctx, w, h):
         color = self.globals.colors["color1"]

@@ -69,7 +69,7 @@ class IconFactory():
                  "mouse_button_down":MOUSE_BUTTON_DOWN}
 
     def __init__(self, group, class_group=None,
-                 desktop_entry=None, identifier=None):
+                 desktop_entry=None, identifier=None, size=None):
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.theme = Theme()
         self.globals = Globals()
@@ -81,7 +81,10 @@ class IconFactory():
         # Setting size to something other than zero to
         # avoid crashes if surface_update() is runned
         # before the size is set.
-        self.size = 15
+        if size is None or size <=0:
+            self.size = 15
+        else:
+            self.size = size
 
         self.icon = None
         self.surfaces = {}

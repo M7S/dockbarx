@@ -128,7 +128,7 @@ class Group(ListOfWindows):
     the popup window, the window list and other stuff."""
 
     def __init__(self, dockbar, identifier=None, desktop_entry=None,
-                 pinned=False):
+                 pinned=False, size=None):
         ListOfWindows.__init__(self)
         self.dockbar_r = weakref.ref(dockbar)
         self.globals = Globals()
@@ -175,7 +175,7 @@ class Group(ListOfWindows):
         self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
 
 
-        self.button = GroupButton(self)
+        self.button = GroupButton(self, size)
         self.popup = GroupPopup(self)
         self.window_list = WindowList(self)
         self.popup.set_child_(self.window_list)
@@ -1372,8 +1372,9 @@ class GroupButton(CairoAppButton):
     populates it.
     """
 
-    def __init__(self, group):
+    def __init__(self, group, size):
         CairoAppButton.__init__(self, None)
+        print "Size", size
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.group_r = weakref.ref(group)
         self.mouse_over = False
@@ -1385,7 +1386,8 @@ class GroupButton(CairoAppButton):
         self.progress_backend = None
         self.icon_factory = IconFactory(group,
                                         identifier=group.identifier,
-                                        desktop_entry=group.desktop_entry)
+                                        desktop_entry=group.desktop_entry,
+                                        size=size)
         self.old_alloc = self.get_allocation()
 
         self.opacify_sid = None

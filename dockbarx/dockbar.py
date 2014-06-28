@@ -430,6 +430,7 @@ class DockBar():
         self.next_group = None
         self.dockmanager = None
         self.groups = None
+        self.size = None
 
         self.parent_window_reporting = False
         self.parent_handles_menu = False
@@ -708,6 +709,9 @@ class DockBar():
 
     def set_size(self, size):
         """Manualy set and update the size of group buttons"""
+        if size == self.size:
+            return
+        self.size = size
         for group in self.groups:
             group.button.icon_factory.set_size(size)
             group.button.update_state(force_update=True)
@@ -879,7 +883,7 @@ class DockBar():
 
     def __make_groupbutton(self, identifier=None, desktop_entry=None,
                          pinned=False, index=None, window=None):
-        group = Group(self, identifier, desktop_entry, pinned)
+        group = Group(self, identifier, desktop_entry, pinned, self.size)
         if window is not None:
             # Windows are added here instead of later so that
             # overflow manager knows if the button should be
@@ -892,6 +896,13 @@ class DockBar():
         self.__media_player_check(identifier, group)
         self.unity_watcher.apply_for_group(group)
         self.update_pinned_apps_list()
+        group.button.update_state
+        # If the size is set (and is bigger than 10px everything else is assumed to be
+        # accidentally given sizes during startup) we need to update the state to make
+        # make a button surface with the right size.
+        if self.size is not None and self.size > 10:
+            # Update the surface
+            group.button.update_state(force_update=True)
         return group
 
     def __add_window(self, window):
