@@ -602,7 +602,7 @@ class Group(ListOfWindows):
 
     #### Menu
     def menu_show(self, event=None):
-        if self.globals.gtkmenu_showing:
+        if self.globals.gtkmenu:
             return
         if self.menu is not None:
             self.menu.delete_menu()
@@ -628,7 +628,7 @@ class Group(ListOfWindows):
             menu = self.menu.get_menu()
             menu.popup(None, None,
                        self.__menu_position, event.button, event.time)
-            self.globals.gtkmenu_showing = True
+            self.globals.gtkmenu = menu
             # TODO: check is this connection destroyed when done?
             menu.connect("selection-done", self.__menu_closed)
         else:
@@ -737,13 +737,12 @@ class Group(ListOfWindows):
             self.zg_related_files = None
             self.zg_recent_today_files = None
 
-    def __on_menuitem_hovered(self, arg, event, identifier):
+    def __on_menuitem_hovered(self, arg, t, identifier):
         if identifier.startswith("unity_") and self.quicklist:
             identifier = int(identifier.rsplit("_", 1)[-1])
             data = dbus.String("", variant_level=1)
-            t = dbus.UInt32(event.time)
-            self.quicklist.send_event(identifier, "hovered", 
-                                      data, t)
+            t = dbus.UInt32(t)
+            self.quicklist.send_event(identifier, "hovered", data, t)
             return
 
     def __on_menuitem_activated(self, menu_item, identifier):
@@ -823,7 +822,7 @@ class Group(ListOfWindows):
 
     def __menu_closed(self, menushell):
         # Used only with the gtk menu
-        self.globals.gtkmenu_showing = False
+        self.globals.gtkmenu = None
         self.menu.delete_menu()
         self.menu = None
 
@@ -1373,23 +1372,8 @@ class GroupButton(CairoAppButton):
     populates it.
     """
 
-    __gsignals__ = {"enter-notify-event" : "override",
-                    "leave-notify-event" : "override",
-                    "button-release-event" : "override",
-                    "button-press-event" : "override",
-                    "scroll-event" : "override",
-                    "size-allocate" : "override",
-                    "drag-motion" : "override",
-                    "drag-leave" : "override",
-                    "drag-drop" : "override",
-                    "drag-data-received" : "override",
-                    "drag-begin" : "override",
-                    "drag-data-get" : "override",
-                    "drag-end" : "override",
-                    }
-
     def __init__(self, group):
-        CairoAppButton.__init__(self, None, group.dockbar_r().expose_on_clear)
+        CairoAppButton.__init__(self, None)
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.group_r = weakref.ref(group)
         self.mouse_over = False
@@ -1399,7 +1383,6 @@ class GroupButton(CairoAppButton):
         self.state_type = None
         self.badge_backend = None
         self.progress_backend = None
-        self.allocation = Gdk.Rectangle(0, 0, 0, 0)
         self.icon_factory = IconFactory(group,
                                         identifier=group.identifier,
                                         desktop_entry=group.desktop_entry)
@@ -1429,6 +1412,20 @@ class GroupButton(CairoAppButton):
         self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK,[target_entry], Gdk.DragAction.MOVE)
         self.drag_source_set_icon_pixbuf(self.icon_factory.get_icon(32))
         self.is_current_drag_source = False
+        
+        self.connect("enter-notify-event", self.on_enter_notify_event)
+        self.connect("leave-notify-event", self.on_leave_notify_event)
+        self.connect("button-release-event", self.on_button_release_event)
+        self.connect("button-press-event", self.on_button_press_event)
+        self.connect("scroll-event", self.on_scroll_event)
+        self.connect("size-allocate", self.on_size_allocate)
+        self.connect("drag-motion", self.on_drag_motion)
+        self.connect("drag-leave", self.on_drag_leave)
+        self.connect("drag-drop", self.on_drag_drop)
+        self.connect("drag-data-received", self.on_drag_data_received)
+        self.connect("drag-begin", self.on_drag_begin)
+        self.connect("drag-data-get", self.on_drag_data_get)
+        self.connect("drag-end", self.on_drag_end)
 
 
     def dockbar_moved(self, arg=None):
@@ -1507,8 +1504,8 @@ class GroupButton(CairoAppButton):
             # Set the button size to the size of the surface
             width = surface.get_width()
             height = surface.get_height()
-            if self.allocation.width !=  width or \
-               self.allocation.height != height:
+            if self.get_allocation().width !=  width or \
+               self.get_allocation().height != height:
                 self.set_size_request(width, height)
             self.update(surface)
         return
@@ -1601,7 +1598,6 @@ class GroupButton(CairoAppButton):
                 continue
             alloc = self.get_allocation()
             if self.get_window():
-                print self.get_window().get_origin()
                 dummy, x,y = self.get_window().get_origin() # Why three values?
                 x += alloc.x
                 y += alloc.y
@@ -1696,19 +1692,19 @@ class GroupButton(CairoAppButton):
 
 
     #### DnD (source)
-    def do_drag_begin(self, drag_context):
+    def on_drag_begin(self, widget, drag_context):
         group = self.group_r()
         self.is_current_drag_source = True
         self.globals.dragging = True
         group.popup.hide()
 
-    def do_drag_data_get(self, context, selection, targetType, eventTime):
+    def on_drag_data_get(self, widget, context, selection, targetType, eventTime):
         group = self.group_r()
         name = group.identifier or group.desktop_entry.getFileName()
         selection.set(selection.target, 8, name)
 
 
-    def do_drag_end(self, drag_context, result=None):
+    def on_drag_end(self, widget, drag_context, result=None):
         self.is_current_drag_source = False
         #~ # A delay is needed to make sure the button is
         #~ # shown after on_drag_end has hidden it and
@@ -1716,12 +1712,12 @@ class GroupButton(CairoAppButton):
         #~ GObject.timeout_add(30, self.show)
 
     #### DnD (target)
-    def do_drag_drop(self, drag_context, x, y, t):
+    def on_drag_drop(self, widget, drag_context, x, y, t):
         group = self.group_r()
-        if "text/groupbutton_name" in drag_context.targets:
+        if "text/groupbutton_name" in drag_context.list_targets():
             self.drag_get_data(drag_context, "text/groupbutton_name", t)
             drag_context.finish(True, False, t)
-        elif "text/uri-list" in drag_context.targets:
+        elif "text/uri-list" in drag_context.list_targets():
             #Drag data should already be stored in self.dd_uri
             if ".desktop" in self.dd_uri:
                 # .desktop file! This is a potential launcher.
@@ -1742,10 +1738,8 @@ class GroupButton(CairoAppButton):
         self.dd_uri = None
         return True
 
-    def do_drag_data_received(self, context, x, y, selection, targetType, t):
+    def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
         group = self.group_r()
-        #~ CairoAppButton.do_drag_data_received(self, wid, context,
-                              #~ x, y, selection, targetType, t)
         name = group.identifier or group.desktop_entry.getFileName()
         if selection.target == "text/groupbutton_name":
             if selection.data != name:
@@ -1762,34 +1756,34 @@ class GroupButton(CairoAppButton):
                 self.launcher_drag = True
             self.update_state()
 
-    def do_drag_motion(self, drag_context, x, y, t):
+    def on_drag_motion(self, widget, drag_context, x, y, t):
         group = self.group_r()
         if not self.drag_entered:
-            self.do_drag_enter(drag_context, x, y, t)
-        if "text/groupbutton_name" in drag_context.targets and \
+            self.on_drag_enter(widget, drag_context, x, y, t)
+        if "text/groupbutton_name" in drag_context.list_targets() and \
            not self.is_current_drag_source:
-            drag_context.drag_status(Gdk.DragAction.MOVE, t)
-        elif "text/uri-list" in drag_context.targets:
-            drag_context.drag_status(Gdk.DragAction.COPY, t)
+            Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, t)
+        elif "text/uri-list" in drag_context.list_targets():
+            Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
         else:
-            drag_context.drag_status(Gdk.DragAction.PRIVATE, t)
+            Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         if self.launcher_drag:
             dnd_position = "end"
             if self.dockbar_r().orient in ("left", "right"):
-                if y <= self.allocation.height / 2:
+                if y <= self.get_allocation().height / 2:
                     dnd_position = "start"
             else:
-                if x <= self.allocation.width / 2:
+                if x <= self.get_allocation().width / 2:
                     dnd_position = "start"
             if dnd_position != self.dnd_position:
                 self.dnd_position = dnd_position
                 self.update_state()
         return True
 
-    def do_drag_enter(self, drag_context, x, y, t):
+    def on_drag_enter(self, widget, drag_context, x, y, t):
         group = self.group_r()
         self.drag_entered = True
-        if not "text/groupbutton_name" in drag_context.targets:
+        if not "text/groupbutton_name" in drag_context.list_targets():
             win_nr = group.get_count()
             if win_nr == 1:
                 group[0].select_after_delay(600)
@@ -1797,11 +1791,11 @@ class GroupButton(CairoAppButton):
                 delay = self.globals.settings["popup_delay"]
                 self.dnd_show_popup = GObject.timeout_add(delay,
                                                           group.popup.show)
-        if "text/groupbutton_name" in drag_context.targets:
+        if "text/groupbutton_name" in drag_context.list_targets():
             if not self.is_current_drag_source:
                 self.launcher_drag = True
                 self.update_state()
-        elif "text/uri-list" in drag_context.targets:
+        elif "text/uri-list" in drag_context.list_targets():
             # We have to get the data to find out if this
             # is a launcher or something else.
             self.drag_get_data(drag_context, "text/uri-list", t)
@@ -1809,7 +1803,7 @@ class GroupButton(CairoAppButton):
         else:
             self.update_state()
 
-    def do_drag_leave(self, drag_context, t):
+    def on_drag_leave(self, widget, drag_context, t):
         group = self.group_r()
         self.launcher_drag = False
         self.drag_entered = False
@@ -1830,33 +1824,36 @@ class GroupButton(CairoAppButton):
 
 
     #### Events
-    def do_size_allocate(self, allocation):
+    def on_size_allocate(self, widget, allocation):
         # Sends the new size to icon_factory so that a new icon in the right
         # size can be found. The icon is then updated.
-        CairoAppButton.do_size_allocate(self, allocation)
-        if self.old_alloc != self.get_allocation():
-            if self.dockbar_r().orient in ("left", "right") \
-            and allocation.width > 10 and allocation.width < 220 \
-            and allocation.width != self.old_alloc.width:
-                # A minimium size on 11 is set to stop unnecessary calls
-                # work when the button is created
-                self.icon_factory.set_size(allocation.width)
-                self.update_state(force_update=True)
-            elif self.dockbar_r().orient in ("down", "up") \
-            and allocation.height > 10 and allocation.height < 220\
-            and allocation.height != self.old_alloc.height:
-                self.icon_factory.set_size(allocation.height)
-                self.update_state(force_update=True)
-                group = self.group_r()
-                if group.locked_popup:
-                    group.remove_locked_popup()
-                    group.add_locked_popup()
-            self.old_alloc = allocation
+        CairoAppButton.on_size_allocate(self, widget, allocation)
+        if self.old_alloc == self.get_allocation():
+            return
+        #~ if self.dockbar_r().orient in ("left", "right") \
+        #~ and allocation.width > 10 and allocation.width < 220 \
+        #~ and allocation.width != self.old_alloc.width:
+            #~ # A minimium size on 11 is set to stop unnecessary calls
+            #~ # work when the button is created
+            #~ self.icon_factory.set_size(allocation.width)
+            #~ self.update_state(force_update=True)
+        #~ elif self.dockbar_r().orient in ("down", "up") \
+        #~ and allocation.height > 10 and allocation.height < 220\
+        #~ and allocation.height != self.old_alloc.height:
+            #~ self.icon_factory.set_size(allocation.height)
+            #~ self.update_state(force_update=True)
+        # If you have a locked popup on a horizontal dockbar it needs to be 
+        # removed and re-added so that the arrow points to the right position.
+        group = self.group_r()
+        if group.locked_popup and self.dockbar_r().orient in ("down", "up"):
+            group.remove_locked_popup()
+            group.add_locked_popup()
+        self.old_alloc = allocation
 
-            # Update icon geometry
-            self.set_icongeo()
+        # Update icon geometry
+        self.set_icongeo()
 
-    def do_enter_notify_event(self, event):
+    def on_enter_notify_event(self, widget, event):
         group = self.group_r()
         if self.mouse_over:
             # False mouse enter event. Probably because a mouse button has been
@@ -1875,20 +1872,20 @@ class GroupButton(CairoAppButton):
             delay = self.globals.settings["popup_delay"]
         else:
             delay = self.globals.settings["second_popup_delay"]
-        if not self.globals.gtkmenu_showing and not self.globals.dragging:
+        if not self.globals.gtkmenu and not self.globals.dragging:
             group.popup.show(delay)
         # Opacify
         if self.globals.settings["opacify"] and \
            self.globals.settings["opacify_group"]:
             self.opacify(delay)
 
-    def do_leave_notify_event(self, event):
+    def on_leave_notify_event(self, widget, event):
         group = self.group_r()
         if self.pointer_is_inside():
             # False mouse_leave event, the cursor might be on a screen edge
             # or the mouse has been clicked (compiz bug).
             # A timeout is set so that the real mouse leave won't be missed.
-            GObject.timeout_add(50, self.do_leave_notify_event, event)
+            GObject.timeout_add(50, self.on_leave_notify_event, self, event)
             return
         self.mouse_over = False
         self.pressed = False
@@ -1904,7 +1901,7 @@ class GroupButton(CairoAppButton):
 
 
 
-    def do_scroll_event(self, event):
+    def on_scroll_event(self, widget, event):
         group = self.group_r()
         if event.direction == Gdk.ScrollDirection.UP:
             action = self.globals.settings["groupbutton_scroll_up"]
@@ -1913,7 +1910,7 @@ class GroupButton(CairoAppButton):
             action = self.globals.settings["groupbutton_scroll_down"]
             group.action_function_dict[action](group, self, event)
 
-    def do_button_release_event(self, event):
+    def on_button_release_event(self, widget, event):
         group = self.group_r()
         self.pressed = False
         self.update_state()
@@ -1941,7 +1938,7 @@ class GroupButton(CairoAppButton):
             group.action_function_dict[action](group, self, event)
 
 
-    def do_button_press_event(self, event):
+    def on_button_press_event(self, widget, event):
         group = self.group_r()
         if not event.button in (1, 2, 3):
             return True
@@ -1950,7 +1947,7 @@ class GroupButton(CairoAppButton):
             mod = "shift_and_"
         else:
             mod = ""
-        if event.type == Gdk._2BUTTON_PRESS:
+        if event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS:
             if self.globals.settings["groupbutton_%s%s_click_double"%(mod,
                                                                       button)]:
                 # This is a double click and the
@@ -1969,10 +1966,6 @@ class GroupButton(CairoAppButton):
 
 
 class GroupPopup(CairoPopup):
-    __gsignals__ = {"leave-notify-event": "override",
-                    "size-allocate": "override",
-                    "drag-motion": "override",
-                    "drag-leave": "override"}
 
     def __init__(self, group, no_arrow=False, type_="popup"):
         self.group_r = weakref.ref(group)
@@ -1991,6 +1984,11 @@ class GroupPopup(CairoPopup):
         # The popup needs to have a drag_dest just to check
         # if the mouse is hovering it during a drag-drop.
         self.drag_dest_set(0, [], 0)
+        
+        self.connect("leave-notify-event", self.on_leave_notify_event)
+        self.connect("size-allocate", self.on_size_allocate)
+        self.connect("drag-motion", self.on_drag_motion)
+        self.connect("drag-leave", self.on_drag_leave)
 
     def destroy(self, *args, **kvargs):
         self.hide()
@@ -2014,10 +2012,9 @@ class GroupPopup(CairoPopup):
     def get_child_(self):
         return self.alignment.get_child()
 
-    def do_size_allocate(self, allocation):
+    def on_size_allocate(self, widget, allocation):
         if allocation == self.last_allocation:
             return
-        CairoPopup.do_size_allocate(self, allocation)
         group = self.group_r()
         # Move popup to it's right spot
         offset = int(self.popup_style.get("%s_distance" % self.popup_type, -7))
@@ -2099,8 +2096,8 @@ class GroupPopup(CairoPopup):
                                         #~ Gdk.PropMode.REPLACE,
                                         #~ previews)
 
-    def do_leave_notify_event(self, event):
-        CairoPopup.do_leave_notify_event(self, event)
+    def on_leave_notify_event(self, widget, event):
+        CairoPopup.on_leave_notify_event(self, widget, event)
         self.hide_if_not_hovered()
 
     def show(self, delay=None, force=False):
@@ -2116,7 +2113,7 @@ class GroupPopup(CairoPopup):
                 group.locked_popup.hide()
             else:
                 return
-        if self.globals.gtkmenu_showing:
+        if self.globals.gtkmenu:
             return
         try:
             if not self.get_child_().can_be_shown():
@@ -2139,7 +2136,7 @@ class GroupPopup(CairoPopup):
         return False
 
     def hide(self):
-        if self.globals.gtkmenu_showing:
+        if self.globals.gtkmenu:
             return
         group = self.group_r()
         if self.get_window():
@@ -2213,15 +2210,14 @@ class GroupPopup(CairoPopup):
         self.send_expose(event)
 
     #### D'N'D
-    def do_drag_motion(self, drag_context, x, y, t):
-        drag_context.drag_status(Gdk.DragAction.PRIVATE, t)
+    def on_drag_motion(self, widget, drag_context, x, y, t):
+        Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         return True
 
-    def do_drag_leave(self, drag_context, t):
+    def on_drag_leave(self, widget, drag_context, t):
         self.hide_if_not_hovered(100)
 
 class LockedPopup(GroupPopup):
-    __gsignals__ = {"size-allocate": "override"}
     def __init__(self, group):
         self.globals = Globals()
         mgeo = Gdk.Screen.get_default().get_monitor_geometry(
@@ -2232,8 +2228,7 @@ class LockedPopup(GroupPopup):
         else:
             wx, wy = (0, 0)
         if group.dockbar_r().orient in ("left", "right") or wy < mgeo.height / 2:
-            # The popup should be placed at bottom of the screen and have no
-            # arrow.
+            # The popup should be placed at bottom of the screen and have no arrow.
             GroupPopup.__init__(self, group, False, type_="locked_list")
             self.point("down", 20)
         else:
@@ -2248,9 +2243,8 @@ class LockedPopup(GroupPopup):
             self.hide()
         else:
             GObject.idle_add(self.__on_realized)
-        self.overlap_sid = \
-                self.globals.connect("locked-list-overlap-changed",
-                                     self.__set_own_strut)
+        self.overlap_sid = self.globals.connect("locked-list-overlap-changed", self.__set_own_strut)
+        self.connect("size-allocate", self.on_size_allocate)
 
     def show(self):
         CairoPopup.show(self)
@@ -2261,7 +2255,7 @@ class LockedPopup(GroupPopup):
     def hide_if_not_hovered(self):
         pass
 
-    def do_size_allocate(self, allocation):
+    def on_size_allocate(self, widget, allocation):
         if allocation == self.last_allocation:
             return
         group = self.group_r()
@@ -2280,10 +2274,10 @@ class LockedPopup(GroupPopup):
             else:
                 wx, wy = (0, 0)
             if wy > mgeo.height / 2:
-                GroupPopup.do_size_allocate(self, allocation)
+                GroupPopup.on_size_allocate(self, widget, allocation)
                 self.__set_own_strut()
                 return
-        CairoPopup.do_size_allocate(self, allocation)
+        GroupPopup.on_size_allocate(self, widget, allocation)
         strut = self.__get_other_strut(mgeo.width/2 - width / 2,
                                        mgeo.width/2 + width / 2)
         self.move(mgeo.width/2 - width / 2, mgeo.height - height - strut - 1)
@@ -2585,13 +2579,9 @@ class WindowList(Gtk.VBox):
 
 class GroupMenu(GObject.GObject):
     __gsignals__ = {
-        "item-activated":
-            (GObject.SignalFlags.RUN_FIRST, None,(str, )),
-        "item-hovered":
-            (GObject.SignalFlags.RUN_FIRST, None,
-             (Gdk.Event, str)),
-        "menu-resized":
-            (GObject.SignalFlags.RUN_FIRST, None,())}
+        "item-activated": (GObject.SignalFlags.RUN_FIRST, None, (str, )),
+        "item-hovered": (GObject.SignalFlags.RUN_FIRST, None, (long, str, )),
+        "menu-resized": (GObject.SignalFlags.RUN_FIRST, None, ())}
 
     def __init__(self, gtk_menu=False):
         GObject.GObject.__init__(self)
@@ -2955,7 +2945,7 @@ class GroupMenu(GObject.GObject):
         del self.menu
         
     def __on_item_hovered(self, button, event, identifier):
-        self.emit("item-hovered", event, identifier)
+        self.emit("item-hovered", event.time, identifier)
 
     def __on_item_activated(self, *args):
         identifier = args[-1]

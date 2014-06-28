@@ -35,9 +35,7 @@ from log import logger
 
 
 class CairoAppButton(Gtk.EventBox):
-    __gsignals__ = {"draw" : "override",
-                    "size_allocate": "override"}
-    def __init__(self, surface=None, expose_on_clear=False):
+    def __init__(self, surface=None):
         GObject.GObject.__init__(self)
         self.set_visible_window(False)
         self.area = Gtk.Alignment.new(0, 0, 1, 1)
@@ -45,7 +43,6 @@ class CairoAppButton(Gtk.EventBox):
         self.area.show()
         self.globals = Globals()
         self.surface = surface
-        self.expose_on_clear = expose_on_clear
         self.badge = None
         self.badge_text = None
         self.progress_bar = None
@@ -54,53 +51,26 @@ class CairoAppButton(Gtk.EventBox):
                                            self.__on_badge_look_changed)
         self.pbl_sid = self.globals.connect("progress-bar-look-changed",
                                         self.__on_progress_bar_look_changed)
+        self.connect("draw", self.on_draw)
+        self.connect("size_allocate", self.on_size_allocate)
 
     def update(self, surface=None):
         a = self.area.get_allocation()
         if surface is not None:
             self.surface = surface
-        if self.get_window() is None:
-            return
-        area_win = self.area.get_window()
-        #~ if self.expose_on_clear:
-            #~ area_win.clear_area_e(a.x, a.y, a.width, a.height)
-        #~ else:
-            #~ area_win.clear_area(a.x, a.y, a.width, a.height)
-        ctx = area_win.cairo_create()
-        ctx.rectangle(a.x, a.y, a.width, a.height)
-        ctx.clip()
-        ctx.set_source_surface(self.surface, a.x, a.y)
-        ctx.paint()
-        for surface in (self.badge, self.progress_bar):
-            if surface is not None:
-                ctx.rectangle(a.x, a.y, a.width, a.height)
-                ctx.clip()
-                ctx.set_source_surface(surface, a.x, a.y)
-                ctx.paint()
-        child = self.area.get_child()
-        if child:
-            child.queue_draw()
+        self.queue_draw()
 
-    def do_draw(self, event):
+    def on_draw(self, widget, ctx):
         if self.surface is not None:
-            ctx = self.area.get_window().cairo_create()
-            ctx.rectangle(event.get_area().x, event.get_area().y,
-                          event.get_area().width, event.get_area().height)
-            ctx.clip()
             a = self.get_allocation()
-            ctx.set_source_surface(self.surface, a.x, a.y)
+            ctx.set_source_surface(self.surface, 0, 0)
             ctx.paint()
             for surface in (self.badge, self.progress_bar):
                 if surface is not None:
-                    ctx.rectangle(event.get_area().x, event.get_area().y,
-                                  event.get_area().width, event.get_area().height)
-                    ctx.clip()
-                    ctx.set_source_surface(surface, a.x, a.y)
+                    ctx.set_source_surface(surface, 0, 0)
                     ctx.paint()
-            self.propagate_expose(self.area, event)
 
-    def do_size_allocate(self, allocation):
-        Gtk.EventBox.do_size_allocate(self, allocation)
+    def on_size_allocate(self, widget, allocation):
         if self.badge:
             self.make_badge(self.badge_text)
         if self.progress_bar:
@@ -259,44 +229,44 @@ class CairoAppButton(Gtk.EventBox):
             return False
 
 class CairoSmallButton(Gtk.Button):
-    __gsignals__ = {"draw": "override",
-                    "enter-notify-event": "override",
-                    "leave-notify-event": "override",
-                    "button-press-event": "override",
-                    "button-release-event": "override",}
+    __gsignals__={"draw": "override"}
     def __init__(self, width, height=None):
         GObject.GObject.__init__(self)
+        self.set_app_paintable(1)
         if height is None:
             height = width
         self.set_size_request(width, height)
         self.mousedown = False
         self.mouseover = False
+        self.connect("enter-notify-event", self.on_enter_notify_event)
+        self.connect("leave-notify-event", self.on_leave_notify_event)
+        self.connect("button-press-event", self.on_button_press_event)
+        self.connect("button-release-event", self.on_button_release_event)
+        self.connect("draw", self.on_draw)
+        
 
-    def do_enter_notify_event(self, *args):
+    def on_enter_notify_event(self, *args):
         self.mouseover = True
-        Gtk.Button.do_enter_notify_event(self, *args)
 
-    def do_leave_notify_event(self, *args):
+    def on_leave_notify_event(self, *args):
         self.mouseover = False
-        Gtk.Button.do_leave_notify_event(self, *args)
 
-    def do_button_press_event(self, *args):
+    def on_button_press_event(self, *args):
         self.mousedown = True
-        Gtk.Button.do_button_press_event(self, *args)
 
-    def do_button_release_event(self, *args):
+    def on_button_release_event(self, *args):
         self.mousedown = False
-        Gtk.Button.do_button_release_event(self, *args)
 
-    def do_draw(self, event, arg=None):
+    def on_draw(self, widget, ctx):
         a = self.get_allocation()
-        ctx = self.get_window().cairo_create()
-        ctx.rectangle(event.get_area().x, event.get_area().y,
-                      event.get_area().width, event.get_area().height)
-        ctx.clip()
-        self.draw_button(ctx, a.x, a.y, a.width, a.height)
+        self.draw_button(ctx, 0, 0, a.width, a.height)
+        
+    def do_draw(self, ctx):
+        # This function does nothing and by doing that 
+        # it stops gtk.Button.do_draw from being runned.
+        pass
 
-    def draw_button(self, x, y, width, height): abstract
+    def draw_button(self, ctx, x, y, width, height): abstract
 
 class CairoCloseButton(CairoSmallButton):
     def __init__(self):
@@ -340,7 +310,6 @@ class CairoCloseButton(CairoSmallButton):
                 xc = self.popup_style.get("close_button_x_color",
                                            "#FFFFF")
                 xa = self.popup_style.get("close_button_x_alpha", 0)
-
         if button_source is None:
             button_source = self.__make_button_surface(w, h, bgc, bga, xc, xa)
         ctx.set_source_surface(button_source, x, y)
@@ -504,9 +473,6 @@ class CairoArrowButton(CairoSmallButton):
 
 class CairoPopup(Gtk.Window):
     """CairoPopup is a transparent popup window with rounded corners"""
-    __gsignals__ = {"draw": "override",
-                    "enter-notify-event": "override",
-                    "leave-notify-event": "override"}
     def __init__(self, orient="down", no_arrow=False, type_="popup"):
         Gtk.Window.__init__(self, Gtk.WindowType.POPUP)
         self.set_type_hint(Gdk.WindowTypeHint.DOCK)
@@ -533,6 +499,9 @@ class CairoPopup(Gtk.Window):
             self.point("down")
         else:
             self.point("left")
+        self.connect("draw", self.on_draw)
+        self.connect("enter-notify-event", self.on_enter_notify_event)
+        self.connect("leave-notify-event", self.on_leave_notify_event)
         self.popup_reloaded_sid = self.popup_style.connect(
                                                 "popup-style-reloaded",
                                                 self.__on_popup_style_reloaded)
@@ -566,24 +535,17 @@ class CairoPopup(Gtk.Window):
                        "right":(p, p, p, p+a)}[self.pointer]
             self.alignment.set_padding(*padding)
 
-    def do_draw(self, event):
+    def on_draw(self, widget, ctx):
         self.set_shape_mask()
         w,h = self.get_size()
-        self.ctx = self.get_window().cairo_create()
-        # set a clip region for the expose event, XShape stuff
-        self.ctx.save()
         if self.is_composited():
-            self.ctx.set_source_rgba(1, 1, 1,0)
+            ctx.set_source_rgba(1, 1, 1, 0)
         else:
-            self.ctx.set_source_rgb(0.8, 0.8, 0.8)
-        self.ctx.set_operator(cairo.OPERATOR_SOURCE)
-        self.ctx.paint()
-        self.ctx.restore()
-        self.ctx.rectangle(event.get_area().x, event.get_area().y,
-                           event.get_area().width, event.get_area().height)
-        self.ctx.clip()
-        self.draw_frame(self.ctx, w, h)
-        Gtk.Window.do_draw(self, event)
+            ctx.set_source_rgb(0.8, 0.8, 0.8)
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
+        ctx.paint()
+        ctx.set_operator(cairo.OPERATOR_OVER)
+        self.draw_frame(ctx, w, h)
 
     def set_shape_mask(self):
         # Set window shape from alpha mask of background image
@@ -801,21 +763,14 @@ class CairoPopup(Gtk.Window):
         else:
             return self._pointer_is_inside
 
-    def do_enter_notify_event(self, *args):
+    def on_enter_notify_event(self, *args):
         self._pointer_is_inside = True
-        Gtk.Window.do_enter_notify_event(self, *args)
 
-    def do_leave_notify_event(self, *args):
+    def on_leave_notify_event(self, *args):
         self._pointer_is_inside = False
-        Gtk.Window.do_leave_notify_event(self, *args)
 
 class CairoButton(Gtk.EventBox):
-    __gsignals__ = {"clicked": (GObject.SignalFlags.RUN_FIRST,
-                                None,(Gdk.Event, )),
-                    "enter-notify-event": "override",
-                    "leave-notify-event": "override",
-                    "button-release-event": "override",
-                    "button-press-event": "override"}
+    __gsignals__ = {"clicked": (GObject.SIGNAL_RUN_FIRST, None,(int, int, )),}
 
     def __init__(self, label=None, button_type="window_item"):
         GObject.GObject.__init__(self)
@@ -827,13 +782,17 @@ class CairoButton(Gtk.EventBox):
         self.area.show()
         self.mousedown = False
         self.prevent_click = False
+        self.connect("enter-notify-event", self.on_enter_notify_event)
+        self.connect("leave-notify-event", self.on_leave_notify_event)
+        self.connect("button-release-event", self.on_button_release_event)
+        self.connect("button-press-event", self.on_button_press_event)
 
-    def do_leave_notify_event(self, *args):
+    def on_leave_notify_event(self, *args):
         if self.mousedown:
             self.area.set_pressed_down(False)
         self.area.queue_draw()
 
-    def do_enter_notify_event(self, *args):
+    def on_enter_notify_event(self, *args):
         if self.mousedown:
             self.area.set_pressed_down(True)
         self.area.queue_draw()
@@ -859,14 +818,16 @@ class CairoButton(Gtk.EventBox):
     def redraw(self):
         self.area.queue_draw()
 
-    def do_button_release_event(self, event):
+    def on_button_release_event(self, widget, eventbutton):
         if self.area.pointer_is_inside() and not self.prevent_click:
-            self.emit("clicked", event)
+            # It would be nicer to send the whole eventbutton instead of just 
+            # the button int value but that causes a runtime error on creating the signal.
+            self.emit("clicked", eventbutton.button, eventbutton.state)
         self.area.set_pressed_down(False)
         self.mousedown=False
         self.prevent_click = False
 
-    def do_button_press_event(self, event):
+    def on_button_press_event(self, widget, event):
         if self.area.pointer_is_inside() and not self.prevent_click:
             self.mousedown = True
             self.area.set_pressed_down(True)
@@ -883,7 +844,6 @@ class CairoButton(Gtk.EventBox):
         return self.area.pointer_is_inside()
 
 class CairoArea(Gtk.Alignment):
-    __gsignals__ = {"draw" : "override"}
     def __init__(self, text=None, area_type="window_item"):
         self.type = area_type
         self.text = text
@@ -911,6 +871,7 @@ class CairoArea(Gtk.Alignment):
             self.set_label(text, color)
         else:
             self.label = None
+        self.connect("draw", self.on_draw)
 
     def set_label(self, text, color=None):
         self.text = text
@@ -932,7 +893,7 @@ class CairoArea(Gtk.Alignment):
         self.label.set_use_markup(True)
         self.label.set_use_underline(True)
 
-    def do_draw(self, event, arg=None):
+    def on_draw(self, widget, ctx):
         a = self.get_allocation()
         mx , my = self.get_pointer()
         preview = self.globals.settings["preview"] and \
@@ -941,28 +902,19 @@ class CairoArea(Gtk.Alignment):
                    not self.minimized)
         highlighted = self.highlighted or \
                       (mx >= 0 and mx < a.width and my >= 0 and my < a.height)
-            
-        if preview or self.active_window or \
-           highlighted or self.needs_attention:
-            ctx = self.get_window().cairo_create()
-            ctx.rectangle(event.get_area().x, event.get_area().y,
-                          event.get_area().width, event.get_area().height)
-            ctx.clip()
         if self.needs_attention:
-            self.draw_type_frame(ctx, a.x, a.y, a.width, a.height,
-                                 "needs_attention_item")
+            self.draw_type_frame(ctx, 0, 0, a.width, a.height, "needs_attention_item")
         if self.active_window:
-            self.draw_type_frame(ctx, a.x, a.y, a.width, a.height,
-                                 "active_item")
+            self.draw_type_frame(ctx, 0, 0, a.width, a.height, "active_item")
         if highlighted:
-            self.draw_frame(ctx, a.x, a.y, a.width, a.height)
+            self.draw_frame(ctx, 0, 0, a.width, a.height)
         # Empty preview space
         if preview:
+            # Todo: Check preview allocation, does it contain allocation offsets (a.x, a.y)? If so, change it.
             ctx.rectangle(*self.preview_allocation)
             ctx.set_source_rgba(1, 1, 1, 0)
             ctx.set_operator(cairo.OPERATOR_SOURCE)
             ctx.fill()
-        self.propagate_expose(self.get_child(), event)
         return
 
     def draw_frame(self, ctx, x, y, w, h):
@@ -1166,23 +1118,17 @@ class CairoToggleMenu(Gtk.VBox):
 
 
 class CairoVBox(Gtk.VBox):
-    __gsignals__ = {"draw" : "override"}
 
     def __init__(self, label=None, show_menu=False):
         GObject.GObject.__init__(self)
         self.set_app_paintable(1)
         self.globals = Globals()
         self.popup_style = PopupStyle()
+        self.connect("draw", self.on_draw)
 
-    def do_draw(self, event, arg=None):
+    def on_draw(self, widget, ctx):
         a = self.get_allocation()
-        ctx = self.get_window().cairo_create()
-        ctx.rectangle(event.get_area().x, event.get_area().y,
-                      event.get_area().width, event.get_area().height)
-        ctx.clip()
-        self.draw_frame(ctx, a.x, a.y, a.width, a.height)
-        for child in self.get_children():
-            self.propagate_expose(child, event)
+        self.draw_frame(ctx, 0, 0, a.width, a.height)
 
     def draw_frame(self, ctx, x, y, w, h):
         color = "#000000"
@@ -1197,35 +1143,29 @@ class CairoVBox(Gtk.VBox):
         ctx.stroke()
 
 class CairoPreview(Gtk.Image):
-    _gsignals__ = {"draw" : "override",
-                   "visibility-notify-event": "override"}
     def __init__(self):
         GObject.GObject.__init__(self)
         GObject.timeout_add(100, self.draw)
+        self.connect("visibility-notify-event", self.on_visibility_notify_event)
+        self.connect("draw", self.on_draw)
 
     def draw(self):
         if self.get_window() is None:
             return True
         a = self.get_allocation()
         ctx = self.get_window().cairo_create()
-        ctx.rectangle(a.x, a.y,
-                      a.width, a.height)
+        ctx.rectangle(a.x, a.y, a.width, a.height)
         ctx.clip()
         ctx.set_operator(cairo.OPERATOR_SOURCE)
         ctx.set_source_rgba(1,1,1,0)
         ctx.paint()
 
-    def do_draw(self, event, arg=None):
-        a = self.get_allocation()
-        ctx = self.get_window().cairo_create()
-        ctx.rectangle(event.get_area().x, event.get_area().y,
-                      event.get_area().width, event.get_area().height)
-        ctx.clip()
+    def on_draw(self, widget, ctx):
         ctx.set_operator(cairo.OPERATOR_SOURCE)
         ctx.set_source_rgba(1,1,1,0)
         ctx.paint()
 
-    def do_visibility_notify_event(self, *args):
+    def on_visibility_notify_event(self, *args):
         self.draw()
 
 def make_path(ctx, x=0, y=0, w=0, h=0, r=6, b=0.5,

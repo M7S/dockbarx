@@ -57,6 +57,7 @@ class DockBarWindow():
 class DockbarGnomeapplet():
     def __init__(self, applet):
         self.applet = applet
+        self.size = None
         self.dockbar = dockbarx.dockbar.DockBar(applet)
         applet.set_applet_flags(gnomeapplet.HAS_HANDLE | \
                                 gnomeapplet.EXPAND_MINOR | \
@@ -107,9 +108,16 @@ class DockbarGnomeapplet():
         self.applet.connect("change-orient", self.__on_change_orient)
 
     def __on_applet_size_alloc(self, widget, allocation):
-        if not widget.window:
+        if self.applet.get_orient() in (gnomeapplet.ORIENT_DOWN, gnomeapplet.ORIENT_UP):
+            size = allocation.height
+        else:
+            size = allocation.width
+        if self.size != size:
+            self.dockbar.set_size(size)
+            self.size = size
+        if not widget.get_window():
             return
-        x,y = widget.window.get_origin()
+        x,y = widget.get_window().get_origin()
         if x == self.applet_origin_x or y == self.applet_origin_y:
             # Nothing moved.
             return

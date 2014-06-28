@@ -82,11 +82,6 @@ class AboutDialog():
         AboutDialog.__instance = None
 
 class Spacer(Gtk.EventBox):
-    __gsignals__ = {"button-release-event": "override",
-                    "drag-motion" : "override",
-                    "drag-leave" : "override",
-                    "drag-drop" : "override",
-                    "drag-data-received" : "override"}
     def __init__(self, dockbar):
         GObject.GObject.__init__(self)
         self.globals = Globals()
@@ -95,24 +90,29 @@ class Spacer(Gtk.EventBox):
 
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
+        self.connect("button-release-event", self.on_button_release_event)
+        self.connect("drag-motion", self.on_drag_motion)
+        self.connect("drag-leave", self.on_drag_leave)
+        self.connect("drag-drop", self.on_drag_drop)
+        self.connect("drag-data-received", self.on_drag_data_received)
 
-    def do_button_release_event(self, event):
+    def on_button_release_event(self, widget, event):
         if event.button != 3:
             return
         self.dockbar_r().create_popup_menu(event)
 
-    def do_drag_drop(self, drag_context, x, y, t):
-        if "text/groupbutton_name" in drag_context.targets:
+    def on_drag_drop(self, widget, drag_context, x, y, t):
+        if "text/groupbutton_name" in drag_context.list_targets():
             self.drag_get_data(drag_context, "text/groupbutton_name", t)
             drag_context.finish(True, False, t)
-        elif "text/uri-list" in drag_context.targets:
+        elif "text/uri-list" in drag_context.list_targets():
             self.drag_get_data(drag_context, "text/uri-list", t)
             drag_context.finish(True, False, t)
         else:
             drag_context.finish(False, False, t)
         return True
 
-    def do_drag_data_received(self, context, x, y, selection, targetType, t):
+    def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
         if selection.target == "text/groupbutton_name":
             self.dockbar_r().groupbutton_moved(selection.data,
                                                     "after")
@@ -125,21 +125,21 @@ class Spacer(Gtk.EventBox):
                 path = path.replace("%20"," ")
                 self.dockbar_r().launcher_dropped(path, "after")
 
-    def do_drag_motion(self, drag_context, x, y, t):
+    def on_drag_motion(self, widget, drag_context, x, y, t):
         if not self.drag_entered:
-            self.do_drag_enter(drag_context, x, y, t)
-        if "text/groupbutton_name" in drag_context.targets:
-            drag_context.drag_status(Gdk.DragAction.MOVE, t)
-        elif "text/uri-list" in drag_context.targets:
-            drag_context.drag_status(Gdk.DragAction.COPY, t)
+            self.on_drag_enter(drag_context, x, y, t)
+        if "text/groupbutton_name" in drag_context.list_targets():
+            Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, t)
+        elif "text/uri-list" in drag_context.list_targets():
+            Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
         else:
-            drag_context.drag_status(Gdk.DragAction.PRIVATE, t)
+            Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         return True
 
-    def do_drag_enter(self, drag_context, x, y, t):
+    def on_drag_enter(self, widget, drag_context, x, y, t):
         self.drag_entered = True
 
-    def do_drag_leave(self, drag_context, t):
+    def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
         
 class GroupList(list):
@@ -436,7 +436,6 @@ class DockBar():
         self.keyboard_show_dock = False
         self.no_theme_change_reload = False
         self.no_dbus_reload = False
-        self.expose_on_clear = False
         self.orient = "down"
 
         self.globals = Globals()
@@ -455,17 +454,13 @@ class DockBar():
         # Most things are imported here instead of immediately at startup 
         # since python gnomeapplet must be realized quickly to avoid crashes.
         global subprocess
-        print "import subprocess"
         import subprocess
         global Gio
-        print "import Gio"
         from gi.repository import Gio
         gi.require_version('Keybinder', '3.0')
         global Keybinder
-        print "import keybinder"
         from gi.repository import Keybinder
         global Wnck
-        print "import Wnck"
         from gi.repository import Wnck
         
         global Group
@@ -742,8 +737,10 @@ class DockBar():
         self.no_dbus_reloadd = no_dbus_reload
 
     def set_expose_on_clear(self, expose_on_clear):
-        """If True group button surfaces will be cleared with the clear_area_e function."""
-        self.expose_on_clear = expose_on_clear
+        """Dummy function. Does nothing now. 
+        
+        Left here just in case some backend should try to call it."""
+        pass
 
     def open_preference(self):
         # Starts the preference dialog
@@ -770,10 +767,10 @@ class DockBar():
         about_item.connect("activate", self.on_ppm_about)
         about_item.show()
         menu.popup(None, None, None, event.button, event.time)
-        self.globals.gtkmenu_showing = True
+        self.globals.gtkmenu = menu
         
     def __menu_closed(self, menushell):
-        self.globals.gtkmenu_showing = False
+        self.globals.gtkmenu = None
         menushell.destroy()
 
     def on_ppm_pref(self,event=None,data=None):

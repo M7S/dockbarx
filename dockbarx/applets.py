@@ -242,11 +242,7 @@ class DockXApplet(Gtk.EventBox):
     """This is the base class for DockX applets"""
     
     __gsignals__ = {"clicked": (GObject.SignalFlags.RUN_FIRST,
-                                None,(Gdk.Event, )),
-                    "enter-notify-event": "override",
-                    "leave-notify-event": "override",
-                    "button-release-event": "override",
-                    "button-press-event": "override"}
+                                None,(Gdk.Event, ))}
 
     def __init__(self, dbx_dict):
         self.dockx_r = weakref.ref(dbx_dict["dock"])
@@ -260,6 +256,10 @@ class DockXApplet(Gtk.EventBox):
         gdir = "%s/applets/%s" % (GCONF_DIR, self.APPLET_NAME)
         GCONF_CLIENT.add_dir(gdir, GConf.ClientPreloadType.PRELOAD_NONE)
         GCONF_CLIENT.notify_add(gdir, self.__on_gconf_changed, None)
+        self.connect("enter-notify-event", self.on_enter_notify_event)
+        self.connect("leave-notify-event", self.on_leave_notify_event)
+        self.connect("button-release-event", self.on_button_release_event)
+        self.connect("button-press-event", self.on_button_press_event)
 
     def get_setting(self, *args, **kwargs):
         kwargs["applet_name"]=self.APPLET_NAME
@@ -320,18 +320,18 @@ class DockXApplet(Gtk.EventBox):
     def set_expand(self, expand):
         self.expand = expand
 
-    def do_button_release_event(self, event):
+    def on_button_release_event(self, widget, event):
         if self.mousepressed:
             self.emit("clicked", event)
         self.mousepressed=False
 
-    def do_button_press_event(self, event):
+    def on_button_press_event(self, widget, event):
         self.mousepressed = True
     
-    def do_leave_notify_event(self, *args):
+    def on_leave_notify_event(self, *args):
         self.mousepressed = False
 
-    def do_enter_notify_event(self, *args):
+    def on_enter_notify_event(self, *args):
         pass
         
 

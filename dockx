@@ -46,7 +46,6 @@ WNCK_WINDOW_STATE_MINIMIZED = 1
 
 class CairoDockX(Gtk.Window):
     """The Dock Window for running DockbarX as a standalone dock"""
-    __gsignals__ = {"draw": "override"}
     def __init__(self):
         GObject.GObject.__init__(self)
         self.globals = Globals()
@@ -66,26 +65,25 @@ class CairoDockX(Gtk.Window):
         Gtk.Window.add(self, self.button_area)
         self.compute_padding()
         self.globals.connect("dock-color-changed", self.__on_color_changed)
+        self.connect("draw", self.on_draw)
 
 
-    def do_expose_event(self, event):
-        self.window.set_back_pixmap(None, False)
-        self.set_shape_mask()
+    def on_draw(self, widget, ctx):
+        #~ self.set_shape_mask()
+        # Save the ctx since the rotation will be turned around and we want it back.
+        ctx.save()
         w,h = self.get_size()
-        self.ctx = self.window.cairo_create()
         if self.is_composited():
-            self.ctx.set_source_rgba(1, 1, 1, 0)
+            ctx.set_source_rgba(1, 1, 1, 0)
         else:
-            self.ctx.set_source_rgb(0.8, 0.8, 0.8)
-        self.ctx.set_operator(cairo.OPERATOR_SOURCE)
-        self.ctx.paint()
-        self.ctx.rectangle(event.area.x, event.area.y,
-                           event.area.width, event.area.height)
-        self.ctx.clip()
-        self.draw_frame(self.ctx, w, h)
-        Gtk.Window.do_expose_event(self, event)
-        if self.get_child():
-            self.propagate_expose(self.get_child(), event)
+            ctx.set_source_rgb(0.8, 0.8, 0.8)
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
+        ctx.paint()
+        self.draw_frame(ctx, w, h)
+        # Restore the correct rotation of the ctx.
+        ctx.restore()
+        #~ if self.get_child():
+            #~ self.propagate_draw(self.get_child(), ctx)
 
     def set_shape_mask(self):
         # Set window shape from alpha mask of background image
@@ -259,14 +257,12 @@ class CairoDockX(Gtk.Window):
             old = h
             h = w
             w = old
-            del old
             ctx.rotate(pi/2)
             ctx.translate(0, -h)
         elif pos == "right":
             old = h
             h = w
             w = old
-            del old
             ctx.rotate(pi/2)
             ctx.scale(1, -1)
         elif pos == "top":
@@ -482,8 +478,6 @@ class CairoDockX(Gtk.Window):
 
         
 class DockX(CairoDockX):
-    __gsignals__ = {"destroy": "override",
-                    "size-allocate": "override"}
     def __init__(self, monitor=0):
         self.globals = Globals()
         self.empty_space = {"left": 1000, "right": 1000,
@@ -506,7 +500,6 @@ class DockX(CairoDockX):
         self.dockbar.set_no_theme_change_reload(True)
         self.dockbar.set_no_dbus_reload(True)
         self.dockbar.set_keyboard_show_dock(True)
-        self.dockbar.set_expose_on_clear(True)
         self.dockbar.load()
         self.db_loaded = True
         CairoDockX.__init__(self)
@@ -883,12 +876,12 @@ class DockX(CairoDockX):
                     strut[i] = max(strut[i], prop2.value[i])
         return strut
 
-    def do_size_allocate(self, allocation):
-        CairoDockX.do_size_allocate(self, allocation)
+    def on_size_allocate(self, widget, allocation):
         w = allocation.width
         h = allocation.height
         if self.globals.settings["dock/mode"] == "centered":
-            mx, my, mw, mh = self.get_monitor_geometry()
+            mr = self.get_monitor_geometry()
+            mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
             if self.globals.settings["dock/position"] == "left":
                 x = mx
                 y = my + mh / 2 - h / 2
@@ -930,7 +923,8 @@ class DockX(CairoDockX):
         if self.autounhide_sid is not None:
             GObject.source_remove(self.autounhide_sid)
         display = Gdk.Display.get_default()
-        mx, my, mw, mh = self.get_monitor_geometry()
+        mr = self.get_monitor_geometry()
+        mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
         if self.globals.settings["dock/position"] == "left":
             x1 = x2 = mx
             y1 = my
@@ -1029,7 +1023,8 @@ class DockX(CairoDockX):
         monitor = gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
         if monitor != self.monitor:
             return
-        mx, my, mw, mh = self.get_monitor_geometry()
+        mr = self.get_monitor_geometry()
+        mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
         if y < my + mh and y + h > my:
             if x + w > mx:
                 bd["left"] = x - mx
@@ -1225,8 +1220,7 @@ class DockX(CairoDockX):
         if self.autohide:
             self.__compute_should_autohide()
 
-    def do_destroy(self, *args):
-        CairoDockX.do_destroy(self)
+    def on_destroy(self, *args):
         Gtk.main_quit()
         
     #### Menu stuff
@@ -1252,11 +1246,11 @@ class DockX(CairoDockX):
         menu.append(close_item)
         close_item.connect("activate", self.__menu_close_selected)
         close_item.show()
-        menu.popup(None, None, None, event.button, event.time)
-        self.globals.gtkmenu_showing = True
+        menu.popup(None, None, None, None, event.button, event.time)
+        self.globals.gtkmenu = menu
         
     def __menu_closed(self, menushell):
-        self.globals.gtkmenu_showing = False
+        self.globals.gtkmenu = None
         menushell.destroy()
 
     def __menu_close_selected(self, *args):
@@ -1272,11 +1266,6 @@ class DockX(CairoDockX):
         
 
 class EventPadding(Gtk.EventBox):
-    __gsignals__ = {"button-release-event": "override",
-                    "drag-motion" : "override",
-                    "drag-leave" : "override",
-                    "drag-drop" : "override",
-                    "drag-data-received" : "override"}
     def __init__(self, dock):
         GObject.GObject.__init__(self)
         self.globals = Globals()
@@ -1287,6 +1276,11 @@ class EventPadding(Gtk.EventBox):
         self.position = None
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
+        self.connect("button-release-event", self.on_button_release_event)
+        self.connect("drag-motion", self.on_drag_motion)
+        self.connect("drag-leave", self.on_drag_leave)
+        self.connect("drag-drop", self.on_drag_drop)
+        self.connect("drag-data-received", self.on_drag_data_received)
 
     def define_position(self, position):
         self.position = position
@@ -1316,23 +1310,23 @@ class EventPadding(Gtk.EventBox):
         else:
             self.set_size_request(s, -1)
 
-    def do_button_release_event(self, event):
+    def on_button_release_event(self, widget, event):
         if event.button != 3:
             return
         self.dock_r().create_popup_menu(event)
 
-    def do_drag_drop(self, drag_context, x, y, t):
-        if "text/groupbutton_name" in drag_context.targets:
+    def on_drag_drop(self, widget, drag_context, x, y, t):
+        if "text/groupbutton_name" in drag_context.list_targets():
             self.drag_get_data(drag_context, "text/groupbutton_name", t)
             drag_context.finish(True, False, t)
-        elif "text/uri-list" in drag_context.targets:
+        elif "text/uri-list" in drag_context.list_targets():
             self.drag_get_data(drag_context, "text/uri-list", t)
             drag_context.finish(True, False, t)
         else:
             drag_context.finish(False, False, t)
         return True
 
-    def do_drag_data_received(self, context, x, y, selection, targetType, t):
+    def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
         if not self.position in ("before", "after"):
             return
         if selection.target == "text/groupbutton_name":
@@ -1347,23 +1341,23 @@ class EventPadding(Gtk.EventBox):
                 path = path.replace("%20"," ")
                 self.dock_r().dockbar.launcher_dropped(path, self.position)
 
-    def do_drag_motion(self, drag_context, x, y, t):
+    def on_drag_motion(self, widget, drag_context, x, y, t):
         if not self.position in ("before", "after"):
             return True
         if not self.drag_entered:
-            self.do_drag_enter(drag_context, x, y, t)
-        if "text/groupbutton_name" in drag_context.targets:
-            drag_context.drag_status(Gdk.DragAction.MOVE, t)
-        elif "text/uri-list" in drag_context.targets:
-            drag_context.drag_status(Gdk.DragAction.COPY, t)
+            self.on_drag_enter(widget, drag_context, x, y, t)
+        if "text/groupbutton_name" in drag_context.list_targets():
+            Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, t)
+        elif "text/uri-list" in drag_context.list_targets():
+            Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
         else:
-            drag_context.drag_status(Gdk.DragAction.PRIVATE, t)
+            Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         return True
 
-    def do_drag_enter(self, drag_context, x, y, t):
+    def on_drag_enter(self, widget, drag_context, x, y, t):
         self.drag_entered = True
 
-    def do_drag_leave(self, drag_context, t):
+    def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
 
 class DockXDBus(dbus.service.Object):

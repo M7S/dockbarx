@@ -21,6 +21,8 @@ from gi.repository import Wnck
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 from gi.repository import GObject
 from gi.repository import Pango
 import weakref
@@ -253,13 +255,13 @@ class Window():
         else:
             self.wnck.maximize()
 
-    def action_shade_window(self, widget, event):
+    def action_shade_window(self, widget, event=None):
         self.wnck.shade()
 
-    def action_unshade_window(self, widget, event):
+    def action_unshade_window(self, widget, event=None):
         self.wnck.unshade()
 
-    def action_show_menu(self, widget, event):
+    def action_show_menu(self, widget, event=None):
         self.item.show_menu(event)
 
     def action_minimize_window(self, widget=None, event=None):
@@ -289,13 +291,6 @@ class Window():
 
 
 class WindowItem(CairoButton):
-    __gsignals__ = {"enter-notify-event": "override",
-                    "leave-notify-event": "override",
-                    "button-press-event": "override",
-                    "scroll-event": "override",
-                    "clicked": "override",
-                    "drag-motion" : "override",
-                    "drag-leave" : "override",}
     def __init__(self, window, group):
         CairoButton.__init__(self)
         self.set_no_show_all(True)
@@ -346,6 +341,13 @@ class WindowItem(CairoButton):
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
 
+        self.connect("enter-notify-event", self.on_enter_notify_event)
+        self.connect("leave-notify-event", self.on_leave_notify_event)
+        self.connect("button-press-event", self.on_button_press_event)
+        self.connect("scroll-event", self.on_scroll_event)
+        self.connect("clicked", self.on_clicked)
+        self.connect("drag-motion", self.on_drag_motion)
+        self.connect("drag-leave", self.on_drag_leave)
         self.close_button.connect("button-press-event", self.disable_click)
         self.close_button.connect("clicked", self.__on_close_button_clicked)
         self.close_button.connect("leave-notify-event",
@@ -400,14 +402,11 @@ class WindowItem(CairoButton):
         self.label.set_size_request(size, -1)
 
     def __make_minimized_icon(self, icon):
-        pixbuf = GdkPixbuf.Pixbuf(GdkPixbuf.Colorspace.RGB, True,
-                                          8, icon.get_width(),
-                                          icon.get_height())
+        pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, icon.get_width(), icon.get_height())
         pixbuf.fill(0x00000000)
         minimized_icon = pixbuf.copy()
-        icon.composite(pixbuf, 0, 0, pixbuf.get_width(),
-                         pixbuf.get_height(), 0, 0, 1, 1,
-                         GdkPixbuf.InterpType.BILINEAR, 190)
+        icon.composite(pixbuf, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 
+                       0, 0, 1, 1, GdkPixbuf.InterpType.BILINEAR, 190)
         pixbuf.saturate_and_pixelate(minimized_icon, 0.12, False)
         return minimized_icon
 
@@ -491,34 +490,34 @@ class WindowItem(CairoButton):
         return a
 
     #### Events
-    def do_enter_notify_event(self, event):
+    def on_enter_notify_event(self, widget, event):
         # In compiz there is a enter and
         # a leave event before a press event.
         # Keep that in mind when coding this def!
-        CairoButton.do_enter_notify_event(self, event)
+        CairoButton.on_enter_notify_event(self, widget, event)
         if self.pressed :
             return
         if self.globals.settings["opacify"]:
             self.opacify_sid = \
                 GObject.timeout_add(100, self.__opacify)
 
-    def do_leave_notify_event(self, event):
+    def on_leave_notify_event(self, widget, event):
         # In compiz there is a enter and a leave
         # event before a press event.
         # Keep that in mind when coding this def!
-        CairoButton.do_leave_notify_event(self, event)
+        CairoButton.on_leave_notify_event(self, widget, event)
         self.pressed = False
         if self.globals.settings["opacify"]:
             self.deopacify_sid = \
                             GObject.timeout_add(200, self.__deopacify)
 
-    def do_button_press_event(self,event):
+    def on_button_press_event(self, widget, event):
         # In compiz there is a enter and a leave event before
         # a press event.
         # self.pressed is used to stop functions started with
         # GObject.timeout_add from self.__on_mouse_enter
         # or self.__on_mouse_leave.
-        CairoButton.do_button_press_event(self, event)
+        CairoButton.on_button_press_event(self, widget, event)
         self.pressed = True
         self.press_sid = GObject.timeout_add(600, self.__set_pressed_false)
 
@@ -528,7 +527,7 @@ class WindowItem(CairoButton):
         self.press_sid = None
         return False
 
-    def do_scroll_event(self, event):
+    def on_scroll_event(self, widget, event):
         window = self.window_r()
         if self.globals.settings["opacify"]:
             window.deopacify()
@@ -541,21 +540,21 @@ class WindowItem(CairoButton):
         if self.globals.settings["windowbutton_close_popup_on_%s"%direction]:
             self.group_r().popup.hide()
 
-    def do_clicked(self, event):
+    def on_clicked(self, widget, button_nr, state):
         window = self.window_r()
         if self.globals.settings["opacify"]:
             window.deopacify()
 
-        if not event.button in (1, 2, 3):
+        if not button_nr in (1, 2, 3):
             return
-        button = {1:"left", 2: "middle", 3: "right"}[event.button]
-        if event.get_state() & Gdk.ModifierType.SHIFT_MASK:
+        button = {1:"left", 2: "middle", 3: "right"}[button_nr]
+        if state & Gdk.ModifierType.SHIFT_MASK:
             mod = "shift_and_"
         else:
             mod = ""
         action_str = "windowbutton_%s%s_click_action"%(mod, button)
         action = self.globals.settings[action_str]
-        window.action_function_dict[action](window, self, event)
+        window.action_function_dict[action](window, self)
 
         popup_close = "windowbutton_close_popup_on_%s%s_click"%(mod, button)
         if self.globals.settings[popup_close]:
@@ -569,19 +568,19 @@ class WindowItem(CairoButton):
 
     def __on_close_button_leave(self, widget, event):
         if not self.pointer_is_inside():
-            self.do_leave_notify_event(event)
+            self.on_leave_notify_event(widget, event)
 
     #### D'n'D
-    def do_drag_motion(self, drag_context, x, y, t):
+    def on_drag_motion(self, widget, drag_context, x, y, t):
         if not self.drag_entered:
             self.group_r().popup.expose()
             self.drag_entered = True
             self.dnd_select_window = \
                 GObject.timeout_add(600, self.window_r().action_select_window)
-        drag_context.drag_status(Gdk.DragAction.PRIVATE, t)
+        Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         return True
 
-    def do_drag_leave(self, drag_context, t):
+    def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
         GObject.source_remove(self.dnd_select_window)
         self.group_r().popup.expose()
@@ -654,10 +653,16 @@ class WindowItem(CairoButton):
         menu.append(close_item)
         close_item.connect("activate", window.action_close_window)
         close_item.show()
-        menu.popup(None, None, None, event.button, event.time)
-        self.globals.gtkmenu_showing = True
+        if event is None:
+            button = 0
+            time = Gtk.get_current_event_time()
+        else:
+            button = event.button
+            time = event.time
+        menu.popup(None, None, None, None, button, time)
+        self.globals.gtkmenu = menu
 
     def __menu_closed(self, menushell):
-        self.globals.gtkmenu_showing = False
+        self.globals.gtkmenu = None
         self.group_r().popup.hide()
         menushell.destroy()

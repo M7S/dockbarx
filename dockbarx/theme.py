@@ -629,10 +629,11 @@ class DockTheme(GObject.GObject):
 
     def on_theme_changed(self, arg=None):
         themes = self.find_themes()
-        if self.globals.settings["dock/theme_file"] in themes:
-            self.theme_path = themes[self.globals.settings["dock/theme_file"]]
-        else:
-            self.theme_path = themes.get("dbx.tar.gz", "dbx.tar.gz")
+        #~ if self.globals.settings["dock/theme_file"] in themes:
+            #~ self.theme_path = themes[self.globals.settings["dock/theme_file"]]
+        #~ else:
+            #~ self.theme_path = themes.get("dbx.tar.gz", "dbx.tar.gz")
+        self.theme_path = themes.get("glass-dock.tar.gz", "glass-dock.tar.gz")
         self.reload()
 
     def reload(self):

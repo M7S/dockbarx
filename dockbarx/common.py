@@ -671,7 +671,7 @@ class Globals(GObject.GObject):
           "dock/position": "left",
           "dock/size": 42,
           "dock/offset":0,
-          "dock/mode": "panel",
+          "dock/mode": "centered",
           "dock/behavior": "panel",
           "dock/end_decorations": False,
 
@@ -704,7 +704,7 @@ class Globals(GObject.GObject):
             GObject.GObject.__init__(self)
 
             # "Global" variables
-            self.gtkmenu_showing = False
+            self.gtkmenu = None
             self.opacified = False
             self.opacity_values = None
             self.opacity_matches = None

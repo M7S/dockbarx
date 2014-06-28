@@ -77,13 +77,12 @@ class DockBarApp (awn.AppletSimple):
             self.db.set_orient("down")
             self.alignment.set(0, 1, 0, 0)
         container = self.db.get_container()
-        if self.db.get_orient() in ("down", "up"):
-            container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 5)
-        else:
-            container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 5, -1)
+        #~ if self.db.get_orient() in ("down", "up"):
+            #~ container.set_size_request(-1, self.get_size() + self.icon.get_offset() + 5)
+        #~ else:
+            #~ container.set_size_request(self.get_size() + self.icon.get_offset() + 5, -1)
         self.alignment.add(container)
+        self.db.set_size(self.get_size() + self.icon.get_offset() + 5)
         self.connect("size-changed", self.__on_size_changed)
         self.connect("offset-changed", self.__on_size_changed)
         self.connect("position-changed", self.__on_position_changed)
@@ -101,12 +100,11 @@ class DockBarApp (awn.AppletSimple):
 
     def __on_size_changed(self, *args):
         container = self.db.get_container()
-        if self.db.get_orient() in ("down", "up"):
-            container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 5)
-        else:
-            container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 5, -1)
+        #~ if self.db.get_orient() in ("down", "up"):
+            #~ container.set_size_request(-1, self.get_size() + self.icon.get_offset() + 5)
+        #~ else:
+            #~ container.set_size_request(self.get_size() + self.icon.get_offset() + 5, -1)
+        self.db.set_size(self.get_size() + self.icon.get_offset() + 5)
         self.__compute_should_autohide()
 
     def __on_position_changed(self, applet, position):
@@ -124,15 +122,14 @@ class DockBarApp (awn.AppletSimple):
             self.db.set_orient("down")
             self.alignment.set(0, 1, 0, 0)
         container = self.db.get_container()
-        if self.db.get_orient() in ("up", "down"):
-            container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 5)
-        else:
-            container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 5, -1)
+        #~ if self.db.get_orient() in ("up", "down"):
+            #~ container.set_size_request(-1, self.get_size() + self.icon.get_offset() + 5)
+        #~ else:
+            #~ container.set_size_request(self.get_size() + self.icon.get_offset() + 5, -1)
         self.alignment.add(container)
         container.show_all()
         self.show()
+        self.db.set_size(self.get_size() + self.icon.get_offset() + 5)
         self.__compute_should_autohide()
 
     #### Autohide stuff
@@ -256,14 +253,13 @@ class DockBarApp (awn.AppletSimple):
 
     def readd_container(self, container):
         # Dockbar calls back to this function when it is reloaded
-        if self.db.get_orient() in ("up", "down"):
-            container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 5)
-        else:
-            container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 5, -1)
+        #~ if self.db.get_orient() in ("up", "down"):
+            #~ container.set_size_request(-1, self.get_size() + self.icon.get_offset() + 5)
+        #~ else:
+            #~ container.set_size_request(self.get_size() + self.icon.get_offset() + 5, -1)
         self.alignment.add(container)
         container.show_all()
+        self.db.set_size(self.get_size() + self.icon.get_offset() + 5)
         self.__compute_should_autohide()
 
 
