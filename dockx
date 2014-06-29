@@ -156,7 +156,7 @@ class CairoDockX(Gtk.Window):
             alpha = self.theme.get("%s_start_alpha" % name, 20)
             alpha = float(alpha) / 100
             pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
-            
+
             rpc2 = self.theme.get("%s_stop_color" % name, "#FFFFFF")
             if not rpc2[0] == "#":
                 rpc2 = "#%s" % rpc2
@@ -217,7 +217,7 @@ class CairoDockX(Gtk.Window):
             alpha = self.theme.get("%s_start_alpha" % name, 20)
             alpha = float(alpha) / 100
             pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
-            
+
             rpc2 = self.theme.get("%s_stop_color" % name, "#FFFFFF")
             if not rpc2[0] == "#":
                 rpc2 = "#%s" % rpc2
@@ -248,7 +248,7 @@ class CairoDockX(Gtk.Window):
         bw = float(self.theme.get("bar2_border_width", 0.8))
         ctx.set_line_width(bw)
         ctx.stroke()
-        
+
 
     def __set_rotation(self, pos, ctx, w, h):
         # Changes the user space so that the dock can be drawn as if
@@ -297,7 +297,7 @@ class CairoDockX(Gtk.Window):
             if int(self.theme.get("use_bar2", False)):
                 rel_size2 = float(self.theme.get("bar2_rel_size", 100.0))
                 slope2 = -(float(self.theme.get("bar2_slope", 90)) - 90)
-                slope2 = slope2 / 180.0 * pi 
+                slope2 = slope2 / 180.0 * pi
                 sp2 = int(self.theme.get("bar2_side_padding", 6))
             else:
                 rel_size2 = 0
@@ -423,7 +423,7 @@ class CairoDockX(Gtk.Window):
             y1 = h - size * start / 100.0
             x2 = w - (w * stop / 100.0)
             y2 = h - size * stop / 100.0
-        elif 180 < angle and angle < 270: 
+        elif 180 < angle and angle < 270:
             x1 = w - (w * start / 100.0)
             y1 = t + size * start / 100.0
             x2 = w - (w * stop / 100.0)
@@ -476,7 +476,7 @@ class CairoDockX(Gtk.Window):
     def __on_color_changed(self, *args):
         self.queue_draw()
 
-        
+
 class DockX(CairoDockX):
     def __init__(self, monitor=0):
         self.globals = Globals()
@@ -603,7 +603,7 @@ class DockX(CairoDockX):
         panel = self.globals.settings["dock/mode"] == "panel"
         ed = self.globals.settings["dock/end_decorations"]
         pos = self.globals.settings["dock/position"]
-        
+
         if pos in ("left", "right"):
             gtk_box = Gtk.VBox
         else:
@@ -645,7 +645,7 @@ class DockX(CairoDockX):
                 for child in box.get_children():
                     box.remove(child)
                 box.destroy()
-                
+
     def __add_applets(self, alist, pos, panel):
         # Add the applets to the dock
         self.position_boxes = self.__setup_boxes(alist, pos, panel)
@@ -700,7 +700,7 @@ class DockX(CairoDockX):
             self.__dockbar_set_expand(box, True)
             expanded = True
         return expanded
-    
+
     def __setup_boxes(self, alist, pos, panel):
         # Three boxes (left/center/right or top/middle/bottom)
         # are needed if the dock should contain centered applets,
@@ -730,7 +730,7 @@ class DockX(CairoDockX):
         cp = box.query_child_packing(self.dockbar.get_container())
         cp = (expand, expand, cp[2], cp[3])
         box.set_child_packing(self.dockbar.get_container(), *cp)
-        
+
     def connect_applet_signals(self):
         # Adds size-allocate signals for all applets.
         self.applet_sids = {}
@@ -739,18 +739,18 @@ class DockX(CairoDockX):
             if isinstance(app, DockXApplet) and not app.get_expand():
                 sid = app.connect("size-allocate", self.__on_applet_size_allocate)
                 self.applet_sids[app]=sid
-                
+
     def disconnect_applet_signals(self):
         while self.applet_sids:
             app, sid = self.applet_sids.popitem()
             app.disconnect(sid)
-        
+
     def __update_applets(self):
         applets = self.__get_applets()
         for app in applets:
             if isinstance(app, DockXApplet):
                 app.update()
-                
+
     def __get_applets(self):
         # Returns a list of all applets on the dock.
         applets = []
@@ -760,7 +760,7 @@ class DockX(CairoDockX):
         else:
             applets.extend(self.box)
         return applets
-            
+
 
     def __set_dock_strut(self, x, y, w, h):
         if not self.get_window():
@@ -901,7 +901,7 @@ class DockX(CairoDockX):
             self.old_width, self.old_height = w, h
         if self.globals.settings["dock/mode"] != "panel":
             self.__set_dock_strut(x, y, w, h)
-            
+
     def show_dock(self):
         self.show()
         if self.globals.settings["dock/mode"] != "centered":
@@ -912,7 +912,7 @@ class DockX(CairoDockX):
             GObject.source_remove(self.autounhide_sid)
             self.autounhide_sid = None
         self.autohide_sid = GObject.timeout_add(200, self.__hide_check)
-                                                  
+
     def hide_dock(self):
         self.hide()
         if self.autohide_sid is not None:
@@ -979,7 +979,7 @@ class DockX(CairoDockX):
         self.__calc_border_distance(window)
         if self.db_loaded and reset_should_autohide:
             self.__compute_should_autohide()
-            
+
     def remove_window(self, window, reset_should_autohide=True, forced=False):
         if not self.autohide and not forced:
             return
@@ -998,7 +998,7 @@ class DockX(CairoDockX):
     def __on_window_state_changed(self, wnck_window,changed_mask, new_state):
         if WNCK_WINDOW_STATE_MINIMIZED & changed_mask:
             self.__compute_should_autohide()
-        
+
     def __on_window_geometry_changed(self, window):
         if time.time() - self.geometry_time < 0.12 and \
            window == self.last_geometry_window():
@@ -1012,7 +1012,7 @@ class DockX(CairoDockX):
     def __on_active_window_changed(self, screen, previous_active_window):
         if self.globals.settings["dock/behavior"] == "dodge active window":
             self.__compute_should_autohide()
-        
+
 
     def __calc_border_distance(self, window, reset_should_autohide=False):
         bd = {"left": 1000, "right": 1000, "top": 1000, "bottom": 1000}
@@ -1069,7 +1069,7 @@ class DockX(CairoDockX):
         self.padding2.compute_size(centered or cornered or ed)
         self.position_dock()
         self.queue_draw()
-        
+
     def __on_mode_changed(self, *args):
         self.position_dock(rebuild=True)
         self.queue_draw()
@@ -1137,10 +1137,10 @@ class DockX(CairoDockX):
         if self.autohide:
             self.__compute_should_autohide()
         self.calculate_dockbar_max_size()
-        
+
     def __on_applet_size_allocate(self, widget, allocate):
         self.calculate_dockbar_max_size()
-            
+
     def calculate_dockbar_max_size(self):
         centered = self.globals.settings["dock/mode"] == "centered"
         pos = self.globals.settings["dock/position"]
@@ -1195,7 +1195,7 @@ class DockX(CairoDockX):
         if max_size != self.dockbar_max_size:
             self.dockbar_max_size = max_size
             self.dockbar.set_max_size(max_size)
-                
+
     def __calulate_db_max_size_on_realized(self):
         # Wait while gtk events are pending.
         while Gtk.events_pending():
@@ -1220,7 +1220,7 @@ class DockX(CairoDockX):
 
     def on_destroy(self, *args):
         Gtk.main_quit()
-        
+
     #### Menu stuff
     def create_popup_menu(self, event):
         #Create popup menu
@@ -1246,22 +1246,22 @@ class DockX(CairoDockX):
         close_item.show()
         menu.popup(None, None, None, None, event.button, event.time)
         self.globals.gtkmenu = menu
-        
+
     def __menu_closed(self, menushell):
         self.globals.gtkmenu = None
         menushell.destroy()
 
     def __menu_close_selected(self, *args):
         self.destroy()
-        
+
     def __menu_preferences_selected(self, *args):
         os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
                    "/usr/bin/dbx_preference")
-            
+
     def __menu_reload_selected(self, *args):
         self.reload()
-        
-        
+
+
 
 class EventPadding(Gtk.EventBox):
     def __init__(self, dock):
@@ -1314,10 +1314,11 @@ class EventPadding(Gtk.EventBox):
         self.dock_r().create_popup_menu(event)
 
     def on_drag_drop(self, widget, drag_context, x, y, t):
-        if "text/groupbutton_name" in drag_context.list_targets():
+        targets = [target.name() for target in drag_context.list_targets()]
+        if "text/groupbutton_name" in targets:
             self.drag_get_data(drag_context, "text/groupbutton_name", t)
             drag_context.finish(True, False, t)
-        elif "text/uri-list" in drag_context.list_targets():
+        elif "text/uri-list" in targets:
             self.drag_get_data(drag_context, "text/uri-list", t)
             drag_context.finish(True, False, t)
         else:
@@ -1327,15 +1328,21 @@ class EventPadding(Gtk.EventBox):
     def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
         if not self.position in ("before", "after"):
             return
-        if selection.target == "text/groupbutton_name":
-            self.dock_r().dockbar.groupbutton_moved(selection.data,
+        selection_target = selection.get_target().name()
+        if selection_target == "text/groupbutton_name":
+            self.dock_r().dockbar.groupbutton_moved(selection.get_data(),
                                                     self.position)
-        elif selection.target == "text/uri-list":
-            if ".desktop" in selection.data:
+        elif selection_target == "text/uri-list":
+            if ".desktop" in selection.get_data():
                 # .desktop file! This is a potential launcher.
                 #remove "file://" and "/n" from the URI
-                # Todo: What if the uri doesn't start with "file://"?
-                path = selection.data[7:-2]
+                path = selection.get_data()
+                if path.startswith("file://"):
+                    path = path[7:]
+                else:
+                    # No support for other kind of uris.
+                    return
+                path = path.rstrip()
                 path = path.replace("%20"," ")
                 self.dock_r().dockbar.launcher_dropped(path, self.position)
 
@@ -1344,9 +1351,10 @@ class EventPadding(Gtk.EventBox):
             return True
         if not self.drag_entered:
             self.on_drag_enter(widget, drag_context, x, y, t)
-        if "text/groupbutton_name" in drag_context.list_targets():
+        targets = [target.name() for target in drag_context.list_targets()]
+        if "text/groupbutton_name" in targets:
             Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, t)
-        elif "text/uri-list" in drag_context.list_targets():
+        elif "text/uri-list" in targets:
             Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
         else:
             Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
@@ -1436,5 +1444,5 @@ if "--monitor" in sys.argv:
 dockx = DockX(monitor)
 del monitor
 Gtk.main()
-        
+
 
