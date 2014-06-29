@@ -31,7 +31,7 @@ import cairo
 import dockbarx.dockbar
 from gi.repository import Wnck
 from gi.repository import GObject
-from dockbarx.common import Globals
+from dockbarx.common import Globals, reserve_space
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
 from Xlib import display
@@ -123,10 +123,10 @@ class CairoDockX(Gtk.Window):
             ctx.set_line_width(0.8)
             ctx.stroke()
         if self.is_composited():
-            self.window.shape_combine_mask(None, 0, 0)
-            self.window.input_shape_combine_mask(pixmap, 0, 0)
+            self.get_window().shape_combine_mask(None, 0, 0)
+            self.get_window().input_shape_combine_mask(pixmap, 0, 0)
         else:
-            self.window.shape_combine_mask(pixmap, 0, 0)
+            self.get_window().shape_combine_mask(pixmap, 0, 0)
 
     def draw_frame(self, ctx, w, h):
         pos = self.globals.settings["dock/position"]
@@ -484,7 +484,6 @@ class DockX(CairoDockX):
                             "top": 1000, "bottom":1000}
         self.geometry_time = 0
         self.last_geometry_window = lambda: None
-        self.window = None
         if self.globals.settings["dock/behavior"] in ("panel", "standard"):
             self.autohide = False
         else:
@@ -764,17 +763,18 @@ class DockX(CairoDockX):
             
 
     def __set_dock_strut(self, x, y, w, h):
-        if not self.window:
+        if not self.get_window():
             return
         set_strut = self.globals.settings["dock/behavior"] == "panel"
         if not set_strut:
-            self.window.property_delete("_NET_WM_STRUT")
-            self.window.property_delete("_NET_WM_STRUT_PARTIAL")
+            self.get_window().property_delete("_NET_WM_STRUT")
+            self.get_window().property_delete("_NET_WM_STRUT_PARTIAL")
             return
         s = self.get_screen()
         sw = s.get_width()
         sh = s.get_height()
-        mx, my, mw, mh = s.get_monitor_geometry(self.monitor)
+        mr = s.get_monitor_geometry(self.monitor)
+        mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
         if self.globals.settings["dock/position"] == "left":
             strut = [x + w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
             # Make sure that there's no monitor on the left side of this one.
@@ -793,14 +793,12 @@ class DockX(CairoDockX):
             if s.get_monitor_at_point(x + w / 2, my + mh + 5) != self.monitor:
                 set_strut = False
         if not set_strut:
-            self.window.property_delete("_NET_WM_STRUT")
-            self.window.property_delete("_NET_WM_STRUT_PARTIAL")
+            self.get_window().property_delete("_NET_WM_STRUT")
+            self.get_window().property_delete("_NET_WM_STRUT_PARTIAL")
             return
-        #~ self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                    #~ Gdk.PropMode.REPLACE, strut[:4])  
-        #~ self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
-                                    #~ 32, Gdk.PropMode.REPLACE, strut)
-            
+        xid = self.get_window().get_xid()
+        reserve_space(xid, strut)
+
     def __get_monitor_and_strut_borders(self):
         # This function returns the distance from screen edges to
         # the monitor edges including strut.

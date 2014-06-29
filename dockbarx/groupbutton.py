@@ -2308,10 +2308,8 @@ class LockedPopup(GroupPopup):
             x1 = mgeo.x + x 
             x2 = mgeo.x + x + a.width
             strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
-            #~ win.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                        #~ Gdk.PropMode.REPLACE, strut[:4])  
-            #~ win.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
-                                        #~ 32, Gdk.PropMode.REPLACE, strut)
+            xid = win.get_xid() 
+            reserve_space(xid, strut)
 
     def __get_other_strut(self, x1, x2):
         global display
