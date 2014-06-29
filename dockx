@@ -1226,21 +1226,21 @@ class DockX(CairoDockX):
         #Create popup menu
         menu = Gtk.Menu()
         menu.connect("selection-done", self.__menu_closed)
-        preference_item = Gtk.ImageMenuItem("gtk-properties", "Preference")
+        preference_item = Gtk.MenuItem(_("Preferences"))
         menu.append(preference_item)
         preference_item.connect("activate",
                                 self.__menu_preferences_selected)
         preference_item.show()
-        reload_item = Gtk.ImageMenuItem("gtk-refresh", "Reload")
+        reload_item = Gtk.MenuItem(_("Reload"))
         menu.append(reload_item)
         reload_item.connect("activate", self.__menu_reload_selected)
         reload_item.show()
-        about_item = Gtk.ImageMenuItem("gtk-about", "About Item")
+        about_item = Gtk.MenuItem(_("About"))
         menu.append(about_item)
         about_item.connect("activate",
                            lambda e: dockbarx.dockbar.AboutDialog())
         about_item.show()
-        close_item = Gtk.ImageMenuItem("gtk-close", "Close")
+        close_item = Gtk.MenuItem(_("Close"))
         menu.append(close_item)
         close_item.connect("activate", self.__menu_close_selected)
         close_item.show()
@@ -1252,7 +1252,7 @@ class DockX(CairoDockX):
         menushell.destroy()
 
     def __menu_close_selected(self, *args):
-        self.destroy()
+        Gtk.main_quit()
 
     def __menu_preferences_selected(self, *args):
         os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
