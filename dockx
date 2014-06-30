@@ -538,6 +538,7 @@ class DockX(CairoDockX):
                            self.__on_dock_theme_reloaded)
         screen = Gdk.Screen.get_default()
         screen.connect("size-changed", self.__on_screen_size_changed)
+        self.connect("size-allocate", self.on_size_allocate)
         if self.autohide:
             self.show_dock()
         self.dbus_obj = DockXDBus(self)
