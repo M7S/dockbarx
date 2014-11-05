@@ -63,6 +63,7 @@ class Window():
         self.xid = self.wnck.get_xid()
         self.is_active_window = False
         self.on_current_desktop = self.is_on_current_desktop()
+        self.monitor = self.get_monitor()
 
         self.state_changed_event = self.wnck.connect("state-changed",
                                                 self.__on_window_state_changed)

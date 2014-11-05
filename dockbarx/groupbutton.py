@@ -168,8 +168,8 @@ class Group(ListOfWindows):
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.update_name()
         
-        monitor = self.get_monitor()
-        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(monitor)
+        self.monitor = self.get_monitor()
+        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(self.monitor)
         self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
 
 
