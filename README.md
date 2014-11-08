@@ -66,7 +66,7 @@ You can also translate DockbarX into your language at [DockbarX launchpad transl
 ##FAQ
 *Q: Why do you want to make Linux into a Microsoft Windows 7 clone?*
 
-A: I don't. The goal of DockbarX isn't to be a clone of the Windows 7 task bar. Windows 7 task bar has a good principle, though.  When it comes to your most used programs it's more productive to do all window handling - launching, selecting, closing, etc. from the same few pixels. If I need a Firefox window I move my mouse cursor to the same spot on the screen regardless of which Firefox window I want and or if I even have opened a Firefox window yet. This behavior is good and it would be stupid not to implement it just because "Windows had it first". Don't reduce your productivity out of stubbornness. When it comes to looks it's up to you to choose a theme that looks like windows 7 or a theme that doesn't look that way.
+A: I don't. The goal of DockbarX isn't to be a clone of the Windows 7 task bar. Windows 7 task bar has a good principle, though.  When it comes to your most used programs it's more productive to do all window handling - launching, selecting, closing, etc. from the same few pixels. If I need a Firefox window I move my mouse cursor to the same spot on the screen regardless of which Firefox window I want and or if I even have not opened a Firefox window yet. This behavior is good and it would be stupid not to implement it just because "Windows had it first". Don't reduce your productivity out of stubbornness. When it comes to looks it's up to you to choose a theme that looks like windows 7 or a theme that doesn't look that way.
 
 Here are some historical references about docks:
 
