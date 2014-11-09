@@ -1455,8 +1455,9 @@ class GroupButton(CairoAppButton):
             # Hide the button if no windows are on the current screen.
             self.hide()
             return
-        #~ else:
-            #~ self.show() # Todo: is this needed.
+        else:
+            # This is necessary if desktop changed.
+            self.show()
 
 
         state_type = 0
