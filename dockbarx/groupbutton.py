@@ -446,7 +446,7 @@ class Group(ListOfWindows):
 
     def window_monitor_changed(self):
         self.button.update_state_if_shown()
-        self.button.set_icon_geo()
+        self.button.set_icongeo()
 
     def window_desktop_changed(self):
         self.button.update_state_if_shown()
