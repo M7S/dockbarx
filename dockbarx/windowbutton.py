@@ -109,13 +109,7 @@ class Window():
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
         gdk_screen = gtk.gdk.screen_get_default()
-        win = gtk.gdk.window_lookup(self.wnck.get_xid())
-        if win is None:
-            logger.warning("Error: couldn't find out on which " + \
-                  "monitor window \"%s\" is located" % self.wnck.get_name())
-            logger.warning("Guessing it's monitor 0")
-            return 0
-        x, y, w, h, bit_depth = win.get_geometry()
+        x, y, w, h = self.wnck.get_geometry()
         return gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
 
     def destroy(self):
