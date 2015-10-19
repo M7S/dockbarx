@@ -445,11 +445,11 @@ class Group(ListOfWindows):
             self.button.update_state_if_shown()
 
     def window_monitor_changed(self):
-        self.button.update_state_if_shown()
+        self.button.update_state()
         self.button.set_icongeo()
 
     def window_desktop_changed(self):
-        self.button.update_state_if_shown()
+        self.button.update_state()
         self.nextlist = None
         self.button.set_icongeo()
         if self.locked_popup:
