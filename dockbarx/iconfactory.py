@@ -603,7 +603,7 @@ class IconFactory():
         ctx.set_operator(cairo.OPERATOR_SOURCE)
         ctx.paint_with_alpha(0)
         return new
-            
+
     def __command_get_pixmap(self, surface, name):
         if surface is None:
             if self.dockbar_r().orient in ("left", "right"):
@@ -645,7 +645,7 @@ class IconFactory():
         # Combines left half of surface with right half of surface2.
         # The transition between the two halves are soft.
 
-        # Degrees keyword are kept of compability reasons. 
+        # Degrees keyword are kept of compability reasons.
         w = surface.get_width()
         h = surface.get_height()
         if pix1=="self":
@@ -719,7 +719,7 @@ class IconFactory():
             ctx.set_source_surface(surface)
             ctx.paint_with_alpha(alpha)
             return new
-        
+
 
     def __command_composite(self, surface, bg, fg, opacity="100",
                             xoffset="0", yoffset="0", angle="0"):
@@ -804,7 +804,7 @@ class IconFactory():
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(new)
 
-        ctx.translate(w/2.0, h/2.0) 
+        ctx.translate(w/2.0, h/2.0)
         ctx.rotate(a)
         ctx.translate(-w0/2.0, -h0/2.0)
         ctx.set_source_surface(surface, 0,0)
@@ -946,13 +946,13 @@ class IconFactory():
         """Transform a PIL Image into a Cairo ImageSurface."""
 
         # This function is only supposed to work with little endinan
-        # systems. Could that be a problem ever? 
+        # systems. Could that be a problem ever?
         if im.mode != 'RGBA':
             im = im.convert('RGBA')
 
-        s = im.tostring('raw', 'BGRA')
+        s = im.tobytes('raw', 'BGRA')
         a = array.array('B', s)
-        dest = cairo.ImageSurface(cairo.FORMAT_ARGB32, 
+        dest = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                   im.size[0], im.size[1])
         ctx = cairo.Context(dest)
         non_premult_src_wo_alpha = cairo.ImageSurface.create_for_data(
