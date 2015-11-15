@@ -51,7 +51,8 @@ SPECIAL_RES_CLASSES = {
                         "geogebra-geogebra": "geogebra",
                         "tuxpaint.tuxpaint": "tuxpaint",
                         "quodlibet":"quod libet",
-                        "xfce4-terminal":"exo-terminal-emulator"
+                        "xfce4-terminal":"exo-terminal-emulator",
+                        "xbmc.bin":"xbmc"
                       }
 
 # Media player name substitutes (for non-identical resclass/dbus-address pairs)
