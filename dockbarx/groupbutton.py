@@ -168,8 +168,8 @@ class Group(ListOfWindows):
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.update_name()
         
-        monitor = self.get_monitor()
-        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(monitor)
+        self.monitor = self.get_monitor()
+        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(self.monitor)
         self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
 
 
@@ -445,11 +445,11 @@ class Group(ListOfWindows):
             self.button.update_state_if_shown()
 
     def window_monitor_changed(self):
-        self.button.update_state_if_shown()
-        self.button.set_icon_geo()
+        self.button.update_state()
+        self.button.set_icongeo()
 
     def window_desktop_changed(self):
-        self.button.update_state_if_shown()
+        self.button.update_state()
         self.nextlist = None
         self.button.set_icongeo()
         if self.locked_popup:
@@ -1455,8 +1455,9 @@ class GroupButton(CairoAppButton):
             # Hide the button if no windows are on the current screen.
             self.hide()
             return
-        #~ else:
-            #~ self.show() # Todo: is this needed.
+        else:
+            # This is necessary if desktop changed.
+            self.show()
 
 
         state_type = 0
