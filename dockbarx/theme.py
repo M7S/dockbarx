@@ -404,7 +404,7 @@ class PopupStyle(gobject.GObject):
 
     def get(self, key, default=None):
         return self.settings.get(key, default)
-        
+
     def find_styles(self):
         # Reads the styles from /usr/share/dockbarx/themes/popup_styles and
         # ~/.dockbarx/themes/popup_styles and returns a dict
@@ -479,7 +479,7 @@ class PopupStyle(gobject.GObject):
             # Remove quote signs
             if value[0] in ("\"", "'") and value[-1] in ("\"", "'"):
                 value = value[1:-1]
-            
+
             if key == "name":
                 name = value
                 continue
@@ -600,7 +600,7 @@ class DockTheme(gobject.GObject):
     def get(self, key, default=None):
         return self.settings.get(key, default)
 
-    
+
     def get_bg(self, bar, size=None):
         if size is None:
             return self.bg[bar]
@@ -686,7 +686,7 @@ class DockTheme(gobject.GObject):
             # Remove quote signs
             if value[0] in ("\"", "'") and value[-1] in ("\"", "'"):
                 value = value[1:-1]
-            
+
             if key == "name":
                 name = value
                 continue
@@ -724,7 +724,7 @@ class DockTheme(gobject.GObject):
                 elif value[0] != "#":
                         value = "#%s" % value
                 self.default_colors[key] = value
-        
+
         # Inform rest of dockbar about the reload.
         self.globals.set_dock_theme(self.theme_path.rsplit("/", 1)[-1],
                                     self.default_colors)
@@ -797,13 +797,13 @@ class DockTheme(gobject.GObject):
         """Transform a PIL Image into a Cairo ImageSurface."""
 
         # This function is only supposed to work with little endinan
-        # systems. Could that be a problem ever? 
+        # systems. Could that be a problem ever?
         if im.mode != 'RGBA':
             im = im.convert('RGBA')
 
-        s = im.tostring('raw', 'BGRA')
+        s = im.tobytes('raw', 'BGRA')
         a = array.array('B', s)
-        dest = cairo.ImageSurface(cairo.FORMAT_ARGB32, 
+        dest = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                   im.size[0], im.size[1])
         ctx = cairo.Context(dest)
         non_premult_src_wo_alpha = cairo.ImageSurface.create_for_data(
