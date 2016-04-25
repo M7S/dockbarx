@@ -581,6 +581,7 @@ class Globals(gobject.GObject):
           "locked_list_in_menu": True,
           "locked_list_no_overlap": False,
           "window_title_width": 140,
+          "reorder_window_list": True,
 
           "select_one_window": "select or minimize window",
           "select_multiple_windows": "select or minimize all",

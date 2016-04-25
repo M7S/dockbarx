@@ -423,6 +423,10 @@ class Group(ListOfWindows):
             if window == wnck_window:
                 window.set_active(True)
                 has_active = True
+                if self.globals.settings["reorder_window_list"]:
+                    self.remove(window)
+                    self.insert(0, window)
+                    self.window_list.reorder_item(0, window.item)
             else:
                 window.set_active(False)
         if has_active != self.has_active_window:
@@ -959,46 +963,46 @@ class Group(ListOfWindows):
 
         # Make a list of the windows in group with the bottom most
         # first and top most last.
-        # If mode is other than move
+        # If mode is other than "move"
         # windows on other workspaces is put in a separate list instead.
         # grtop is set to true if not all windows in the group is the
         # topmost windows.
         for wnck_window in windows_stacked:
-            if (not wnck_window.is_skip_tasklist()) and \
-               (not wnck_window.is_minimized()) and \
-               (wnck_window.get_window_type() in [wnck.WINDOW_NORMAL,
-                                                  wnck.WINDOW_DIALOG]):
-                if wnck_window in self:
-                    ignored = False
-                    if not wnck_window.is_pinned() \
-                    and wnck_window.get_workspace() is not None \
-                    and active_workspace != wnck_window.get_workspace():
-                        if mode == "move":
-                            ws = screen.get_active_workspace()
-                            wnck_window.move_to_workspace(ws)
-                            moved = True
-                        else: # mode == "ignore" or "switch"
-                            ignored = True
-                            ignorelist.append(self[wnck_window])
-                    if not wnck_window.is_in_viewport(screen.get_active_workspace()):
-                        if mode == "move":
-                            wx, wy, ww, wh = wnck_window.get_geometry()
-                            wnck_window.set_geometry(0,3,wx%screen.get_width(),
-                                             wy%screen.get_height(),
-                                             ww,wh)
-                            moved = True
-                        else: # mode == "ignore" or "switch"
-                            ignored = True
-                            ignorelist.append(self[wnck_window])
+            if wnck_window.is_skip_tasklist() or \
+               wnck_window.is_minimized() or \
+               not (wnck_window.get_window_type() in [wnck.WINDOW_NORMAL, wnck.WINDOW_DIALOG]):
+                continue
+            if not wnck_window in self:
+                if wingr:
+                    grtop = False
+                continue
+            ignored = False
+            if not wnck_window.is_pinned() \
+            and wnck_window.get_workspace() is not None \
+            and active_workspace != wnck_window.get_workspace():
+                if mode == "move":
+                    ws = screen.get_active_workspace()
+                    wnck_window.move_to_workspace(ws)
+                    moved = True
+                else: # mode == "ignore" or "switch"
+                    ignored = True
+                    ignorelist.append(self[wnck_window])
+            if not wnck_window.is_in_viewport(screen.get_active_workspace()):
+                if mode == "move":
+                    wx, wy, ww, wh = wnck_window.get_geometry()
+                    wnck_window.set_geometry(0,3,wx%screen.get_width(),
+                                     wy%screen.get_height(),
+                                     ww,wh)
+                    moved = True
+                else: # mode == "ignore" or "switch"
+                    ignored = True
+                    ignorelist.append(self[wnck_window])
 
-                    if not ignored:
-                        grp_win_stacked.append(self[wnck_window])
-                        if wingr == False:
-                            wingr = True
-                            grtop = True
-                else:
-                    if wingr:
-                        grtop = False
+            if not ignored:
+                grp_win_stacked.append(self[wnck_window])
+                if wingr == False:
+                    wingr = True
+                    grtop = True
 
         if not grp_win_stacked and mode == "switch":
             # Put the windows in dictionaries according to workspace and
@@ -1117,7 +1121,9 @@ class Group(ListOfWindows):
             # Make the list and pick the window.
             windows_stacked = self.screen.get_windows_stacked()
             windows = self.get_windows()
-            if self.globals.settings["select_next_use_lastest_active"]:
+            snula = self.globals.settings["select_next_use_lastest_active"]
+            rwl = self.globals.settings["reorder_window_list"]
+            if snula and not rwl:
                 self.nextlist = []
                 minimized_list = []
                 for window in windows_stacked:
@@ -1164,7 +1170,8 @@ class Group(ListOfWindows):
             return
 
         self.popup.show()
-        if self.globals.settings["select_next_activate_immediately"]:
+        if self.globals.settings["select_next_activate_immediately"] and \
+           not self.globals.settings["reorder_window_list"]:
             window.action_select_window(widget, event)
         else:
             if self.scrollpeak_window:
@@ -1896,7 +1903,8 @@ class GroupButton(CairoAppButton):
         if self.globals.settings["opacify"] \
         and self.globals.settings["opacify_group"]:
             self.deopacify(100)
-        if not self.globals.settings["select_next_activate_immediately"] and \
+        if (self.globals.settings["reorder_window_list"] or \
+           not self.globals.settings["select_next_activate_immediately"]) and\
            group.scrollpeak_sid is not None:
             group.scrollpeak_select()
 
@@ -2426,6 +2434,9 @@ class WindowList(gtk.VBox):
         item.set_show_preview(self.show_previews)
         item.update_preview()
         self.window_box.pack_start(item, True, True)
+
+    def reorder_item(self, index, item):
+        self.window_box.reorder_child(item, index)
 
     def shrink_size(self):
         """This function is called if the window list is too big."""

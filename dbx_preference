@@ -776,6 +776,11 @@ class PrefDialog():
 
         #--- Popup page
         popup_box.set_border_width(5)
+        self.reorder_window_list_cb = gtk.CheckButton(
+                          _("Reorder the window list so that the last activated window is first in the list."))
+        self.reorder_window_list_cb.connect("toggled", self.__checkbutton_toggled,
+                                 "reorder_window_list")
+        popup_box.pack_start(self.reorder_window_list_cb, False, padding=5)
         self.no_popup_cb = gtk.CheckButton(
                           _("Show window list only if more than one window is open"))
         self.no_popup_cb.connect("toggled", self.__checkbutton_toggled,
@@ -883,6 +888,28 @@ class PrefDialog():
         vbox.pack_start(self.locked_list_no_overlap_cb, False)
         popup_box.pack_start(vbox, False, padding=5)
 
+        # "Select" action options frame
+        vbox = gtk.VBox()
+        label1 = gtk.Label("<b><big>%s</big></b>"%_("\"Select next\" behavior"))
+        label1.set_alignment(0,0.5)
+        label1.set_use_markup(True)
+        vbox.pack_start(label1, False)
+        self.select_next_use_lastest_active_cb = gtk.CheckButton(_("\"Select next\" selects the most recently used window in the group"))
+        self.select_next_use_lastest_active_cb.set_tooltip_text(_("If set, \"Select Next\" action selects the window that has been used most recently, otherwise it activates the next window in the window list."))
+        self.select_next_use_lastest_active_cb.connect("toggled",
+                                            self.__checkbutton_toggled,
+                                            "select_next_use_lastest_active")
+        vbox.pack_start(self.select_next_use_lastest_active_cb, False)
+        self.select_next_activate_immediately_cb = gtk.CheckButton(
+                                        _("Use no delay with \"Select next\""))
+        self.select_next_activate_immediately_cb.set_tooltip_text(_("If set, \"Select Next\" action selects the next window immediately without any delay"))
+        self.select_next_activate_immediately_cb.connect("toggled",
+                                            self.__checkbutton_toggled,
+                                            "select_next_activate_immediately")
+        vbox.pack_start(self.select_next_activate_immediately_cb, False)
+
+        popup_box.pack_start(vbox, False, padding=5)
+
 
         #--- Groupbutton page
         frame = gtk.Frame(_("Group button actions"))
@@ -962,7 +989,6 @@ class PrefDialog():
         table = gtk.Table(True)
         table.set_border_width(5)
 
-
         label = gtk.Label(_("One window open"))
         label.set_alignment(1,0.5)
         self.select_one_cg = gtk.combo_box_new_text()
@@ -1000,26 +1026,6 @@ class PrefDialog():
         frame.add(hbox)
         groupbutton_box.pack_start(frame, False)
 
-        # "Select" action options frame
-        vbox = gtk.VBox()
-        frame = gtk.Frame(_("\"Select next\" options"))
-        frame.set_border_width(5)
-        self.select_next_use_lastest_active_cb = gtk.CheckButton(_("\"Select next\" selects the most recently used window in the group"))
-        self.select_next_use_lastest_active_cb.set_tooltip_text(_("If set, \"Select Next\" action selects the window that has been used most recently, otherwise it activates the next window in the window list."))
-        self.select_next_use_lastest_active_cb.connect("toggled",
-                                            self.__checkbutton_toggled,
-                                            "select_next_use_lastest_active")
-        vbox.pack_start(self.select_next_use_lastest_active_cb, False)
-        self.select_next_activate_immediately_cb = gtk.CheckButton(
-                                        _("Use no delay with \"Select next\""))
-        self.select_next_activate_immediately_cb.set_tooltip_text(_("If set, \"Select Next\" action selects the next window immediately without any delay"))
-        self.select_next_activate_immediately_cb.connect("toggled",
-                                            self.__checkbutton_toggled,
-                                            "select_next_activate_immediately")
-        vbox.pack_start(self.select_next_activate_immediately_cb, False)
-
-        frame.add(vbox)
-        groupbutton_box.pack_start(frame, False)
 
         #--- Plugins page
         self.media_buttons_cb = gtk.CheckButton(_("Use media buttons"))
@@ -1507,6 +1513,8 @@ class PrefDialog():
         self.delay_spin.set_value(self.globals.settings["popup_delay"])
         self.second_delay_spin.set_value(
                                  self.globals.settings["second_popup_delay"])
+        self.reorder_window_list_cb.set_active(
+                                self.globals.settings["reorder_window_list"])
         self.no_popup_cb.set_active(
                             self.globals.settings["no_popup_for_one_window"])
         self.show_tooltip_cb.set_active(
@@ -1640,8 +1648,12 @@ class PrefDialog():
 
         self.select_next_activate_immediately_cb.set_active(
                     self.globals.settings["select_next_activate_immediately"])
+        self.select_next_activate_immediately_cb.set_sensitive(
+                    not self.globals.settings["reorder_window_list"])
         self.select_next_use_lastest_active_cb.set_active(
                     self.globals.settings["select_next_use_lastest_active"])
+        self.select_next_use_lastest_active_cb.set_sensitive(
+                    not self.globals.settings["reorder_window_list"])
 
         # Themes
         model = self.theme_combo.get_model()
