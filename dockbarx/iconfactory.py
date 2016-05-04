@@ -955,7 +955,7 @@ class IconFactory():
         if im.mode != 'RGBA':
             im = im.convert('RGBA')
 
-        s = im.tostring('raw', 'BGRA')
+        s = im.tobytes('raw', 'BGRA')
         a = array.array('B', s)
         dest = cairo.ImageSurface(cairo.FORMAT_ARGB32, 
                                   im.size[0], im.size[1])

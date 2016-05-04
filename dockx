@@ -29,6 +29,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 import cairo
 import dockbarx.dockbar
+gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GObject
 from dockbarx.common import Globals, reserve_space
