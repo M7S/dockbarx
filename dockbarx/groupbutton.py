@@ -977,34 +977,33 @@ class Group(ListOfWindows):
                 if wingr:
                     grtop = False
                 continue
-                    ignored = False
-                    if not wnck_window.is_pinned() \
-                    and wnck_window.get_workspace() is not None \
-                    and active_workspace != wnck_window.get_workspace():
-                        if mode == "move":
-                            ws = screen.get_active_workspace()
-                            wnck_window.move_to_workspace(ws)
-                            moved = True
-                        else: # mode == "ignore" or "switch"
-                            ignored = True
-                            ignorelist.append(self[wnck_window])
-                    if not wnck_window.is_in_viewport(screen.get_active_workspace()):
-                        if mode == "move":
-                            wx, wy, ww, wh = wnck_window.get_geometry()
-                            wnck_window.set_geometry(0,3,wx%screen.get_width(),
-                                             wy%screen.get_height(),
-                                             ww,wh)
-                            moved = True
-                        else: # mode == "ignore" or "switch"
-                            ignored = True
-                            ignorelist.append(self[wnck_window])
+            ignored = False
+            if not wnck_window.is_pinned() \
+            and wnck_window.get_workspace() is not None \
+            and active_workspace != wnck_window.get_workspace():
+                if mode == "move":
+                    ws = screen.get_active_workspace()
+                    wnck_window.move_to_workspace(ws)
+                    moved = True
+                else: # mode == "ignore" or "switch"
+                    ignored = True
+                    ignorelist.append(self[wnck_window])
+            if not wnck_window.is_in_viewport(screen.get_active_workspace()):
+                if mode == "move":
+                    wx, wy, ww, wh = wnck_window.get_geometry()
+                    wnck_window.set_geometry(0,3,wx%screen.get_width(),
+                                     wy%screen.get_height(),
+                                     ww,wh)
+                    moved = True
+                else: # mode == "ignore" or "switch"
+                    ignored = True
+                    ignorelist.append(self[wnck_window])
 
-                    if not ignored:
-                        grp_win_stacked.append(self[wnck_window])
-                        if wingr == False:
-                            wingr = True
-                            grtop = True
-            
+            if not ignored:
+                grp_win_stacked.append(self[wnck_window])
+                if wingr == False:
+                    wingr = True
+                    grtop = True
 
         if not grp_win_stacked and mode == "switch":
             # Put the windows in dictionaries according to workspace and
@@ -1868,14 +1867,14 @@ class GroupButton(CairoAppButton):
             #~ self.update_state(force_update=True)
         # If you have a locked popup on a horizontal dockbar it needs to be
         # removed and re-added so that the arrow points to the right position.
-                group = self.group_r()
+        group = self.group_r()
         if group.locked_popup and self.dockbar_r().orient in ("down", "up"):
-                    group.remove_locked_popup()
-                    group.add_locked_popup()
-            self.old_alloc = allocation
+            group.remove_locked_popup()
+            group.add_locked_popup()
+        self.old_alloc = allocation
 
-            # Update icon geometry
-            self.set_icongeo()
+        # Update icon geometry
+        self.set_icongeo()
 
     def on_enter_notify_event(self, widget, event):
         group = self.group_r()
@@ -2441,6 +2440,9 @@ class WindowList(Gtk.VBox):
         item.set_show_preview(self.show_previews)
         item.update_preview()
         self.window_box.pack_start(item, True, True, 0)
+
+    def reorder_item(self, index, item):
+        self.window_box.reorder_child(item, index)
 
     def shrink_size(self):
         """This function is called if the window list is too big."""
