@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-10-14 15:17+0300\n"
+"POT-Creation-Date: 2014-06-25 19:47+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,130 +17,235 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dockbarx/theme.py:174 dbx_preference:1448
+#: dockx_applets/clock.py:132
+msgid "Font:"
+msgstr ""
+
+#: dockx_applets/clock.py:134
+msgid "Clock font"
+msgstr ""
+
+#: dockx_applets/clock.py:138
+msgid "Color:"
+msgstr ""
+
+#: dockx_applets/clock.py:141
+msgid "Font color"
+msgstr ""
+
+#: dockx_applets/clock.py:145
+msgid "Show Date"
+msgstr ""
+
+#: dockx_applets/clock.py:153
+msgid "Use custom clock"
+msgstr ""
+
+#: dockx_applets/clock.py:171
+msgid "Text direction: "
+msgstr ""
+
+#: dockx_applets/clock.py:174 dockx_applets/clock.py:229
+msgid "default"
+msgstr ""
+
+#: dockx_applets/clock.py:175 dockx_applets/clock.py:230
+msgid "left-right"
+msgstr ""
+
+#: dockx_applets/clock.py:176 dockx_applets/clock.py:231
+msgid "top-down"
+msgstr ""
+
+#: dockx_applets/clock.py:177 dockx_applets/clock.py:232
+msgid "bottom-up"
+msgstr ""
+
+#: dockx_applets/namebar_window_title.py:166 dockx_applets/namebar.py:206
+msgid "Alignment: "
+msgstr ""
+
+#: dockx_applets/namebar_window_title.py:169
+#: dockx_applets/namebar_window_title.py:239 dockx_applets/namebar.py:209
+#: dockx_applets/namebar.py:298 dbx_preference:1241
+msgid "left"
+msgstr ""
+
+#: dockx_applets/namebar_window_title.py:169
+#: dockx_applets/namebar_window_title.py:240 dockx_applets/namebar.py:209
+#: dockx_applets/namebar.py:299 dbx_preference:1225
+msgid "centered"
+msgstr ""
+
+#: dockx_applets/namebar_window_title.py:169
+#: dockx_applets/namebar_window_title.py:241 dockx_applets/namebar.py:209
+#: dockx_applets/namebar.py:300 dbx_preference:1241
+msgid "right"
+msgstr ""
+
+#: dockx_applets/volume-control.py:48
+msgid "Volume Control"
+msgstr ""
+
+#: dockx_applets/volume-control.py:49
+msgid "Applet to control your computer's volume"
+msgstr ""
+
+#: dockx_applets/volume-control.py:54
+msgid "System theme"
+msgstr ""
+
+#: dockx_applets/volume-control.py:72
+#, python-format
 msgid ""
-"No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
+"Install the appropriate plug-ins for one or more of the following GStreamer "
+"elements: %s."
 msgstr ""
 
-#: dockbarx/groupbutton.py:331 dockbarx/groupbutton.py:623
-#: dockbarx/groupbutton.py:834
-msgid "_Launch application"
+#: dockx_applets/volume-control.py:73
+msgid "Could not find any devices."
 msgstr ""
 
-#: dockbarx/groupbutton.py:625 dockbarx/groupbutton.py:833
-msgid "_Pin application"
+#: dockx_applets/volume-control.py:333
+msgid "Open Volume Control"
 msgstr ""
 
-#: dockbarx/groupbutton.py:627 dockbarx/groupbutton.py:832
-msgid "Make custom launcher"
+#: dockx_applets/volume-control.py:342
+msgid "Preference"
 msgstr ""
 
-#: dockbarx/groupbutton.py:629 dockbarx/groupbutton.py:831
-msgid "Unpin application"
+#: dockx_applets/volume-control.py:347
+msgid "volume control"
 msgstr ""
 
-#: dockbarx/groupbutton.py:630 dockbarx/groupbutton.py:631
-#: dockbarx/groupbutton.py:632
-msgid "Properties"
+#: dockx_applets/volume-control.py:565
+msgid "No GStreamer mixer found"
 msgstr ""
 
-#: dockbarx/groupbutton.py:631 dockbarx/groupbutton.py:830
-msgid "Edit Identifier"
+#: dockx_applets/volume-control.py:571
+msgid "No devices found"
 msgstr ""
 
-#: dockbarx/groupbutton.py:632 dockbarx/groupbutton.py:829
-msgid "Edit Launcher"
-msgstr ""
-
-#: dockbarx/groupbutton.py:671
-msgid "Recent"
-msgstr ""
-
-#: dockbarx/groupbutton.py:672
-msgid "Most used"
-msgstr ""
-
-#: dockbarx/groupbutton.py:673
-msgid "Related"
-msgstr ""
-
-#: dockbarx/groupbutton.py:691 dockbarx/groupbutton.py:836
-msgid "Remove locked list"
-msgstr ""
-
-#: dockbarx/groupbutton.py:694 dockbarx/groupbutton.py:835
-msgid "Show locked list"
-msgstr ""
-
-#: dockbarx/groupbutton.py:701 dockbarx/groupbutton.py:816
-#: dockbarx/groupbutton.py:818 dockbarx/groupbutton.py:821
-#: dockbarx/groupbutton.py:824 dockbarx/groupbutton.py:827
-msgid " all windows"
-msgstr ""
-
-#: dockbarx/groupbutton.py:703 dockbarx/groupbutton.py:826
-#: dockbarx/groupbutton.py:827 dockbarx/windowbutton.py:634
-msgid "Un_minimize"
-msgstr ""
-
-#: dockbarx/groupbutton.py:705 dockbarx/groupbutton.py:823
-#: dockbarx/groupbutton.py:824 dockbarx/windowbutton.py:631
-msgid "_Minimize"
-msgstr ""
-
-#: dockbarx/groupbutton.py:709 dockbarx/groupbutton.py:817
-#: dockbarx/groupbutton.py:818 dockbarx/windowbutton.py:643
-msgid "Ma_ximize"
-msgstr ""
-
-#: dockbarx/groupbutton.py:712 dockbarx/groupbutton.py:820
-#: dockbarx/groupbutton.py:821 dockbarx/windowbutton.py:646
-msgid "Unma_ximize"
-msgstr ""
-
-#: dockbarx/groupbutton.py:713 dockbarx/groupbutton.py:815
-#: dockbarx/groupbutton.py:816 dockbarx/windowbutton.py:652
-msgid "_Close"
-msgstr ""
-
-#: dockbarx/groupbutton.py:2454 dockbarx/dockbar.py:1127
+#: dockbarx/dockbar.py:1451 dockbarx/groupbutton.py:2415
 msgid "Identifier"
 msgstr ""
 
-#: dockbarx/dockbar.py:1128
+#: dockbarx/dockbar.py:1452
 msgid "Enter the identifier here"
 msgstr ""
 
-#: dockbarx/dockbar.py:1130
+#: dockbarx/dockbar.py:1454
 msgid ""
 "You should have to do this only if the program fails to recognice its "
 "windows. "
 msgstr ""
 
-#: dockbarx/dockbar.py:1131
+#: dockbarx/dockbar.py:1455
 msgid ""
 "If the program is already running you should be able to find the identifier "
 "of the program from the dropdown list."
 msgstr ""
 
-#: dockbarx/dockbar.py:1148
+#: dockbarx/dockbar.py:1472
 msgid "Identifier:"
 msgstr ""
 
-#: dockbarx/dockbar.py:1311 dbx_preference:1159
+#: dockbarx/dockbar.py:1635 dbx_preference:1159
 msgid "Select next group"
 msgstr ""
 
-#: dockbarx/dockbar.py:1312 dbx_preference:1161
+#: dockbarx/dockbar.py:1636 dbx_preference:1161
 msgid "Select previous group"
 msgstr ""
 
-#: dockbarx/dockbar.py:1313 dbx_preference:1163
+#: dockbarx/dockbar.py:1637 dbx_preference:1163
 msgid "Select next window in group"
 msgstr ""
 
-#: dockbarx/dockbar.py:1314 dbx_preference:1165
+#: dockbarx/dockbar.py:1638 dbx_preference:1165
 msgid "Select previous window in group"
+msgstr ""
+
+#: dockbarx/windowbutton.py:631 dockbarx/groupbutton.py:779
+#: dockbarx/groupbutton.py:780 dockbarx/groupbutton.py:2649
+msgid "_Minimize"
+msgstr ""
+
+#: dockbarx/windowbutton.py:634 dockbarx/groupbutton.py:782
+#: dockbarx/groupbutton.py:783 dockbarx/groupbutton.py:2651
+msgid "Un_minimize"
+msgstr ""
+
+#: dockbarx/windowbutton.py:643 dockbarx/groupbutton.py:773
+#: dockbarx/groupbutton.py:774 dockbarx/groupbutton.py:2653
+msgid "Ma_ximize"
+msgstr ""
+
+#: dockbarx/windowbutton.py:646 dockbarx/groupbutton.py:776
+#: dockbarx/groupbutton.py:777 dockbarx/groupbutton.py:2655
+msgid "Unma_ximize"
+msgstr ""
+
+#: dockbarx/windowbutton.py:652 dockbarx/groupbutton.py:771
+#: dockbarx/groupbutton.py:772 dockbarx/groupbutton.py:2656
+msgid "_Close"
+msgstr ""
+
+#: dockbarx/groupbutton.py:332 dockbarx/groupbutton.py:790
+#: dockbarx/groupbutton.py:2613
+msgid "_Launch application"
+msgstr ""
+
+#: dockbarx/groupbutton.py:772 dockbarx/groupbutton.py:774
+#: dockbarx/groupbutton.py:777 dockbarx/groupbutton.py:780
+#: dockbarx/groupbutton.py:783 dockbarx/groupbutton.py:2647
+msgid " all windows"
+msgstr ""
+
+#: dockbarx/groupbutton.py:785 dockbarx/groupbutton.py:2622
+msgid "Edit Launcher"
+msgstr ""
+
+#: dockbarx/groupbutton.py:786 dockbarx/groupbutton.py:2621
+msgid "Edit Identifier"
+msgstr ""
+
+#: dockbarx/groupbutton.py:787 dockbarx/groupbutton.py:2619
+msgid "Unpin application"
+msgstr ""
+
+#: dockbarx/groupbutton.py:788 dockbarx/groupbutton.py:2617
+msgid "Make custom launcher"
+msgstr ""
+
+#: dockbarx/groupbutton.py:789 dockbarx/groupbutton.py:2615
+msgid "_Pin application"
+msgstr ""
+
+#: dockbarx/groupbutton.py:791 dockbarx/groupbutton.py:2637
+msgid "Floating Window Panel"
+msgstr ""
+
+#: dockbarx/groupbutton.py:2620 dockbarx/groupbutton.py:2621
+#: dockbarx/groupbutton.py:2622
+msgid "Properties"
+msgstr ""
+
+#: dockbarx/groupbutton.py:2631 dockbarx/groupbutton.py:2702
+msgid "Recent"
+msgstr ""
+
+#: dockbarx/groupbutton.py:2631 dockbarx/groupbutton.py:2703
+msgid "Most used"
+msgstr ""
+
+#: dockbarx/groupbutton.py:2631 dockbarx/groupbutton.py:2704
+msgid "Related"
+msgstr ""
+
+#: dockbarx/theme.py:174 dbx_preference:1448
+msgid ""
+"No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"
 msgstr ""
 
 #: dbx_preference:453
@@ -611,20 +716,8 @@ msgstr ""
 msgid "corner"
 msgstr ""
 
-#: dbx_preference:1225
-msgid "centered"
-msgstr ""
-
 #: dbx_preference:1238
 msgid "Position"
-msgstr ""
-
-#: dbx_preference:1241
-msgid "left"
-msgstr ""
-
-#: dbx_preference:1241
-msgid "right"
 msgstr ""
 
 #: dbx_preference:1241

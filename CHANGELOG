@@ -1,4 +1,14 @@
 Changelog:
+0.92
+- DockbarX can now update the window list so that the last used window always is first in the list. (This behavior is now used by default but can be changed in preferences.)
+- Fixed issue #5: Icons in Dockbarx disappear after changing workspace.
+- Fixed crash at startup if "Ignore windows on other monitors" is checked
+- Fixed crash because of calls to the deprecated PIL function tostring().
+- Other small fixes.
+
+0.91.4
+- Fixed issue #4 (bug): DockbarX froze when minimizing applications if certain themes were used.
+
 0.91.3
 - Fixed bug that broke DockX in 0.91.2
 

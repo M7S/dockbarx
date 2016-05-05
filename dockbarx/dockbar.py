@@ -39,7 +39,7 @@ from log import logger
 import i18n
 _ = i18n.language.gettext
 
-VERSION = "0.91.3"
+VERSION = "0.92"
 
 
 ATOM_WM_CLASS = Gdk.atom_intern("WM_CLASS", False)
@@ -53,7 +53,8 @@ SPECIAL_RES_CLASSES = {
                         "geogebra-geogebra": "geogebra",
                         "tuxpaint.tuxpaint": "tuxpaint",
                         "quodlibet":"quod libet",
-                        "xfce4-terminal":"exo-terminal-emulator"
+                        "xfce4-terminal":"exo-terminal-emulator",
+                        "xbmc.bin":"xbmc"
                       }
 
 # Media player name substitutes (for non-identical resclass/dbus-address pairs)

@@ -65,6 +65,7 @@ class Window():
         self.xid = self.wnck.get_xid()
         self.is_active_window = False
         self.on_current_desktop = self.is_on_current_desktop()
+        self.monitor = self.get_monitor()
 
         self.state_changed_event = self.wnck.connect("state-changed",
                                                 self.__on_window_state_changed)
@@ -110,13 +111,7 @@ class Window():
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
         gdk_screen = Gdk.Screen.get_default()
-        win = Gdk.window_lookup(self.wnck.get_xid())
-        if win is None:
-            logger.warning("Error: couldn't find out on which " + \
-                  "monitor window \"%s\" is located" % self.wnck.get_name())
-            logger.warning("Guessing it's monitor 0")
-            return 0
-        x, y, w, h, bit_depth = win.get_geometry()
+        x, y, w, h = self.wnck.get_geometry()
         return gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
 
     def destroy(self):
