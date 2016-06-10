@@ -21,15 +21,13 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 import os
 import imp
-from gi.repository import GConf
 import dbus
 import weakref
 from gi.repository import GObject
 from dbus.mainloop.glib import DBusGMainLoop
 from log import logger
 
-GCONF_CLIENT = GConf.Client.get_default()
-GCONF_DIR = "/apps/dockbarx"
+
 
 DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
@@ -157,9 +155,9 @@ class DockXApplets():
                                                 "/applets/applet_list",
                                                 GConf.ValueType.STRING)
         except:
-            GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
-                                  GConf.ValueType.STRING,
-                                  ["DockbarX"])
+            #~ GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
+                                  #~ GConf.ValueType.STRING,
+                                  #~ ["DockbarX"])
             applet_list = ["DockbarX"]
         all_applets = self.applets.keys()
         unused_applets = [a for a in all_applets if a not in applet_list]
@@ -216,7 +214,7 @@ def set_setting(key, value, list_type=None, applet_name=None):
 def get_setting(key, default=None, applet_name=None):
     if applet_name is None:
         return
-    gdir = "%s/applets/%s" % (GCONF_DIR, applet_name)
+    #~ gdir = "%s/applets/%s" % (GCONF_DIR, applet_name)
     try:
         value = GCONF_CLIENT.get_value("%s/%s" % (gdir, key))
     except:
@@ -227,16 +225,17 @@ def get_setting(key, default=None, applet_name=None):
 
 
 def get_value(value):
-    if value.type == GConf.ValueType.LIST:
-        return [get_value(item) for item in value.get_list()]
-    else:
-        return {
-                "string": value.get_string,
-                "int": value.get_int,
-                "float": value.get_float,
-                "bool": value.get_bool,
-                "list": value.get_list
-               }[value.type.value_nick]()
+    pass
+    #~ if value.type == GConf.ValueType.LIST:
+        #~ return [get_value(item) for item in value.get_list()]
+    #~ else:
+        #~ return {
+                #~ "string": value.get_string,
+                #~ "int": value.get_int,
+                #~ "float": value.get_float,
+                #~ "bool": value.get_bool,
+                #~ "list": value.get_list
+               #~ }[value.type.value_nick]()
 
 class DockXApplet(Gtk.EventBox):
     """This is the base class for DockX applets"""
@@ -253,9 +252,9 @@ class DockXApplet(Gtk.EventBox):
         self.mouse_pressed = False
         self.expand = False
         # Set gconf notifiers
-        gdir = "%s/applets/%s" % (GCONF_DIR, self.APPLET_NAME)
-        GCONF_CLIENT.add_dir(gdir, GConf.ClientPreloadType.PRELOAD_NONE)
-        GCONF_CLIENT.notify_add(gdir, self.__on_gconf_changed, None)
+        #~ gdir = "%s/applets/%s" % (GCONF_DIR, self.APPLET_NAME)
+        #~ GCONF_CLIENT.add_dir(gdir, GConf.ClientPreloadType.PRELOAD_NONE)
+        #~ GCONF_CLIENT.notify_add(gdir, self.__on_gconf_changed, None)
         self.connect("enter-notify-event", self.on_enter_notify_event)
         self.connect("leave-notify-event", self.on_leave_notify_event)
         self.connect("button-release-event", self.on_button_release_event)

@@ -85,8 +85,8 @@ class CairoAppButton(Gtk.EventBox):
         self.badge_text = text
         a = self.area.get_allocation()
         self.badge = cairo.ImageSurface(cairo.FORMAT_ARGB32, a.width, a.height)
-        ctx = Gdk.CairoContext(cairo.Context(self.badge))
-        layout = ctx.create_layout()
+        ctx = cairo.Context(self.badge)
+        layout = Pango.cairo_create_layout(ctx)
         if self.globals.settings["badge_use_custom_font"]:
             font = self.globals.settings["badge_font"]
             font_base, font_size = font.rsplit(" ", 1)

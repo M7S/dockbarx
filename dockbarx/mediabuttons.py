@@ -40,7 +40,8 @@ class MediaButtons(Gtk.Alignment):
                                       self.__on_properties_changed,
                                       dbus_interface=\
                                       "org.freedesktop.DBus.Properties")
-        GObject.GObject.__init__(self, 0.5, 0.5, 0, 0)
+        GObject.GObject.__init__(self)
+        self.set(0.5, 0.5, 0, 0)
         hbox = Gtk.HBox()
         self.previous_button = CairoNextButton(previous=True)
         self.playpause_button = CairoPlayPauseButton()

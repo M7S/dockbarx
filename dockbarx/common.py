@@ -19,10 +19,11 @@
 
 
 import os
-from gi.repository import GConf
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GObject
+from gi.repository import Gio
+from gi.repository import GLib
 import xdg.DesktopEntry
 from urllib import unquote
 from time import time
@@ -33,8 +34,6 @@ from log import logger
 import xcffib, xcffib.xproto
 import struct
 
-GCONF_CLIENT = GConf.Client.get_default()
-GCONF_DIR = "/apps/dockbarx"
 
 DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
@@ -682,6 +681,7 @@ class Globals(GObject.GObject):
           "gkeys_select_previous_window_keystr": "<super><control><shift>Tab",
           "gkeys_select_next_group_skip_launchers": False,
           "use_number_shortcuts": True,
+          "launchers": [],
                       
           "dock/theme_file": "dbx.tar.gz",
           "dock/position": "left",
@@ -734,172 +734,159 @@ class Globals(GObject.GObject):
             self.set_shown_popup(None)
             self.set_locked_popup(None)
 
-            # Get gconf settings
-            self.settings = self.__get_gconf_settings(GCONF_DIR,
-                                                      self.DEFAULT_SETTINGS)
+            self.gsettings = Gio.Settings("org.dockbar.dockbarx", "/org/dockbar/dockbarx/")
+            self.dock_gsettings = Gio.Settings("org.dockbar.dockbarx.dock", "/org/dockbar/dockbarx/dock/")
+            self.settings = self.__get_settings(self.DEFAULT_SETTINGS)
 
-            # Set gconf notifiers
-            #~ GCONF_CLIENT.add_dir(GCONF_DIR, GConf.ClientPreloadType.PRELOAD_NONE)
-            #~ GCONF_CLIENT.notify_add(GCONF_DIR, self.__on_gconf_changed, None)
+            self.gsettings.connect("changed", self.__on_gsettings_changed)
 
-            # Change old gconf settings
-            group_button_actions_d = {"select or minimize group": "select",
-                                      "select group": "select",
-                                      "select or compiz scale group": "select"}
-            for name, value in self.settings.items():
-                if ("groupbutton" in name) and \
-                   ("click" in name or "scroll" in name) and \
-                   (value in group_button_actions_d):
-                    self.settings[name] = group_button_actions_d[value]
-                    #~ GCONF_CLIENT.set_string(GCONF_DIR + "/" + name, self.settings[name])
-            if self.settings.get("workspace_behavior") == "ingore":
-                self.settings["workspace_behavior"] = "ignore"
-                #~ GCONF_CLIENT.set_string(GCONF_DIR + "/workspace_behavior", "ignore")
 
             self.colors = {}
 
-    def __on_gconf_changed(self, client, par2, entry, par4):
-        if entry.get_value() is None:
+    def __on_gsettings_changed(self, settings, gkey, data=None):
+        key = gkey.replace("-", "_")
+        if not key in self.settings:
+            print "The changed setting is not in settings dictionary:", key
             return
-        pref_update = False
-        changed_settings = []
-        entry_get = { str: entry.get_value().get_string,
-                      bool: entry.get_value().get_bool,
-                      int: entry.get_value().get_int }
-        key = entry.get_key().split("/")[-1]
-        if entry.get_key().split("/")[-2] == "dock":
-            key = "dock/" + key
-        elif entry.get_key().split("/")[-2] == "awn":
-            key = "awn/" + key
-        elif entry.get_key().split("/")[-2] == "applets":
-            key = "applets/" + key
-        elif len(entry.get_key().split("/"))>=3 and \
-              entry.get_key().split("/")[-3] == "applets":
-                  # Ignore applet settings
-                  return
-        if key in self.settings:
-            value = self.settings[key]
-            if entry_get[type(value)]() != value:
-                changed_settings.append(key)
-                self.settings[key] = entry_get[type(value)]()
-                pref_update = True
+        self.settings[key] = self.gsettings.get_value(gkey).unpack()
+        pref_update = True
+        #~ entry_get = { str: entry.get_value().get_string,
+                      #~ bool: entry.get_value().get_bool,
+                      #~ int: entry.get_value().get_int }
+        #~ key = entry.get_key().split("/")[-1]
+        #~ if entry.get_key().split("/")[-2] == "dock":
+            #~ key = "dock/" + key
+        #~ elif entry.get_key().split("/")[-2] == "awn":
+            #~ key = "awn/" + key
+        #~ elif entry.get_key().split("/")[-2] == "applets":
+            #~ key = "applets/" + key
+        #~ elif len(entry.get_key().split("/"))>=3 and \
+              #~ entry.get_key().split("/")[-3] == "applets":
+                  #~ # Ignore applet settings
+                  #~ return
+        #~ if key in self.settings:
+            #~ value = self.settings[key]
+            #~ if entry_get[type(value)]() != value:
+                #~ changed_settings.append(key)
+                #~ self.settings[key] = entry_get[type(value)]()
+                #~ pref_update = True
 
-        # Theme colors and popup style
-        if self.theme_name:
-            theme_name = self.theme_name.replace(" ", "_").encode()
-            try:
-                theme_name = theme_name.translate(None, '!?*()/#"@')
-            except:
-                pass
-            psf = "%s/themes/%s/popup_style_file"%(GCONF_DIR, theme_name)
-            if entry.get_key() == psf:
-                value = entry.get_value().get_string()
-                if self.popup_style_file != value:
-                    self.popup_style_file = value
-                    pref_update == True
-                    self.emit("popup-style-changed")
+        #~ # Theme colors and popup style
+        #~ if self.theme_name:
+            #~ theme_name = self.theme_name.replace(" ", "_").encode()
+            #~ try:
+                #~ theme_name = theme_name.translate(None, '!?*()/#"@')
+            #~ except:
+                #~ pass
+            #~ psf = "%s/themes/%s/popup_style_file"%(GCONF_DIR, theme_name)
+            #~ if entry.get_key() == psf:
+                #~ value = entry.get_value().get_string()
+                #~ if self.popup_style_file != value:
+                    #~ self.popup_style_file = value
+                    #~ pref_update == True
+                    #~ self.emit("popup-style-changed")
                 
-            for i in range(1, 9):
-                c = "color%s"%i
-                a = "color%s_alpha"%i
-                for k in (c, a):
-                    if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR,
-                                                             theme_name, k):
-                        value = self.colors[k]
-                        if entry_get[type(value)]() != value:
-                            changed_settings.append(key)
-                            self.colors[k] = entry_get[type(value)]()
-                            pref_update = True
+            #~ for i in range(1, 9):
+                #~ c = "color%s"%i
+                #~ a = "color%s_alpha"%i
+                #~ for k in (c, a):
+                    #~ if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR,
+                                                             #~ theme_name, k):
+                        #~ value = self.colors[k]
+                        #~ if entry_get[type(value)]() != value:
+                            #~ changed_settings.append(key)
+                            #~ self.colors[k] = entry_get[type(value)]()
+                            #~ pref_update = True
 
-        # Dock theme colors
-        for key, value in self.dock_colors.items():
-            tf = self.settings["dock/theme_file"]
-            if entry.get_key() == "%s/dock/themes/%s/%s"%(GCONF_DIR, tf, key):
-                if entry_get[type(value)] != value:
-                    self.dock_colors[key] = entry_get[type(value)]()
-                    self.emit("dock-color-changed")
-                    pref_update = True
+        #~ # Dock theme colors
+        #~ for key, value in self.dock_colors.items():
+            #~ tf = self.settings["dock/theme_file"]
+            #~ if entry.get_key() == "%s/dock/themes/%s/%s"%(GCONF_DIR, tf, key):
+                #~ if entry_get[type(value)] != value:
+                    #~ self.dock_colors[key] = entry_get[type(value)]()
+                    #~ self.emit("dock-color-changed")
+                    #~ pref_update = True
 
         #TODO: Add check for sane values for critical settings.
-        if "dock/size" in changed_settings:
+        if "dock/size" == key:
             self.emit("dock-size-changed")
-        if "dock/offset" in changed_settings:
+        if "dock/offset" == key:
             self.emit("dock-offset-changed")
-        if "dock/position" in changed_settings:
+        if "dock/position" == key:
             self.emit("dock-position-changed")
-        if "dock/behavior" in changed_settings:
+        if "dock/behavior" == key:
             self.emit("dock-behavior-changed")
-        if "dock/mode" in changed_settings:
+        if "dock/mode" == key:
             self.emit("dock-mode-changed")
-        if "dock/end_decorations" in changed_settings:
+        if "dock/end_decorations" == key:
             self.emit("dock-end-decorations-changed")
-        if "dock/theme_file" in changed_settings:
+        if "dock/theme_file" == key:
             self.emit("dock-theme-changed")
-        if "awn/behavior" in changed_settings:
+        if "awn/behavior" == key:
             self.emit("awn-behavior-changed")
-        if "locked_list_no_overlap" in changed_settings:
+        if "locked_list_no_overlap" == key:
             self.emit("locked-list-overlap-changed")
-        if "locked_list_in_menu" in changed_settings:
+        if "locked_list_in_menu" == key:
             self.emit("locked-list-in-menu-changed")
-        if "color2" in changed_settings:
+        if "color2" == key:
             self.emit("color2-changed")
-        if "show_only_current_desktop" in changed_settings:
+        if "show_only_current_desktop" == key:
             self.emit("show-only-current-desktop-changed")
-        if "show_only_current_monitor" in changed_settings:
+        if "show_only_current_monitor" == key:
             self.emit("show-only-current-monitor-changed")
-        if "preview" in changed_settings:
+        if "preview" == key:
             self.emit("show-previews-changed")
-        if "preview_size" in changed_settings:
+        if "preview_size" == key:
             self.emit("preview-size-changed")
-        if "window_title_width" in changed_settings:
+        if "window_title_width" == key:
             self.emit("window-title-width-changed")
-        if "groupbutton_show_tooltip" in changed_settings:
+        if "groupbutton_show_tooltip" == key:
             self.emit("show-tooltip-changed")
-        if "show_close_button" in changed_settings:
+        if "show_close_button" == key:
             self.emit("show-close-button-changed")
-        if "media_buttons" in changed_settings:
+        if "media_buttons" == key:
             self.emit("media-buttons-changed")
-        if "quicklist" in changed_settings:
+        if "quicklist" == key:
             self.emit("quicklist-changed")
-        if "unity" in changed_settings:
+        if "unity" == key:
             self.emit("unity-changed")
-        if "dockmanager" in changed_settings:
+        if "dockmanager" == key:
             self.emit("dockmanager-changed")
-        if "use_number_shortcuts" in changed_settings:
+        if "use_number_shortcuts" == key:
             self.emit("use-number-shortcuts-changed")
-        for key in changed_settings:
-            if key == "theme":
-                self.emit("theme-changed")
-            if key.startswith("color"):
-                self.emit("color-changed")
-            if "gkey" in key:
-                self.emit("gkey-changed")
-            if key.startswith("badge"):
-                self.emit("badge-look-changed")
-            if key.startswith("progress"):
-                self.emit("progress-bar-look-changed")
+        if key == "theme":
+            self.emit("theme-changed")
+        if key.startswith("color"):
+            self.emit("color-changed")
+        if "gkey" in key:
+            self.emit("gkey-changed")
+        if key.startswith("badge"):
+            self.emit("badge-look-changed")
+        if key.startswith("progress"):
+            self.emit("progress-bar-look-changed")
 
         if pref_update == True:
             self.emit("preference-update")
 
-    def __get_gconf_settings(self, gdir, default):
+    def __get_settings(self, default):
         settings = default.copy()
-        gconf_set = { str: GCONF_CLIENT.set_string,
-                      bool: GCONF_CLIENT.set_bool,
-                      int: GCONF_CLIENT.set_int }
+        #~ gconf_set = { str: GCONF_CLIENT.set_string,
+                      #~ bool: GCONF_CLIENT.set_bool,
+                      #~ int: GCONF_CLIENT.set_int }
         for name, value in settings.items():
-            gc_value = None
-            try:
-                gc_value = GCONF_CLIENT.get_value(gdir + "/" + name)
-            except:
-                #~ gconf_set[type(value)](gdir + "/" + name, value)
-                pass
+            gs_name = name.replace("_", "-")
+            if name.startswith("awn/"):
+                continue
+            elif name.startswith("dock/"):
+                gs_name = gs_name.split("/")[-1]
+                gsettings = self.dock_gsettings
             else:
-                if type(gc_value) != type(value):
-                    #~ gconf_set[type(value)](gdir + "/" + name, value)
-                    pass
-                else:
-                    settings[name] = gc_value
+                gsettings = self.gsettings
+            gs_value = gsettings.get_value(gs_name).unpack()
+            if type(gs_value) != type(value):
+                # Todo: Remove this if unneccessary.
+                print "Gsettings import. Wrong types for", name, "- New type:", gs_value, "Old type:", value
+            settings[name] = gs_value
         return settings
 
     def update_colors(self, theme_name, theme_colors=None, theme_alphas=None):
@@ -914,7 +901,7 @@ class Globals(GObject.GObject):
         theme_name = theme_name.replace(" ", "_").encode()
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
-        color_dir = GCONF_DIR + "/themes/" + theme_name
+        color_dir = "/org/dockbarx/dockbarx/themes/" + theme_name
         self.colors.clear()
         for i in range(1, 9):
             c = "color%s"%i
@@ -948,7 +935,7 @@ class Globals(GObject.GObject):
         theme_name = theme_name.replace(" ", "_").encode()
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
-        psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
+        psf = "/org/dockbarx/dockbarx/themes/themes/" + theme_name + "/popup_style_file"
         try:
             style = GCONF_CLIENT.get_value(psf)
             if style != self.popup_style_file:
@@ -979,32 +966,25 @@ class Globals(GObject.GObject):
             self.settings["dock/theme_file"] = theme
             #~ GCONF_CLIENT.set_string(GCONF_DIR + "/dock/theme_file", theme)
         
-        td = GCONF_DIR + "/dock/themes/" + theme
+        td = "/org/dockbarx/dockbarx/themes/dock/themes/" + theme
         for key, value in colors.items():
             try:
                 self.dock_colors[key] = GCONF_CLIENT.get_value("%s/%s"%(td,
                                                                         key))
             except:
                 self.dock_colors[key] = value
-                gset = {str: GCONF_CLIENT.set_string,
-                        int: GCONF_CLIENT.set_int }[type(value)]
+                #~ gset = {str: GCONF_CLIENT.set_string,
+                        #~ int: GCONF_CLIENT.set_int }[type(value)]
                 #~ gset("%s/%s" % (td, key), value)
         self.emit("preference-update")
 
     def get_pinned_apps_from_gconf(self):
         # Get list of pinned_apps
-        gconf_pinned_apps = []
-        try:
-            gconf_pinned_apps = GCONF_CLIENT.get_list(GCONF_DIR + "/launchers",
-                                                    GConf.ValueType.STRING)
-        except:
-            pass
-            #GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", GConf.ValueType.STRING, gconf_pinned_apps)
-        return gconf_pinned_apps
+        pinned_apps = self.gsettings.get_value("launchers").unpack()
+        return pinned_apps
 
     def set_pinned_apps_list(self, pinned_apps):
-        pass
-        #GCONF_CLIENT.set_list(GCONF_DIR + "/launchers", GConf.ValueType.STRING, pinned_apps)
+        self.gsettings.set_value("launchers", GLib.Variant("as", pinned_apps))
 
     def set_shown_popup(self, popup):
         if popup is None:
