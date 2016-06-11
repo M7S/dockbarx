@@ -185,7 +185,7 @@
         This is a workaround to make sure that windows brought
         up in the right order when selected. If the window order
         seems random when you select multiple windows, activate
-        this option. 
+        this option.
       </description>
     </key>
 
@@ -442,7 +442,7 @@
     </key>
 
     <key name='groupbutton-left-click-action' type='s'>
-      <default>"select or minimize group"</default>
+      <default>"select"</default>
       <summary>Action for groupbutton left clicking</summary>
       <description>
         Action for groupbutton left clicking.
@@ -763,7 +763,7 @@
         shift+super+1 to select the previous window of the first application.
       </description>
     </key>
-    
+
     <key name='launchers' type='as'>
       <default>[]</default>
       <summary>The list of pinned launchers</summary>
@@ -773,7 +773,7 @@
     </key>
 
   </schema>
-  
+
   <schema id="org.dockbar.dockbarx.dock" path="/org/dockbar/dockbarx/dock/">
 
     <key name='theme-file' type='s'>
@@ -835,9 +835,9 @@
         Decorate the ends of the dock.
       </description>
     </key>
-    
+
   </schema>
-  
+
   <schema id="org.dockbar.dockbarx.awn" path="/org/dockbar/dockbarx/awn/">
 
     <key name='behavior' type='s'>
@@ -848,6 +848,6 @@
       </description>
     </key>
   </schema>
-  
+
 </schemalist>
 

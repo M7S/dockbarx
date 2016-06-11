@@ -68,7 +68,7 @@ def compiz_call_async(obj_path, func_name, *args):
     if func:
         func(reply_handler=compiz_reply_handler,
              error_handler=compiz_error_handler, *args)
-             
+
 def reserve_space(xid, data):
     """Sets strut_partial property for a window so that space will be resereved for that program."""
     connection = xcffib.connect()
@@ -341,8 +341,8 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
         except:
             logger.warning("Couldn't get icon name from a DesktopEntry")
             return None
-            
-            
+
+
 
 
 class Opacify():
@@ -637,7 +637,7 @@ class Globals(GObject.GObject):
 
           "groupbutton_show_tooltip": False,
 
-          "groupbutton_left_click_action": "select or minimize group",
+          "groupbutton_left_click_action": "select",
           "groupbutton_shift_and_left_click_action": "launch application",
           "groupbutton_middle_click_action": "close all windows",
           "groupbutton_shift_and_middle_click_action": "no action",
@@ -682,7 +682,7 @@ class Globals(GObject.GObject):
           "gkeys_select_next_group_skip_launchers": False,
           "use_number_shortcuts": True,
           "launchers": [],
-                      
+
           "dock/theme_file": "dbx.tar.gz",
           "dock/position": "left",
           "dock/size": 42,
@@ -785,7 +785,7 @@ class Globals(GObject.GObject):
                     #~ self.popup_style_file = value
                     #~ pref_update == True
                     #~ self.emit("popup-style-changed")
-                
+
             #~ for i in range(1, 9):
                 #~ c = "color%s"%i
                 #~ a = "color%s_alpha"%i
@@ -965,7 +965,7 @@ class Globals(GObject.GObject):
         if self.settings["dock/theme_file"] != theme:
             self.settings["dock/theme_file"] = theme
             #~ GCONF_CLIENT.set_string(GCONF_DIR + "/dock/theme_file", theme)
-        
+
         td = "/org/dockbarx/dockbarx/themes/dock/themes/" + theme
         for key, value in colors.items():
             try:
@@ -1012,7 +1012,7 @@ class Globals(GObject.GObject):
             except:
                 self.__compiz_version = "0.8"
         return self.__compiz_version
-        
+
 
 
 __connector = Connector()
