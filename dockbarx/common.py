@@ -726,6 +726,7 @@ class Globals(GObject.GObject):
             self.opacity_matches = None
             self.dragging = False
             self.theme_name = None
+            self.theme_gsettings = None
             self.popup_style_file = None
             self.default_popup_style = None
             self.dock_colors = {}
@@ -734,11 +735,12 @@ class Globals(GObject.GObject):
             self.set_shown_popup(None)
             self.set_locked_popup(None)
 
-            self.gsettings = Gio.Settings("org.dockbar.dockbarx", "/org/dockbar/dockbarx/")
-            self.dock_gsettings = Gio.Settings("org.dockbar.dockbarx.dock", "/org/dockbar/dockbarx/dock/")
+            self.gsettings = Gio.Settings("org.dockbarx.dockbarx", "/org/dockbarx/dockbarx/")
+            self.dock_gsettings = Gio.Settings("org.dockbarx.dockx", "/org/dockbarx/dockx/")
             self.settings = self.__get_settings(self.DEFAULT_SETTINGS)
 
             self.gsettings.connect("changed", self.__on_gsettings_changed)
+            self.dock_gsettings.connect("changed", self.__on_dock_gsettings_changed)
 
 
             self.colors = {}
@@ -749,7 +751,6 @@ class Globals(GObject.GObject):
             print "The changed setting is not in settings dictionary:", key
             return
         self.settings[key] = self.gsettings.get_value(gkey).unpack()
-        pref_update = True
         #~ entry_get = { str: entry.get_value().get_string,
                       #~ bool: entry.get_value().get_bool,
                       #~ int: entry.get_value().get_int }
@@ -786,17 +787,7 @@ class Globals(GObject.GObject):
                     #~ pref_update == True
                     #~ self.emit("popup-style-changed")
 
-            #~ for i in range(1, 9):
-                #~ c = "color%s"%i
-                #~ a = "color%s_alpha"%i
-                #~ for k in (c, a):
-                    #~ if entry.get_key() == "%s/themes/%s/%s"%(GCONF_DIR,
-                                                             #~ theme_name, k):
-                        #~ value = self.colors[k]
-                        #~ if entry_get[type(value)]() != value:
-                            #~ changed_settings.append(key)
-                            #~ self.colors[k] = entry_get[type(value)]()
-                            #~ pref_update = True
+
 
         #~ # Dock theme colors
         #~ for key, value in self.dock_colors.items():
@@ -808,65 +799,83 @@ class Globals(GObject.GObject):
                     #~ pref_update = True
 
         #TODO: Add check for sane values for critical settings.
-        if "dock/size" == key:
-            self.emit("dock-size-changed")
-        if "dock/offset" == key:
-            self.emit("dock-offset-changed")
-        if "dock/position" == key:
-            self.emit("dock-position-changed")
-        if "dock/behavior" == key:
-            self.emit("dock-behavior-changed")
-        if "dock/mode" == key:
-            self.emit("dock-mode-changed")
-        if "dock/end_decorations" == key:
-            self.emit("dock-end-decorations-changed")
-        if "dock/theme_file" == key:
-            self.emit("dock-theme-changed")
-        if "awn/behavior" == key:
-            self.emit("awn-behavior-changed")
+        #~ if "awn/behavior" == key:
+            #~ self.emit("awn-behavior-changed")
         if "locked_list_no_overlap" == key:
             self.emit("locked-list-overlap-changed")
-        if "locked_list_in_menu" == key:
+        elif "locked_list_in_menu" == key:
             self.emit("locked-list-in-menu-changed")
-        if "color2" == key:
+        elif "color2" == key:
             self.emit("color2-changed")
-        if "show_only_current_desktop" == key:
+        elif "show_only_current_desktop" == key:
             self.emit("show-only-current-desktop-changed")
-        if "show_only_current_monitor" == key:
+        elif "show_only_current_monitor" == key:
             self.emit("show-only-current-monitor-changed")
-        if "preview" == key:
+        elif "preview" == key:
             self.emit("show-previews-changed")
-        if "preview_size" == key:
+        elif "preview_size" == key:
             self.emit("preview-size-changed")
-        if "window_title_width" == key:
+        elif "window_title_width" == key:
             self.emit("window-title-width-changed")
-        if "groupbutton_show_tooltip" == key:
+        elif "groupbutton_show_tooltip" == key:
             self.emit("show-tooltip-changed")
-        if "show_close_button" == key:
+        elif "show_close_button" == key:
             self.emit("show-close-button-changed")
-        if "media_buttons" == key:
+        elif "media_buttons" == key:
             self.emit("media-buttons-changed")
-        if "quicklist" == key:
+        elif "quicklist" == key:
             self.emit("quicklist-changed")
-        if "unity" == key:
+        elif "unity" == key:
             self.emit("unity-changed")
-        if "dockmanager" == key:
+        elif "dockmanager" == key:
             self.emit("dockmanager-changed")
-        if "use_number_shortcuts" == key:
+        elif "use_number_shortcuts" == key:
             self.emit("use-number-shortcuts-changed")
-        if key == "theme":
+        elif key == "theme":
             self.emit("theme-changed")
-        if key.startswith("color"):
+        elif key.startswith("color"):
             self.emit("color-changed")
-        if "gkey" in key:
+        elif "gkey" in key:
             self.emit("gkey-changed")
-        if key.startswith("badge"):
+        elif key.startswith("badge"):
             self.emit("badge-look-changed")
-        if key.startswith("progress"):
+        elif key.startswith("progress"):
             self.emit("progress-bar-look-changed")
 
-        if pref_update == True:
-            self.emit("preference-update")
+        self.emit("preference-update")
+
+    def __on_dock_gsettings_changed(self, settings, gkey, data=None):
+        key = gkey.replace("-", "_")
+        key = "dock/%s" % key
+        if not key in self.settings:
+            print "The changed setting is not in settings dictionary:", key
+            return
+        self.settings[key] = self.dock_gsettings.get_value(gkey).unpack()
+
+        if "size" == gkey:
+            self.emit("dock-size-changed")
+        elif "offset" == gkey:
+            self.emit("dock-offset-changed")
+        elif "position" == gkey:
+            self.emit("dock-position-changed")
+        elif "behavior" == gkey:
+            self.emit("dock-behavior-changed")
+        elif "mode" == gkey:
+            self.emit("dock-mode-changed")
+        elif "end-decorations" == gkey:
+            self.emit("dock-end-decorations-changed")
+        elif "theme-file" == gkey:
+            self.emit("dock-theme-changed")
+        self.emit("preference-update")
+
+    def __on_theme_gsettings_changed(self, settings, gkey, data=None):
+        value = self.theme_gsettings.get_value(gkey).unpack()
+        key = gkey.replace("-", "_")
+        if key in self.colors:
+            self.colors[key] = value
+        elif gkey == "popup-style-file":
+            self.popup_style_file = value
+        self.emit("preference-update")
 
     def __get_settings(self, default):
         settings = default.copy()
@@ -889,6 +898,19 @@ class Globals(GObject.GObject):
             settings[name] = gs_value
         return settings
 
+    def set_theme_gsettings(self, theme_name):
+        if self.theme_gsettings is not None:
+            print "theme changed"
+            self.theme_gsettings.disconnect(self.theme_gsettings_sid)
+        else:
+            print "Theme set"
+        theme_name = theme_name.lower().replace(" ", "_").encode()
+        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
+            theme_name = theme_name.replace(sign, "")
+        path = "/org/dockbarx/dockbarx/themes/%s" % theme_name
+        self.theme_gsettings = Gio.Settings("org.dockbarx.dockbarx.theme", path)
+        self.theme_gsettings_sid = self.theme_gsettings.connect("changed", self.__on_theme_gsettings_changed)
+
     def update_colors(self, theme_name, theme_colors=None, theme_alphas=None):
         # Updates the colors when the theme calls for an update.
         if theme_name is None:
@@ -898,75 +920,52 @@ class Globals(GObject.GObject):
                 self.colors["color%s"%i] = "#000000"
             return
 
-        theme_name = theme_name.replace(" ", "_").encode()
-        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
-            theme_name = theme_name.replace(sign, "")
-        color_dir = "/org/dockbarx/dockbarx/themes/" + theme_name
         self.colors.clear()
         for i in range(1, 9):
             c = "color%s"%i
-            a = "color%s_alpha"%i
-            try:
-                self.colors[c] = GCONF_CLIENT.get_value(color_dir + "/" + c)
-            except:
+            a = "color%s-alpha"%i
+
+            color = self.theme_gsettings.get_value(c).unpack()
+            if color == "default":
                 if c in theme_colors:
-                    self.colors[c] = theme_colors[c]
+                    color = theme_colors[c]
                 else:
-                    self.colors[c] = self.DEFAULT_COLORS[c]
-                #~ GCONF_CLIENT.set_string(color_dir + "/" + c , self.colors[c])
-            try:
-                self.colors[a] = GCONF_CLIENT.get_value(color_dir + "/" + a)
-            except:
+                    color = "#000000"
+            self.colors[c] = color
+
+            alpha = self.theme_gsettings.get_value(a).unpack()
+            if alpha == -1:
                 if c in theme_alphas:
-                    if "no" in theme_alphas[c]:
-                        continue
-                    else:
-                        alpha = int(theme_alphas[c])
-                        self.colors[a] = int(round(alpha * 2.55))
-                elif a in self.DEFAULT_COLORS:
-                    self.colors[a] = self.DEFAULT_COLORS[a]
+                    alpha = int(theme_alphas[c])
+                    alpha = int(round(alpha * 2.55))
                 else:
-                    continue
-                #~ GCONF_CLIENT.set_int(color_dir + "/" + a , self.colors[a])
+                    alpha = 255
+            self.colors["color%s_alpha" % i] = alpha
 
     def update_popup_style(self, theme_name, default_style):
         # Runs when the theme has changed.
         self.default_popup_style = default_style
-        theme_name = theme_name.replace(" ", "_").encode()
-        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
-            theme_name = theme_name.replace(sign, "")
-        psf = "/org/dockbarx/dockbarx/themes/themes/" + theme_name + "/popup_style_file"
-        try:
-            style = GCONF_CLIENT.get_value(psf)
-            if style != self.popup_style_file:
-                self.popup_style_file = style
-                self.emit("popup-style-changed")
-        except:
-            self.popup_style_file = default_style
-            #~ GCONF_CLIENT.set_string(psf, default_style)
+        style = self.theme_gsettings.get_value("popup-style-file").unpack()
+        if style.lower() == "theme default":
+            style = default_style
+        if style != self.popup_style_file:
+            self.popup_style_file = style
             self.emit("popup-style-changed")
-        self.emit("preference-update")
+            self.emit("preference-update")
 
     def set_popup_style(self, style):
         # Used when the popup style is reloaded.
-        if self.popup_style_file != style:
-            self.popup_style_file = style
-            theme_name = self.theme_name
-            if theme_name is None:
-                return
-            theme_name = theme_name.replace(" ", "_").encode()
-            for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
-                theme_name = theme_name.replace(sign, "")
-            psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
-            #~ GCONF_CLIENT.set_string(psf, style)
-            self.emit("preference-update")
+        if self.popup_style_file == style:
+            return
+        self.popup_style_file = style
+        self.theme_gsettings.set_string("popup-style-file", style)
+        self.emit("preference-update")
 
     def set_dock_theme(self, theme, colors):
         if self.settings["dock/theme_file"] != theme:
             self.settings["dock/theme_file"] = theme
-            #~ GCONF_CLIENT.set_string(GCONF_DIR + "/dock/theme_file", theme)
+            self.dock_gsettings.set_string("theme-file", theme)
 
-        td = "/org/dockbarx/dockbarx/themes/dock/themes/" + theme
         for key, value in colors.items():
             try:
                 self.dock_colors[key] = GCONF_CLIENT.get_value("%s/%s"%(td,

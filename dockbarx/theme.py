@@ -142,6 +142,7 @@ class Theme(GObject.GObject):
                 # Just use one of the themes that where found if default
                 # theme couldn't be found either.
                 self.theme_path = self.themes.values()[0]
+        self.globals.set_theme_gsettings(self.theme_path)
         self.reload()
 
     def find_themes(self):

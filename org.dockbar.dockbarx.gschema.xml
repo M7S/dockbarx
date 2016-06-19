@@ -2,7 +2,7 @@
 
 <schemalist>
 
-  <schema id="org.dockbar.dockbarx" path="/org/dockbar/dockbarx/">
+  <schema id="org.dockbarx.dockbarx" path="/org/dockbarx/dockbarx/">
 
     <key name='theme' type='s'>
       <default>"Glassified"</default>
@@ -774,7 +774,7 @@
 
   </schema>
 
-  <schema id="org.dockbar.dockbarx.dock" path="/org/dockbar/dockbarx/dock/">
+  <schema id="org.dockbarx.dockx" path="/org/dockbarx/dockx/">
 
     <key name='theme-file' type='s'>
       <default>"dbx.tar.gz"</default>
@@ -838,15 +838,147 @@
 
   </schema>
 
-  <schema id="org.dockbar.dockbarx.awn" path="/org/dockbar/dockbarx/awn/">
 
-    <key name='behavior' type='s'>
-      <default>"disabled"</default>
-      <summary>The file name of the dock theme</summary>
+  <schema id="org.dockbarx.dockbarx.theme">
+
+    <key name='popup-style-file' type='s'>
+      <default>"Theme default"</default>
+      <summary>The file name of the window list style</summary>
       <description>
-        The file name of the dock theme.
+        The file name of the window list style.
+        If the name is theme default, the default window list style
+        of the current theme will be used.
       </description>
     </key>
+
+    <key name='color1' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the first color for the theme</summary>
+      <description>
+        The hex code of the first color for the theme.
+      </description>
+    </key>
+
+    <key name='color1-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the first color for the theme</summary>
+      <description>
+        The alpha value for the first color for the theme.
+      </description>
+    </key>
+
+    <key name='color2' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the second color for the theme</summary>
+      <description>
+        The hex code of the second color for the theme.
+      </description>
+    </key>
+
+    <key name='color2-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the second color for the theme</summary>
+      <description>
+        The alpha value for the second color for the theme.
+      </description>
+    </key>
+
+    <key name='color3' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the third color for the theme</summary>
+      <description>
+        The hex code of the third color for the theme.
+      </description>
+    </key>
+
+    <key name='color3-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the third color for the theme</summary>
+      <description>
+        The alpha value for the third color for the theme.
+      </description>
+    </key>
+
+    <key name='color4' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the fourth color for the theme</summary>
+      <description>
+        The hex code of the fourth color for the theme.
+      </description>
+    </key>
+
+    <key name='color4-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the fourth color for the theme</summary>
+      <description>
+        The alpha value for the fourth color for the theme.
+      </description>
+    </key>
+
+    <key name='color5' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the fifth color for the theme</summary>
+      <description>
+        The hex code of the fifth color for the theme.
+      </description>
+    </key>
+
+    <key name='color5-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the fifth color for the theme</summary>
+      <description>
+        The alpha value for the fifth color for the theme.
+      </description>
+    </key>
+
+    <key name='color6' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the sixth color for the theme</summary>
+      <description>
+        The hex code of the fifth color for the theme.
+      </description>
+    </key>
+
+    <key name='color6-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the sixth color for the theme</summary>
+      <description>
+        The alpha value for the sixth color for the theme.
+      </description>
+    </key>
+
+    <key name='color7' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the seventh color for the theme</summary>
+      <description>
+        The hex code of the seventh color for the theme.
+      </description>
+    </key>
+
+    <key name='color7-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the seventh color for the theme</summary>
+      <description>
+        The alpha value for the seventh color for the theme.
+      </description>
+    </key>
+
+    <key name='color8' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the eight color for the theme</summary>
+      <description>
+        The hex code of the eight color for the theme.
+      </description>
+    </key>
+
+    <key name='color8-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the eight color for the theme</summary>
+      <description>
+        The alpha value for the eight color for the theme.
+      </description>
+    </key>
+
   </schema>
 
 </schemalist>
