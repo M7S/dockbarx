@@ -25,6 +25,8 @@ from gi.repository import GdkX11
 from math import pi, tan
 from xml.sax.saxutils import escape
 from gi.repository import GObject
+gi.require_version("PangoCairo", "1.0")
+from gi.repository import PangoCairo
 from gi.repository import Pango
 from gi.repository import cairo as gicairo
 import cairo
@@ -86,7 +88,7 @@ class CairoAppButton(Gtk.EventBox):
         a = self.area.get_allocation()
         self.badge = cairo.ImageSurface(cairo.FORMAT_ARGB32, a.width, a.height)
         ctx = cairo.Context(self.badge)
-        layout = Pango.cairo_create_layout(ctx)
+        layout = PangoCairo.create_layout(ctx)
         if self.globals.settings["badge_use_custom_font"]:
             font = self.globals.settings["badge_font"]
             font_base, font_size = font.rsplit(" ", 1)
@@ -96,10 +98,10 @@ class CairoAppButton(Gtk.EventBox):
             font_base = "sans bold"
             font = "%s %s" % (font_base, font_size)
         layout.set_font_description(Pango.FontDescription(font))
-        layout.set_text(text)
+        layout.set_text(text, -1)
         te = layout.get_pixel_extents()
-        w = te[1][2]
-        h = te[0][1] + te[0][3]
+        w = te[1].width
+        h = te[0].y + te[0].height #Why are we using the ink extents (te[0]) here but logical for width?
         size = min(a.width, a.height)
         p = 2
         d = int(round(0.05 * size))
@@ -109,12 +111,12 @@ class CairoAppButton(Gtk.EventBox):
             font = "%s %s" % (font_base, font_size)
             layout.set_font_description(Pango.FontDescription(font))
             te = layout.get_pixel_extents()
-            w = te[1][2]
-            h = te[0][1] + te[0][3]
+            w = te[1].width
+            h = te[0].y + te[0].height #Why are we using the ink extents (te[0]) here but logical for width?
         x = a.width - w - p - d
         y = a.height - h - p - d
-        make_path(ctx, x - p, y + te[0][1] - (p + 1), 
-                  w + 2 * p, h - te[0][1] + 2 * (p + 1), r=4)
+        make_path(ctx, x - p, y + te[0].y - (p + 1),
+                  w + 2 * p, h - te[0].y + 2 * (p + 1), r=4)
         if self.globals.settings["badge_custom_bg_color"]:
             color = self.globals.settings["badge_bg_color"]
             alpha = float(self.globals.settings["badge_bg_alpha"]) / 255
@@ -137,9 +139,9 @@ class CairoAppButton(Gtk.EventBox):
         b = int(color[5:7], 16)/255.0
         ctx.set_source_rgba(r, g, b, alpha)
         ctx.set_line_width(0.8)
-        ctx.stroke() 
+        ctx.stroke()
         ctx.move_to(x,y)
-        ctx.show_layout(layout)
+        PangoCairo.show_layout(ctx, layout)
 
     def make_progress_bar(self, progress):
         if progress is None:
@@ -196,13 +198,13 @@ class CairoAppButton(Gtk.EventBox):
         ctx.set_source_rgba(r, g, b, alpha)
         ctx.set_line_width(0.8)
         ctx.stroke_preserve()
-        
-        
+
+
     def __on_badge_look_changed(self, *args):
         if self.badge:
             self.make_badge(self.badge_text)
             self.update()
-        
+
     def __on_progress_bar_look_changed(self, *args):
         if self.progress_bar:
             self.make_progress_bar(self.progress)
@@ -244,7 +246,7 @@ class CairoSmallButton(Gtk.Button):
         self.connect("button-press-event", self.on_button_press_event)
         self.connect("button-release-event", self.on_button_release_event)
         self.connect("draw", self.on_draw)
-        
+
 
     def on_enter_notify_event(self, *args):
         self.mouseover = True
@@ -261,9 +263,9 @@ class CairoSmallButton(Gtk.Button):
     def on_draw(self, widget, ctx):
         a = self.get_allocation()
         self.draw_button(ctx, 0, 0, a.width, a.height)
-        
+
     def do_draw(self, ctx):
-        # This function does nothing and by doing that 
+        # This function does nothing and by doing that
         # it stops gtk.Button.do_draw from being runned.
         pass
 
@@ -429,7 +431,7 @@ class CairoNextButton(CairoSmallButton):
 
         ctx.set_source_surface(button_source, x, y)
         ctx.paint()
-        
+
 class CairoArrowButton(CairoSmallButton):
     def __init__(self, direction="right"):
         self.direction = direction
@@ -458,7 +460,7 @@ class CairoArrowButton(CairoSmallButton):
         elif self.direction == "down":
             bctx.rotate(pi/2)
         bctx.translate(-0.5, -0.5)
-            
+
         bctx.move_to(0.2, 0.0)
         bctx.line_to(0.8, 0.5)
         bctx.line_to(0.2, 1.0)
@@ -580,7 +582,7 @@ class CairoPopup(Gtk.Window):
         green = float(int(color[3:5], 16))/255
         blue = float(int(color[5:7], 16))/255
         alpha= float(self.globals.colors["color1_alpha"]) / 255
-        
+
         r = int(self.popup_style.get("popup_roundness", 6))
         make_path(ctx, 0, 0, w, h, r, 2.5,
                   self.__get_arrow_size(), self.pointer, self.ap)
@@ -605,7 +607,7 @@ class CairoPopup(Gtk.Window):
             alpha = self.popup_style.get("%s_start_alpha" % name, 20)
             alpha = float(alpha) / 100
             pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
-            
+
             rpc2 = self.popup_style.get("%s_stop_color" % name, "#FFFFFF")
             if not rpc2[0] == "#":
                 rpc2 = "#%s" % rpc2
@@ -631,7 +633,7 @@ class CairoPopup(Gtk.Window):
             alpha = self.popup_style.get("%s_alpha1" % name, 20)
             alpha = float(alpha) / 100
             pattern.add_color_stop_rgba(0.0, red, green, blue, alpha)
-            
+
             rpc2 = self.popup_style.get("%s_color2" % name, "#FFFFFF")
             if not rpc2[0] == "#":
                 rpc2 = "#%s" % rpc2
@@ -640,7 +642,7 @@ class CairoPopup(Gtk.Window):
             alpha = float(alpha) / 100
             pattern.add_color_stop_rgba(1.0, red, green, blue, alpha)
             ctx.set_source(pattern)
-            
+
             ctx.fill_preserve()
         # Background picture
         if self.popup_style.bg is not None:
@@ -724,7 +726,7 @@ class CairoPopup(Gtk.Window):
             y1 = h - h * start / 100.0
             x2 = w - (w * stop / 100.0)
             y2 = h - h * stop / 100.0
-        elif 180 < angle and angle < 270: 
+        elif 180 < angle and angle < 270:
             x1 = w - (w * start / 100.0)
             y1 = h * start / 100.0
             x2 = w - (w * stop / 100.0)
@@ -742,7 +744,7 @@ class CairoPopup(Gtk.Window):
             stop_x = (k1 * x1 - k2 * x2 + y2 - y1) / (k1 - k2)
             stop_y = k1 * (stop_x - x1) + y1
         return cairo.LinearGradient(start_x, start_y, stop_x, stop_y)
-         
+
     def __on_popup_style_reloaded(self, *args):
         a = self.__get_arrow_size()
         p = int(self.popup_style.get("%s_padding" % self.popup_type, 7))
@@ -821,7 +823,7 @@ class CairoButton(Gtk.EventBox):
 
     def on_button_release_event(self, widget, eventbutton):
         if self.area.pointer_is_inside() and not self.prevent_click:
-            # It would be nicer to send the whole eventbutton instead of just 
+            # It would be nicer to send the whole eventbutton instead of just
             # the button int value but that causes a runtime error on creating the signal.
             self.emit("clicked", eventbutton.button, eventbutton.state)
         self.area.set_pressed_down(False)
@@ -963,7 +965,7 @@ class CairoArea(Gtk.Alignment):
         alpha = float(alpha) / 100
         ctx.set_source_rgba(r, g, b, 0.25)
         ctx.fill_preserve()
-        
+
         bc = self.popup_style.get("%s_border_color" % type_,
                                            "#FFFFFF")
         if not bc[0] == "#":
@@ -1033,7 +1035,7 @@ class CairoArea(Gtk.Alignment):
 class CairoMenuItem(CairoButton):
     def __init__(self, label):
         CairoButton.__init__(self, label, button_type="menu_item")
-        
+
 
 class CairoCheckMenuItem(CairoMenuItem):
     def __init__(self, label, toggle_type="checkmark"):
@@ -1051,19 +1053,19 @@ class CairoCheckMenuItem(CairoMenuItem):
         self.area.add(alignment)
         color = self.globals.colors["color2"]
         self.set_label(label, color)
-        
+
     def set_active(self, active):
         self.indicator.set_active(active)
-        
+
     def get_active(self):
         return self.indicator.get_active()
-        
+
     def set_inconsistent(self, inconsistent):
         self.indicator.set_inconsistent(inconsistent)
-        
+
     def get_inconsistent(self):
         return self.indicator.set_inconsistent()
-        
+
 
 class CairoToggleMenu(Gtk.VBox):
     __gsignals__ = {"toggled": (GObject.SignalFlags.RUN_FIRST,
@@ -1113,7 +1115,7 @@ class CairoToggleMenu(Gtk.VBox):
             self.toggle_button.set_label_color(color)
         self.show_menu = not self.show_menu
         self.emit("toggled", self.show_menu)
-        
+
     def get_toggled(self):
         return self.show_menu
 

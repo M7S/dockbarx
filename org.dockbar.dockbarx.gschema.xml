@@ -981,5 +981,16 @@
 
   </schema>
 
+
+  <schema id="org.dockbarx.dockx.theme">
+    <key name='colors' type='a{ss}'>
+      <default>@a{ss} {}</default>
+      <summary>A dictionary containing all colors and alpha values for the dock theme</summary>
+      <description>
+        A dictionary containing all colors and alpha values for the dock theme.
+      </description>
+    </key>
+  </schema>
+
 </schemalist>
 

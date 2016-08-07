@@ -1184,7 +1184,7 @@ class Group(ListOfWindows):
                 self.scrollpeak_sid = GObject.timeout_add(1500,
                                                         self.scrollpeak_select)
             while Gtk.events_pending():
-                    Gtk.main_iteration(False)
+                    Gtk.main_iteration()
             self.scrollpeak_window.opacify()
 
     def action_select_previous(self, widget=None, event=None):

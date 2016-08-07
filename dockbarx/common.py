@@ -704,10 +704,7 @@ class Globals(GObject.GObject):
                       "color5_alpha": 160,
                       "color6": "#000000",
                       "color7": "#000000",
-                      "color8": "#000000",
-
-               }
-
+                      "color8": "#000000",}
 
     def __new__(cls, *p, **k):
         if not "_the_instance" in cls.__dict__:
@@ -727,9 +724,14 @@ class Globals(GObject.GObject):
             self.dragging = False
             self.theme_name = None
             self.theme_gsettings = None
+            self.dock_theme_gsettings = None
             self.popup_style_file = None
             self.default_popup_style = None
+            self.default_theme_colors = {}
+            self.default_theme_alphas = {}
             self.dock_colors = {}
+            self.old_dock_gs_colors = {}
+            self.default_dock_colors={}
             self.__compiz_version = None
 
             self.set_shown_popup(None)
@@ -872,10 +874,21 @@ class Globals(GObject.GObject):
         value = self.theme_gsettings.get_value(gkey).unpack()
         key = gkey.replace("-", "_")
         if key in self.colors:
+            if value == "default":
+                value = self.default_theme_colors.get(key, "#000000")
+            elif value == -1:
+                value = self.default_theme_alphas.get(key[:6], 255)
             self.colors[key] = value
         elif gkey == "popup-style-file":
+            if value.lower() == "theme default":
+                value = self.default_popup_style
             self.popup_style_file = value
+            self.emit("popup-style-changed")
         self.emit("preference-update")
+
+    def __on_dock_theme_gsettings_changed(self, settings, gkey, data=None):
+        colors = self.dock_theme_gsettings.get_value("colors").unpack()
+        self.__update_dock_colors(colors)
 
     def __get_settings(self, default):
         settings = default.copy()
@@ -899,19 +912,17 @@ class Globals(GObject.GObject):
         return settings
 
     def set_theme_gsettings(self, theme_name):
+        self.theme_name = theme_name
         if self.theme_gsettings is not None:
-            print "theme changed"
             self.theme_gsettings.disconnect(self.theme_gsettings_sid)
-        else:
-            print "Theme set"
         theme_name = theme_name.lower().replace(" ", "_").encode()
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
-        path = "/org/dockbarx/dockbarx/themes/%s" % theme_name
+        path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
         self.theme_gsettings = Gio.Settings("org.dockbarx.dockbarx.theme", path)
         self.theme_gsettings_sid = self.theme_gsettings.connect("changed", self.__on_theme_gsettings_changed)
 
-    def update_colors(self, theme_name, theme_colors=None, theme_alphas=None):
+    def update_colors(self, theme_name, theme_colors={}, theme_alphas={}):
         # Updates the colors when the theme calls for an update.
         if theme_name is None:
             self.colors.clear()
@@ -920,32 +931,49 @@ class Globals(GObject.GObject):
                 self.colors["color%s"%i] = "#000000"
             return
 
+        self.default_theme_colors = theme_colors
+        self.default_theme_alphas = theme_alphas
         self.colors.clear()
         for i in range(1, 9):
             c = "color%s"%i
             a = "color%s-alpha"%i
 
-            color = self.theme_gsettings.get_value(c).unpack()
+            color = self.theme_gsettings.get_value(c)
+            alpha = self.theme_gsettings.get_value(a)
+            if self.theme_gsettings.get_user_value(c) is None:
+                # DConf-editor can't see relocatable schemas
+                # so we will set the settings manually so that they will show up.
+                self.theme_gsettings.set_value(c, color)
+            if self.theme_gsettings.get_user_value(a) is None:
+                self.theme_gsettings.set_value(a, alpha)
+            color = color.unpack()
+            alpha = alpha.unpack()
             if color == "default":
                 if c in theme_colors:
                     color = theme_colors[c]
                 else:
-                    color = "#000000"
+                    color = self.DEFAULT_COLORS[c]
             self.colors[c] = color
 
-            alpha = self.theme_gsettings.get_value(a).unpack()
             if alpha == -1:
                 if c in theme_alphas:
-                    alpha = int(theme_alphas[c])
-                    alpha = int(round(alpha * 2.55))
+                    if theme_alphas[c] == "no":
+                        alpha = 255
+                    else:
+                        alpha = int(theme_alphas[c])
+                        alpha = int(round(alpha * 2.55))
                 else:
-                    alpha = 255
+                    alpha = self.DEFAULT_COLORS.get("%s_alpha"%c, 255)
             self.colors["color%s_alpha" % i] = alpha
 
-    def update_popup_style(self, theme_name, default_style):
+    def update_popup_style(self, default_style):
         # Runs when the theme has changed.
         self.default_popup_style = default_style
-        style = self.theme_gsettings.get_value("popup-style-file").unpack()
+        style = self.theme_gsettings.get_string("popup-style-file")
+        if self.theme_gsettings.get_user_value("popup-style-file") is None:
+            # DConf-editor can't see relocatable schemas
+            # so we will set the setting manually so that it will show up.
+            self.theme_gsettings.set_string("popup-style-file", style)
         if style.lower() == "theme default":
             style = default_style
         if style != self.popup_style_file:
@@ -957,25 +985,48 @@ class Globals(GObject.GObject):
         # Used when the popup style is reloaded.
         if self.popup_style_file == style:
             return
-        self.popup_style_file = style
         self.theme_gsettings.set_string("popup-style-file", style)
+        if style.lower() == "theme default":
+            style = self.default_popup_style
+        self.popup_style_file = style
         self.emit("preference-update")
 
-    def set_dock_theme(self, theme, colors):
+    def set_dock_theme(self, theme, default_colors):
         if self.settings["dock/theme_file"] != theme:
             self.settings["dock/theme_file"] = theme
             self.dock_gsettings.set_string("theme-file", theme)
+        if self.dock_theme_gsettings is not None:
+            self.dock_theme_gsettings.disconnect(self.dock_theme_gsettings_sid)
+        path = "/org/dockbarx/dockx/themes/%s/" % theme.lower()
+        self.dock_theme_gsettings = Gio.Settings("org.dockbarx.dockx.theme", path)
+        self.dock_theme_gsettings_sid = self.dock_theme_gsettings.connect("changed", self.__on_dock_theme_gsettings_changed)
+        colors = self.dock_theme_gsettings.get_value("colors").unpack()
+        self.default_dock_colors = default_colors
+        self.__update_dock_colors(colors)
 
-        for key, value in colors.items():
-            try:
-                self.dock_colors[key] = GCONF_CLIENT.get_value("%s/%s"%(td,
-                                                                        key))
-            except:
-                self.dock_colors[key] = value
-                #~ gset = {str: GCONF_CLIENT.set_string,
-                        #~ int: GCONF_CLIENT.set_int }[type(value)]
-                #~ gset("%s/%s" % (td, key), value)
-        self.emit("preference-update")
+    def __update_dock_colors(self, colors):
+        for key in self.default_dock_colors:
+            if not key in colors:
+                colors[key] = "default"
+            if colors[key] == "default":
+                self.dock_colors[key] = self.default_dock_colors[key]
+            elif "alpha" in key:
+                self.dock_colors[key] = int(colors[key])
+            else:
+                self.dock_colors[key] = colors[key]
+        # Update the gsettings
+        update_needed = False
+        for key in colors.copy():
+            colors[key] = str(colors[key])
+            if not key in self.old_dock_gs_colors or self.old_dock_gs_colors[key] != colors[key]:
+                update_needed = True
+        if len(self.old_dock_gs_colors) != len(colors):
+            update_needed = True
+        if update_needed:
+            self.old_dock_gs_colors = colors
+            self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
+            self.emit("preference-update")
+
 
     def get_pinned_apps_from_gconf(self):
         # Get list of pinned_apps
