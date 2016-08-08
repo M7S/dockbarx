@@ -1,67 +1,28 @@
 # DockbarX
-### Version 0.92
+### Version 0.92-gtk3alpha
 
 ## About DockbarX
-DockBarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as an an Avant Window Navigator applet, as a Xfce4 panel applet[^1], as a matepanel applet[^2] or as a legacy gnome2 panel applet. DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
-
-DockbarX is free software and is licensed under GPL3.
-
-## Install in Ubuntu from ppa
-To add the main DockBarX PPA and install the application in Ubuntu (and derivatives), use the following commands:
-
-```
-sudo add-apt-repository ppa:dockbar-main/ppa
-sudo apt-get update
-sudo apt-get install dockbarx
-```
-
-If you want to use dockbarx as a Xfce panel applet you also need this command
-
-```
-sudo apt-get install xfce4-dockbarx-plugin
-```
-
-To get more themes for DockbarX and DockX use this command
-
-```
-sudo apt-get install dockbarx-themes-extra
-```
-
-## Install in archlinux
-There is an aur for DockbarX
-
-https://aur.archlinux.org/packages/dockbarx/
-
-And there is also one for xfce4-dockbarx-plugin
-
-https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
+The gtk3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which for the moment only works as a stand-alone dock (called DockX).
 
 ## Manual Installation
 
 1. Following dependecies needs to be installed: 
-  - zeitgeist, python-wnck, python-imaging, python-keybinder and python-xlib. 
-  - Install python-gnomeapplet if you want to use DockbarX as a gnome-panel applet (gnome2) you should install python-gnomeapplet. (This doesn't work in newer releases of Ubuntu.)
-  - To use dockbarx as an AWN applet, you also need to copy the content of the AWN folder to ~/.config/awn/applets.
-  - Some of the stand alone dock applets require dependencies:
-    - Cardapio applet: Cardapio
-    - Appindicators: indicator-application
-  - To use DockManager helpers, you need to install dockmanager and dockmanager-daemon as well as libdesktop-agnostic-cfg-gconf and libdesktop-agnostic-vfs-gio. The last two might not need to be installed separately on distributions that aren't Debian based.
+  - gir1.2-keybinder-3.0, python-cairo, python-dbus, python-gi, python-gi-cairo, python-pil, python-xdg, python-xfccib and python-xlib. 
+  - (Optional) zeitgeist, to access latest and most used documents.
+  - (Optional) To use DockManager helpers, you need to install dockmanager and dockmanager-daemon as well as libdesktop-agnostic-cfg-gconf and libdesktop-agnostic-vfs-gio. The last two might not need to be installed separately on distributions that aren't Debian based.
 2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install `$ sudo ./setup.py install`
 
 ## Usage
-To start DockbarX you can
-  - To run DockbarX as a stand alone dock use the command `dockx`.
-  - For gnomepanel or matepanel applet, simply add DockBarX applet to the panel (kill the panel or re-login first if necessary).
-  - For XFCE panel you need to [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin), if you haven't installed it already. Click the link for further usage information.
+To run DockbarX as a stand alone dock use the command `dockx`.
 
-The preferences dialog of DockbarX can be found from your applications menu or (if you use DockX or mate-/xfce-/gnome-applet) by right clicking and choosing Preferences.
+The preference dialog is not yet usable with the gtk3 version. You have to change settings with the dconf-editor (DockbarX gsettings path is /org/dockbarx/dockbarx/ and /org/dockbarx/dockx/).
 
 **NOTE!** To use previews with Compiz you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". *You can **not** use previews with other window manager than Compiz and Kwin.*
 
 ## Contribute
 DockbarX is a free and open source project I am developing in my free time. I will gladly accept any help I can get to improve DockbarX. Test out new code, **report bugs** to the issue tracker and make pull request with code you like to contribute.
 
-You can also translate DockbarX into your language at [DockbarX launchpad translation page](https://translations.launchpad.net/dockbar). DockbarX is translated into many languages but few of the translations are complete. Even if DockbarX should be fully translated into your language at the moment, you could check in after a new release is out to see if there some new words that needs translating.
+
 
 ##FAQ
 *Q: Why do you want to make Linux into a Microsoft Windows 7 clone?*

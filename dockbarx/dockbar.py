@@ -39,7 +39,7 @@ from log import logger
 import i18n
 _ = i18n.language.gettext
 
-VERSION = "0.92"
+VERSION = "0.92-gtk3alpha"
 
 
 ATOM_WM_CLASS = Gdk.atom_intern("WM_CLASS", False)
