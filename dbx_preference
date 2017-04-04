@@ -804,7 +804,7 @@ class PrefDialog():
         spinlabel = Gtk.Label(label=_("Preview size"))
         spinlabel.set_alignment(0,0.5)
         adj = Gtk.Adjustment(200, 50, 800, 1, 50)
-        self.preview_size_spin = Gtk.SpinButton(adj, 0.5, 0)
+        self.preview_size_spin = Gtk.SpinButton.new(adj, 0.5, 0)
         self.preview_size_spinbox.pack_start(spinlabel, False, True, 0)
         self.preview_size_spinbox.pack_start(self.preview_size_spin,
                                              False, True, 5)
@@ -818,7 +818,7 @@ class PrefDialog():
         spinlabel = Gtk.Label(label=_("Window title width"))
         spinlabel.set_alignment(0,0.5)
         adj = Gtk.Adjustment(200, 50, 800, 1, 50)
-        self.window_title_width_spin = Gtk.SpinButton(adj, 0.5, 0)
+        self.window_title_width_spin = Gtk.SpinButton.new(adj, 0.5, 0)
         self.window_title_width_spinbox.pack_start(spinlabel, False, True, 0)
         self.window_title_width_spinbox.pack_start(self.window_title_width_spin,
                                                   False, True, 5)
@@ -838,7 +838,7 @@ class PrefDialog():
         spinlabel = Gtk.Label(label=_("Delay"))
         spinlabel.set_alignment(0,0.5)
         adj = Gtk.Adjustment(0, 0, 2000, 1, 50)
-        self.delay_spin = Gtk.SpinButton(adj, 0.5, 0)
+        self.delay_spin = Gtk.SpinButton.new(adj, 0.5, 0)
         adj.connect("value_changed", self.__adjustment_changed, "popup_delay")
         spinbox.pack_start(spinlabel, False, True, 0)
         spinbox.pack_start(self.delay_spin, False, True, 5)
@@ -848,7 +848,7 @@ class PrefDialog():
         spinlabel = Gtk.Label(label=_("Delay for switching between window lists"))
         spinlabel.set_alignment(0,0.5)
         adj = Gtk.Adjustment(0, 0, 2000, 1, 50)
-        self.second_delay_spin = Gtk.SpinButton(adj, 0.5, 0)
+        self.second_delay_spin = Gtk.SpinButton.new(adj, 0.5, 0)
         adj.connect("value_changed", self.__adjustment_changed,
                     "second_popup_delay")
         spinbox.pack_start(spinlabel, False, True, 0)
@@ -1283,7 +1283,7 @@ class PrefDialog():
         adj = Gtk.Adjustment(self.globals.settings["dock/size"],
                              16, 100, 1, 0, 0)
         adj.connect("value-changed", self.__adjustment_changed, "dock/size")
-        self.dock_size_spin = Gtk.SpinButton(adj, 0.5, 0)
+        self.dock_size_spin = Gtk.SpinButton.new(adj, 0.5, 0)
         hbox.pack_start(self.dock_size_spin, False, True, 0)
         dock_box.pack_start(hbox, False, True, 0)
 
@@ -1296,7 +1296,7 @@ class PrefDialog():
         adj = Gtk.Adjustment(self.globals.settings["dock/offset"],
                              0, 500, 1, 0, 0)
         adj.connect("value-changed", self.__adjustment_changed, "dock/offset")
-        self.dock_offset_spin = Gtk.SpinButton(adj, 0.5, 0)
+        self.dock_offset_spin = Gtk.SpinButton.new(adj, 0.5, 0)
         hbox.pack_start(self.dock_offset_spin, False, True, 0)
         dock_box.pack_start(hbox, False, True, 0)
 
