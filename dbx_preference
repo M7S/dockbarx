@@ -19,7 +19,9 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
+gi.require_version("GConf", "2.0")
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GConf
 import os
 from tarfile import open as taropen
@@ -1417,8 +1419,8 @@ class PrefDialog():
             self.theme_colors = self.theme.get_default_colors()
             self.theme_alphas = self.theme.get_default_alphas()
             self.globals.theme_name = self.theme.get_name()
-            self.globals.update_popup_style(self.theme.get_name(),
-                                            self.theme.default_popup_style)
+            self.globals.set_theme_gsettings(self.theme.get_name())
+            self.globals.update_popup_style(self.theme.default_popup_style)
             self.globals.update_colors(self.theme.get_name(),
                                        self.theme.get_default_colors(),
                                        self.theme.get_default_alphas())
