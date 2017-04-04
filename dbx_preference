@@ -689,7 +689,7 @@ class PrefDialog():
               _("Use gtk menu (old style) instead of DockbarX style menu."))
         self.old_menu_cb.connect("toggled",
                                  self.__checkbutton_toggled, "old_menu")
-        alignment = Gtk.Alignment.new()
+        alignment = Gtk.Alignment()
         alignment.set_padding(5, 5, 10, 10)
         alignment.add(self.old_menu_cb)
         appearance_box.pack_start(alignment, False, True, 0)
