@@ -476,7 +476,8 @@ class PrefDialog():
 
         #--- Window item page
         hbox = Gtk.HBox()
-        frame = Gtk.Frame(_("Window item actions"))
+        frame = Gtk.Frame()
+        frame.set_label(_("Window item actions"))
         frame.set_border_width(5)
         table = Gtk.Table(True)
         table.set_border_width(5)
@@ -663,7 +664,8 @@ class PrefDialog():
 
         # Needs attention effect frame
         hbox = Gtk.HBox()
-        frame = Gtk.Frame(_("Needs attention effect"))
+        frame = Gtk.Frame()
+        frame.set_label(_("Needs attention effect"))
         frame.set_border_width(5)
         vbox = Gtk.VBox()
         vbox.set_border_width(10)
@@ -694,7 +696,8 @@ class PrefDialog():
 
         bpbox = Gtk.HBox()
         # Badge frame
-        frame = Gtk.Frame(_("Badge"))
+        frame = Gtk.Frame()
+        frame.set_label(_("Badge"))
         frame.set_border_width(5)
         vbox = Gtk.VBox()
         vbox.set_border_width(10)
@@ -742,7 +745,8 @@ class PrefDialog():
         
 
         # Progress frame
-        frame = Gtk.Frame(_("Progress bar"))
+        frame = Gtk.Frame()
+        frame.set_label(_("Progress bar"))
         frame.set_border_width(5)
         vbox = Gtk.VBox()
         vbox.set_border_width(10)
@@ -913,7 +917,8 @@ class PrefDialog():
 
 
         #--- Groupbutton page
-        frame = Gtk.Frame(_("Group button actions"))
+        frame = Gtk.Frame()
+        frame.set_label(_("Group button actions"))
         frame.set_border_width(5)
         table = Gtk.Table(True)
         table.set_border_width(5)
@@ -985,7 +990,8 @@ class PrefDialog():
 
         # "Select" action options frame
         hbox = Gtk.HBox()
-        frame = Gtk.Frame(_("\"Select\" action options"))
+        frame = Gtk.Frame()
+        frame.set_label(_("\"Select\" action options"))
         frame.set_border_width(5)
         table = Gtk.Table(True)
         table.set_border_width(5)
@@ -1052,7 +1058,8 @@ class PrefDialog():
                               "unity")
         plugins_box.pack_start(self.unity_cb, False, True, 0)
 
-        dockmanager_frame = Gtk.Frame(_("DockManager"))
+        dockmanager_frame = Gtk.Frame()
+        dockmanager_frame.set_label(_("DockManager"))
         dockmanager_frame.set_border_width(5)
         dockmanager_box = Gtk.VBox()
         dockmanager_box.set_border_width(5)
@@ -1106,7 +1113,8 @@ class PrefDialog():
         advanced_box.pack_start(self.delay_on_select_all_cb, False, True, 0)
 
         # Opacify frame
-        frame = Gtk.Frame(_("Opacify"))
+        frame = Gtk.Frame()
+        frame.set_label(_("Opacify"))
         frame.set_border_width(5)
         vbox = Gtk.VBox()
         vbox.set_border_width(10)
@@ -1160,7 +1168,8 @@ class PrefDialog():
         advanced_box.pack_start(frame, False, False, 5)
 
         # Global keyboard shortcuts frame
-        frame = Gtk.Frame(_("Global Keyboard Shortcuts"))
+        frame = Gtk.Frame()
+        frame.set_label(_("Global Keyboard Shortcuts"))
         frame.set_border_width(5)
         table = Gtk.Table(True)
 
@@ -1310,7 +1319,8 @@ class PrefDialog():
         dock_box.pack_start(hbox, False, True, 5)
         
         #Dock Colors
-        frame = Gtk.Frame(_("Colors"))
+        frame = Gtk.Frame()
+        frame.set_label(_("Colors"))
         frame.set_border_width(5)
         hbox = Gtk.HBox()
         hbox.set_border_width(5)
