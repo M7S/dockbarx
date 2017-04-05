@@ -2462,16 +2462,17 @@ class WindowList(Gtk.VBox):
             for window in group.get_windows():
                 previews.append(5)
                 previews.append(window.wnck.get_xid())
-                x, y, w, h = window.item.get_preview_allocation()
+                #x, y, w, h = window.item.get_preview_allocation()
+                r = window.item.get_preview_allocation()
                 if self.globals.get_compiz_version() > "0.9":
                     # Compensate for a bug in compiz.
                     # The size is wrong with twice the size of the
                     # window decorations.
                     ww, wh = window.wnck.get_geometry()[2:4]
                     cw, ch = window.wnck.get_client_window_geometry()[2:4]
-                    #~ w = int(w - 2 * (float(w) / ww) * (ww - cw))
-                    h = int(h - 2 * (float(h) / wh) * (wh - ch))
-                previews.extend([x, y, w, h])
+                    #~ r.w = int(r.w - 2 * (float(r.w) / ww) * (ww - cw))
+                    r.height = int(r.height - 2 * (float(r.height) / wh) * (wh - ch))
+                previews.extend([r.x, r.y, r.width, r.height])
         else:
             previews = [0,5,0,0,0,0,0]
         return previews
