@@ -629,7 +629,7 @@ class Group(ListOfWindows):
         connect(self.menu, "menu-resized", self.__on_menu_resized)
         if self.globals.settings["old_menu"]:
             menu = self.menu.get_menu()
-            menu.popup(None, None,
+            menu.popup(None, None, None,
                        self.__menu_position, event.button, event.time)
             self.globals.gtkmenu = menu
             # TODO: check is this connection destroyed when done?
