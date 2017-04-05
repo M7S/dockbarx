@@ -37,10 +37,6 @@ import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
 dockbarx.i18n.load_theme_translation()
 
-GCONF_CLIENT = GConf.Client.get_default()
-GCONF_DIR = "/apps/dockbarx"
-
-
 
 class ThemeHandler(ContentHandler):
     """Reads the xml-file into a ODict"""
@@ -455,6 +451,9 @@ class PrefDialog():
         self.dialog = Gtk.Dialog(_("DockBarX preferences"))
         self.dialog.connect("response", self.__dialog_close)
         self.dialog.set_icon_name("dockbarx")
+
+        self.gsettings = Gio.Settings("org.dockbarx.dockbarx", "/org/dockbarx/dockbarx/")
+        self.dock_gsettings = Gio.Settings("org.dockbarx.dockx", "/org/dockbarx/dockx/")
 
 
         try:
@@ -1808,13 +1807,21 @@ class PrefDialog():
 
         if rb1_toggled and value != \
               self.globals.settings["groupbutton_attention_notification_type"]:
-            GCONF_CLIENT.set_string(
-                   GCONF_DIR+"/groupbutton_attention_notification_type", value)
+            self.gsettings.set_string(
+                   "groupbutton-attention-notification-type", value)
 
     def __checkbutton_toggled(self,button,name):
         # Read the value of the toggled check button/box and write to gconf
+        if name.startswith("dock/"):
+            gsettings = self.dock_gsettings
+            name1 = name.replace("dock/", '', 1)
+        else:
+            gsettings = self.gsettings
+            name1 = name
+        name1 = name1.replace("_", '-')
+
         if button.get_active() != self.globals.settings[name]:
-            GCONF_CLIENT.set_bool(GCONF_DIR+"/"+name, button.get_active())
+            gsettings.set_boolean(name1, button.get_active())
 
         if name == "preview" and button.get_active():
             self.__show_preview_dialogs()
@@ -1836,8 +1843,14 @@ class PrefDialog():
                 for (action, translation) in self.gb_actions.items():
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
-                            GCONF_CLIENT.set_string(GCONF_DIR+"/"+setting_name,
-                                                    action)
+                            if setting_name.startswith("dock/"):
+                                gsettings = self.dock_gsettings
+                                name1 = setting_name.replace("dock/", '', 1)
+                            else:
+                                gsettings = self.gsettings
+                                name1 = setting_name
+                            name1 = name1.replace("_", '-')
+                            gsettings.set_string(name1, action)
                         break
                 break
 
@@ -1848,14 +1861,20 @@ class PrefDialog():
                 for (action, translation) in self.wb_actions.items():
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
-                            GCONF_CLIENT.set_string(GCONF_DIR+"/"+setting_name,
-                                                    action)
+                            if setting_name.startswith("dock/"):
+                                gsettings = self.dock_gsettings
+                                name1 = setting_name.replace("dock/", '', 1)
+                            else:
+                                gsettings = self.gsettings
+                                name1 = setting_name
+                            name1 = name1.replace("_", '-')
+                            gsettings.set_string(name1, action)
                         break
                 break
 
         if combobox == self.theme_combo:
             if value != self.globals.settings["theme"]:
-                GCONF_CLIENT.set_string(GCONF_DIR+"/theme", value)
+                self.gsettings.set_string("theme", value)
 
         if combobox == self.select_one_cg:
             sod = {
@@ -1863,8 +1882,7 @@ class PrefDialog():
                _("select or minimize window"): "select or minimize window"
               }
             if sod[value] != self.globals.settings["select_one_window"]:
-                GCONF_CLIENT.set_string(GCONF_DIR+"/select_one_window",
-                                        sod[value])
+                self.gsettings.set_string("select-one-window", sod[value])
 
 
         if combobox == self.select_multiple_cg:
@@ -1876,8 +1894,7 @@ class PrefDialog():
                 _("show window list"): "show popup"
               }
             if smd[value] != self.globals.settings["select_multiple_windows"]:
-                    GCONF_CLIENT.set_string(
-                            GCONF_DIR+"/select_multiple_windows", smd[value])
+                    self.gsettings.set_string("select-multiple-windows", smd[value])
 
         if combobox == self.select_workspace_cg:
             wso={
@@ -1886,20 +1903,19 @@ class PrefDialog():
                  _("Move windows from other workspaces"):"move"
                 }
             if wso[value] != self.globals.settings["workspace_behavior"]:
-                GCONF_CLIENT.set_string(GCONF_DIR+"/workspace_behavior",
-                                        wso[value])
+                self.gsettings.set_string("workspace-behavior", wso[value])
 
         if combobox == self.dock_position_box:
             pos = ("left", "right", "top", "bottom")
             for p in pos:
                 if value == _(p) and p != self.globals.settings["dock/size"]:
-                    GCONF_CLIENT.set_string(GCONF_DIR+"/dock/position", p)
+                    self.dock_gsettings.set_string("position", p)
 
         if combobox == self.dock_mode_box:
             pos = ("panel", "centered", "corner")
             for p in pos:
                 if value == _(p) and p != self.globals.settings["dock/mode"]:
-                    GCONF_CLIENT.set_string(GCONF_DIR+"/dock/mode", p)
+                    self.dock_gsettings.set_string("mode", p)
 
         if combobox == self.dock_behavior_box:
             pos = ("panel", "standard", "dodge windows",
@@ -1907,21 +1923,29 @@ class PrefDialog():
             for p in pos:
                 if value == _(p) and \
                    p != self.globals.settings["dock/behavior"]:
-                    GCONF_CLIENT.set_string(GCONF_DIR+"/dock/behavior", p)
+                    self.dock_gsettings.set_string("behavior", p)
 
-        if combobox == self.awn_behavior_box:
-            pos = ("disabled", "dodge windows",
-                   "dodge active window")
-            for p in pos:
-                if value == _(p) and \
-                   p != self.globals.settings["awn/behavior"]:
-                    GCONF_CLIENT.set_string(GCONF_DIR+"/awn/behavior", p)
+        #TODO: make AWN schema
+        #if combobox == self.awn_behavior_box:
+        #    pos = ("disabled", "dodge windows",
+        #           "dodge active window")
+        #    for p in pos:
+        #        if value == _(p) and \
+        #           p != self.globals.settings["awn/behavior"]:
+        #            GCONF_CLIENT.set_string(GCONF_DIR+"/awn/behavior", p)
 
     def __adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf
         value = int(widget.get_value())
         if value != self.globals.settings[setting]:
-            GCONF_CLIENT.set_int(GCONF_DIR+"/"+setting, value)
+            if setting.startswith("dock/"):
+                gsettings = self.dock_gsettings
+                setting = setting.replace("dock/", '', 1)
+            else:
+                gsettings = self.gsettings
+            setting = setting.replace("_", "-")
+
+            gsettings.set_int(setting, value)
 
     def __bp_color_set(self, button, c):
         # Read the value from color (and alpha) and write
@@ -1935,12 +1959,13 @@ class PrefDialog():
         # cs has 16-bit per color, we want 8.
         new_color = cs[0:3] + cs[5:7] + cs[9:11]
         if new_color != color_string:
-            GCONF_CLIENT.set_string(GCONF_DIR + "/" + c + "_color", new_color)
+            s = c + "_color"
+            self.gsettings.set_string(s.replace("_", "-"), new_color);
         alpha = self.globals.settings[c + "_alpha"]
         new_alpha = min(int(round(button.get_alpha() / 256.0)), 255)
         if new_alpha != alpha:
-            GCONF_CLIENT.set_int(GCONF_DIR + "/" + c + "_alpha", new_alpha)
-            
+            s = c + "_alpha"
+            self.gsettings.set_int(s, new_alpha)
 
     def __color_set(self, button, c):
         # Read the value from color (and alpha) and write
@@ -1953,14 +1978,13 @@ class PrefDialog():
         cs = color.to_string()
         # cs has 16-bit per color, we want 8.
         new_color = cs[0:3] + cs[5:7] + cs[9:11]
-        theme_name = self.theme.get_name().replace(" ", "_").encode()
-        try:
-            theme_name = theme_name.translate(None, '!?*()/#"@')
-        except:
-            pass
-        color_dir = GCONF_DIR + "/themes/" + theme_name
+        theme_name = self.theme.get_name().lower().replace(" ", "_").encode()
+        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
+            theme_name = theme_name.replace(sign, "")
+        path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
+        self.theme_gsettings = Gio.Settings("org.dockbarx.dockbarx.theme", path)
         if new_color != color_string:
-            GCONF_CLIENT.set_string(color_dir+"/"+c, new_color)
+            self.theme_gsettings.set_string(c, new_color)
         if button.get_use_alpha():
             if self.globals.colors.has_key(c+"_alpha"):
                 alpha = self.globals.colors[c+"_alpha"]
@@ -1968,7 +1992,7 @@ class PrefDialog():
                 alpha = None
             new_alpha = min(int(round(button.get_alpha() / 256.0)), 255)
             if new_alpha != alpha:
-                GCONF_CLIENT.set_int(color_dir+"/"+c+"_alpha", new_alpha)
+                self.theme_gsettings.set_int(c+"-alpha", new_alpha)
 
     def __color_reset(self, button, c):
         # Reset gconf color setting to default.
@@ -1978,13 +2002,12 @@ class PrefDialog():
             color_string = self.theme_colors[c]
         else:
             color_string = self.globals.DEFAULT_COLORS[c]
-        theme_name = self.theme.get_name().replace(" ", "_").encode()
-        try:
-            theme_name = theme_name.translate(None, '!?*()/#"@')
-        except:
-            pass
-        color_dir = GCONF_DIR + "/themes/" + theme_name
-        GCONF_CLIENT.set_string(color_dir+"/"+c, color_string)
+        theme_name = self.theme.get_name().lower().replace(" ", "_").encode()
+        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
+            theme_name = theme_name.replace(sign, "")
+        path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
+        self.theme_gsettings = Gio.Settings("org.dockbarx.dockbarx.theme", path)
+        self.theme_gsettings.set_string(c, color_string)
         if self.theme_alphas.has_key(c):
             if "no" in self.theme_alphas[c]:
                 return
@@ -1993,7 +2016,7 @@ class PrefDialog():
             alpha = self.globals.DEFAULT_COLORS[c+"_alpha"]
         else:
             return
-        GCONF_CLIENT.set_int(color_dir+"/"+c+"_alpha", alpha)
+        self.theme_gsettings.set_int(c+"-alpha", alpha)
 
     def __apply_gkey(self, button, setting):
         keystr = self.gkeys_entries[setting].get_text()
@@ -2012,11 +2035,11 @@ class PrefDialog():
             md.run()
             md.destroy()
             return
-        GCONF_CLIENT.set_string(GCONF_DIR+"/"+"%s_keystr"%setting, keystr)
+        self.gsettings.set_string("%s-keystr" % setting.replace('_', '-'), keystr)
 
     def __reset_gkey(self, button, setting):
         keystr = self.globals.DEFAULT_SETTINGS["%s_keystr"%setting]
-        GCONF_CLIENT.set_string(GCONF_DIR+"/"+"%s_keystr"%setting, keystr)
+        self.gsettings.set_string("%s-keystr" % setting.replace('_', '-'), keystr)
         self.gkeys_entries[setting].set_text(keystr)
 
     def __popup_style_changed(self, combobox):
@@ -2026,32 +2049,30 @@ class PrefDialog():
         if value is None:
             return
         file_name = self.popup_styles[value]
-        theme_name = self.theme.get_name().replace(" ", "_").encode()
-        try:
-            theme_name = theme_name.translate(None, '!?*()/#"@')
-        except:
-            pass
-        psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
-        GCONF_CLIENT.set_string(psf, file_name)
+        theme_name = self.theme.get_name().lower().replace(" ", "_").encode()
+        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
+            theme_name = theme_name.replace(sign, "")
+        path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
+        self.theme_gsettings = Gio.Settings("org.dockbarx.dockbarx.theme", path)
+        self.theme_gsettings.set_string("popup-style-file", file_name)
 
     def __reset_popup_style(self, combobox):
         if not self.theme:
             return
         file_name = self.theme.default_popup_style
-        theme_name = self.theme.get_name().replace(" ", "_").encode()
-        try:
-            theme_name = theme_name.translate(None, '!?*()/#"@')
-        except:
-            pass
-        psf = GCONF_DIR + "/themes/" + theme_name + "/popup_style_file"
-        GCONF_CLIENT.set_string(psf, file_name)
+        theme_name = self.theme.get_name().lower().replace(" ", "_").encode()
+        for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
+            theme_name = theme_name.replace(sign, "")
+        path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
+        self.theme_gsettings = Gio.Settings("org.dockbarx.dockbarx.theme", path)
+        self.theme_gsettings.set_string("popup-style-file", file_name)
 
     def __set_theme(self, button=None):
         value = self.theme_combo.get_active_text()
         if value is None:
             return
         if value != self.globals.settings["theme"]:
-            GCONF_CLIENT.set_string(GCONF_DIR+"/theme", value)
+            self.gsettings.set_string("theme", value)
         else:
             # Check if the theme list
             # has changed anyway.
@@ -2141,7 +2162,7 @@ class PrefDialog():
             return
         file_name = self.dock_themes[value]
         if file_name != self.globals.settings["dock/theme_file"]:
-            GCONF_CLIENT.set_string(GCONF_DIR + "/dock/theme_file", file_name)
+            self.dock_gsettings.set_string("theme-file", file_name)
         # Update the list of themes.
         self.dock_theme_combo.get_model().clear()
         self.dock_themes = self.dock_theme.get_themes()
@@ -2155,30 +2176,42 @@ class PrefDialog():
         # Read the value from color (and alpha) and write
         # it as 8-bit/channel hex string for GConf.
         # (Alpha is written like int (0-255).)
-        color_string = self.globals.dock_colors[c]
+        colors = self.globals.dock_colors
+        update_needed = False
+        color_string = colors[c]
         color = button.get_color()
         cs = color.to_string()
         # cs has 16-bit per color, we want 8.
         new_color = cs[0:3] + cs[5:7] + cs[9:11]
-        theme_file = self.globals.settings["dock/theme_file"]
-        color_dir = GCONF_DIR + "/dock/themes/" + theme_file
         if new_color != color_string:
-            GCONF_CLIENT.set_string(color_dir + "/" + c, new_color)
-        alpha = self.globals.dock_colors[c.replace("color", "alpha")]
+            colors[c] = new_color
+            update_needed = True
+        alpha = colors[c.replace("color", "alpha")]
         new_alpha = min(int(round(button.get_alpha() / 256.0)), 255)
         if new_alpha != alpha:
-            GCONF_CLIENT.set_int(color_dir + "/" + c.replace("color", "alpha"),
-                                 new_alpha)
+            colors[c.replace("color", "alpha")] = new_alpha
+            update_needed = True
+
+        if update_needed:
+            theme_file = self.globals.settings["dock/theme_file"]
+            path = "/org/dockbarx/dockx/themes/%s/" % theme_file.lower()
+            self.dock_theme_gsettings = Gio.Settings("org.dockbarx.dockx.theme", path)
+            for key in colors.copy():
+                colors[key] = str(colors[key])
+            self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
 
     def __dock_color_reset(self, button, c):
         # Reset gconf color setting to default.
-        value = self.dock_theme.default_colors[c]
-        theme_file = self.globals.settings["dock/theme_file"]
-        color_dir = GCONF_DIR + "/dock/themes/" + theme_file
-        GCONF_CLIENT.set_string(color_dir+"/"+c, value)
+        colors = self.globals.dock_colors
+        colors[c] = self.dock_theme.default_colors[c]
         a = c.replace("color", "alpha")
-        value = self.dock_theme.default_colors[a]
-        GCONF_CLIENT.set_int(color_dir+"/"+a, value)
+        colors[a] = self.dock_theme.default_colors[a]
+        theme_file = self.globals.settings["dock/theme_file"]
+        path = "/org/dockbarx/dockx/themes/%s/" % theme_file.lower()
+        self.dock_theme_gsettings = Gio.Settings("org.dockbarx.dockx.theme", path)
+        for key in colors.copy():
+            colors[key] = str(colors[key])
+        self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
 
     def __open_dockmanager_settings(self, *args):
         bus = dbus.SessionBus()
@@ -2194,7 +2227,7 @@ class PrefDialog():
     def __set_font(self, button, name):
         font = button.get_font_name()
         if font != self.globals.settings[name]:
-            GCONF_CLIENT.set_string(GCONF_DIR + "/" + name, font)
+            self.gsettings.set_string(name, font)
 
     def __show_preview_dialogs(self):
         # Check if the needed compiz plugin is activated
