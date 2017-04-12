@@ -1,0 +1,14 @@
+[Applet Factory]
+Id=DockbarXAppletFactory
+InProcess=false
+Location=/usr/bin/dockbarx_mate_applet
+Name=DockBarX Applet
+Description=DockBarX Applet
+     
+[DockbarXApplet]
+Name=DockBarX Applet
+Description=DockBarX Applet
+Icon=dockbarx
+MateComponentId=OAFIID:MATE_DockbarXApplet;
+
+

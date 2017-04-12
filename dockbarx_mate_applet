@@ -1,0 +1,140 @@
+#!/usr/bin/python2
+
+#   dockbarx_factory
+#
+#	Copyright 2008, 2009, 2010 Aleksey Shaferov and Matias Sars
+#
+#	DockbarX is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation, either version 3 of the License, or
+#	(at your option) any later version.
+#
+#	DockbarX is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
+
+import gi
+gi.require_version("Gtk", "3.0")
+gi.require_version('MatePanelApplet', '4.0')
+from gi.repository import Gtk, GObject
+from gi.repository import MatePanelApplet
+
+try:
+    import sys
+    import dockbarx.dockbar
+    from dockbarx.log import *
+except Exception, e:
+    print e
+    sys.exit(1)
+
+class DockbarMateApplet(object):
+    def __init__(self, applet, iid):
+        self.applet = applet
+        self.size = None
+        self.dockbar = dockbarx.dockbar.DockBar(self)
+        applet.set_flags(MatePanelApplet.AppletFlags.HAS_HANDLE | \
+                         MatePanelApplet.AppletFlags.EXPAND_MINOR | \
+                         MatePanelApplet.AppletFlags.EXPAND_MAJOR)
+        orients = {MatePanelApplet.AppletOrient.DOWN: "down",
+                   MatePanelApplet.AppletOrient.UP: "up",
+                   MatePanelApplet.AppletOrient.LEFT: "left",
+                   MatePanelApplet.AppletOrient.RIGHT: "right"}
+        self.dockbar.set_orient(orients[applet.get_orient()])
+        menu_actions = [("About", Gtk.STOCK_ABOUT, _("About"), None, None, self.dockbar.on_ppm_about),
+                        ("Pref", Gtk.STOCK_PREFERENCES, _("Preferences"), None, None, self.dockbar.on_ppm_pref),
+                        ("Reload", Gtk.STOCK_REFRESH, _("Refresh"), None, None, self.dockbar.reload)]
+        actiongroup = Gtk.ActionGroup.new("DockBarXAppletActions")
+        #actiongroup.set_translation_domain(dockbarx.defs.GETTEXT_PACKAGE)
+        actiongroup.add_actions(menu_actions, None)
+        applet.setup_menu_from_file("/usr/share/mate-panel/ui/dockbarx-applet-menu.xml", actiongroup)
+
+        # Set the applet coordinates to be way ofscreen until they've
+        # been set correctly by a size allocate call.
+        self.applet_origin_x = -1000
+        self.applet_origin_y = -1000
+        #~ applet.connect("delete-event", self.__cleanup)
+        # Background bug workaround
+        applet.set_background_widget(applet)
+        applet.show_all()
+
+        # Most of initializion must happen after dockbarx is
+        # realized since python mateapplets crash if it
+        # takes too long to realize.
+        GObject.idle_add(self.__load_on_realized)
+
+    def __load_on_realized(self):
+        # Wait while gtk events are pending.
+        while Gtk.events_pending():
+                    Gtk.main_iteration()
+        # Load DockbarX.
+        self.dockbar.load()
+        # Add it to the applet.
+        self.applet.add(self.dockbar.get_container())
+        self.applet.show_all()
+        # Connect events.
+        self.applet.connect("size-allocate", self.__on_applet_size_alloc)
+        self.applet.connect("change_background", self.__on_change_background)
+        self.applet.connect("change-orient", self.__on_change_orient)
+
+    def __on_applet_size_alloc(self, widget, allocation):
+        if self.applet.get_orient() in (MatePanelApplet.AppletOrient.DOWN,
+                MatePanelApplet.AppletOrient.UP):
+            size = allocation.height
+        else:
+            size = allocation.width
+        if self.size != size:
+            self.dockbar.set_size(size)
+            self.size = size
+        if not widget.get_window():
+            return
+        #x,y = widget.get_window().get_origin()
+        x,y = widget.get_window().get_root_coords(0, 0)
+        if x == self.applet_origin_x or y == self.applet_origin_y:
+            # Nothing moved.
+            return
+        # Applet and/or panel moved,
+        # icon_geo needs to be updated.
+        self.applet_origin_x = x
+        self.applet_origin_y = y
+        self.dockbar.dockbar_moved()
+
+    def __on_change_orient(self, arg1, data):
+        orients = {MatePanelApplet.AppletOrient.DOWN: "down",
+                   MatePanelApplet.AppletOrient.UP: "up",
+                   MatePanelApplet.AppletOrient.LEFT: "left",
+                   MatePanelApplet.AppletOrient.RIGHT: "right"}
+        self.applet.remove(self.dockbar.get_container())
+        self.dockbar.set_orient(orients[self.applet.get_orient()])
+        self.applet.add(self.dockbar.get_container())
+
+    def __on_change_background(self, applet, type, color, pixmap):
+        applet.set_style(None)
+        rc_style = Gtk.RcStyle()
+        applet.modify_style(rc_style)
+        if type == mateapplet.COLOR_BACKGROUND:
+            applet.modify_bg(Gtk.StateType.NORMAL, color)
+        elif type == mateapplet.PIXMAP_BACKGROUND:
+            style = applet.style
+            style.bg_pixmap[Gtk.StateType.NORMAL] = pixmap
+            applet.set_style(style)
+        return
+
+    def readd_container (self, container):
+        self.applet.add(container)
+        container.show_all()
+
+    def __cleanup(self,event):
+        pass
+
+
+def applet_factory(applet, iid, data):
+    DockbarMateApplet(applet, iid)
+    return True
+
+MatePanelApplet.Applet.factory_main("DockbarXAppletFactory", True,
+                                    MatePanelApplet.Applet.__gtype__,
+                                    applet_factory, None)

@@ -75,8 +75,5 @@ A: For IntelliHide and Window Dodge to work, AWN Taskmanager applet has to be ac
 
 [^1]: Using [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin)
 
-[^2]: DockbarX doesn't work in mate 1.6 and later at the moment.
-
-
 
 
