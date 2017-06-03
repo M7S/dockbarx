@@ -205,12 +205,12 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
         xdg.DesktopEntry.DesktopEntry.__init__(self, file_name)
         # Quicklist
         self.quicklist = ODict()
-        if not "X-Ayatana-Desktop-Shortcuts" in self.content["Desktop Entry"]:
+        if not "Actions" in self.content["Desktop Entry"]:
             return
-        entries = self.content["Desktop Entry"]["X-Ayatana-Desktop-Shortcuts"]
+        entries = self.content["Desktop Entry"]["Actions"]
         entries = entries.split(";")
         for entry in entries:
-            sg = self.content.get("%s Shortcut Group" % entry)
+            sg = self.content.get("Desktop Action %s" % entry)
             if not sg:
                 continue
             lo = locale.getlocale()[0]
