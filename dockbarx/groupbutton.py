@@ -835,7 +835,7 @@ class Group(ListOfWindows):
         else:
             t = 1
         for window in self.get_minimized_windows():
-                window.unminimize(t)
+            window.wnck.unminimize(t)
         self.popup.hide()
 
     def __menu_change_identifier(self, widget=None, event=None):
