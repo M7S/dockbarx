@@ -23,20 +23,20 @@ import threading
 from dockbarx.applets import DockXApplet
 import weakref
 
-import pygtk
-pygtk.require("2.0")
-import gtk
-from gtk import gdk
-import gobject
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GObject
 
 #~ from awn.extras import _, awnlib, __version__
 
 import pygst
-pygst.require("0.10")
-import gst
+pyGst.require("0.10")
+from gi.repository import Gst
 
-gst_message_types = (gst.interfaces.MIXER_MESSAGE_MUTE_TOGGLED.value_nick,
-                     gst.interfaces.MIXER_MESSAGE_VOLUME_CHANGED.value_nick)
+gst_message_types = (Gst.interfaces.MIXER_MESSAGE_MUTE_TOGGLED.value_nick,
+                     Gst.interfaces.MIXER_MESSAGE_VOLUME_CHANGED.value_nick)
 
 # Interval in seconds between two successive reads of the current volume
 read_volume_interval = 0.5
@@ -73,11 +73,11 @@ no_mixer_message = _("Install the appropriate plug-ins for one or more of the fo
 no_devices_message = _("Could not find any devices.")
 
 def add_cell_renderer_text(combobox):
-    """Add a gtk.CellRendererText to the combobox. To be used if the combobox
-    has a gtk.ListStore model with a string as the first column.
+    """Add a Gtk.CellRendererText to the combobox. To be used if the combobox
+    has a Gtk.ListStore model with a string as the first column.
 
     """
-    text = gtk.CellRendererText()
+    text = Gtk.CellRendererText()
     combobox.pack_start(text, True)
     combobox.add_attribute(text, "text", 0)
 
@@ -182,9 +182,9 @@ class Timing:
                 return False
 
             if int(self.__seconds) == self.__seconds:
-                self.__timer_id = gobject.timeout_add_seconds(int(self.__seconds), self.__callback)
+                self.__timer_id = GObject.timeout_add_seconds(int(self.__seconds), self.__callback)
             else:
-                self.__timer_id = gobject.timeout_add(int(self.__seconds * 1000), self.__callback)
+                self.__timer_id = GObject.timeout_add(int(self.__seconds * 1000), self.__callback)
             return True
 
         def stop(self):
@@ -198,7 +198,7 @@ class Timing:
             if self.__timer_id is None:
                 return False
 
-            gobject.source_remove(self.__timer_id)
+            GObject.source_remove(self.__timer_id)
             self.__timer_id = None
             return True
 
@@ -245,7 +245,7 @@ class VolumeControlApplet:
             timing = Timing()
             self.message_delay_handler = timing.delay(self.backend.freeze_messages.clear, gstreamer_freeze_messages_interval, False)
 
-            prefs = gtk.Builder()
+            prefs = Gtk.Builder()
             prefs.add_from_file(ui_file)
             self.setup_main_dialog(prefs)
             self.setup_context_menu(prefs)
@@ -254,9 +254,9 @@ class VolumeControlApplet:
             #~ applet.connect("position-changed", lambda a, o: self.refresh_orientation())
 
     def icon_scroll_event_cb(self, widget, event):
-        if event.direction == gdk.SCROLL_UP:
+        if event.direction == Gdk.ScrollDirection.UP:
             self.backend.increase_volume()
-        elif event.direction == gdk.SCROLL_DOWN:
+        elif event.direction == Gdk.ScrollDirection.DOWN:
             self.backend.decrease_volume()
 
     def setup_main_dialog(self, prefs):
@@ -265,7 +265,7 @@ class VolumeControlApplet:
         self.volume_scale = prefs.get_object("hscale-volume")
         self.volume_scale.props.can_focus = False
 
-        self.volume_scale.add_mark(100, gtk.POS_BOTTOM, "<small>%s</small>" % "100%")
+        self.volume_scale.add_mark(100, Gtk.PositionType.BOTTOM, "<small>%s</small>" % "100%")
 
         self.volume_label = prefs.get_object("label-volume")
         self.mute_item = prefs.get_object("checkbutton-mute")
@@ -318,9 +318,9 @@ class VolumeControlApplet:
                 self.message_delay_handler.start()
 
     def volume_scale_scroll_event_cb(self, widget, event):
-        if event.direction == gdk.SCROLL_UP:
+        if event.direction == Gdk.ScrollDirection.UP:
             self.backend.increase_volume()
-        elif event.direction == gdk.SCROLL_DOWN:
+        elif event.direction == Gdk.ScrollDirection.DOWN:
             self.backend.decrease_volume()
         return True
 
@@ -328,25 +328,25 @@ class VolumeControlApplet:
         """Add "Open Volume Control" to the context menu.
 
         """
-        menu = gtk.Menu() #self.applet.dialog.menu
+        menu = Gtk.Menu() #self.applet.dialog.menu
 
-        volume_control_item = gtk.MenuItem(_("Open Volume Control"))
+        volume_control_item = Gtk.MenuItem(_("Open Volume Control"))
         volume_control_item.connect("activate", self.show_volume_control_cb)
         volume_control_item.show_all()
         menu.append(volume_control_item)
 
-        separator_item = gtk.SeparatorMenuItem()
+        separator_item = Gtk.SeparatorMenuItem()
         separator_item.show_all()
         menu.append(separator_item)
 
-        preference_item = gtk.MenuItem(_("Preference"))
+        preference_item = Gtk.MenuItem(_("Preference"))
         preference_item.connect("activate", self.show_preferences_cb)
         preference_item.show_all()
         menu.append(preference_item)
         # Set up preferences
-        self.dialog = gtk.Dialog(title=_("volume control"),
+        self.dialog = Gtk.Dialog(title=_("volume control"),
                             flags=0,
-                            buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
+                            buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE))
         self.dialog.connect("delete-event", lambda w, e: w.hide() or True)
         self.dialog.connect("response", lambda w, e: w.hide() or True)
         prefs.get_object("dialog-vbox").reparent(self.dialog.vbox)
@@ -513,7 +513,7 @@ class VolumeControlApplet:
 
     def refresh_orientation(self):
         rotate = self.theme == "Minimal" and self.applet.get_position() in ("left", "right")
-        self.applet.set_rotation(gdk.PIXBUF_ROTATE_CLOCKWISE if rotate else gdk.PIXBUF_ROTATE_NONE)
+        self.applet.set_rotation(Gdk.PIXBUF_ROTATE_CLOCKWISE if rotate else Gdk.PIXBUF_ROTATE_NONE)
 
     def refresh_mute_checkbox(self):
         """Update the state of the 'Mute' checkbox.
@@ -554,7 +554,7 @@ class GStreamerBackend:
 
         # Collect a set of possible mixers to use
         found_mixers = set()
-        for f in gst.registry_get_default().get_feature_list(gst.ElementFactory):
+        for f in Gst.registry_get_default().get_feature_list(Gst.ElementFactory):
             if f.get_name().endswith("mixer") and f.get_klass() == "Generic/Audio":
                 found_mixers.add(f.get_name())
 
@@ -578,15 +578,15 @@ class GStreamerBackend:
             volume_control_apps.insert(0, pa_control_app)
 
         # Set-up the necessary mechanism to receive volume/mute change updates
-        self.__mixer.set_state(gst.STATE_READY)
-        if self.__mixer.get_mixer_flags() & gst.interfaces.MIXER_FLAG_AUTO_NOTIFICATIONS:
-            bus = gst.Bus()
+        self.__mixer.set_state(Gst.State.READY)
+        if self.__mixer.get_mixer_flags() & Gst.interfaces.MIXER_FLAG_AUTO_NOTIFICATIONS:
+            bus = Gst.Bus()
             bus.add_signal_watch()
             bus.connect("message::element", self.message_element_cb)
             self.__mixer.set_bus(bus)
         else:
             parent.applet.timing.register(parent.refresh_icon, read_volume_interval)
-        self.__mixer.set_state(gst.STATE_NULL)
+        self.__mixer.set_state(Gst.State.NULL)
 
     def find_mixer_and_devices(self, names):
         """Return the first GStreamer mixer element and its list of devices
@@ -594,7 +594,7 @@ class GStreamerBackend:
 
         """
         for mixer_name in names:
-            mixer = gst.element_factory_make(mixer_name)
+            mixer = Gst.ElementFactory.make(mixer_name)
             devices = self.__find_devices(mixer)
 
             if len(devices) > 0:
@@ -604,7 +604,7 @@ class GStreamerBackend:
         """Return a list of devices found via the given GStreamer mixer element.
 
         """
-        if not isinstance(mixer, gst.interfaces.PropertyProbe):
+        if not isinstance(mixer, Gst.interfaces.PropertyProbe):
             raise RuntimeError(mixer.get_factory().get_name() + " cannot probe properties")
 
         occurrences = defaultdict(int)
@@ -614,8 +614,8 @@ class GStreamerBackend:
         for device in mixer.probe_get_values_name("device"):
             self.__init_mixer_device(mixer, device)
 
-            if not isinstance(mixer, gst.interfaces.Mixer) or len(self.get_mixer_tracks(mixer)) == 0:
-                mixer.set_state(gst.STATE_NULL)
+            if not isinstance(mixer, Gst.interfaces.Mixer) or len(self.get_mixer_tracks(mixer)) == 0:
+                mixer.set_state(Gst.State.NULL)
                 continue
 
             name = mixer.get_property("device-name")
@@ -631,13 +631,13 @@ class GStreamerBackend:
         """Set the mixer to use the given device name.
 
         """
-        mixer.set_state(gst.STATE_NULL)
+        mixer.set_state(Gst.State.NULL)
         mixer.set_property("device", device)
-        mixer.set_state(gst.STATE_READY)
+        mixer.set_state(Gst.State.READY)
 
     def message_element_cb(self, bus, message):
         if not self.freeze_messages.isSet() \
-            and message.type is gst.MESSAGE_ELEMENT and message.src is self.__mixer \
+            and message.type is Gst.MessageType.ELEMENT and message.src is self.__mixer \
             and message.structure["type"] in gst_message_types \
             and message.structure["track"] is self.__current_track:
                 self.__parent.refresh_icon()
@@ -647,10 +647,10 @@ class GStreamerBackend:
         at least one channel. Assumes the mixer has been initialized.
 
         """
-        assert mixer.get_state()[1] is gst.STATE_READY
+        assert mixer.get_state()[1] is Gst.State.READY
 
         def filter_track(track):
-            return bool(track.flags & gst.interfaces.MIXER_TRACK_OUTPUT) and track.num_channels > 0
+            return bool(track.flags & Gst.interfaces.MIXER_TRACK_OUTPUT) and track.num_channels > 0
         return filter(filter_track, mixer.list_tracks())
 
     def set_device(self, device_label):
@@ -713,7 +713,7 @@ class GStreamerBackend:
 
         """
         for track in self.__tracks:
-            if track.flags & gst.interfaces.MIXER_TRACK_MASTER:
+            if track.flags & Gst.interfaces.MIXER_TRACK_MASTER:
                 return track.label
         return self.__track_labels[0]
 
@@ -725,7 +725,7 @@ class GStreamerBackend:
         are muted.
 
         """
-        return bool(self.__current_track.flags & gst.interfaces.MIXER_TRACK_MUTE)
+        return bool(self.__current_track.flags & Gst.interfaces.MIXER_TRACK_MUTE)
 
     def set_mute(self, mute):
         self.__mixer.set_mute(self.__current_track, mute)
@@ -756,10 +756,10 @@ class GStreamerBackend:
         self.set_volume(max(0, self.get_volume() - volume_step))
 
 
-class MainDialog(gtk.Window):
+class MainDialog(Gtk.Window):
     def __init__(self, applet):
         self.applet_r = weakref.ref(applet)
-        gtk.Window.__init__(self)
+        GObject.GObject.__init__(self)
         self.set_decorated(False)
         self.set_skip_taskbar_hint(True)
         self.set_skip_pager_hint(True)
@@ -768,29 +768,29 @@ class MainDialog(gtk.Window):
 
     def show(self):
         self.is_shown = True
-        self.hide_sid = gobject.timeout_add(10, self.hide_on_outside_click)
-        return gtk.Window.show(self)
+        self.hide_sid = GObject.timeout_add(10, self.hide_on_outside_click)
+        return Gtk.Window.show(self)
 
     def hide(self):
         if self.hide_sid is not None:
-            gobject.source_remove(self.hide_sid)
+            GObject.source_remove(self.hide_sid)
             self.hide_sid = None
         self.is_shown = False
-        return gtk.Window.hide(self)
+        return Gtk.Window.hide(self)
         
     def hide_on_outside_click(self, *args):
         if self.is_shown == False:
             return False
-        #~ display = gtk.gdk.display_get_default()
+        #~ display = Gdk.Display.get_default()
         #~ pos = display.get_pointer()
         pos = self.window.get_pointer()
-        button_list = gtk.gdk.BUTTON1_MASK | gtk.gdk.BUTTON2_MASK | \
-                      gtk.gdk.BUTTON3_MASK | gtk.gdk.BUTTON4_MASK | \
-                      gtk.gdk.BUTTON5_MASK
+        button_list = Gdk.ModifierType.BUTTON1_MASK | Gdk.ModifierType.BUTTON2_MASK | \
+                      Gdk.ModifierType.BUTTON3_MASK | Gdk.ModifierType.BUTTON4_MASK | \
+                      Gdk.ModifierType.BUTTON5_MASK
         if not pos[2] & button_list:
             # No mouse button is pressed and less than 600 ms has passed.
             # Check again in 10 ms.
-            #~ gobject.timeout_add(10, self.__hide_if_not_hovered)
+            #~ GObject.timeout_add(10, self.__hide_if_not_hovered)
             return True
         a = self.get_allocation()
         if pos[0] >= 0 and pos[0] < a.width and \
@@ -806,15 +806,15 @@ class DbxVolumeApplet(DockXApplet):
 
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        self.icon = gtk.Image()
-        #~ self.icon.set_from_icon_name("cardapio-dark256", gtk.ICON_SIZE_DIALOG)
+        self.icon = Gtk.Image()
+        #~ self.icon.set_from_icon_name("cardapio-dark256", Gtk.IconSize.DIALOG)
         #~ self.icon.set_pixel_size(self.get_size())
         self.add(self.icon)
         self.icon.show()
         self.show()
         self.icon_states = {}
         self.icon_state = None
-        self.rotation = gdk.PIXBUF_ROTATE_NONE
+        self.rotation = Gdk.PIXBUF_ROTATE_NONE
 
         self.main_dialog = MainDialog(self) 
         self.vca = VolumeControlApplet(self)
@@ -833,15 +833,15 @@ class DbxVolumeApplet(DockXApplet):
     def refresh_icon(self):
         name = self.icon_states[self.icon_state]
         pb = self.theme.load_icon(name, self.get_size(), 0)
-        if self.rotation != gdk.PIXBUF_ROTATE_NONE:
+        if self.rotation != Gdk.PIXBUF_ROTATE_NONE:
             pb = pb.rotate_simple(self.rotation)
         self.icon.set_from_pixbuf(pb)
 
     def set_theme(self, name):
         if name is None:
-            self.theme = gtk.icon_theme_get_default()
+            self.theme = Gtk.IconTheme.get_default()
         else:
-            self.theme = gtk.IconTheme()
+            self.theme = Gtk.IconTheme()
             self.theme.prepend_search_path(moonbeam_theme_dir)
             self.theme.set_custom_theme(name)
         #~ if self.icon_state:
@@ -856,7 +856,7 @@ class DbxVolumeApplet(DockXApplet):
             # It is shown. Let's hide it.
             self.main_dialog.hide()
             return
-        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
+        mgeo = Gdk.Screen.get_default().get_monitor_geometry(
                                                             self.get_monitor())
         
         width, height = self.main_dialog.get_size()

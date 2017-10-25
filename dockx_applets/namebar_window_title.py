@@ -15,21 +15,21 @@
 #	You should have received a copy of the GNU General Public License
 #	along with Namebar.  If not, see <http://www.gnu.org/licenses/>.
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import pango
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+from gi.repository import Pango
 import sys
 import os
-import wnck
-import gconf
+from gi.repository import Wnck
+from gi.repository import GConf
 from tarfile import open as taropen
 from dockbarx.applets import DockXApplet, DockXAppletDialog
 
 
 VERSION = '0.1'
 
-GCONF_CLIENT = gconf.client_get_default()
+GCONF_CLIENT = GConf.Client.get_default()
 GCONF_DIR = '/apps/namebar'
 
 DEFAULT_SETTINGS = { 'show_title':'maximized',
@@ -45,9 +45,9 @@ settings = DEFAULT_SETTINGS.copy()
 PREFDIALOG = None # Warning non-constant!
 
 try:
-    action_minimize = wnck.WINDOW_ACTION_MINIMIZE
-    action_unminimize = wnck.WINDOW_ACTION_UNMINIMIZE
-    action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
+    action_minimize = Wnck.WindowType.ACTION_MINIMIZE
+    action_unminimize = Wnck.WindowType.ACTION_UNMINIMIZE
+    action_maximize = Wnck.WindowType.ACTION_MAXIMIZE
 except:
     action_minimize = 1 << 12
     action_unminimize = 1 << 13
@@ -62,7 +62,7 @@ class AboutDialog():
         else:
             AboutDialog.__instance.about.present()
             return
-        self.about = gtk.AboutDialog()
+        self.about = Gtk.AboutDialog()
         self.about.set_name("Namebar Applet")
         self.about.set_version(VERSION)
         self.about.set_copyright("Copyright (c) 2009, 2010 Matias S\xc3\xa4rs")
@@ -85,7 +85,7 @@ class PrefDialog():
             return
 
         PREFDIALOG = self
-        self.dialog = gtk.Dialog("NameBar preferences")
+        self.dialog = Gtk.Dialog("NameBar preferences")
         self.dialog.connect("response",self.dialog_close)
 
         self.namebar= namebar
@@ -94,41 +94,41 @@ class PrefDialog():
             ca = self.dialog.get_content_area()
         except:
             ca = self.dialog.vbox
-        l1 = gtk.Label("<big>Show window title</big>")
+        l1 = Gtk.Label(label="<big>Show window title</big>")
         l1.set_alignment(0,0.5)
         l1.set_use_markup(True)
         ca.pack_start(l1,False)
 
-        self.rb1_1 = gtk.RadioButton(None,"Show window title for the active window")
+        self.rb1_1 = Gtk.RadioButton(None,"Show window title for the active window")
         self.rb1_1.connect("toggled",self.rb_toggled,"rb1_always")
-        self.rb1_2 = gtk.RadioButton(self.rb1_1,"Show window title for the topmost maximized window")
+        self.rb1_2 = Gtk.RadioButton(self.rb1_1,"Show window title for the topmost maximized window")
         self.rb1_2.connect("toggled",self.rb_toggled,"rb1_maximized")
         ca.pack_start(self.rb1_1,False)
         ca.pack_start(self.rb1_2,False)
 
-        l1 = gtk.Label("<big>Size</big>")
+        l1 = Gtk.Label(label="<big>Size</big>")
         l1.set_alignment(0,0.5)
         l1.set_use_markup(True)
         ca.pack_start(l1,False)
 
-        self.expand_cb = gtk.CheckButton('Expand NameBar')
+        self.expand_cb = Gtk.CheckButton('Expand NameBar')
         self.expand_cb.connect('toggled', self.checkbutton_toggled, 'expand')
         ca.pack_start(self.expand_cb, False)
 
-        spinbox = gtk.HBox()
-        spinlabel = gtk.Label("Size:")
+        spinbox = Gtk.HBox()
+        spinlabel = Gtk.Label(label="Size:")
         spinlabel.set_alignment(0,0.5)
-        adj = gtk.Adjustment(0, 100, 2000, 1, 50)
-        self.size_spin = gtk.SpinButton(adj, 0.5, 0)
+        adj = Gtk.Adjustment(0, 100, 2000, 1, 50)
+        self.size_spin = Gtk.SpinButton(adj, 0.5, 0)
         adj.connect("value_changed", self.spin_changed, self.size_spin)
         spinbox.pack_start(spinlabel, False)
         spinbox.pack_start(self.size_spin, False)
         ca.pack_start(spinbox, False)
         
-        frame = gtk.Frame('Text')
+        frame = Gtk.Frame('Text')
         frame.set_border_width(5)
-        vbox = gtk.VBox()
-        table = gtk.Table(True)
+        vbox = Gtk.VBox()
+        table = Gtk.Table(True)
         # A directory of combobox names and the name of corresponding setting
         self.color_labels_and_settings = {'Active': "active",
                                           'Passive': "passive",}
@@ -139,47 +139,47 @@ class PrefDialog():
         self.bold_cb = {}
         for i in range(len(color_labels)):
             text = color_labels[i]
-            label = gtk.Label(text)
+            label = Gtk.Label(label=text)
             label.set_alignment(1,0.5)
-            self.color_buttons[text] = gtk.ColorButton()
+            self.color_buttons[text] = Gtk.ColorButton()
             self.color_buttons[text].set_title(text)
             self.color_buttons[text].connect("color-set",  self.color_set, text)
-            self.clear_buttons[text] = gtk.Button()
-            image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,gtk.ICON_SIZE_SMALL_TOOLBAR)
+            self.clear_buttons[text] = Gtk.Button()
+            image = Gtk.Image.new_from_stock(Gtk.STOCK_CLEAR,Gtk.IconSize.SMALL_TOOLBAR)
             self.clear_buttons[text].add(image)
             self.clear_buttons[text].connect("clicked", self.color_reset, text)
 
-            self.bold_cb[text] = gtk.CheckButton('Bold')
+            self.bold_cb[text] = Gtk.CheckButton('Bold')
             self.bold_cb[text].connect('toggled', self.checkbutton_toggled, \
                                        '%s_bold'%self.color_labels_and_settings[text])
 
-            table.attach(label, 0, 1, i, i + 1, xoptions = gtk.FILL, xpadding = 5)
+            table.attach(label, 0, 1, i, i + 1, xoptions = Gtk.AttachOptions.FILL, xpadding = 5)
             table.attach(self.color_buttons[text], 1, 2, i, i + 1)
-            table.attach(self.clear_buttons[text], 2, 3, i, i + 1, xoptions = gtk.FILL)
-            table.attach(self.bold_cb[text], 3, 4, i, i + 1, xoptions = gtk.FILL)
+            table.attach(self.clear_buttons[text], 2, 3, i, i + 1, xoptions = Gtk.AttachOptions.FILL)
+            table.attach(self.bold_cb[text], 3, 4, i, i + 1, xoptions = Gtk.AttachOptions.FILL)
         table.set_border_width(5)
-        vbox.pack_start(table)
+        vbox.pack_start(table, True, True, 0)
 
-        alignment = gtk.Alignment(0.5 ,0.5, 0, 0)
+        alignment = Gtk.Alignment.new(0.5 ,0.5, 0, 0)
         alignment.set_padding(2, 5, 0,0)
-        hbox = gtk.HBox()
-        label = gtk.Label(_("Alignment: "))
+        hbox = Gtk.HBox()
+        label = Gtk.Label(label=_("Alignment: "))
         hbox.pack_start(label, False)
-        self.al_cbt = gtk.combo_box_new_text()
+        self.al_cbt = Gtk.ComboBoxText()
         alignments = [_("left"),_("centered"),_("right")]
         for al in alignments:
             self.al_cbt.append_text(al)
         self.al_cbt.connect("changed",  self.al_cbt_changed)
         hbox.pack_start(self.al_cbt, False)
         alignment.add(hbox)
-        vbox.pack_start(alignment)
+        vbox.pack_start(alignment, True, True, 0)
         frame.add(vbox)
         ca.pack_start(frame, False, padding=5)
 
 
         self.update()
 
-        self.dialog.add_button(gtk.STOCK_CLOSE,gtk.RESPONSE_CLOSE)
+        self.dialog.add_button(Gtk.STOCK_CLOSE,Gtk.ResponseType.CLOSE)
         self.dialog.show_all()
 
     def update(self):
@@ -198,7 +198,7 @@ class PrefDialog():
 
         # Text style
         for name, setting_base in self.color_labels_and_settings.items():
-            color = gtk.gdk.color_parse(settings[setting_base+'_color'])
+            color = Gdk.color_parse(settings[setting_base+'_color'])
             self.color_buttons[name].set_color(color)
             if settings.has_key(setting_base+"_alpha"):
                 alpha = settings[setting_base+"_alpha"] * 256
@@ -248,7 +248,7 @@ class PrefDialog():
 
     def color_set(self, button, text):
         # Read the value from color (and aplha) and write
-        # it as 8-bit/channel hex string for gconf.
+        # it as 8-bit/channel hex string for GConf.
         # (Alpha is written like int (0-255).)
         setting_base = self.color_labels_and_settings[text]
         color_string = settings[setting_base+"_color"]
@@ -284,8 +284,8 @@ class WindowTitleApplet(DockXApplet):
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
 
-        self.menu = gtk.Menu()
-        preferences_item = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+        self.menu = Gtk.Menu()
+        preferences_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
         preferences_item.connect('activate', self.open_preferences)
         self.menu.insert(preferences_item, 0)
         self.menu.show_all()
@@ -296,8 +296,8 @@ class WindowTitleApplet(DockXApplet):
         self.aw_state_handler = None
         self.container = None
         
-        #~ wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
-        self.screen = wnck.screen_get_default()
+        #~ Wnck.set_client_type(Wnck.CLIENT_TYPE_PAGER)
+        self.screen = Wnck.Screen.get_default()
         self.screen.force_update()
 
         #--- Gconf settings
@@ -315,13 +315,13 @@ class WindowTitleApplet(DockXApplet):
                     gconf_set[type(value)](GCONF_DIR + '/' + name , value)
                 else:
                     settings[name] = gc_value
-        GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
+        GCONF_CLIENT.add_dir(GCONF_DIR, GConf.ClientPreloadType.PRELOAD_NONE)
         GCONF_CLIENT.notify_add(GCONF_DIR, self.on_gconf_changed, None)
         
         self.window_state = 'active'
 
-        self.label = gtk.Label()
-        self.label_box = gtk.EventBox()
+        self.label = Gtk.Label()
+        self.label_box = Gtk.EventBox()
         self.label_box.set_visible_window(False)
         self.label_box.add(self.label)
         self.label_box.connect("button-press-event",self.on_label_press_event)
@@ -343,13 +343,13 @@ class WindowTitleApplet(DockXApplet):
             self.remove(self.container)
             self.container.destroy()
         if self.get_position() in ("left", "right"):
-            self.container = gtk.VBox()
+            self.container = Gtk.VBox()
             self.label.set_angle(270)
-            self.label.set_ellipsize(pango.ELLIPSIZE_NONE)
+            self.label.set_ellipsize(Pango.EllipsizeMode.NONE)
         else:
-            self.container = gtk.HBox()
+            self.container = Gtk.HBox()
             self.label.set_angle(0)
-            self.label.set_ellipsize(pango.ELLIPSIZE_END)
+            self.label.set_ellipsize(Pango.EllipsizeMode.END)
                 
         self.container.set_spacing(0)
         self.resize()
@@ -417,14 +417,14 @@ class WindowTitleApplet(DockXApplet):
         and not self.window_state == 'passive':
             self.window_state = 'passive'
 
-        attr_list = pango.AttrList()
+        attr_list = Pango.AttrList()
         if settings['%s_bold'%self.window_state]:
-            attr_list.insert(pango.AttrWeight(pango.WEIGHT_BOLD, 0, 300))
+            attr_list.insert(Pango.AttrWeight(Pango.Weight.BOLD, 0, 300))
         color = settings['%s_color'%self.window_state]
         r = int(color[1:3], 16)*256
         g = int(color[3:5], 16)*256
         b = int(color[5:7], 16)*256
-        attr_list.insert(pango.AttrForeground(r, g, b, 0, 300))
+        attr_list.insert(Pango.AttrForeground(r, g, b, 0, 300))
         self.label.set_attributes(attr_list)
 
     def show_none(self):
@@ -444,7 +444,7 @@ class WindowTitleApplet(DockXApplet):
         if self.active_window != None \
         and settings['show_title'] == 'always' \
         and not self.active_window.is_skip_tasklist() \
-        and (self.active_window.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
+        and (self.active_window.get_window_type() in [Wnck.WindowType.NORMAL,Wnck.WindowType.DIALOG]):
                 self.set_shown_window(self.active_window)
                 return True
         if settings['show_title'] == 'maximized':
@@ -453,7 +453,7 @@ class WindowTitleApplet(DockXApplet):
                 if windows_stacked[-n].is_maximized() \
                 and not windows_stacked[-n].is_minimized() \
                 and not windows_stacked[-n].is_skip_tasklist()\
-                and (windows_stacked[-n].get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
+                and (windows_stacked[-n].get_window_type() in [Wnck.WindowType.NORMAL,Wnck.WindowType.DIALOG]):
                     self.set_shown_window(windows_stacked[-n])
                     return True
         # No window found
@@ -477,8 +477,8 @@ class WindowTitleApplet(DockXApplet):
         self.active_window = screen.get_active_window()
         if self.active_window != None and \
            not self.active_window.is_skip_tasklist() and \
-           self.active_window.get_window_type() in [wnck.WINDOW_NORMAL,
-                                                    wnck.WINDOW_DIALOG]:
+           self.active_window.get_window_type() in [Wnck.WindowType.NORMAL,
+                                                    Wnck.WindowType.DIALOG]:
             self.aw_state_handler = self.active_window.connect('state-changed', self.on_active_window_state_changed)
         self.find_window_to_show()
 

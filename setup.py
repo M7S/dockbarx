@@ -1,8 +1,8 @@
 #!/usr/bin/python2
 
-#   groupbutton.py
+#   setup.py
 #
-#	Copyright 2010 Matias Sars
+#	Copyright 2010- Matias Sars
 #
 #	DockbarX is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import msgfmt
 import os
 import sys
 
-VERSION = "0.92"
+VERSION = "0.92-gtk3alpha"
 
 class build_trans(cmd.Command):
     description = "Compile .po files into .mo files"
@@ -104,7 +104,7 @@ class install_data(_install_data):
                 files.append(fpath)
         if files:
             self.data_files.append((os.path.join(install_path, path), files))
-                
+
 
 cmdclass = {
     "build": build,
@@ -136,6 +136,7 @@ data_files=[
             ("/usr/lib/bonobo/servers", ["GNOME_DockBarXApplet.server"]),
             ("/usr/share/applications/", ["dbx_preference.desktop"]),
             ("/usr/share/applications/", ["DockX.desktop"]),
+            ("/usr/share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml"]),
          ]
 
 setup(name="Dockbarx",
@@ -151,6 +152,7 @@ setup(name="Dockbarx",
 
 
 if len(sys.argv) == 2 and sys.argv[1] == "install":
+    os.system("glib-compile-schemas /usr/share/glib-2.0/schemas")
     if os.path.exists("/usr/bin/dockbarx.py"):
         # Remove old dockbarx.py so that it isn't imported
         # instead of the package dockbarx when dockbarx is run.

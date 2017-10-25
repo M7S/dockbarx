@@ -15,20 +15,20 @@
 #	You should have received a copy of the GNU General Public License
 #	along with Namebar.  If not, see <http://www.gnu.org/licenses/>.
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import pango
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+from gi.repository import Pango
 import sys
 import os
-import wnck
-import gconf
+from gi.repository import Wnck
+from gi.repository import GConf
 from tarfile import open as taropen
 from dockbarx.applets import DockXApplet, DockXAppletDialog
 
 VERSION = '0.1'
 
-GCONF_CLIENT = gconf.client_get_default()
+GCONF_CLIENT = GConf.Client.get_default()
 GCONF_DIR = '/apps/namebar'
 
 DEFAULT_SETTINGS = { 'theme': 'Dust-ish',
@@ -48,9 +48,9 @@ settings = DEFAULT_SETTINGS.copy()
 PREFDIALOG = None # Warning non-constant!
 
 try:
-    action_minimize = wnck.WINDOW_ACTION_MINIMIZE
-    action_unminimize = wnck.WINDOW_ACTION_UNMINIMIZE
-    action_maximize = wnck.WINDOW_ACTION_MAXIMIZE
+    action_minimize = Wnck.WindowType.ACTION_MINIMIZE
+    action_unminimize = Wnck.WindowType.ACTION_UNMINIMIZE
+    action_maximize = Wnck.WindowType.ACTION_MAXIMIZE
 except:
     action_minimize = 1 << 12
     action_unminimize = 1 << 13
@@ -65,7 +65,7 @@ class AboutDialog():
         else:
             AboutDialog.__instance.about.present()
             return
-        self.about = gtk.AboutDialog()
+        self.about = Gtk.AboutDialog()
         self.about.set_name("Namebar Applet")
         self.about.set_version(VERSION)
         self.about.set_copyright("Copyright (c) 2009, 2010 Matias S\xc3\xa4rs")
@@ -88,7 +88,7 @@ class PrefDialog():
             return
 
         PREFDIALOG = self
-        self.dialog = gtk.Dialog("WindowButtonApplet preferences")
+        self.dialog = Gtk.Dialog("WindowButtonApplet preferences")
         self.dialog.connect("response",self.dialog_close)
 
         self.namebar= namebar
@@ -97,59 +97,59 @@ class PrefDialog():
             ca = self.dialog.get_content_area()
         except:
             ca = self.dialog.vbox
-        l1 = gtk.Label("<big>Behavior</big>")
+        l1 = Gtk.Label(label="<big>Behavior</big>")
         l1.set_alignment(0,0.5)
         l1.set_use_markup(True)
         ca.pack_start(l1,False)
 
-        self.rb1_1 = gtk.RadioButton(None,"Show buttons for the active window")
+        self.rb1_1 = Gtk.RadioButton(None,"Show buttons for the active window")
         self.rb1_1.connect("toggled",self.rb_toggled,"rb1_always")
-        self.rb1_2 = gtk.RadioButton(self.rb1_1,"Show buttons for the topmost maximized window")
+        self.rb1_2 = Gtk.RadioButton(self.rb1_1,"Show buttons for the topmost maximized window")
         self.rb1_2.connect("toggled",self.rb_toggled,"rb1_maximized")
         ca.pack_start(self.rb1_1,False)
         ca.pack_start(self.rb1_2,False)
 
-        l1 = gtk.Label("<big>Layout</big>")
+        l1 = Gtk.Label(label="<big>Layout</big>")
         l1.set_alignment(0,0.5)
         l1.set_use_markup(True)
         ca.pack_start(l1,False)
 
-        hbox = gtk.HBox()
-        ca.pack_start(hbox)
-        self.use_custom_layout_cb = gtk.CheckButton("Use custom button layout")
+        hbox = Gtk.HBox()
+        ca.pack_start(hbox, True, True, 0)
+        self.use_custom_layout_cb = Gtk.CheckButton("Use custom button layout")
         self.use_custom_layout_cb.connect("toggled", self.checkbutton_toggled, "use_custom_layout")
-        hbox.pack_start(self.use_custom_layout_cb)
-        self.custom_layout_entry = gtk.Entry()
-        hbox.pack_start(self.custom_layout_entry)
-        self.custom_layout_button = gtk.Button()
-        image = gtk.image_new_from_stock(gtk.STOCK_APPLY,
-                                         gtk.ICON_SIZE_SMALL_TOOLBAR)
+        hbox.pack_start(self.use_custom_layout_cb, True, True, 0)
+        self.custom_layout_entry = Gtk.Entry()
+        hbox.pack_start(self.custom_layout_entry, True, True, 0)
+        self.custom_layout_button = Gtk.Button()
+        image = Gtk.Image.new_from_stock(Gtk.STOCK_APPLY,
+                                         Gtk.IconSize.SMALL_TOOLBAR)
         self.custom_layout_button.add(image)
         self.custom_layout_button.connect("clicked", self.set_custom_layout)
-        hbox.pack_start(self.custom_layout_button)
+        hbox.pack_start(self.custom_layout_button, True, True, 0)
 
         #Themes
-        hbox = gtk.HBox()
-        label = gtk.Label('Theme:')
+        hbox = Gtk.HBox()
+        label = Gtk.Label(label='Theme:')
         label.set_alignment(1,0.5)
         themes = self.find_themes()
-        self.theme_combo = gtk.combo_box_new_text()
+        self.theme_combo = Gtk.ComboBoxText()
         for theme in themes.keys():
                 self.theme_combo.append_text(theme)
         self.theme_combo.connect('changed', self.cb_changed)
-        button = gtk.Button()
-        image = gtk.image_new_from_stock(gtk.STOCK_REFRESH, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        button = Gtk.Button()
+        image = Gtk.Image.new_from_stock(Gtk.STOCK_REFRESH, Gtk.IconSize.SMALL_TOOLBAR)
         button.add(image)
         button.connect("clicked", self.change_theme)
         hbox.pack_start(label, False)
         hbox.pack_start(self.theme_combo, False)
         hbox.pack_start(button, False)
-        ca.pack_start(hbox)
+        ca.pack_start(hbox, True, True, 0)
 
 
         self.update()
 
-        self.dialog.add_button(gtk.STOCK_CLOSE,gtk.RESPONSE_CLOSE)
+        self.dialog.add_button(Gtk.STOCK_CLOSE,Gtk.ResponseType.CLOSE)
         self.dialog.show_all()
 
     def update(self):
@@ -220,9 +220,9 @@ class PrefDialog():
                 name = theme_path.split('/')[-1][:-7]
                 themes[name] = theme_path
         if not themes:
-            md = gtk.MessageDialog(None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+            md = Gtk.MessageDialog(None,
+                Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
                 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
             md.run()
             md.destroy()
@@ -241,7 +241,7 @@ class Theme():
                 # Try loading the pixbuf to if everything is OK
                 f = tar.extractfile('active/%s_normal.png'%button)
                 buffer=f.read()
-                pixbuf_loader=gtk.gdk.PixbufLoader()
+                pixbuf_loader=GdkPixbuf.PixbufLoader()
                 pixbuf_loader.write(buffer)
                 pixbuf_loader.close()
                 f.close()
@@ -309,7 +309,7 @@ class Theme():
     def load_pixbuf(self, tar, name):
         f = tar.extractfile(name)
         buffer=f.read()
-        pixbuf_loader=gtk.gdk.PixbufLoader()
+        pixbuf_loader=GdkPixbuf.PixbufLoader()
         pixbuf_loader.write(buffer)
         pixbuf_loader.close()
         f.close()
@@ -324,8 +324,8 @@ class WindowButtonApplet(DockXApplet):
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
 
-        self.menu = gtk.Menu()
-        preferences_item = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+        self.menu = Gtk.Menu()
+        preferences_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
         preferences_item.connect('activate', self.open_preferences)
         self.menu.insert(preferences_item, 0)
         self.menu.show_all()
@@ -335,8 +335,8 @@ class WindowButtonApplet(DockXApplet):
         self.active_window = None
         self.aw_state_handler = None
         
-        #~ wnck.set_client_type(wnck.CLIENT_TYPE_PAGER)
-        self.screen = wnck.screen_get_default()
+        #~ Wnck.set_client_type(Wnck.CLIENT_TYPE_PAGER)
+        self.screen = Wnck.Screen.get_default()
         self.screen.force_update()
 
         #--- Gconf settings
@@ -354,7 +354,7 @@ class WindowButtonApplet(DockXApplet):
                     gconf_set[type(value)](GCONF_DIR + '/' + name , value)
                 else:
                     settings[name] = gc_value
-        GCONF_CLIENT.add_dir(GCONF_DIR, gconf.CLIENT_PRELOAD_NONE)
+        GCONF_CLIENT.add_dir(GCONF_DIR, GConf.ClientPreloadType.PRELOAD_NONE)
         GCONF_CLIENT.notify_add(GCONF_DIR, self.on_gconf_changed, None)
 
         try:
@@ -364,14 +364,14 @@ class WindowButtonApplet(DockXApplet):
             self.button_layout = "menu:minimize,maximize,close"
         else:
             GCONF_CLIENT.add_dir("/apps/metacity/general",
-                                 gconf.CLIENT_PRELOAD_NONE)
+                                 GConf.ClientPreloadType.PRELOAD_NONE)
             GCONF_CLIENT.notify_add("/apps/metacity/general/button_layout",
                                     self.on_button_layout_changed)
                                     
         self.window_state = 'active'
         self.max_icon_state = 'restore'
         
-        self.container = gtk.HBox()
+        self.container = Gtk.HBox()
         self.container.set_spacing(0)
         self.container.show()
         self.add(self.container)
@@ -398,27 +398,27 @@ class WindowButtonApplet(DockXApplet):
 
         self.pixbufs = self.theme.get_pixbufs()
 
-        self.minimize_button = gtk.EventBox()
+        self.minimize_button = Gtk.EventBox()
         self.minimize_button.set_visible_window(False)
-        self.minimize_image = gtk.image_new_from_pixbuf(self.pixbufs['minimize_normal_active'])
+        self.minimize_image = Gtk.image_new_from_pixbuf(self.pixbufs['minimize_normal_active'])
         self.minimize_button.add(self.minimize_image)
         self.minimize_button.connect("enter-notify-event",self.on_button_mouse_enter)
         self.minimize_button.connect("leave-notify-event",self.on_button_mouse_leave)
         self.minimize_button.connect("button-release-event",self.on_button_release_event)
         self.minimize_button.connect("button-press-event",self.on_button_press_event)
 
-        self.maximize_button = gtk.EventBox()
+        self.maximize_button = Gtk.EventBox()
         self.maximize_button.set_visible_window(False)
-        self.maximize_image = gtk.image_new_from_pixbuf(self.pixbufs['maximize_normal_active'])
+        self.maximize_image = Gtk.image_new_from_pixbuf(self.pixbufs['maximize_normal_active'])
         self.maximize_button.add(self.maximize_image)
         self.maximize_button.connect("enter-notify-event",self.on_button_mouse_enter)
         self.maximize_button.connect("leave-notify-event",self.on_button_mouse_leave)
         self.maximize_button.connect("button-release-event",self.on_button_release_event)
         self.maximize_button.connect("button-press-event",self.on_button_press_event)
 
-        self.close_button = gtk.EventBox()
+        self.close_button = Gtk.EventBox()
         self.close_button.set_visible_window(False)
-        self.close_image = gtk.image_new_from_pixbuf(self.pixbufs['close_normal_active'])
+        self.close_image = Gtk.image_new_from_pixbuf(self.pixbufs['close_normal_active'])
         self.close_button.add(self.close_image)
         self.close_button.connect("enter-notify-event",self.on_button_mouse_enter)
         self.close_button.connect("leave-notify-event",self.on_button_mouse_leave)
@@ -477,9 +477,9 @@ class WindowButtonApplet(DockXApplet):
                 name = theme_path.split('/')[-1][:-7]
                 themes[name] = theme_path
         if not themes:
-            md = gtk.MessageDialog(None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+            md = Gtk.MessageDialog(None,
+                Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
                 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
             md.run()
             md.destroy()
@@ -525,7 +525,7 @@ class WindowButtonApplet(DockXApplet):
             self.repack()
 
     def on_button_layout_changed(self, client, connection_id, entry, args):
-        if (entry.get_value().type == gconf.VALUE_STRING):
+        if (entry.get_value().type == GConf.ValueType.STRING):
             new_setting = entry.get_value().get_string()
         if (new_setting != self.button_layout):
             self.button_layout = new_setting
@@ -589,7 +589,7 @@ class WindowButtonApplet(DockXApplet):
         if self.active_window != None \
         and settings['show_title'] == 'always' \
         and not self.active_window.is_skip_tasklist() \
-        and (self.active_window.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
+        and (self.active_window.get_window_type() in [Wnck.WindowType.NORMAL,Wnck.WindowType.DIALOG]):
                 self.set_shown_window(self.active_window)
                 return True
         if settings['show_title'] == 'maximized':
@@ -598,7 +598,7 @@ class WindowButtonApplet(DockXApplet):
                 if windows_stacked[-n].is_maximized() \
                 and not windows_stacked[-n].is_minimized() \
                 and not windows_stacked[-n].is_skip_tasklist()\
-                and (windows_stacked[-n].get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
+                and (windows_stacked[-n].get_window_type() in [Wnck.WindowType.NORMAL,Wnck.WindowType.DIALOG]):
                     self.set_shown_window(windows_stacked[-n])
                     return True
         # No window found
@@ -613,7 +613,7 @@ class WindowButtonApplet(DockXApplet):
             self.aw_state_handler = None
         self.active_window = screen.get_active_window()
         if self.active_window != None and not self.active_window.is_skip_tasklist() \
-        and (self.active_window.get_window_type() in [wnck.WINDOW_NORMAL,wnck.WINDOW_DIALOG]):
+        and (self.active_window.get_window_type() in [Wnck.WindowType.NORMAL,Wnck.WindowType.DIALOG]):
             self.aw_state_handler = self.active_window.connect('state-changed', self.on_active_window_state_changed)
         self.find_window_to_show()
 

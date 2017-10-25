@@ -20,12 +20,12 @@
 import awn
 import dockbarx.dockbar
 from dockbarx.common import Globals
-import gobject
+from gi.repository import GObject
 import weakref
 import time
 import sys
-import gtk
-import wnck
+from gi.repository import Gtk
+from gi.repository import Wnck
 import dbus
 import dbus.service
 
@@ -50,40 +50,39 @@ class DockBarApp (awn.AppletSimple):
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
         self.old_child = self.get_child()
-        self.wnck_screen = wnck.screen_get_default()
-        gdk_screen = gtk.gdk.screen_get_default()
+        self.wnck_screen = Wnck.Screen.get_default()
+        gdk_screen = Gdk.Screen.get_default()
         self.icon = self.get_icon()
         self.remove(self.old_child)
-        self.alignment = gtk.Alignment()
+        self.alignment = Gtk.Alignment.new()
         self.add(self.alignment)
         self.alignment.show()
         self.db = dockbarx.dockbar.DockBar(self)
         self.db.set_parent_window_reporting(True)
         self.db.load()
-
+        
         # Inactive dockbarx's size overflow management
         self.db.set_max_size(3000)
-
-        if self.get_pos_type() == gtk.POS_RIGHT:
+        
+        if self.get_pos_type() == Gtk.PositionType.RIGHT:
             self.db.set_orient("right")
             self.alignment.set(1, 0, 0, 0)
-        elif self.get_pos_type() == gtk.POS_TOP:
+        elif self.get_pos_type() == Gtk.PositionType.TOP:
             self.db.set_orient("up")
             self.alignment.set(0, 0, 0, 0)
-        elif self.get_pos_type() == gtk.POS_LEFT:
+        elif self.get_pos_type() == Gtk.PositionType.LEFT:
             self.db.set_orient("left")
             self.alignment.set(0, 0, 0, 0)
         else:
             self.db.set_orient("down")
             self.alignment.set(0, 1, 0, 0)
         container = self.db.get_container()
-        if self.db.get_orient() in ("down", "up"):
-            container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 5)
-        else:
-            container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 5, -1)
+        #~ if self.db.get_orient() in ("down", "up"):
+            #~ container.set_size_request(-1, self.get_size() + self.icon.get_offset() + 5)
+        #~ else:
+            #~ container.set_size_request(self.get_size() + self.icon.get_offset() + 5, -1)
         self.alignment.add(container)
+        self.db.set_size(self.get_size() + self.icon.get_offset() + 5)
         self.connect("size-changed", self.__on_size_changed)
         self.connect("offset-changed", self.__on_size_changed)
         self.connect("position-changed", self.__on_position_changed)
@@ -101,38 +100,36 @@ class DockBarApp (awn.AppletSimple):
 
     def __on_size_changed(self, *args):
         container = self.db.get_container()
-        if self.db.get_orient() in ("down", "up"):
-            container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 5)
-        else:
-            container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 5, -1)
+        #~ if self.db.get_orient() in ("down", "up"):
+            #~ container.set_size_request(-1, self.get_size() + self.icon.get_offset() + 5)
+        #~ else:
+            #~ container.set_size_request(self.get_size() + self.icon.get_offset() + 5, -1)
+        self.db.set_size(self.get_size() + self.icon.get_offset() + 5)
         self.__compute_should_autohide()
 
     def __on_position_changed(self, applet, position):
         self.alignment.remove(self.db.get_container())
-        if self.get_pos_type() == gtk.POS_RIGHT:
+        if self.get_pos_type() == Gtk.PositionType.RIGHT:
             self.db.set_orient("right")
             self.alignment.set(1, 0, 0, 0)
-        elif self.get_pos_type() == gtk.POS_TOP:
+        elif self.get_pos_type() == Gtk.PositionType.TOP:
             self.db.set_orient("up")
             self.alignment.set(0, 0, 0, 0)
-        elif self.get_pos_type() == gtk.POS_LEFT:
+        elif self.get_pos_type() == Gtk.PositionType.LEFT:
             self.db.set_orient("left")
             self.alignment.set(0, 0, 0, 0)
         else:
             self.db.set_orient("down")
             self.alignment.set(0, 1, 0, 0)
         container = self.db.get_container()
-        if self.db.get_orient() in ("up", "down"):
-            container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 5)
-        else:
-            container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 5, -1)
+        #~ if self.db.get_orient() in ("up", "down"):
+            #~ container.set_size_request(-1, self.get_size() + self.icon.get_offset() + 5)
+        #~ else:
+            #~ container.set_size_request(self.get_size() + self.icon.get_offset() + 5, -1)
         self.alignment.add(container)
         container.show_all()
         self.show()
+        self.db.set_size(self.get_size() + self.icon.get_offset() + 5)
         self.__compute_should_autohide()
 
     #### Autohide stuff
@@ -145,7 +142,7 @@ class DockBarApp (awn.AppletSimple):
         self.__calc_border_distance(window)
         if self.db_loaded and reset_should_autohide:
             self.__compute_should_autohide()
-
+            
     def remove_window(self, window, reset_should_autohide=True, forced=False):
         if window in self.border_distances:
             del self.border_distances[window]
@@ -171,7 +168,7 @@ class DockBarApp (awn.AppletSimple):
     def __on_window_state_changed(self, wnck_window,changed_mask, new_state):
         if WNCK_WINDOW_STATE_MINIMIZED & changed_mask:
             self.__compute_should_autohide()
-
+        
     def __on_window_geometry_changed(self, window):
         if time.time() - self.geometry_time < 0.12 and \
            window == self.last_geometry_window():
@@ -188,7 +185,7 @@ class DockBarApp (awn.AppletSimple):
 
     def __on_behavior_changed(self, *args):
         self.__compute_should_autohide()
-
+        
     def __calc_border_distance(self, window, reset_should_autohide=False):
         bd = {"left": 1000, "right": 1000, "top": 1000, "bottom": 1000}
         x, y, w, h = window.get_geometry()
@@ -239,31 +236,30 @@ class DockBarApp (awn.AppletSimple):
     def get_monitor(self):
         screen = self.get_screen()
         if screen is None:
-            screen = gtk.gdk.screen_get_default()
+            screen = Gdk.Screen.get_default()
         return screen.get_monitor_at_window(self.window)
-
+        
     def get_monitor_geometry(self):
         screen = self.get_screen()
         if screen is None:
-            screen = gtk.gdk.screen_get_default()
+            screen = Gdk.Screen.get_default()
         monitor = screen.get_monitor_at_window(self.window)
         return screen.get_monitor_geometry(monitor)
 
-    def reload(self=None):
+    def reload():
         self.db_loaded = False
         self.db.reload()
         self.db_loaded = True
 
     def readd_container(self, container):
         # Dockbar calls back to this function when it is reloaded
-        if self.db.get_orient() in ("up", "down"):
-            container.set_size_request(-1, self.get_size() + \
-                                               self.icon.get_offset() + 5)
-        else:
-            container.set_size_request(self.get_size() + \
-                                               self.icon.get_offset() + 5, -1)
+        #~ if self.db.get_orient() in ("up", "down"):
+            #~ container.set_size_request(-1, self.get_size() + self.icon.get_offset() + 5)
+        #~ else:
+            #~ container.set_size_request(self.get_size() + self.icon.get_offset() + 5, -1)
         self.alignment.add(container)
         container.show_all()
+        self.db.set_size(self.get_size() + self.icon.get_offset() + 5)
         self.__compute_should_autohide()
 
 
@@ -321,4 +317,4 @@ if __name__ == "__main__":
     applet = DockBarApp(awn.uid, awn.panel_id)
     awn.embed_applet(applet)
     applet.show_all()
-    gtk.main()
+    Gtk.main()

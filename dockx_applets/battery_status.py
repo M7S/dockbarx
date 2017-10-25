@@ -33,10 +33,10 @@ import os
 import sys
 import platform
 import time
-import gobject
-import gtk
-import pygtk
-import gconf
+from gi.repository import GObject
+from gi.repository import Gtk
+import gi
+from gi.repository import GConf
 import dbus
 from dockbarx.applets import DockXApplet
 from dbus.mainloop.glib import DBusGMainLoop
@@ -92,24 +92,24 @@ class BatteryApplet():
         """Create widgets for applet"""
         ### core widgets of applet
         # get current icon theme for icons
-        self.icon_theme = gtk.icon_theme_get_default()
+        self.icon_theme = Gtk.IconTheme.get_default()
         self.icon_theme.append_search_path('/usr/share/gnome-power-manager/icons')
         self.icon_theme.connect("changed", self.update_status)
         # icon of gnome-power-manager
-        self.pixbuf_gpm_32 = self.icon_theme.load_icon("gnome-power-manager", 32, gtk.ICON_LOOKUP_FORCE_SVG)
+        self.pixbuf_gpm_32 = self.icon_theme.load_icon("gnome-power-manager", 32, Gtk.IconLookupFlags.FORCE_SVG)
         # icon of battery status
         self.icon_name = "gpm-ac-adapter"
-        pixbuf_battery_24 = self.icon_theme.load_icon(self.icon_name, 24, gtk.ICON_LOOKUP_FORCE_SVG)
-        self.icon = gtk.Image()
+        pixbuf_battery_24 = self.icon_theme.load_icon(self.icon_name, 24, Gtk.IconLookupFlags.FORCE_SVG)
+        self.icon = Gtk.Image()
         self.icon.set_from_pixbuf(pixbuf_battery_24)
         # label with text of battery status
-        self.label = gtk.Label("")
+        self.label = Gtk.Label(label="")
         self.label.set_use_markup(True)
         if event_box.get_position() in ("left", "right"):
             # HBox widget - container for icon and label
-            self.box = gtk.VBox()
+            self.box = Gtk.VBox()
         else:
-            self.box = gtk.HBox()
+            self.box = Gtk.HBox()
         # add icon and label in hbox/vbox
         self.box.add(self.icon)
         self.box.add(self.label)
@@ -127,38 +127,38 @@ class BatteryApplet():
         }
         ### widgets for main menu
         # menu item and icon with battery status
-        pixbuf_battery_16 = self.icon_theme.load_icon("gpm-ac-adapter", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-        self.icon_status = gtk.Image()
+        pixbuf_battery_16 = self.icon_theme.load_icon("gpm-ac-adapter", 16, Gtk.IconLookupFlags.FORCE_SVG)
+        self.icon_status = Gtk.Image()
         self.icon_status.set_from_pixbuf(pixbuf_battery_16)
-        self.item_status = gtk.ImageMenuItem()
+        self.item_status = Gtk.ImageMenuItem()
         self.item_status.set_image(self.icon_status)
         # menu item and icon with battery status when item locked
-        self.icon_status_lock = gtk.Image()
+        self.icon_status_lock = Gtk.Image()
         self.icon_status_lock.set_from_pixbuf(pixbuf_battery_16)
-        self.item_status_lock = gtk.ImageMenuItem()
+        self.item_status_lock = Gtk.ImageMenuItem()
         self.item_status_lock.set_image(self.icon_status_lock)
         # menu item with power source information
-        self.item_power = gtk.ImageMenuItem("Po_wer Source:")
+        self.item_power = Gtk.ImageMenuItem("Po_wer Source:")
         # menu item with power source information when item locked
-        self.item_power_lock = gtk.ImageMenuItem("Po_wer Source:")
+        self.item_power_lock = Gtk.ImageMenuItem("Po_wer Source:")
         ### widgets for battery status dialog
         # label for battery capacity information
-        self.label_capacity_data = gtk.Label()
-        self.label_capacity_data.set_justify(gtk.JUSTIFY_CENTER)
+        self.label_capacity_data = Gtk.Label()
+        self.label_capacity_data.set_justify(Gtk.Justification.CENTER)
         # label for battery charge information
-        self.label_charge_data = gtk.Label()
-        self.label_charge_data.set_justify(gtk.JUSTIFY_RIGHT)
+        self.label_charge_data = Gtk.Label()
+        self.label_charge_data.set_justify(Gtk.Justification.RIGHT)
         # label for battery technical information
-        self.label_info_data = gtk.Label()
-        self.label_info_data.set_justify(gtk.JUSTIFY_CENTER)
+        self.label_info_data = Gtk.Label()
+        self.label_info_data.set_justify(Gtk.Justification.CENTER)
         # label for battery information text
-        self.label_info = gtk.Label()
-        self.label_info.set_justify(gtk.JUSTIFY_LEFT)
+        self.label_info = Gtk.Label()
+        self.label_info.set_justify(Gtk.Justification.LEFT)
         # progress bar of battery capacity
-        self.progress_capacity = gtk.ProgressBar()
+        self.progress_capacity = Gtk.ProgressBar()
         self.progress_capacity.set_size_request(200, 24)
         # progress bar of battery charge
-        self.progress_charge = gtk.ProgressBar()
+        self.progress_charge = Gtk.ProgressBar()
         self.progress_charge.set_size_request(200, 24)
         
         # Don't know where to put this.
@@ -167,7 +167,7 @@ class BatteryApplet():
     
     def event_on_press(self, widget, event):
         """Action on pressing button in applet"""
-        if event.type == gtk.gdk.BUTTON_PRESS:
+        if event.type == Gdk.EventType.BUTTON_PRESS:
             # detect pressing mouse button and calls related method
             self.button_actions[event.button](event)
     
@@ -186,36 +186,36 @@ class BatteryApplet():
         # update cpu frequency information
         self.init_cpufreq()
         ### init main menu with items
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         ### menu item: ----
         # separator
-        settings_separator = gtk.SeparatorMenuItem()
+        settings_separator = Gtk.SeparatorMenuItem()
         settings_separator.show()
-        power_separator = gtk.SeparatorMenuItem()
+        power_separator = Gtk.SeparatorMenuItem()
         power_separator.show()
-        actions_separator = gtk.SeparatorMenuItem()
+        actions_separator = Gtk.SeparatorMenuItem()
         actions_separator.show()
         ### menu item: Power Mode >
         # icon for Power Mode menu item
-        pixbuf_power = self.icon_theme.load_icon("gnome-power-statistics", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-        icon_power = gtk.Image()
+        pixbuf_power = self.icon_theme.load_icon("gnome-power-statistics", 16, Gtk.IconLookupFlags.FORCE_SVG)
+        icon_power = Gtk.Image()
         icon_power.set_from_pixbuf(pixbuf_power)
         # Power Mode submenu
-        submenu_power = gtk.Menu()
+        submenu_power = Gtk.Menu()
         # Powersave item for Power Mode submenu
-        submenu_power_ritem_powersave = gtk.RadioMenuItem(None, "Powe_rsave")
+        submenu_power_ritem_powersave = Gtk.RadioMenuItem(None, "Powe_rsave")
         submenu_power_ritem_powersave.connect("activate", self.power_management, "menu", self.powermode, self.cpu_items)
         submenu_power_ritem_powersave.show()
         # Ondemand item for Power Mode submenu
-        submenu_power_ritem_ondemand = gtk.RadioMenuItem(None, "On_demand")
+        submenu_power_ritem_ondemand = Gtk.RadioMenuItem(None, "On_demand")
         submenu_power_ritem_ondemand.connect("activate", self.power_management, "menu", self.powermode, self.cpu_items)
         submenu_power_ritem_ondemand.show()
         # Conservative item for Power Mode submenu
-        submenu_power_ritem_conservative = gtk.RadioMenuItem(None, "N_ormal")
+        submenu_power_ritem_conservative = Gtk.RadioMenuItem(None, "N_ormal")
         submenu_power_ritem_conservative.connect("activate", self.power_management, "menu", self.powermode, self.cpu_items)
         submenu_power_ritem_conservative.show()
         # Performance item for Power Mode submenu
-        submenu_power_ritem_performance = gtk.RadioMenuItem(None, "P_erformance")
+        submenu_power_ritem_performance = Gtk.RadioMenuItem(None, "P_erformance")
         submenu_power_ritem_performance.connect("activate", self.power_management, "menu", self.powermode, self.cpu_items)
         submenu_power_ritem_performance.show()
         # detect current option for Power Mode submenu
@@ -253,27 +253,27 @@ class BatteryApplet():
             submenu_power.add(submenu_power_ritem_conservative)
             submenu_power.add(submenu_power_ritem_performance)
             # create Power Mode menu item and set up submenu for it
-            menu_power = gtk.ImageMenuItem(powermode_text)
+            menu_power = Gtk.ImageMenuItem(powermode_text)
             menu_power.set_submenu(submenu_power)
             menu_power.set_image(icon_power)
             menu_power.show()
         ### menu item: Show >
         # icon for Show menu item
-        pixbuf_show = self.icon_theme.load_icon("gtk-properties", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-        icon_show = gtk.Image()
+        pixbuf_show = self.icon_theme.load_icon("gtk-properties", 16, Gtk.IconLookupFlags.FORCE_SVG)
+        icon_show = Gtk.Image()
         icon_show.set_from_pixbuf(pixbuf_show)
         # Show submenu
-        submenu_show = gtk.Menu()
+        submenu_show = Gtk.Menu()
         # Icon Only item for Show submenu
-        submenu_show_ritem_icon = gtk.RadioMenuItem(None, "_Icon Only")
+        submenu_show_ritem_icon = Gtk.RadioMenuItem(None, "_Icon Only")
         submenu_show_ritem_icon.connect("activate", self.main_menu_action)
         submenu_show_ritem_icon.show()
         # Time item for Show submenu
-        submenu_show_ritem_time = gtk.RadioMenuItem(None, "_Time")
+        submenu_show_ritem_time = Gtk.RadioMenuItem(None, "_Time")
         submenu_show_ritem_time.connect("activate", self.main_menu_action)
         submenu_show_ritem_time.show()
         # Percentage item for Show submenu
-        submenu_show_ritem_percent = gtk.RadioMenuItem(None, "_Percentage")
+        submenu_show_ritem_percent = Gtk.RadioMenuItem(None, "_Percentage")
         submenu_show_ritem_percent.connect("activate", self.main_menu_action)
         submenu_show_ritem_percent.show()
         # detect current option for Show submenu
@@ -294,29 +294,29 @@ class BatteryApplet():
         else:
             submenu_show_ritem_icon.set_sensitive(True)
         # separator for Show submenu
-        submenu_show_separator = gtk.SeparatorMenuItem()
+        submenu_show_separator = Gtk.SeparatorMenuItem()
         submenu_show_separator.show()
         # Sleep Actions item for Show submenu
-        submenu_show_citem_sleep = gtk.CheckMenuItem("S_leep Actions", True)
+        submenu_show_citem_sleep = Gtk.CheckMenuItem("S_leep Actions", True)
         submenu_show_citem_sleep.set_active(self.option_sleep)
         submenu_show_citem_sleep.connect("toggled", self.main_menu_action)
         submenu_show_citem_sleep.show()
         # Session Actions item for Show submenu
-        submenu_show_citem_session = gtk.CheckMenuItem("S_ession Actions", True)
+        submenu_show_citem_session = Gtk.CheckMenuItem("S_ession Actions", True)
         submenu_show_citem_session.set_active(self.option_session)
         submenu_show_citem_session.set_sensitive(self.package_session)
         submenu_show_citem_session.connect("toggled", self.main_menu_action)
         submenu_show_citem_session.show()
         # another separator for Show submenu
-        submenu_show_settings_separator = gtk.SeparatorMenuItem()
+        submenu_show_settings_separator = Gtk.SeparatorMenuItem()
         submenu_show_settings_separator.show()
         # Text Size item for Show submenu
-        submenu_show_citem_textsize = gtk.CheckMenuItem("Te_xt Size", True)
+        submenu_show_citem_textsize = Gtk.CheckMenuItem("Te_xt Size", True)
         submenu_show_citem_textsize.set_active(self.option_showtext)
         submenu_show_citem_textsize.connect("toggled", self.main_menu_action)
         submenu_show_citem_textsize.show()
         # Power Mode item for Show submenu
-        submenu_show_citem_powermode = gtk.CheckMenuItem("Po_wer Modes", True)
+        submenu_show_citem_powermode = Gtk.CheckMenuItem("Po_wer Modes", True)
         submenu_show_citem_powermode.set_active(self.option_cpufreq)
         submenu_show_citem_powermode.set_sensitive(self.package_cpufreq and not self.cpufreq_error)
         submenu_show_citem_powermode.connect("toggled", self.main_menu_action)
@@ -332,23 +332,23 @@ class BatteryApplet():
         submenu_show.add(submenu_show_citem_textsize)
         submenu_show.add(submenu_show_citem_powermode)
         # create Show menu item and set up submenu for it
-        menu_show = gtk.ImageMenuItem("S_how", True)
+        menu_show = Gtk.ImageMenuItem("S_how", True)
         menu_show.set_submenu(submenu_show)
         menu_show.set_image(icon_show)
         menu_show.show()
         ### menu item: Text Size >
         # icon for Text Size menu item
-        pixbuf_text = self.icon_theme.load_icon("text-editor", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-        icon_text = gtk.Image()
+        pixbuf_text = self.icon_theme.load_icon("text-editor", 16, Gtk.IconLookupFlags.FORCE_SVG)
+        icon_text = Gtk.Image()
         icon_text.set_from_pixbuf(pixbuf_text)
         # Text Size submenu
-        submenu_text = gtk.Menu()
+        submenu_text = Gtk.Menu()
         # Small item for Text Size submenu
-        submenu_text_ritem_small = gtk.RadioMenuItem(None, "_Small")
+        submenu_text_ritem_small = Gtk.RadioMenuItem(None, "_Small")
         submenu_text_ritem_small.connect("activate", self.main_menu_action)
         submenu_text_ritem_small.show()
         # Normal item for Text Size submenu
-        submenu_text_ritem_normal = gtk.RadioMenuItem(None, "_Normal")
+        submenu_text_ritem_normal = Gtk.RadioMenuItem(None, "_Normal")
         submenu_text_ritem_normal.connect("activate", self.main_menu_action)
         submenu_text_ritem_normal.show()
         # detect current option for Text Size submenu
@@ -362,7 +362,7 @@ class BatteryApplet():
         submenu_text.add(submenu_text_ritem_small)
         submenu_text.add(submenu_text_ritem_normal)
         # create Text Size menu item and set up submenu for it
-        menu_text = gtk.ImageMenuItem("_Text Size", True)
+        menu_text = Gtk.ImageMenuItem("_Text Size", True)
         menu_text.set_submenu(submenu_text)
         menu_text.set_image(icon_text)
         # make Text Size inactive, if Show > Icon Only
@@ -373,18 +373,18 @@ class BatteryApplet():
         menu_text.show()
         ### menu item: Power Management...
         # icon for gnome-power-management item
-        pixbuf_gpm = self.icon_theme.load_icon("gnome-power-manager", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-        icon_gpm = gtk.Image()
+        pixbuf_gpm = self.icon_theme.load_icon("gnome-power-manager", 16, Gtk.IconLookupFlags.FORCE_SVG)
+        icon_gpm = Gtk.Image()
         icon_gpm.set_from_pixbuf(pixbuf_gpm)
         # create item itself
-        item_pmsettings = gtk.ImageMenuItem("_Power Management...", True)
+        item_pmsettings = Gtk.ImageMenuItem("_Power Management...", True)
         item_pmsettings.set_image(icon_gpm)
         item_pmsettings.connect("activate", self.main_menu_action)
         item_pmsettings.show()
         # icon for power statistics
-        icon_power_history = gtk.Image()
+        icon_power_history = Gtk.Image()
         if self.option_power and self.package_power:
-            pixbuf_power_history = self.icon_theme.load_icon("gnome-power-statistics", 16, gtk.ICON_LOOKUP_FORCE_SVG)
+            pixbuf_power_history = self.icon_theme.load_icon("gnome-power-statistics", 16, Gtk.IconLookupFlags.FORCE_SVG)
             icon_power_history.set_from_pixbuf(pixbuf_power_history)
         else:
             icon_power_history.set_from_pixbuf(None)
@@ -458,20 +458,20 @@ class BatteryApplet():
             if self.power_properties_interface.Get(self.power_address, "can-suspend") or self.power_properties_interface.Get(self.power_address, "can-hibernate"):
                 ### menu item: ----
                 # separator
-                item_sleep_separator = gtk.SeparatorMenuItem()
+                item_sleep_separator = Gtk.SeparatorMenuItem()
                 item_sleep_separator.show()
                 menu.append(item_sleep_separator)
             if self.power_properties_interface.Get(self.power_address, "can-suspend"):
                 ### menu item: Suspend
                 # icon for suspend
                 try:
-                    pixbuf_suspend = self.icon_theme.load_icon("gnome-session-hibernate", 16, gtk.ICON_LOOKUP_FORCE_SVG)
+                    pixbuf_suspend = self.icon_theme.load_icon("gnome-session-hibernate", 16, Gtk.IconLookupFlags.FORCE_SVG)
                 except:
-                    pixbuf_suspend = self.icon_theme.load_icon("gpm-hibernate", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-                icon_suspend = gtk.Image()
+                    pixbuf_suspend = self.icon_theme.load_icon("gpm-hibernate", 16, Gtk.IconLookupFlags.FORCE_SVG)
+                icon_suspend = Gtk.Image()
                 icon_suspend.set_from_pixbuf(pixbuf_suspend)
                 # suspend item
-                item_suspend = gtk.ImageMenuItem("S_uspend", True)
+                item_suspend = Gtk.ImageMenuItem("S_uspend", True)
                 item_suspend.set_image(icon_suspend)
                 item_suspend.connect("activate", self.suspend)
                 item_suspend.show()
@@ -481,13 +481,13 @@ class BatteryApplet():
                 ### menu item: Hibernate
                 # icon for hibernate
                 try:
-                    pixbuf_hibernate = self.icon_theme.load_icon("drive-harddisk-root", 16, gtk.ICON_LOOKUP_FORCE_SVG)
+                    pixbuf_hibernate = self.icon_theme.load_icon("drive-harddisk-root", 16, Gtk.IconLookupFlags.FORCE_SVG)
                 except:
-                    pixbuf_hibernate = self.icon_theme.load_icon("drive-harddisk", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-                icon_hibernate = gtk.Image()
+                    pixbuf_hibernate = self.icon_theme.load_icon("drive-harddisk", 16, Gtk.IconLookupFlags.FORCE_SVG)
+                icon_hibernate = Gtk.Image()
                 icon_hibernate.set_from_pixbuf(pixbuf_hibernate)
                 # hibernate item
-                item_hibernate = gtk.ImageMenuItem("Hiber_nate", True)
+                item_hibernate = Gtk.ImageMenuItem("Hiber_nate", True)
                 item_hibernate.set_image(icon_hibernate)
                 item_hibernate.connect("activate", self.hibernate)
                 item_hibernate.show()
@@ -497,31 +497,31 @@ class BatteryApplet():
             ### show session actions in menu
             ### menu item: ----
             # separator
-            item_session_separator = gtk.SeparatorMenuItem()
+            item_session_separator = Gtk.SeparatorMenuItem()
             item_session_separator.show()
             ### menu item: Log Out...
             # icon for logout
             try:
-                pixbuf_logout = self.icon_theme.load_icon("gnome-session", 16, gtk.ICON_LOOKUP_FORCE_SVG)
+                pixbuf_logout = self.icon_theme.load_icon("gnome-session", 16, Gtk.IconLookupFlags.FORCE_SVG)
             except:
-                pixbuf_logout = self.icon_theme.load_icon("session-properties", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-            icon_logout = gtk.Image()
+                pixbuf_logout = self.icon_theme.load_icon("session-properties", 16, Gtk.IconLookupFlags.FORCE_SVG)
+            icon_logout = Gtk.Image()
             icon_logout.set_from_pixbuf(pixbuf_logout)
             # logout item
-            item_logout = gtk.ImageMenuItem("_Log Out...", True)
+            item_logout = Gtk.ImageMenuItem("_Log Out...", True)
             item_logout.set_image(icon_logout)
             item_logout.connect("activate", self.main_menu_action)
             item_logout.show()
             ### menu item: Shut Down...
             # icon for shutdown
             try:
-                pixbuf_shutdown = self.icon_theme.load_icon("system-shutdown-panel", 16, gtk.ICON_LOOKUP_FORCE_SVG)
+                pixbuf_shutdown = self.icon_theme.load_icon("system-shutdown-panel", 16, Gtk.IconLookupFlags.FORCE_SVG)
             except:
-                pixbuf_shutdown = self.icon_theme.load_icon("system-shutdown", 16, gtk.ICON_LOOKUP_FORCE_SVG)
-            icon_shutdown = gtk.Image()
+                pixbuf_shutdown = self.icon_theme.load_icon("system-shutdown", 16, Gtk.IconLookupFlags.FORCE_SVG)
+            icon_shutdown = Gtk.Image()
             icon_shutdown.set_from_pixbuf(pixbuf_shutdown)
             # shutdown item
-            item_shutdown = gtk.ImageMenuItem("_Shut Down...", True)
+            item_shutdown = Gtk.ImageMenuItem("_Shut Down...", True)
             item_shutdown.set_image(icon_shutdown)
             item_shutdown.connect("activate", self.main_menu_action)
             item_shutdown.show()
@@ -582,7 +582,7 @@ class BatteryApplet():
     def init_gconf_settings(self):
         """Getting applet settings from GConf"""
         # set up connection to GConf
-        self.g_conf = gconf.client_get_default()
+        self.g_conf = GConf.Client.get_default()
         # check settings
         settings = self.g_conf.dir_exists("/apps/battery_status")
         # if GConf settings not available from schema file, set up defaults
@@ -667,7 +667,7 @@ class BatteryApplet():
         # get g-p-m icon policy setting for advice to remove tray icon, if in use.
         self.option_gpm_icon_policy = self.g_conf.get_string("/apps/gnome-power-manager/ui/icon_policy")
         # add GConf settings of applet for detecting changes
-        self.g_conf.add_dir("/apps/battery_status", gconf.CLIENT_PRELOAD_NONE)
+        self.g_conf.add_dir("/apps/battery_status", GConf.ClientPreloadType.PRELOAD_NONE)
         # set up related callbacks for changes of GConf settings
         self.g_conf.notify_add("/apps/battery_status/show", self.init_gconf_changes, "show")
         self.g_conf.notify_add("/apps/battery_status/text", self.init_gconf_changes, "text")
@@ -702,7 +702,7 @@ class BatteryApplet():
         """Callback function for GConf changes"""
         ### update GConf settings on the fly, if it's changing within applet works
         # update Show submenu setting
-        if option == "show" and entry.get_value().type == gconf.VALUE_STRING:
+        if option == "show" and entry.get_value().type == GConf.ValueType.STRING:
             if entry.get_value().get_string() == "time" or entry.get_value().get_string() == "percent":
                 self.option_show = entry.get_value().get_string()
             else:
@@ -710,13 +710,13 @@ class BatteryApplet():
                 # make icon visible, if shows icon only
                 self.g_conf.set_string("/apps/battery_status/icon_policy", "always")
         # update Text size submenu setting
-        elif option == "text" and entry.get_value().type == gconf.VALUE_STRING:
+        elif option == "text" and entry.get_value().type == GConf.ValueType.STRING:
             if entry.get_value().get_string() == "medium":
                 self.option_text = entry.get_value().get_string()
             else:
                 self.option_text = "small"
         # update icon policy option
-        elif option == "icon" and entry.get_value().type == gconf.VALUE_STRING:
+        elif option == "icon" and entry.get_value().type == GConf.ValueType.STRING:
             if entry.get_value().get_string() == "low" or entry.get_value().get_string() == "never" or entry.get_value().get_string() == "charge":
                 self.option_icon = entry.get_value().get_string()
             else:
@@ -725,58 +725,58 @@ class BatteryApplet():
                 # prevent to hide icon
                 self.g_conf.set_string("/apps/battery_status/icon_policy", "always")
         # update lock screen option
-        elif option == "lock" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "lock" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_lock = entry.get_value().get_bool()
         # update info option
-        elif option == "info" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "info" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_info = entry.get_value().get_bool()
         # update tooltip option
-        elif option == "tooltip" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "tooltip" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_tooltip = entry.get_value().get_bool()
         # update status option
-        elif option == "status" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "status" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_status = entry.get_value().get_bool()
         # update option for show sleep actions in main menu
-        elif option == "sleep" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "sleep" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_sleep = entry.get_value().get_bool()
         # update option for show session actions in main menu
-        elif option == "session" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "session" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_session = entry.get_value().get_bool()
         # update option for show session actions in main menu
-        elif option == "power" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "power" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_power = entry.get_value().get_bool()
         # update low percentage option
-        elif option == "low" and entry.get_value().type == gconf.VALUE_INT:
+        elif option == "low" and entry.get_value().type == GConf.ValueType.INT:
             self.option_percentage_low = entry.get_value().get_int()
         # update timer option
-        elif option == "timer" and entry.get_value().type == gconf.VALUE_INT:
+        elif option == "timer" and entry.get_value().type == GConf.ValueType.INT:
             self.option_timer = entry.get_value().get_int()
         # update first run option
-        elif option == "run" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "run" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_firstrun = entry.get_value().get_bool()
         # update show powermode option
-        elif option == "cpufreq" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "cpufreq" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_cpufreq = entry.get_value().get_bool()
         # update show text size option
-        elif option == "showtext" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "showtext" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_showtext = entry.get_value().get_bool()
         # update show settings option
-        elif option == "settings" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "settings" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_settings = entry.get_value().get_bool()
         # update power source sensitive option
-        elif option == "sensitive" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "sensitive" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_sensitive = entry.get_value().get_bool()
         # update reduce option
-        elif option == "reduce" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "reduce" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_reduce = entry.get_value().get_bool()
         # update Power Mode option
-        elif option == "powermenu" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "powermenu" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_powermenu = entry.get_value().get_bool()
         # update gpm option
-        elif option == "powermanager" and entry.get_value().type == gconf.VALUE_BOOL:
+        elif option == "powermanager" and entry.get_value().type == GConf.ValueType.BOOL:
             self.option_gpm = entry.get_value().get_bool()
         # update gnome-power-manager's icon policy option
-        elif option == "icon_policy" and entry.get_value().type == gconf.VALUE_STRING:
+        elif option == "icon_policy" and entry.get_value().type == GConf.ValueType.STRING:
             self.option_gpm_icon_policy = entry.get_value().get_string()
         # update battery info for applying changes
         if not self.power_error:
@@ -893,7 +893,7 @@ class BatteryApplet():
     
     def pp_menu_item_about(self, event, data = None):
         """Show information about applet on choosing 'About' in popup menu"""
-        About = gtk.AboutDialog()
+        About = Gtk.AboutDialog()
         About.set_version(version)
         About.set_name(name)
         About.set_license(license)
@@ -927,26 +927,26 @@ class BatteryApplet():
         # text column for charge data
         text_charge = "Voltage:\nRate:\nCurrent:\nLast full:\nMaximum:\n"
         # label for capacity text
-        label_capacity = gtk.Label()
+        label_capacity = Gtk.Label()
         label_capacity.set_markup(text_capacity)
-        label_capacity.set_justify(gtk.JUSTIFY_LEFT)
+        label_capacity.set_justify(Gtk.Justification.LEFT)
         label_capacity.show()
         # show label with capacity data
         self.label_capacity_data.show()
         # hbox for capacity labels
-        hbox_capacity = gtk.HBox()
+        hbox_capacity = Gtk.HBox()
         hbox_capacity.add(label_capacity)
         hbox_capacity.add(self.label_capacity_data)
         hbox_capacity.show()
         # show progress bar of current battery capacity
         self.progress_capacity.show()
         # vbox for hbox with capacity labels and capacity progress bar
-        vbox_capacity = gtk.VBox()
+        vbox_capacity = Gtk.VBox()
         vbox_capacity.add(hbox_capacity)
         vbox_capacity.add(self.progress_capacity)
         vbox_capacity.show()
         # alignment for vbox with capacity data
-        align_capacity = gtk.Alignment()
+        align_capacity = Gtk.Alignment.new()
         align_capacity.set_property("left-padding", 12)
         align_capacity.set_property("right-padding", 12)
         align_capacity.set_property("top-padding", 12)
@@ -954,31 +954,31 @@ class BatteryApplet():
         align_capacity.add(vbox_capacity)
         align_capacity.show()
         # frame for alignment
-        frame_capacity = gtk.Frame("  Battery Capacity  ")
+        frame_capacity = Gtk.Frame("  Battery Capacity  ")
         frame_capacity.set_border_width(8)
         frame_capacity.add(align_capacity)
         frame_capacity.show()
         # label for charge text
-        label_charge = gtk.Label()
+        label_charge = Gtk.Label()
         label_charge.set_markup(text_charge)
-        label_charge.set_justify(gtk.JUSTIFY_LEFT)
+        label_charge.set_justify(Gtk.Justification.LEFT)
         label_charge.show()
         # show label with charge data
         self.label_charge_data.show()
         # hbox for charge labels
-        hbox_charge = gtk.HBox()
+        hbox_charge = Gtk.HBox()
         hbox_charge.add(label_charge)
         hbox_charge.add(self.label_charge_data)
         hbox_charge.show()
         # show progress bar of current battery charge
         self.progress_charge.show()
         # vbox for hbox with charge labels and charge progress bar
-        vbox_charge = gtk.VBox()
+        vbox_charge = Gtk.VBox()
         vbox_charge.add(hbox_charge)
         vbox_charge.add(self.progress_charge)
         vbox_charge.show()
         # alignment for vbox with charge data
-        align_charge = gtk.Alignment()
+        align_charge = Gtk.Alignment.new()
         align_charge.set_property("left-padding", 12)
         align_charge.set_property("right-padding", 12)
         align_charge.set_property("top-padding", 12)
@@ -986,7 +986,7 @@ class BatteryApplet():
         align_charge.add(vbox_charge)
         align_charge.show()
         # frame for alignment
-        frame_charge = gtk.Frame("  Battery Charge  ")
+        frame_charge = Gtk.Frame("  Battery Charge  ")
         frame_charge.set_border_width(8)
         frame_charge.add(align_charge)
         frame_charge.show()
@@ -995,12 +995,12 @@ class BatteryApplet():
         # show label with battery info data
         self.label_info_data.show()
         # hbox for battery info labels
-        hbox_info = gtk.HBox()
+        hbox_info = Gtk.HBox()
         hbox_info.add(self.label_info)
         hbox_info.add(self.label_info_data)
         hbox_info.show()
         # alignment for hbox with battery info
-        align_info = gtk.Alignment()
+        align_info = Gtk.Alignment.new()
         align_info.set_property("left-padding", 24)
         align_info.set_property("right-padding", 0)
         align_info.set_property("top-padding", 12)
@@ -1008,11 +1008,11 @@ class BatteryApplet():
         align_info.add(hbox_info)
         align_info.show()
         # frame for alignment
-        frame_info = gtk.Frame()
+        frame_info = Gtk.Frame()
         frame_info.set_border_width(8)
         frame_info.add(align_info)
         # expander for frame with battery info
-        expander_info = gtk.Expander()
+        expander_info = Gtk.Expander()
         if self.option_info:
             frame_info.show()
         else:
@@ -1022,9 +1022,9 @@ class BatteryApplet():
         expander_info.connect("notify::expanded", expander_info_cb, frame_info)
         expander_info.show()
         # generate dialog window with provided battery information
-        message_battery_status = gtk.Dialog(title = "", parent = None, buttons = None)
+        message_battery_status = Gtk.Dialog(title = "", parent = None, buttons = None)
         message_battery_status.set_title("Battery Status")
-        message_battery_status.set_property("gravity", gtk.gdk.GRAVITY_NORTH)
+        message_battery_status.set_property("gravity", Gdk.GRAVITY_NORTH)
         message_battery_status.set_property("skip-taskbar-hint", False)
         message_battery_status.set_property("skip-pager-hint", True)
         message_battery_status.set_property("resizable", False)
@@ -1105,7 +1105,7 @@ class BatteryApplet():
         # if user add applet at first time and use gnome-power-manager icon in indicator/notification area
         if self.option_firstrun and self.option_gpm_icon_policy != "never":
             # then show advice to remove icon from notification area
-            message_icon_tray = gtk.MessageDialog(parent = None, type = gtk.MESSAGE_QUESTION, buttons = gtk.BUTTONS_NONE, message_format = None)
+            message_icon_tray = Gtk.MessageDialog(parent = None, type = Gtk.MessageType.QUESTION, buttons = Gtk.ButtonsType.NONE, message_format = None)
             title_text = "Battery Status applet has been added on the GNOME panel."
             message_text = 'Battery Status applet shows state/percentage/lifetime of battery in your laptop, but you also use Power Manager\'s battery icon for the same purpose - would you like to remove it?\n\nYou can always change Power Manager\'s battery icon settings and its behavior in "Power Management" Preferences'
             message_icon_tray.set_markup('<span weight="bold" size="medium">' + title_text + '</span>' + '\n\n' + message_text)
@@ -1191,22 +1191,22 @@ class BatteryApplet():
     def dbus_error(self, exception_text):
         """Critical message with technical details, when something goes wrong"""
         # text buffer with details
-        text_buffer = gtk.TextBuffer()
+        text_buffer = Gtk.TextBuffer()
         text_buffer.set_text("DBus exception:\n" + exception_text)
         # container for text buffer
-        text_field = gtk.TextView()
+        text_field = Gtk.TextView()
         text_field.set_editable(False)
-        text_field.set_wrap_mode(gtk.WRAP_WORD)
+        text_field.set_wrap_mode(Gtk.WrapMode.WORD)
         text_field.set_buffer(text_buffer)
         text_field.show()
         # container for details
-        message_details = gtk.Expander()
+        message_details = Gtk.Expander()
         message_details.set_expanded(False)
         message_details.set_label("View technical details")
         message_details.add(text_field)
         message_details.show()
         # generate error message dialog
-        message_error = gtk.MessageDialog(parent = None, type = gtk.MESSAGE_WARNING, buttons = gtk.BUTTONS_NONE, message_format = None)
+        message_error = Gtk.MessageDialog(parent = None, type = Gtk.MessageType.WARNING, buttons = Gtk.ButtonsType.NONE, message_format = None)
         title_text = "Battery Status applet error."
         message_text = "Applet can't get power state of computer.\nD-Bus system or UPower/DeviceKit-Power information unavailable now.\n"
         question_text = "Would you like still to keep applet?"
@@ -1251,7 +1251,7 @@ class BatteryApplet():
             label_text += ')' + '</span>'
         self.label.set_markup(label_text)
         # set up icons
-        self.icon.set_from_pixbuf(self.icon_theme.load_icon("gpm-ac-adapter", 24, gtk.ICON_LOOKUP_FORCE_SVG))
+        self.icon.set_from_pixbuf(self.icon_theme.load_icon("gpm-ac-adapter", 24, Gtk.IconLookupFlags.FORCE_SVG))
         self.icon_status.set_from_pixbuf(None)
         self.icon_status_lock.set_from_pixbuf(None)
         # generate text in main menu items and in tooltip according to current error
@@ -1392,21 +1392,21 @@ class BatteryApplet():
         ### set up battery icons
         # set up battery icon for main icon widget
         if self.option_icon == "always" or (self.option_icon == "low" and self.on_low_battery) or (self.option_icon == "charge" and self.battery_state != self.power_battery_state[self.battery_full]):
-            self.icon.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 24, gtk.ICON_LOOKUP_FORCE_SVG))
+            self.icon.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 24, Gtk.IconLookupFlags.FORCE_SVG))
         else:
             self.icon.set_from_pixbuf(None)
         # set up global battery icon status for item status in main menu
-        self.icon_status.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, gtk.ICON_LOOKUP_FORCE_SVG))
+        self.icon_status.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, Gtk.IconLookupFlags.FORCE_SVG))
         # set up local battery icon status for item status in main menu
-        icon_status = gtk.Image()
-        icon_status.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, gtk.ICON_LOOKUP_FORCE_SVG))
+        icon_status = Gtk.Image()
+        icon_status.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, Gtk.IconLookupFlags.FORCE_SVG))
         self.item_status.set_image(icon_status)
         # set up local battery icon status for locked item status in main menu
-        icon_status_lock = gtk.Image()
-        icon_status_lock.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, gtk.ICON_LOOKUP_FORCE_SVG))
+        icon_status_lock = Gtk.Image()
+        icon_status_lock.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, Gtk.IconLookupFlags.FORCE_SVG))
         self.item_status_lock.set_image(icon_status_lock)
         # set up battery icon for battery status dialog
-        self.pixbuf_battery_info = self.icon_theme.load_icon(self.icon_name, 128, gtk.ICON_LOOKUP_FORCE_SVG)
+        self.pixbuf_battery_info = self.icon_theme.load_icon(self.icon_name, 128, Gtk.IconLookupFlags.FORCE_SVG)
         # init local variable for tooltip
         battery_time = "-:--"
         # get battery lifetime
@@ -1596,17 +1596,17 @@ class BatteryApplet():
         self.opacity = 1
         self.opacity_step = float(self.opacity)/self.timer
         # create icon for message
-        battery_low_pixbuf = self.icon_theme.load_icon("gpm-battery-000", 64, gtk.ICON_LOOKUP_FORCE_SVG)
-        battery_low_icon = gtk.Image()
+        battery_low_pixbuf = self.icon_theme.load_icon("gpm-battery-000", 64, Gtk.IconLookupFlags.FORCE_SVG)
+        battery_low_icon = Gtk.Image()
         battery_low_icon.set_from_pixbuf(battery_low_pixbuf)
         battery_low_icon.show()
         # generate message about low battery percentage
-        message_battery_low = gtk.MessageDialog(parent = None, buttons = gtk.BUTTONS_NONE, message_format = None)
+        message_battery_low = Gtk.MessageDialog(parent = None, buttons = Gtk.ButtonsType.NONE, message_format = None)
         title_text = "You are now running on reserve battery power."
         message_text = "Please connect your computer to AC power. If you do not,\nyour computer will go to sleep in a few minutes to preserve\nthe contents of memory."
         message_battery_low.set_markup('<span weight="bold" size="medium">' + title_text + '</span>' + '\n\n' + message_text)
         message_battery_low.set_icon(self.pixbuf_gpm_32)
-        message_battery_low.set_property("gravity", gtk.gdk.GRAVITY_NORTH)
+        message_battery_low.set_property("gravity", Gdk.GRAVITY_NORTH)
         message_battery_low.set_keep_above(True)
         message_battery_low.set_image(battery_low_icon)
         # add Hibernate Now button, if such feature available
@@ -1618,16 +1618,16 @@ class BatteryApplet():
         # add timer and label for destroy dialog
         if self.timer > 1:
             message_battery_low.set_property("opacity", self.opacity)
-            message_warning_label = gtk.Label()
+            message_warning_label = Gtk.Label()
             message_warning_label.set_markup("This message will automatically disappear in " + str(self.timer) + " seconds.")
             message_warning_label.show()
             message_battery_low.vbox.add(message_warning_label)
-            gobject.timeout_add_seconds(self.timer, message_battery_low.destroy)
+            GObject.timeout_add_seconds(self.timer, message_battery_low.destroy)
             timeout = True
         elif self.timer == 1:
             message_battery_low.set_property("opacity", 0.8)
             timeout = False
-        gobject.timeout_add_seconds(1, count, message_battery_low, timeout)
+        GObject.timeout_add_seconds(1, count, message_battery_low, timeout)
         if message_battery_low.run() == 2:
             self.hibernate()
         message_battery_low.destroy()
@@ -1788,7 +1788,7 @@ class DockXBatteryApplet(DockXApplet):
 
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        # DockXApplet base class is pretty much a gtk.EventBox.
+        # DockXApplet base class is pretty much a Gtk.EventBox.
         # so all you have to do is adding your widget with self.add()
         self.battery_applet = BatteryApplet(self)
         self.show()

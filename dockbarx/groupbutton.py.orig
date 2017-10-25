@@ -24,6 +24,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkX11
 from gi.repository import GObject
+from gi.repository import GConf
 from gi.repository import Wnck
 from time import time
 from time import sleep
@@ -168,9 +169,15 @@ class Group(ListOfWindows):
         self.screen = Wnck.Screen.get_default()
         self.root_xid = int(Gdk.Screen.get_default().get_root_window().get_xid())
         self.update_name()
+<<<<<<< HEAD
 
+        monitor = self.get_monitor()
+        mgeo = Gdk.Screen.get_default().get_monitor_geometry(monitor)
+=======
+        
         self.monitor = self.get_monitor()
-        mgeo = Gdk.Screen.get_default().get_monitor_geometry(self.monitor)
+        mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(self.monitor)
+>>>>>>> master
         self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
 
 
@@ -835,7 +842,7 @@ class Group(ListOfWindows):
         else:
             t = 1
         for window in self.get_minimized_windows():
-            window.wnck.unminimize(t)
+                window.unminimize(t)
         self.popup.hide()
 
     def __menu_change_identifier(self, widget=None, event=None):
@@ -968,9 +975,46 @@ class Group(ListOfWindows):
         # grtop is set to true if not all windows in the group is the
         # topmost windows.
         for wnck_window in windows_stacked:
+<<<<<<< HEAD
+            if (not wnck_window.is_skip_tasklist()) and \
+               (not wnck_window.is_minimized()) and \
+               (wnck_window.get_window_type() in [Wnck.WindowType.NORMAL,
+                                                  Wnck.WindowType.DIALOG]):
+                if wnck_window in self:
+                    ignored = False
+                    if not wnck_window.is_pinned() \
+                    and wnck_window.get_workspace() is not None \
+                    and active_workspace != wnck_window.get_workspace():
+                        if mode == "move":
+                            ws = screen.get_active_workspace()
+                            wnck_window.move_to_workspace(ws)
+                            moved = True
+                        else: # mode == "ignore" or "switch"
+                            ignored = True
+                            ignorelist.append(self[wnck_window])
+                    if not wnck_window.is_in_viewport(screen.get_active_workspace()):
+                        if mode == "move":
+                            wx, wy, ww, wh = wnck_window.get_geometry()
+                            wnck_window.set_geometry(0,3,wx%screen.get_width(),
+                                             wy%screen.get_height(),
+                                             ww,wh)
+                            moved = True
+                        else: # mode == "ignore" or "switch"
+                            ignored = True
+                            ignorelist.append(self[wnck_window])
+
+                    if not ignored:
+                        grp_win_stacked.append(self[wnck_window])
+                        if wingr == False:
+                            wingr = True
+                            grtop = True
+                else:
+                    if wingr:
+                        grtop = False
+=======
             if wnck_window.is_skip_tasklist() or \
                wnck_window.is_minimized() or \
-               not (wnck_window.get_window_type() in [Wnck.WindowType.NORMAL, Wnck.WindowType.DIALOG]):
+               not (wnck_window.get_window_type() in [wnck.WINDOW_NORMAL, wnck.WINDOW_DIALOG]):
                 continue
             if not wnck_window in self:
                 if wingr:
@@ -1003,6 +1047,7 @@ class Group(ListOfWindows):
                 if wingr == False:
                     wingr = True
                     grtop = True
+>>>>>>> master
 
         if not grp_win_stacked and mode == "switch":
             # Put the windows in dictionaries according to workspace and
@@ -1184,7 +1229,7 @@ class Group(ListOfWindows):
                 self.scrollpeak_sid = GObject.timeout_add(1500,
                                                         self.scrollpeak_select)
             while Gtk.events_pending():
-                    Gtk.main_iteration()
+                    Gtk.main_iteration(False)
             self.scrollpeak_window.opacify()
 
     def action_select_previous(self, widget=None, event=None):
@@ -1437,6 +1482,7 @@ class GroupButton(CairoAppButton):
         self.connect("drag-begin", self.on_drag_begin)
         self.connect("drag-data-get", self.on_drag_data_get)
         self.connect("drag-end", self.on_drag_end)
+
 
     def dockbar_moved(self, arg=None):
         self.set_icongeo()
@@ -1917,7 +1963,8 @@ class GroupButton(CairoAppButton):
         if self.globals.settings["opacify"] \
         and self.globals.settings["opacify_group"]:
             self.deopacify(100)
-        if not self.globals.settings["select_next_activate_immediately"] and \
+        if (self.globals.settings["reorder_window_list"] or \
+           not self.globals.settings["select_next_activate_immediately"]) and\
            group.scrollpeak_sid is not None:
             group.scrollpeak_select()
 
@@ -2006,6 +2053,7 @@ class GroupPopup(CairoPopup):
         # The popup needs to have a drag_dest just to check
         # if the mouse is hovering it during a drag-drop.
         self.drag_dest_set(0, [], 0)
+
         self.connect("leave-notify-event", self.on_leave_notify_event)
         self.connect("size-allocate", self.on_size_allocate)
         self.connect("drag-motion", self.on_drag_motion)

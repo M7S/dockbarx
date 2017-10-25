@@ -17,13 +17,15 @@
 #   You should have received a copy of the GNU General Public License
 #   along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-import pygtk
-pygtk.require("2.0")
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 import gc
 gc.enable()
 import cairo
-import gio
+from gi.repository import Gio
 import os
 import weakref
 import array
@@ -39,7 +41,7 @@ _ = i18n.language.gettext
 
 class IconFactory():
     """IconFactory finds the icon for a program and prepares the cairo surface."""
-    icon_theme = gtk.icon_theme_get_default()
+    icon_theme = Gtk.IconTheme.get_default()
     # Constants
     # Icon types
     SOME_MINIMIZED = 1<<4
@@ -67,7 +69,7 @@ class IconFactory():
                  "mouse_button_down":MOUSE_BUTTON_DOWN}
 
     def __init__(self, group, class_group=None,
-                 desktop_entry=None, identifier=None):
+                 desktop_entry=None, identifier=None, size=None):
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.theme = Theme()
         self.globals = Globals()
@@ -79,7 +81,10 @@ class IconFactory():
         # Setting size to something other than zero to
         # avoid crashes if surface_update() is runned
         # before the size is set.
-        self.size = 15
+        if size is None or size <=0:
+            self.size = 15
+        else:
+            self.size = size
 
         self.icon = None
         self.surfaces = {}
@@ -475,8 +480,8 @@ class IconFactory():
                 w = size
                 h = pb.get_height() * size/pb.get_width()
             self.icon = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
-            ctx = gtk.gdk.CairoContext(cairo.Context(self.icon))
-            pbs = pb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+            ctx = Gdk.CairoContext(cairo.Context(self.icon))
+            pbs = pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
             woffset = round((size - w) / 2.0)
             hoffset = round((size - h) / 2.0)
             ctx.set_source_pixbuf(pb, woffset, hoffset)
@@ -484,7 +489,7 @@ class IconFactory():
             del pb
             del pbs
         elif pb.get_width() != size:
-            pbs = pb.scale_simple(size, size, gtk.gdk.INTERP_BILINEAR)
+            pbs = pb.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
             self.icon = self.__pixbuf2surface(pbs)
             del pb
             del pbs
@@ -550,7 +555,7 @@ class IconFactory():
             pixbuf = self.icon_theme.load_icon("application-default-icon",
                                                 size, 0)
         else:
-            pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size,size)
+            pixbuf = GdkPixbuf.Pixbuf(GdkPixbuf.Colorspace.RGB, True, 8, size,size)
             pixbuf.fill(0x00000000)
         if self.desktop_entry:
             name = self.desktop_entry.getName()
@@ -561,7 +566,7 @@ class IconFactory():
     def __icon_from_file_name(self, icon_name, icon_size = -1):
         if os.path.isfile(icon_name):
             try:
-                return gtk.gdk.pixbuf_new_from_file_at_size(icon_name, -1,
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_name, -1,
                                                             icon_size)
             except:
                 pass
@@ -715,7 +720,7 @@ class IconFactory():
             w = surface.get_width()
             h = surface.get_height()
             new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-            ctx = gtk.gdk.CairoContext(cairo.Context(new))
+            ctx = Gdk.CairoContext(cairo.Context(new))
             ctx.set_source_surface(surface)
             ctx.paint_with_alpha(alpha)
             return new
@@ -930,8 +935,8 @@ class IconFactory():
         w = pixbuf.get_width()
         h = pixbuf.get_height()
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-        ctx = gtk.gdk.CairoContext(cairo.Context(surface))
-        ctx.set_source_pixbuf(pixbuf, 0, 0)
+        ctx = cairo.Context(surface)
+        Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0, 0)
         ctx.paint()
         del pixbuf
         return surface

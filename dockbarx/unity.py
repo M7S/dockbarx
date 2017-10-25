@@ -20,7 +20,7 @@
 
 import dbus
 import dbus.service
-import gobject
+from gi.repository import GObject
 import weakref
 from dbus.mainloop.glib import DBusGMainLoop
 from log import logger

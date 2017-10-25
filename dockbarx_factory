@@ -24,17 +24,17 @@ if not (len(sys.argv) == 2 and sys.argv[1] == "run-in-window"):
     sys.stderr = StdErrWrapper()
     sys.stdout = StdOutWrapper()
 
-import pygtk
-pygtk.require("2.0")
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 import gnomeapplet
 import dockbarx.dockbar
-import gobject
+from gi.repository import GObject
 
 class DockBarWindow():
     """DockBarWindow sets up the window if run-in-window is used."""
     def __init__(self):
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window = Gtk.Window(Gtk.WindowType.TOPLEVEL)
         self.window.set_default_size(200,40)
         self.window.show()
         self.window.set_property("skip-taskbar-hint",True)
@@ -49,14 +49,15 @@ class DockBarWindow():
         self.dockbar.open_preference()
 
     def __destroy (self,widget,data=None):
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def main(self):
-        gtk.main()
+        Gtk.main()
 
 class DockbarGnomeapplet():
     def __init__(self, applet):
         self.applet = applet
+        self.size = None
         self.dockbar = dockbarx.dockbar.DockBar(applet)
         applet.set_applet_flags(gnomeapplet.HAS_HANDLE | \
                                 gnomeapplet.EXPAND_MINOR | \
@@ -91,12 +92,12 @@ class DockbarGnomeapplet():
         # Most of initializion must happen after dockbarx is
         # realized since python gnomeapplets crash if it
         # takes too long to realize.
-        gobject.idle_add(self.__load_on_realized)
+        GObject.idle_add(self.__load_on_realized)
 
     def __load_on_realized(self):
         # Wait while gtk events are pending.
-        while gtk.events_pending():
-                    gtk.main_iteration(False)
+        while Gtk.events_pending():
+                    Gtk.main_iteration(False)
         # Load DockbarX.
         self.dockbar.load()
         # Add it to the applet.
@@ -107,9 +108,16 @@ class DockbarGnomeapplet():
         self.applet.connect("change-orient", self.__on_change_orient)
 
     def __on_applet_size_alloc(self, widget, allocation):
-        if not widget.window:
+        if self.applet.get_orient() in (gnomeapplet.ORIENT_DOWN, gnomeapplet.ORIENT_UP):
+            size = allocation.height
+        else:
+            size = allocation.width
+        if self.size != size:
+            self.dockbar.set_size(size)
+            self.size = size
+        if not widget.get_window():
             return
-        x,y = widget.window.get_origin()
+        x,y = widget.get_window().get_origin()
         if x == self.applet_origin_x or y == self.applet_origin_y:
             # Nothing moved.
             return
@@ -130,13 +138,13 @@ class DockbarGnomeapplet():
 
     def __on_change_background(self, applet, type, color, pixmap):
         applet.set_style(None)
-        rc_style = gtk.RcStyle()
+        rc_style = Gtk.RcStyle()
         applet.modify_style(rc_style)
         if type == gnomeapplet.COLOR_BACKGROUND:
-            applet.modify_bg(gtk.STATE_NORMAL, color)
+            applet.modify_bg(Gtk.StateType.NORMAL, color)
         elif type == gnomeapplet.PIXMAP_BACKGROUND:
             style = applet.style
-            style.bg_pixmap[gtk.STATE_NORMAL] = pixmap
+            style.bg_pixmap[Gtk.StateType.NORMAL] = pixmap
             applet.set_style(style)
         return
 

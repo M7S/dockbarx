@@ -20,8 +20,8 @@
 from tarfile import open as taropen
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 import cairo
 import os
 import array
@@ -104,14 +104,14 @@ class ThemeHandler(ContentHandler):
     def get_types(self):
         return self.types
 
-class Theme(gobject.GObject):
+class Theme(GObject.GObject):
     __gsignals__ = {
-        "theme_reloaded": (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,()),
+        "theme_reloaded": (GObject.SignalFlags.RUN_FIRST, None,()),
     }
 
     def __new__(cls, *p, **k):
         if not "_the_instance" in cls.__dict__:
-            cls._the_instance = gobject.GObject.__new__(cls)
+            cls._the_instance = GObject.GObject.__new__(cls)
         return cls._the_instance
 
     def __init__(self):
@@ -119,7 +119,7 @@ class Theme(gobject.GObject):
             # This is not the first instance of Theme,
             # no need to initiate anything
             return
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.globals = Globals()
         self.globals.connect("theme_changed", self.on_theme_changed)
         self.on_theme_changed()
@@ -142,6 +142,7 @@ class Theme(gobject.GObject):
                 # Just use one of the themes that where found if default
                 # theme couldn't be found either.
                 self.theme_path = self.themes.values()[0]
+        self.globals.set_theme_gsettings(self.theme_path)
         self.reload()
 
     def find_themes(self):
@@ -168,9 +169,9 @@ class Theme(gobject.GObject):
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            md = gtk.MessageDialog(None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+            md = Gtk.MessageDialog(None,
+                Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
                 _("No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"))
             md.run()
             md.destroy()
@@ -254,10 +255,9 @@ class Theme(gobject.GObject):
         tar.close()
 
         # Inform rest of dockbar about the reload.
-        self.globals.theme_name = self.name
-        self.globals.update_colors(self.name,
-                                   self.default_colors, self.default_alphas)
-        self.globals.update_popup_style(self.name, self.default_popup_style)
+        self.globals.set_theme_gsettings(self.name)
+        self.globals.update_colors(self.name, self.default_colors, self.default_alphas)
+        self.globals.update_popup_style(self.default_popup_style)
         self.emit("theme_reloaded")
 
     def check(self, path_to_tar):
@@ -289,7 +289,7 @@ class Theme(gobject.GObject):
     def load_pixbuf(self, tar, name):
         f = tar.extractfile("pixmaps/"+name)
         buffer=f.read()
-        pixbuf_loader=gtk.gdk.PixbufLoader()
+        pixbuf_loader=GdkPixbuf.PixbufLoader()
         pixbuf_loader.write(buffer)
         pixbuf_loader.close()
         f.close()
@@ -380,13 +380,13 @@ class Theme(gobject.GObject):
         del self.default_alphas
         del self.surfaces
 
-class PopupStyle(gobject.GObject):
-    __gsignals__ = {"popup-style-reloaded": (gobject.SIGNAL_RUN_FIRST,
-                                             gobject.TYPE_NONE,()),}
+class PopupStyle(GObject.GObject):
+    __gsignals__ = {"popup-style-reloaded": (GObject.SignalFlags.RUN_FIRST,
+                                             None,()),}
 
     def __new__(cls, *p, **k):
         if not "_the_instance" in cls.__dict__:
-            cls._the_instance = gobject.GObject.__new__(cls)
+            cls._the_instance = GObject.GObject.__new__(cls)
         return cls._the_instance
 
     def __init__(self):
@@ -395,7 +395,7 @@ class PopupStyle(gobject.GObject):
             # no need to initiate anything
             return
         self.is_initiated = True
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.globals = Globals()
         self.name = "DBX"
         self.settings = {}
@@ -585,12 +585,12 @@ class PopupStyle(gobject.GObject):
         tar.close()
         return name, oft
 
-class DockTheme(gobject.GObject):
-    __gsignals__ = {"dock-theme-reloaded": (gobject.SIGNAL_RUN_FIRST,
-                                             gobject.TYPE_NONE,()),}
+class DockTheme(GObject.GObject):
+    __gsignals__ = {"dock-theme-reloaded": (GObject.SignalFlags.RUN_FIRST,
+                                             None,()),}
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.globals = Globals()
         self.name = "DBX"
         self.settings = {}

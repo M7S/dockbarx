@@ -1,0 +1,996 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<schemalist>
+
+  <schema id="org.dockbarx.dockbarx" path="/org/dockbarx/dockbarx/">
+
+    <key name='theme' type='s'>
+      <default>"Glassified"</default>
+      <summary>DockbarX theme</summary>
+      <description>
+        DockbarX theme
+      </description>
+    </key>
+
+    <key name='popup-style-file' type='s'>
+      <default>"dbx.tar.gz"</default>
+      <summary>The name of the file that contains the Window list style</summary>
+      <description>
+        The name of the file that contains the Window list style
+      </description>
+    </key>
+
+    <key name='groupbutton-attention-notification-type' type='s'>
+      <default>"red"</default>
+      <summary>Attention notification type</summary>
+      <description>
+        Attention notification type
+      </description>
+    </key>
+
+    <key name='workspace-behavior' type='s'>
+      <default>"switch"</default>
+      <summary>Workspace behavior</summary>
+      <description>
+        Workspace behavior
+      </description>
+    </key>
+
+    <key name='popup-delay' type='i'>
+      <default>250</default>
+      <summary>Window list delay</summary>
+      <description>
+        Window list delay in micro seconds.
+      </description>
+    </key>
+
+    <key name='second-popup-delay' type='i'>
+      <default>30</default>
+      <summary>Delay when swithich window lists</summary>
+      <description>
+        The delay in closing one window list and opening another.
+      </description>
+    </key>
+
+    <key name='popup-align' type='s'>
+      <default>"center"</default>
+      <summary>The alignment of the window list in relation to the button.</summary>
+      <description>
+        The alignment of the window list in relation to the button. (Left, right or center)
+      </description>
+    </key>
+
+    <key name='no-popup-for-one-window' type='b'>
+      <default>false</default>
+      <summary>Don't show the window list when a program has only one window.</summary>
+      <description>
+        Don't show the window list when a program has only one window.
+      </description>
+    </key>
+
+    <key name='show-only-current-desktop' type='b'>
+      <default>false</default>
+      <summary>Show only applications and windows that exists on the current desktop/workspace.</summary>
+      <description>
+        Show only applications and windows that exists on the current desktop/workspace.
+      </description>
+    </key>
+
+    <key name='show-only-current-monitor' type='b'>
+      <default>false</default>
+      <summary>Show only applications and windows that exists on the monitor where DockbarX resides.</summary>
+      <description>
+        Show only applications and windows that exists on the monitor where DockbarX resides.
+      </description>
+    </key>
+
+    <key name='preview' type='b'>
+      <default>false</default>
+      <summary>Use thumbnails in window list</summary>
+      <description>
+        Use thumbnails in window list.
+        This option only works when you use the window manager kwin or
+        compiz with adyfuoadyfudfas
+      </description>
+    </key>
+
+    <key name='preview-size' type='i'>
+      <default>150</default>
+      <summary>The size of the thumbnail in pixels</summary>
+      <description>
+        The size of the thumbnail in pixels
+      </description>
+    </key>
+
+    <key name='preview-minimized' type='b'>
+      <default>true</default>
+      <summary>Show previews for minimized windows</summary>
+      <description>
+        Show previews for minimized windows
+      </description>
+    </key>
+
+    <key name='old-menu' type='b'>
+      <default>false</default>
+      <summary>Use the old gtk style menu</summary>
+      <description>
+        Use the old gtk style menu for the right-click menu.
+      </description>
+    </key>
+
+    <key name='show-close-button' type='b'>
+      <default>true</default>
+      <summary>Show close buttons in the window list</summary>
+      <description>
+        Show close buttons in the window list.
+      </description>
+    </key>
+
+    <key name='locked-list-in-menu' type='b'>
+      <default>true</default>
+      <summary>Show the option to use the locked list</summary>
+      <description>
+        The locked list is a list for a program that is always visible on the screen.
+      </description>
+    </key>
+
+    <key name='locked-list-no-overlap' type='b'>
+      <default>false</default>
+      <summary>Make sure no windows are below the locked list</summary>
+      <description>
+        Make sure no windows are below the locked list.
+      </description>
+    </key>
+
+    <key name='window-title-width' type='i'>
+      <default>140</default>
+      <summary>Max lenght of the window title in pixels</summary>
+      <description>
+        Max lenght of the window title in pixels.
+        This option is only used when thumbnails are disabled.
+      </description>
+    </key>
+
+    <key name='reorder-window-list' type='b'>
+      <default>true</default>
+      <summary>Reorder the window list</summary>
+      <description>
+        When enabled the last activated window
+        will be the first window in the window list.
+        Othervice windows will be shown in the order
+        the windows were opened.
+      </description>
+    </key>
+
+    <key name='select-one-window' type='s'>
+      <default>"select or minimize window"</default>
+      <summary>summary</summary>
+      <description>
+        description
+      </description>
+    </key>
+
+    <key name='select-multiple-windows' type='s'>
+      <default>"select or minimize all"</default>
+      <summary>summary</summary>
+      <description>
+        description
+      </description>
+    </key>
+
+    <key name='delay-on-select-all' type='b'>
+      <default>true</default>
+      <summary>Delays the selection of multiple windows</summary>
+      <description>
+        This is a workaround to make sure that windows brought
+        up in the right order when selected. If the window order
+        seems random when you select multiple windows, activate
+        this option.
+      </description>
+    </key>
+
+    <key name='select-next-use-lastest-active' type='b'>
+      <default>false</default>
+      <summary>Change the order for "select next" action.</summary>
+      <description>
+        If this option is enabled, DockbarX will select the next
+        window in activation order instead of selecting the next
+        window in the order the window list has.
+        This option is ignored if "Reorder window list" is enabled.
+      </description>
+    </key>
+
+    <key name='select-next-activate-immediately' type='b'>
+      <default>false</default>
+      <summary>Bring up the next window without delay</summary>
+      <description>
+        If this option is selected the next window will be
+        activated immediately.
+        This option is ignored if "Reorder window list" is enabled.
+      </description>
+    </key>
+
+    <key name='dockmanager' type='b'>
+      <default>false</default>
+      <summary>Use dockmanager helpers</summary>
+      <description>
+        Use dockmanager helpers.
+      </description>
+    </key>
+
+    <key name='media-buttons' type='b'>
+      <default>true</default>
+      <summary>Enable media buttons</summary>
+      <description>
+        Enable media buttons.
+      </description>
+    </key>
+
+    <key name='quicklist' type='b'>
+      <default>true</default>
+      <summary>Enable static unity quicklists</summary>
+      <description>
+        Enable static unity quicklists.
+      </description>
+    </key>
+
+    <key name='unity' type='b'>
+      <default>true</default>
+      <summary>Enable Unity badges, progressbars and dynamic quicklists</summary>
+      <description>
+        Enable Unity emblems, progressbars and dynamic quicklists.
+      </description>
+    </key>
+
+    <key name='badge-use-custom-font' type='b'>
+      <default>false</default>
+      <summary>Use a custom font for unity badges</summary>
+      <description>
+        Use a custom font for unity badges.
+      </description>
+    </key>
+
+    <key name='badge-font' type='s'>
+      <default>"sans 10"</default>
+      <summary>Custom font for unity badges</summary>
+      <description>
+        Custom font for unity badges.
+      </description>
+    </key>
+
+    <key name='badge-custom-bg-color' type='b'>
+      <default>false</default>
+      <summary>Use custom a background color for unity badges</summary>
+      <description>
+        Use a custom background color for unity badges.
+      </description>
+    </key>
+
+    <key name='badge-bg-color' type='s'>
+      <default>"#CDCDCD"</default>
+      <summary>Custom background color for unity badges</summary>
+      <description>
+        Custom background color for unity badges.
+      </description>
+    </key>
+
+    <key name='badge-bg-alpha' type='i'>
+      <default>255</default>
+      <summary>Custom background opacity for unity badges</summary>
+      <description>
+        Custom background opacity for unity badges.
+        Ranges from 0 (transparent) to 255 (opacue).
+      </description>
+    </key>
+
+    <key name='badge-custom-fg-color' type='b'>
+      <default>false</default>
+      <summary>Use custom a font color for unity badges</summary>
+      <description>
+        Use a custom font color for unity badges.
+      </description>
+    </key>
+
+    <key name='badge-fg-color' type='s'>
+      <default>"#020202"</default>
+      <summary>Custom font color for unity badges</summary>
+      <description>
+        Custom font color for unity badges.
+      </description>
+    </key>
+
+    <key name='badge-fg-alpha' type='i'>
+      <default>255</default>
+      <summary>Custom font opacity for unity badges</summary>
+      <description>
+        Custom font opacity for unity badges.
+        Ranges from 0 (transparent) to 255 (opacue).
+      </description>
+    </key>
+
+    <key name='progress-custom-bg-color' type='b'>
+      <default>false</default>
+      <summary>Use custom a background color for unity progress bars</summary>
+      <description>
+        Use custom a background color for unity progress bars.
+      </description>
+    </key>
+
+    <key name='progress-bg-color' type='s'>
+      <default>"#CDCDCD"</default>
+      <summary>Custom background color for unity progress bars</summary>
+      <description>
+        Custom font background color for unity progress bars.
+      </description>
+    </key>
+
+    <key name='progress-bg-alpha' type='i'>
+      <default>64</default>
+      <summary>Custom background opacity for unity progress bars</summary>
+      <description>
+        Custom background opacity for progress bars.
+        Ranges from 0 (transparent) to 255 (opacue).
+      </description>
+    </key>
+
+    <key name='progress-custom-fg-color' type='b'>
+      <default>false</default>
+      <summary>Use custom a color for unity progress bars</summary>
+      <description>
+        Use custom a color for unity progress bars.
+      </description>
+    </key>
+
+    <key name='progress-fg-color' type='s'>
+      <default>"#772953"</default>
+      <summary>Custom background color for unity progress bars</summary>
+      <description>
+        Custom font color for unity progress bars.
+      </description>
+    </key>
+
+    <key name='progress-fg-alpha' type='i'>
+      <default>255</default>
+      <summary>Custom opacity for unity progress bars</summary>
+      <description>
+        Custom background opacity for unity progress bars.
+        Ranges from 0 (transparent) to 255 (opacue).
+      </description>
+    </key>
+
+    <key name='opacify' type='b'>
+      <default>false</default>
+      <summary>Opacify</summary>
+      <description>
+        Make all other windows transparent when
+        a window item is hovered.
+        Currently not working?
+      </description>
+    </key>
+
+    <key name='opacify-group' type='b'>
+      <default>false</default>
+      <summary>Opacify group</summary>
+      <description>
+        Currently not working?
+      </description>
+    </key>
+
+    <key name='opacify-fade' type='b'>
+      <default>true</default>
+      <summary>Opacify fade</summary>
+      <description>
+        Currently not working?
+      </description>
+    </key>
+
+    <key name='opacify-alpha' type='i'>
+      <default>5</default>
+      <summary>Opacify opacity</summary>
+      <description>
+        Currently not working?
+      </description>
+    </key>
+
+    <key name='opacify-smoothness' type='i'>
+      <default>5</default>
+      <summary>Opacify smoothness</summary>
+      <description>
+        Currently not working?
+      </description>
+    </key>
+
+    <key name='opacify-duration' type='i'>
+      <default>100</default>
+      <summary>Opacify fade</summary>
+      <description>
+        Currently not working?
+      </description>
+    </key>
+
+    <key name='separate-wine-apps' type='b'>
+      <default>true</default>
+      <summary>Give all wine applications their own button</summary>
+      <description>
+        Give all wine applications their own button.
+      </description>
+    </key>
+
+    <key name='separate-prism-apps' type='b'>
+      <default>true</default>
+      <summary>Give all prism applications their own button</summary>
+      <description>
+        Give all wine applications their own button.
+      </description>
+    </key>
+
+    <key name='separate-ooo-apps' type='b'>
+      <default>true</default>
+      <summary>Give Libre/OpenOffice applications their own button</summary>
+      <description>
+        Gives Writer, Calc etc. their own buttons instead of just using
+        one button for LibreOffice/OpenOffice.
+      </description>
+    </key>
+
+    <key name='groupbutton-show-tooltip' type='b'>
+      <default>false</default>
+      <summary>Show a tooltip when group buttons are hovered</summary>
+      <description>
+        Show a tooltip when group buttons are hovered.
+      </description>
+    </key>
+
+    <key name='groupbutton-left-click-action' type='s'>
+      <default>"select"</default>
+      <summary>Action for groupbutton left clicking</summary>
+      <description>
+        Action for groupbutton left clicking.
+      </description>
+    </key>
+
+    <key name='groupbutton-shift-and-left-click-action' type='s'>
+      <default>"launch application"</default>
+      <summary>Action for groupbutton shift + left clicking</summary>
+      <description>
+        Action for groupbutton shift + left clicking.
+      </description>
+    </key>
+
+    <key name='groupbutton-middle-click-action' type='s'>
+      <default>"close all windows"</default>
+      <summary>Action for groupbutton middle clicking</summary>
+      <description>
+        Action for groupbutton middle clicking.
+      </description>
+    </key>
+
+    <key name='groupbutton-shift-and-middle-click-action' type='s'>
+      <default>"no action"</default>
+      <summary>Action for groupbutton shift + middle clicking</summary>
+      <description>
+        Action for groupbutton shift + middle clicking.
+      </description>
+    </key>
+
+    <key name='groupbutton-right-click-action' type='s'>
+      <default>"show menu"</default>
+      <summary>Action for groupbutton right clicking</summary>
+      <description>
+        Action for groupbutton right clicking.
+      </description>
+    </key>
+
+    <key name='groupbutton-shift-and-right-click-action' type='s'>
+      <default>"no action"</default>
+      <summary>Action for groupbutton shift + right clicking</summary>
+      <description>
+        Action for groupbutton shift + right clicking.
+      </description>
+    </key>
+
+    <key name='groupbutton-scroll-up' type='s'>
+      <default>"select previous window"</default>
+      <summary>Action for groupbutton scroll up</summary>
+      <description>
+        Action for groupbutton scroll up.
+      </description>
+    </key>
+
+    <key name='groupbutton-scroll-down' type='s'>
+      <default>"select next window"</default>
+      <summary>Action for groupbutton scroll down</summary>
+      <description>
+        Action for groupbutton scroll down.
+      </description>
+    </key>
+
+    <key name='groupbutton-left-click-double' type='b'>
+      <default>false</default>
+      <summary>Require double click for left mouse button action</summary>
+      <description>
+        Require double click for left mouse button action.
+      </description>
+    </key>
+
+    <key name='groupbutton-shift-and-left-click-double' type='b'>
+      <default>false</default>
+      <summary>Require double click for shift + left mouse button action</summary>
+      <description>
+        Require double click for shift + left mouse button action.
+      </description>
+    </key>
+
+    <key name='groupbutton-middle-click-double' type='b'>
+      <default>false</default>
+      <summary>Require double click for middle mouse button action</summary>
+      <description>
+        Require double click for middle mouse button action.
+      </description>
+    </key>
+
+    <key name='groupbutton-shift-and-middle-click-double' type='b'>
+      <default>false</default>
+      <summary>Require double click for shift + middle mouse button action</summary>
+      <description>
+        Require double click for shift + middle mouse button action.
+      </description>
+    </key>
+
+    <key name='groupbutton-right-click-double' type='b'>
+      <default>false</default>
+      <summary>Require double click for right mouse button action</summary>
+      <description>
+        Require double click for right mouse button action.
+      </description>
+    </key>
+
+    <key name='groupbutton-shift-and-right-click-double' type='b'>
+      <default>false</default>
+      <summary>Require double click for shift + right mouse button action</summary>
+      <description>
+        Require double click for shift + right mouse button action.
+      </description>
+    </key>
+
+
+    <key name='windowbutton-left-click-action' type='s'>
+      <default>"select or minimize window"</default>
+      <summary>Action for window item left clicking</summary>
+      <description>
+        Action for window item left clicking.
+      </description>
+    </key>
+
+    <key name='windowbutton-shift-and-left-click-action' type='s'>
+      <default>"select or minimize window"</default>
+      <summary>Action for window item shift + left clicking</summary>
+      <description>
+        Action for window item shift + left clicking.
+      </description>
+    </key>
+
+    <key name='windowbutton-middle-click-action' type='s'>
+      <default>"close window"</default>
+      <summary>Action for window item middle clicking</summary>
+      <description>
+        Action for window item middle clicking.
+      </description>
+    </key>
+
+    <key name='windowbutton-shift-and-middle-click-action' type='s'>
+      <default>"no action"</default>
+      <summary>Action for window item shift + middle clicking</summary>
+      <description>
+        Action for window item shift + middle clicking.
+      </description>
+    </key>
+
+    <key name='windowbutton-right-click-action' type='s'>
+      <default>"show menu"</default>
+      <summary>Action for window item right clicking</summary>
+      <description>
+        Action for window item right clicking.
+      </description>
+    </key>
+
+    <key name='windowbutton-shift-and-right-click-action' type='s'>
+      <default>"no action"</default>
+      <summary>Action for window item shift + right clicking</summary>
+      <description>
+        Action for window item shift + right clicking.
+      </description>
+    </key>
+
+    <key name='windowbutton-scroll-up' type='s'>
+      <default>"shade window"</default>
+      <summary>Action for window item scroll up</summary>
+      <description>
+        Action for window item scroll up.
+      </description>
+    </key>
+
+    <key name='windowbutton-scroll-down' type='s'>
+      <default>"unshade window"</default>
+      <summary>Action for window item scroll down</summary>
+      <description>
+        Action for window item scroll down.
+      </description>
+    </key>
+
+    <key name='windowbutton-close-popup-on-left-click' type='b'>
+      <default>true</default>
+      <summary>Close the window list after click</summary>
+      <description>
+        Close the window list after click.
+      </description>
+    </key>
+
+    <key name='windowbutton-close-popup-on-shift-and-left-click' type='b'>
+      <default>false</default>
+      <summary>Close the window list after click</summary>
+      <description>
+        Close the window list after click.
+      </description>
+    </key>
+
+    <key name='windowbutton-close-popup-on-middle-click' type='b'>
+      <default>false</default>
+      <summary>Close the window list after click</summary>
+      <description>
+        Close the window list after click.
+      </description>
+    </key>
+
+    <key name='windowbutton-close-popup-on-shift-and-middle-click' type='b'>
+      <default>false</default>
+      <summary>Close the window list after click</summary>
+      <description>
+        Close the window list after click.
+      </description>
+    </key>
+
+    <key name='windowbutton-close-popup-on-right-click' type='b'>
+      <default>false</default>
+      <summary>Close the window list after click</summary>
+      <description>
+        Close the window list after click.
+      </description>
+    </key>
+
+    <key name='windowbutton-close-popup-on-shift-and-right-click' type='b'>
+      <default>false</default>
+      <summary>Close the window list after click</summary>
+      <description>
+        Close the window list after click.
+      </description>
+    </key>
+
+    <key name='windowbutton-close-popup-on-scroll-up' type='b'>
+      <default>false</default>
+      <summary>Close the window list after scroll up</summary>
+      <description>
+        Close the window list after scroll up.
+      </description>
+    </key>
+
+    <key name='windowbutton-close-popup-on-scroll-down' type='b'>
+      <default>false</default>
+      <summary>Close the window list after scroll down</summary>
+      <description>
+        Close the window list after down.
+      </description>
+    </key>
+
+    <key name='gkeys-select-next-group' type='b'>
+      <default>false</default>
+      <summary>Use a keyboard command to switch to the next application</summary>
+      <description>
+        Use a keyboard command to switch to the next application.
+      </description>
+    </key>
+
+    <key name='gkeys-select-next-group-keystr' type='s'>
+      <default>"[super]Tab"</default>
+      <summary>Keyboard command for switching to next application</summary>
+      <description>
+        Keyboard command for switching to next application.
+      </description>
+    </key>
+
+    <key name='gkeys-select-previous-group' type='b'>
+      <default>false</default>
+      <summary>Use a keyboard command to switch to previous application</summary>
+      <description>
+        Use a keyboard command to switch application.
+      </description>
+    </key>
+
+    <key name='gkeys-select-previous-group-keystr' type='s'>
+      <default>"[super][shift]Tab"</default>
+      <summary>Keyboard command for switching to previous application</summary>
+      <description>
+        Keyboard command for switching to previous application.
+      </description>
+    </key>
+
+    <key name='gkeys-select-next-window' type='b'>
+      <default>false</default>
+      <summary>Use a keyboard command to switch to the next window</summary>
+      <description>
+        Use a keyboard command to switch to the next window of the current application.
+      </description>
+    </key>
+
+    <key name='gkeys-select-next-window-keystr' type='s'>
+      <default>"[super][control]Tab"</default>
+      <summary>Keyboard command for switching to the next window</summary>
+      <description>
+        Keyboard command for switching to the next window of the current application.
+      </description>
+    </key>
+
+    <key name='gkeys-select-previous-window' type='b'>
+      <default>false</default>
+      <summary>Use a keyboard command to switch to the previous window</summary>
+      <description>
+        Use a keyboard command to switch to the previous window of the current application.
+      </description>
+    </key>
+
+    <key name='gkeys-select-previous-window-keystr' type='s'>
+      <default>"[super][control][shift]Tab"</default>
+      <summary>Keyboard command for switching to the previous window</summary>
+      <description>
+        Keyboard command for switching to the previous window of the current application.
+      </description>
+    </key>
+
+    <key name='gkeys-select-next-group-skip-launchers' type='b'>
+      <default>false</default>
+      <summary>Skip unlaunched appliactions when selecting the next group</summary>
+      <description>
+        Skip unlaunched appliactions when selecting the next group.
+      </description>
+    </key>
+
+    <key name='use-number-shortcuts' type='b'>
+      <default>false</default>
+      <summary>Select applications usning super+number shortcuts</summary>
+      <description>
+        Select applications usning super+number shortcuts.
+        Eg. super+1 to select the next window of the first application and
+        shift+super+1 to select the previous window of the first application.
+      </description>
+    </key>
+
+    <key name='launchers' type='as'>
+      <default>[]</default>
+      <summary>The list of pinned launchers</summary>
+      <description>
+        The list of pinned launchers.
+      </description>
+    </key>
+
+  </schema>
+
+  <schema id="org.dockbarx.dockx" path="/org/dockbarx/dockx/">
+
+    <key name='theme-file' type='s'>
+      <default>"dbx.tar.gz"</default>
+      <summary>The file name of the dock theme</summary>
+      <description>
+        The file name of the dock theme.
+      </description>
+    </key>
+
+    <key name='position' type='s'>
+      <default>"left"</default>
+      <summary>The position of the dock</summary>
+      <description>
+        Position the dock at left, right, top or bottom.
+      </description>
+    </key>
+
+    <key name='size' type='i'>
+      <default>42</default>
+      <summary>The size of the dock</summary>
+      <description>
+        The height of a horizontal dock or the width of a vertical dock.
+        Meassured in pixels.
+      </description>
+    </key>
+
+    <key name='offset' type='i'>
+      <default>0</default>
+      <summary>The offset of the dock</summary>
+      <description>
+        The offset meassured in pixels.
+      </description>
+    </key>
+
+    <key name='mode' type='s'>
+      <default>"centered"</default>
+      <summary>The mode of the dock</summary>
+      <description>
+        The dock has three modes:
+        centered, the dock is shown in the middle of the edge.
+        corner, the dock is shown in a corner of the display.
+        panel, the dock takes up the whole edge.
+      </description>
+    </key>
+
+    <key name='behavior' type='s'>
+      <default>"panel"</default>
+      <summary>The behavior of the dock</summary>
+      <description>
+        Description needed
+      </description>
+    </key>
+
+    <key name='end-decorations' type='b'>
+      <default>false</default>
+      <summary>Decorate the ends of the dock</summary>
+      <description>
+        Decorate the ends of the dock.
+      </description>
+    </key>
+
+  </schema>
+
+
+  <schema id="org.dockbarx.dockbarx.theme">
+
+    <key name='popup-style-file' type='s'>
+      <default>"Theme default"</default>
+      <summary>The file name of the window list style</summary>
+      <description>
+        The file name of the window list style.
+        If the name is theme default, the default window list style
+        of the current theme will be used.
+      </description>
+    </key>
+
+    <key name='color1' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the first color for the theme</summary>
+      <description>
+        The hex code of the first color for the theme.
+      </description>
+    </key>
+
+    <key name='color1-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the first color for the theme</summary>
+      <description>
+        The alpha value for the first color for the theme.
+      </description>
+    </key>
+
+    <key name='color2' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the second color for the theme</summary>
+      <description>
+        The hex code of the second color for the theme.
+      </description>
+    </key>
+
+    <key name='color2-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the second color for the theme</summary>
+      <description>
+        The alpha value for the second color for the theme.
+      </description>
+    </key>
+
+    <key name='color3' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the third color for the theme</summary>
+      <description>
+        The hex code of the third color for the theme.
+      </description>
+    </key>
+
+    <key name='color3-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the third color for the theme</summary>
+      <description>
+        The alpha value for the third color for the theme.
+      </description>
+    </key>
+
+    <key name='color4' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the fourth color for the theme</summary>
+      <description>
+        The hex code of the fourth color for the theme.
+      </description>
+    </key>
+
+    <key name='color4-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the fourth color for the theme</summary>
+      <description>
+        The alpha value for the fourth color for the theme.
+      </description>
+    </key>
+
+    <key name='color5' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the fifth color for the theme</summary>
+      <description>
+        The hex code of the fifth color for the theme.
+      </description>
+    </key>
+
+    <key name='color5-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the fifth color for the theme</summary>
+      <description>
+        The alpha value for the fifth color for the theme.
+      </description>
+    </key>
+
+    <key name='color6' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the sixth color for the theme</summary>
+      <description>
+        The hex code of the fifth color for the theme.
+      </description>
+    </key>
+
+    <key name='color6-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the sixth color for the theme</summary>
+      <description>
+        The alpha value for the sixth color for the theme.
+      </description>
+    </key>
+
+    <key name='color7' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the seventh color for the theme</summary>
+      <description>
+        The hex code of the seventh color for the theme.
+      </description>
+    </key>
+
+    <key name='color7-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the seventh color for the theme</summary>
+      <description>
+        The alpha value for the seventh color for the theme.
+      </description>
+    </key>
+
+    <key name='color8' type='s'>
+      <default>"default"</default>
+      <summary>The hex code of the eight color for the theme</summary>
+      <description>
+        The hex code of the eight color for the theme.
+      </description>
+    </key>
+
+    <key name='color8-alpha' type='i'>
+      <default>-1</default>
+      <summary>The alpha value for the eight color for the theme</summary>
+      <description>
+        The alpha value for the eight color for the theme.
+      </description>
+    </key>
+
+  </schema>
+
+
+  <schema id="org.dockbarx.dockx.theme">
+    <key name='colors' type='a{ss}'>
+      <default>@a{ss} {}</default>
+      <summary>A dictionary containing all colors and alpha values for the dock theme</summary>
+      <description>
+        A dictionary containing all colors and alpha values for the dock theme.
+      </description>
+    </key>
+  </schema>
+
+</schemalist>
+
