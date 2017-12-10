@@ -876,6 +876,7 @@ class DockBar():
     def __make_groupbutton(self, identifier=None, desktop_entry=None,
                          pinned=False, index=None, window=None):
         group = Group(self, identifier, desktop_entry, pinned)
+        group.update_name()
         if window is not None:
             # Windows are added here instead of later so that
             # overflow manager knows if the button should be
