@@ -513,6 +513,7 @@ class DockBar():
         self.globals.connect("gkey-changed", self.__gkeys_changed)
         self.globals.connect("use-number-shortcuts-changed",
                              self.__init_number_shortcuts)
+        Keybinder.init()
 
         # Unity stuff
         self.unity_watcher = UnityWatcher(self)
@@ -1683,6 +1684,7 @@ class DockBar():
                     self.gkeys[s]= keystr
                     error = False
                 else:
+                    print "Buhuu"
                     error = True
                     reason = ""
                     # Keybinder sometimes doesn't unbind faulty binds.
@@ -1690,8 +1692,10 @@ class DockBar():
                     try:
                         Keybinder.unbind(keystr)
                     except:
+                        raise
                         pass
             except KeyError:
+                raise
                 error = True
                 reason = "The key is already bound elsewhere."
             if error:
@@ -1709,25 +1713,27 @@ class DockBar():
                     md.run()
                     md.destroy()
 
-    def __gkey_select_next_group(self):
+    def __gkey_select_next_group(self, key):
         self.__grab_keyboard("gkeys_select_next_group_keystr")
         self.__select_next_group()
 
-    def __gkey_select_previous_group(self):
+    def __gkey_select_previous_group(self, key):
         self.__grab_keyboard("gkeys_select_previous_group_keystr")
         self.__select_previous_group()
 
-    def __gkey_select_next_window_in_group(self):
+    def __gkey_select_next_window_in_group(self, key):
         self.__grab_keyboard("gkeys_select_next_window_keystr")
         self.__select_next_window_in_group()
 
-    def __gkey_select_previous_window_in_group(self):
+    def __gkey_select_previous_window_in_group(self, key):
         self.__grab_keyboard("gkeys_select_previous_window_keystr")
         self.__select_previous_window_in_group()
 
     def __grab_keyboard(self, keystr):
         if self.parent:
-            Gdk.keyboard_grab(self.parent.window)
+            print "kbdgrb", Gdk.keyboard_grab(self.parent.get_window(), False, Gdk.CURRENT_TIME)
+            self.parent.add_events(Gdk.EventMask.KEY_RELEASE_MASK)
+            self.parent.add_events(Gdk.EventMask.KEY_PRESS_MASK)
             connect(self.parent, "key-release-event", self.__key_released)
             connect(self.parent, "key-press-event", self.__key_pressed)
 
@@ -1799,6 +1805,7 @@ class DockBar():
         self.__select_next_window_in_group(previous=True)
 
     def __key_pressed(self, widget, event):
+        print "Keypressed"
         functions = {"gkeys_select_next_group": self.__select_next_group,
                      "gkeys_select_previous_group": \
                                 self.__select_previous_group,
@@ -1839,6 +1846,7 @@ class DockBar():
                     func()
 
     def __key_released(self, widget, event):
+        print "key releasead: ", Gdk.keyval_name(event.keyval)
         keyname = Gdk.keyval_name(event.keyval)
         for key in self.mod_keys:
             if key in keyname:
@@ -1854,7 +1862,7 @@ class DockBar():
                         if not group.media_controls or not success:
                             group.action_launch_application()
                 self.next_group = None
-                Gdk.keyboard_ungrab()
+                Gdk.keyboard_ungrab(event.time)
                 if self.parent:
                     disconnect(self.parent)
                 break
@@ -1881,7 +1889,7 @@ class DockBar():
                 except:
                     pass
 
-    def __on_number_shortcut_pressed(self, n, keyboard_grabbed=False):
+    def __on_number_shortcut_pressed(self, key, n, keyboard_grabbed=False):
         if n == 0:
             n = 10
         n -= 1
@@ -1896,12 +1904,12 @@ class DockBar():
                 self.next_group.scrollpeak_abort()
             self.next_group = group
             if self.parent and not keyboard_grabbed:
-                Gdk.keyboard_grab(self.parent.window)
+                print "kbdgrb", Gdk.keyboard_grab(self.parent.get_window(), False, Gdk.CURRENT_TIME)
                 connect(self.parent, "key-release-event", self.__key_released)
                 connect(self.parent, "key-press-event", self.__key_pressed)
                 self.mod_keys = ["Super"]
         else:
-            Gdk.keyboard_ungrab()
+            Gdk.keyboard_ungrab(Gdk.CURRENT_TIME)
             if self.next_group:
                 self.next_group.scrollpeak_abort()
             if self.parent:
