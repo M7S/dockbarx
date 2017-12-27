@@ -892,18 +892,39 @@ class DockBar():
         return group
 
     def __add_window(self, window):
-        res_class = window.get_class_group().get_res_class().lower()
-        res_name = window.get_class_group().get_name().lower()
-        identifier = res_class or res_name or window.get_name().lower()
+        try:
+            #Support of wine applications - get name of .exe as identifier
+            gdkw = gtk.gdk.window_foreign_new(window.get_xid())
+            wm_class_property = gdkw.property_get(ATOM_WM_CLASS)[2].split("\0")
+            res_class = u"" + wm_class_property[1].lower()
+            res_name  = u"" + wm_class_property[0].lower()
+        except:
+            res_class = window.get_class_group().get_res_class().lower()
+            res_name = window.get_class_group().get_name().lower()
+        if window.has_name():
+            identifier = res_class or res_name or window.get_name().lower()
+        else:
+            #in case window has no name - issue with Spotify
+            pid = window.get_pid()
+            try:
+                f = open("/proc/"+str(pid)+"/cmdline", "r")
+            except:
+                raise
+            cmd = f.readline()
+            if "/" in cmd:
+                identifier = cmd.split("/")[-1]
+            else:
+                identifier = cmd
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
             identifier = SPECIAL_RES_CLASSES[identifier]
         wine = False
         chromium = False
-        if identifier == "wine" and \
-           self.globals.settings["separate_wine_apps"]:
-            identifier = res_name
-            wine = True
+        if ".exe" in identifier:
+            if self.globals.settings["separate_wine_apps"]:
+                wine = True
+            else:
+                identifier = "wine"
         if identifier in ("chromium-browser", "chrome-browser"):
             identifier = self.__get_chromium_id(window)
             if not identifier in ("chromium-browser", "chrome-browser"):
@@ -1300,7 +1321,7 @@ class DockBar():
         else:
             new_path = os.path.join(launcher_dir, "%s.desktop"%identifier)
         programs = ("gnome-desktop-item-edit",
-                    "exo-desktop-item-edit")
+                    "mate-desktop-item-edit", "exo-desktop-item-edit")
         for program in programs:
             if check_program(program):
                 break
