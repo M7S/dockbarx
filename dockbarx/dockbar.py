@@ -314,6 +314,7 @@ class GroupList(list):
             self.overflow_set = 0
         if not groups:
             # No buttons are shown on the screen, no size overflow.
+            self.hide_arrow_buttons()
             return
         max_size = self.calculate_max_size()
         if max_size < self.button_size:
@@ -834,6 +835,7 @@ class DockBar():
             return
         for group in self.groups:
             group.desktop_changed()
+        self.groups.manage_size_overflow()    
 
 
     #### Groupbuttons
