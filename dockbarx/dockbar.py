@@ -470,6 +470,7 @@ class DockBar():
         gi.require_version('Keybinder', '3.0')
         global Keybinder
         from gi.repository import Keybinder
+        gi.require_version('Wnck', '3.0')
         global Wnck
         from gi.repository import Wnck
 
