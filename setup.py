@@ -132,11 +132,14 @@ data_files=[
                                              "dockx_applets/namebar_window_buttons.py",
                                              "dockx_applets/namebar_window_title.applet",
                                              "dockx_applets/namebar_window_title.py"]),
-            ("/usr/bin", ["dockbarx_factory", "dbx_preference", "dockx"]),
+            ("/usr/bin", ["dockbarx_factory", "dockbarx_mate_applet", "dbx_preference", "dockx"]),
             ("/usr/lib/bonobo/servers", ["GNOME_DockBarXApplet.server"]),
             ("/usr/share/applications/", ["dbx_preference.desktop"]),
             ("/usr/share/applications/", ["DockX.desktop"]),
             ("/usr/share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml"]),
+            ("/usr/share/dbus-1/services/", ["org.mate.panel.applet.DockbarXAppletFactory.service"]),
+            ("/usr/share/mate-panel/applets/", ["org.mate.panel.DockbarX.mate-panel-applet"]),
+            ("/usr/share/mate-panel/ui/", ["dockbarx-applet-menu.xml"]),
          ]
 
 setup(name="Dockbarx",
