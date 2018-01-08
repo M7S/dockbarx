@@ -46,6 +46,7 @@ import i18n
 _ = i18n.language.gettext
 
 display = None
+X = None
 
 ATOM_PREVIEWS = Gdk.atom_intern("_KDE_WINDOW_PREVIEW", False)
 
@@ -2309,23 +2310,44 @@ class LockedPopup(GroupPopup):
             child_func(self)
 
     def __set_own_strut(self, *args):
-        win = self.get_window()
-        if win:
-            if self.globals.settings["locked_list_no_overlap"] is False:
-                win.property_get("_NET_WM_STRUT", pdelete=True)
-                win.property_get("_NET_WM_STRUT_PARTIAL", pdelete=True)
-                return
-            group = self.group_r()
-            a = self.get_allocation()
-            x, y = self.get_position()
-            mgeo = Gdk.Screen.get_default().get_monitor_geometry(
-                                                        group.get_monitor())
-            height = mgeo.y + mgeo.height - y
-            x1 = mgeo.x + x
-            x2 = mgeo.x + x + a.width
-            strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
-            xid = win.get_xid()
-            reserve_space(xid, strut)
+        # Todo: This doesn't work at all. Find out why and uncomment.
+        return
+        #~ global display
+        #~ global X
+        #~ if display is None:
+            #~ from Xlib import display
+        #~ win = self.get_window()
+        #~ if win:
+            #~ if self.globals.settings["locked_list_no_overlap"] is False:
+                #~ d = display.Display()
+                #~ topw = d.create_resource_object('window',
+                                                #~ win.get_toplevel().get_xid())
+                #~ topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
+                #~ topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
+                #~ return
+            #~ if  X is None:
+                #~ from Xlib import X
+            #~ group = self.group_r()
+            #~ a = self.get_allocation()
+            #~ x, y = self.get_position()
+            #~ mgeo = Gdk.Screen.get_default().get_monitor_geometry(
+                                                        #~ group.get_monitor())
+            #~ height = mgeo.y + mgeo.height - y
+            #~ x1 = mgeo.x + x
+            #~ x2 = mgeo.x + x + a.width
+            #~ strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
+            #~ d = display.Display()
+            #~ topw = d.create_resource_object('window',
+                                            #~ win.get_toplevel().get_xid())
+            #~ topw.change_property(d.intern_atom('_NET_WM_STRUT'),
+                                 #~ d.intern_atom('CARDINAL'), 32,
+                                 #~ strut[:4],
+                                 #~ X.PropModeReplace)
+
+            #~ topw.change_property(d.intern_atom('_NET_WM_STRUT_PARTIAL'),
+                                 #~ d.intern_atom('CARDINAL'), 32,
+                                 #~ strut,
+                                 #~ X.PropModeReplace)
 
     def __get_other_strut(self, x1, x2):
         global display

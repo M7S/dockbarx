@@ -31,7 +31,6 @@ from gi.repository import Gtk
 import weakref
 import locale
 from log import logger
-import xcffib, xcffib.xproto
 import struct
 
 
@@ -68,18 +67,6 @@ def compiz_call_async(obj_path, func_name, *args):
     if func:
         func(reply_handler=compiz_reply_handler,
              error_handler=compiz_error_handler, *args)
-
-def reserve_space(xid, data):
-    """Sets strut_partial property for a window so that space will be resereved for that program."""
-    connection = xcffib.connect()
-    atom_cookie = connection.core.InternAtom(False, len("_NET_WM_STRUT_PARTIAL"),
-        "_NET_WM_STRUT_PARTIAL")
-    atom = atom_cookie.reply().atom
-    data_p = struct.pack("12I", *data)
-    strat_cookie = connection.core.ChangePropertyChecked(xcffib.xproto.PropMode.Replace, xid,
-        atom, xcffib.xproto.Atom.CARDINAL, 32, len(data_p)/4, data_p)
-    strat_cookie.check()
-    connection.flush()
 
 def check_program(name):
     # Checks if a program exists in PATH

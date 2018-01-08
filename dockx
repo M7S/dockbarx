@@ -33,10 +33,10 @@ import dockbarx.dockbar
 gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GObject
-from dockbarx.common import Globals, reserve_space
+from dockbarx.common import Globals
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
-from Xlib import display
+from Xlib import display, X
 from math import pi, sin, cos, tan, atan
 import weakref
 import time
@@ -770,8 +770,11 @@ class DockX(CairoDockX):
             return
         set_strut = self.globals.settings["dock/behavior"] == "panel"
         if not set_strut:
-            self.get_window().property_delete("_NET_WM_STRUT")
-            self.get_window().property_delete("_NET_WM_STRUT_PARTIAL")
+            d = display.Display()
+            topw = d.create_resource_object('window',
+                                    self.get_toplevel().get_window().get_xid())
+            topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
+            topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
             return
         s = self.get_screen()
         sw = s.get_width()
@@ -796,11 +799,24 @@ class DockX(CairoDockX):
             if s.get_monitor_at_point(x + w / 2, my + mh + 5) != self.monitor:
                 set_strut = False
         if not set_strut:
-            self.get_window().property_delete("_NET_WM_STRUT")
-            self.get_window().property_delete("_NET_WM_STRUT_PARTIAL")
+            d = display.Display()
+            topw = d.create_resource_object('window',
+                                    self.get_toplevel().get_window().get_xid())
+            topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
+            topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
             return
-        xid = self.get_window().get_xid()
-        reserve_space(xid, strut)
+        d = display.Display()
+        topw = d.create_resource_object('window',
+                                self.get_toplevel().get_window().get_xid())
+        topw.change_property(d.intern_atom('_NET_WM_STRUT'),
+                             d.intern_atom('CARDINAL'), 32,
+                             strut[:4],
+                             X.PropModeReplace)
+
+        topw.change_property(d.intern_atom('_NET_WM_STRUT_PARTIAL'),
+                             d.intern_atom('CARDINAL'), 32,
+                             strut,
+                             X.PropModeReplace)
 
     def __get_monitor_and_strut_borders(self):
         # This function returns the distance from screen edges to
