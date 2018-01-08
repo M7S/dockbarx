@@ -907,7 +907,7 @@ class DockBar():
             res_class = window.get_class_group().get_res_class().lower()
             res_name = window.get_class_group().get_name().lower()
         if window.has_name():
-            identifier = res_class or res_name or window.get_name().lower()
+            fallback = window.get_name().lower()
         else:
             #in case window has no name - issue with Spotify
             pid = window.get_pid()
@@ -917,9 +917,10 @@ class DockBar():
                 raise
             cmd = f.readline()
             if "/" in cmd:
-                identifier = cmd.split("/")[-1]
+                fallback = cmd.split("/")[-1]
             else:
-                identifier = cmd
+                fallback = cmd
+        identifier = res_class or res_name or fallback
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
             identifier = SPECIAL_RES_CLASSES[identifier]
