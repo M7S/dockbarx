@@ -915,7 +915,7 @@ class DockBar():
                 f = open("/proc/"+str(pid)+"/cmdline", "r")
             except:
                 raise
-            cmd = f.readline()
+            cmd = f.readline().split("\0")[0]
             if "/" in cmd:
                 fallback = cmd.split("/")[-1]
             else:
