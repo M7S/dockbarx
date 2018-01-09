@@ -1867,7 +1867,7 @@ class DockBar():
 
     def __select_or_launch(self, *args):
         group = self.next_group
-        if group:
+        if group is not None:
             if group.get_count() > 0:
                 group.scrollpeak_select()
             else:
