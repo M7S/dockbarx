@@ -320,12 +320,12 @@ class Group(ListOfWindows):
 
 
     def show_launch_popup(self):
-        if self.popup.get_window():
-            self.popup.get_window().property_change(ATOM_PREVIEWS,
-                                              ATOM_PREVIEWS,
-                                              32,
-                                              Gdk.PropMode.REPLACE,
-                                              [0,5,0,0,0,0,0])
+        #~ if self.popup.get_window():
+            #~ self.popup.get_window().property_change(ATOM_PREVIEWS,
+                                              #~ ATOM_PREVIEWS,
+                                              #~ 32,
+                                              #~ Gdk.PropMode.REPLACE,
+                                              #~ [0,5,0,0,0,0,0])
         self.menu_is_shown = False
         #Launch program item
         if not self.launch_menu:
@@ -335,6 +335,7 @@ class Group(ListOfWindows):
             launch_program_item.connect("clicked",
                                 self.action_launch_application)
             self.launch_menu.pack_start(launch_program_item, True, True, 0)
+            self.launch_menu.can_be_shown = lambda : True
         self.popup.set_child_(self.launch_menu)
         self.popup.show()
 
@@ -1181,7 +1182,10 @@ class Group(ListOfWindows):
             self.scrollpeak_window.item.set_highlighted(True)
             if self.scrollpeak_sid is not None:
                 GObject.source_remove(self.scrollpeak_sid)
-            if not keyboard_select:
+            if keyboard_select:
+                self.scrollpeak_sid = GObject.timeout_add(600,
+                                                        self.scrollpeak_select)
+            else:
                 self.scrollpeak_sid = GObject.timeout_add(1500,
                                                         self.scrollpeak_select)
             while Gtk.events_pending():

@@ -895,10 +895,6 @@ class Globals(GObject.GObject):
             if type(gs_value) != type(value):
                 # Todo: Remove this if unneccessary.
                 print "Gsettings import. Wrong types for", name, "- New type:", gs_value, "Old type:", value
-            if type(gs_value)==str and "gkeys" in name:
-                # Fix for keyboard shortcut names since you cant have <> in gsettings schemas.
-                gs_value = gs_value.replace("[", "<")
-                gs_value = gs_value.replace("]", ">")
             settings[name] = gs_value
         return settings
 

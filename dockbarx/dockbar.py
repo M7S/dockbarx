@@ -440,6 +440,7 @@ class DockBar():
         self.dockmanager = None
         self.groups = None
         self.size = None
+        self.kbd_sid = None
 
         self.parent_window_reporting = False
         self.parent_handles_menu = False
@@ -515,6 +516,7 @@ class DockBar():
         self.globals.connect("use-number-shortcuts-changed",
                              self.__init_number_shortcuts)
         Keybinder.init()
+        Keybinder.set_use_cooked_accelerators(False)
 
         # Unity stuff
         self.unity_watcher = UnityWatcher(self)
@@ -1672,12 +1674,9 @@ class DockBar():
                 # The global key is not in use
                 continue
             keystr = self.globals.settings["%s_keystr" % s]
-            # Fix for <Shift>Tab keybindings
-            if "<shift>" in keystr.lower() and "Tab" in keystr:
-                n = keystr.lower().find("<shift>")
-                keystr = keystr[:n] + keystr[(n + 7):]
-                if not "ISO_Left_Tab" in keystr:
-                    keystr = keystr.replace("Tab", "ISO_Left_Tab")
+            # Fix for keyboard shortcut name since you cant have <> in gsettings schemas.
+            keystr = keystr.replace("[", "<")
+            keystr = keystr.replace("]", ">")
 
             try:
                 if Keybinder.bind(keystr, f):
@@ -1685,7 +1684,6 @@ class DockBar():
                     self.gkeys[s]= keystr
                     error = False
                 else:
-                    print "Buhuu"
                     error = True
                     reason = ""
                     # Keybinder sometimes doesn't unbind faulty binds.
@@ -1693,10 +1691,8 @@ class DockBar():
                     try:
                         Keybinder.unbind(keystr)
                     except:
-                        raise
                         pass
             except KeyError:
-                raise
                 error = True
                 reason = "The key is already bound elsewhere."
             if error:
@@ -1715,44 +1711,54 @@ class DockBar():
                     md.destroy()
 
     def __gkey_select_next_group(self, key):
-        self.__grab_keyboard("gkeys_select_next_group_keystr")
+        #~ self.__grab_keyboard("gkeys_select_next_group_keystr")
+        self.__set_select_or_launch_timout()
         self.__select_next_group()
 
     def __gkey_select_previous_group(self, key):
-        self.__grab_keyboard("gkeys_select_previous_group_keystr")
+        #~ self.__grab_keyboard("gkeys_select_previous_group_keystr")
+        self.__set_select_or_launch_timout()
         self.__select_previous_group()
 
     def __gkey_select_next_window_in_group(self, key):
-        self.__grab_keyboard("gkeys_select_next_window_keystr")
+        #~ self.__grab_keyboard("gkeys_select_next_window_keystr")
+        self.__set_select_or_launch_timout()
         self.__select_next_window_in_group()
 
     def __gkey_select_previous_window_in_group(self, key):
-        self.__grab_keyboard("gkeys_select_previous_window_keystr")
+        #~ self.__grab_keyboard("gkeys_select_previous_window_keystr")
+        self.__set_select_or_launch_timout()
         self.__select_previous_window_in_group()
 
-    def __grab_keyboard(self, keystr):
-        if self.parent:
-            print "kbdgrb", Gdk.keyboard_grab(self.parent.get_window(), False, Gdk.CURRENT_TIME)
-            self.parent.add_events(Gdk.EventMask.KEY_RELEASE_MASK)
-            self.parent.add_events(Gdk.EventMask.KEY_PRESS_MASK)
-            connect(self.parent, "key-release-event", self.__key_released)
-            connect(self.parent, "key-press-event", self.__key_pressed)
+    def __set_select_or_launch_timout(self, t=600):
+        if self.kbd_sid is not None:
+            GObject.source_remove(self.kbd_sid)
+            self.kbd_sid = None
+        self.kbd_sid = GObject.timeout_add(t, self.__select_or_launch)
 
-            # Find the mod key(s) which realse should finnish the selection.
-            mod_keys = ["Control", "Super", "Alt"]
-            mod_keys = [key for key in mod_keys \
-                    if key.lower() in self.globals.settings[keystr].lower()]
-            if "next" in keystr:
-                keystr = keystr.replace("next", "previous")
-            else:
-                keystr = keystr.replace("previous","next")
-            self.mod_keys = [key for key in mod_keys \
-                    if key.lower() in self.globals.settings[keystr].lower()]
-            if not self.mod_keys:
-                self.mod_keys = mod_keys
+    #~ def __grab_keyboard(self, keystr):
+        #~ if self.parent:
+            #~ print "kbdgrb", Gdk.keyboard_grab(self.parent.get_window(), False, Gdk.CURRENT_TIME)
+            #~ self.parent.add_events(Gdk.EventMask.KEY_RELEASE_MASK)
+            #~ self.parent.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+            #~ connect(self.parent, "key-release-event", self.__key_released)
+            #~ connect(self.parent, "key-press-event", self.__key_pressed)
 
-            if self.keyboard_show_dock:
-                self.parent.show_dock()
+            #~ # Find the mod key(s) which realse should finnish the selection.
+            #~ mod_keys = ["Control", "Super", "Alt"]
+            #~ mod_keys = [key for key in mod_keys \
+                    #~ if key.lower() in self.globals.settings[keystr].lower()]
+            #~ if "next" in keystr:
+                #~ keystr = keystr.replace("next", "previous")
+            #~ else:
+                #~ keystr = keystr.replace("previous","next")
+            #~ self.mod_keys = [key for key in mod_keys \
+                    #~ if key.lower() in self.globals.settings[keystr].lower()]
+            #~ if not self.mod_keys:
+                #~ self.mod_keys = mod_keys
+
+            #~ if self.keyboard_show_dock:
+                #~ self.parent.show_dock()
 
     def __select_next_group(self, previous=False):
         if len(self.groups) == 0:
@@ -1805,68 +1811,74 @@ class DockBar():
     def __select_previous_window_in_group(self):
         self.__select_next_window_in_group(previous=True)
 
-    def __key_pressed(self, widget, event):
-        print "Keypressed"
-        functions = {"gkeys_select_next_group": self.__select_next_group,
-                     "gkeys_select_previous_group": \
-                                self.__select_previous_group,
-                     "gkeys_select_next_window": \
-                                self.__select_next_window_in_group,
-                     "gkeys_select_previous_window": \
-                                self.__select_previous_window_in_group}
-        keyname = Gdk.keyval_name(event.keyval)
-        # Check if it's a number shortcut.
-        if Gdk.EventMask.SUPER_MASK & event.get_state():
-            keys = [str(n) for n in range(10)]
-            if keyname in keys:
-                self.__on_number_shortcut_pressed(int(keyname),
-                                                  keyboard_grabbed=True)
-                return
-        # Check if it's any other global shortcut.
-        for name, func in functions.items():
-            if not self.globals.settings[name]:
-                continue
-            keystring = self.globals.settings["%s_keystr" % name]
-            mod_keys = {"super": Gdk.EventMask.SUPER_MASK,
-                        "alt": Gdk.ModifierType.MOD1_MASK,
-                        "control": Gdk.ModifierType.CONTROL_MASK,
-                        "shift": Gdk.ModifierType.SHIFT_MASK}
-            if "ISO_Left_Tab" in keystring:
-                # ISO_Left_Tab implies that shift has been used in combination
-                # with tab so we don't need to check if shift is pressed
-                # or not.
-                del mod_keys["shift"]
-            elif "shift" in keystring.lower() and "Tab" in keystring:
-                keystring = keystring.replace("Tab", "ISO_Left_Tab")
-            for key, mask in mod_keys.items():
-                if (key in keystring.lower()) !=  bool(mask & event.get_state()):
-                    break
-            else:
-                keystring = keystring.rsplit(">")[-1]
-                if keyname.lower() == keystring.lower():
-                    func()
+    #~ def __key_pressed(self, widget, event):
+        #~ print "Keypressed"
+        #~ functions = {"gkeys_select_next_group": self.__select_next_group,
+                     #~ "gkeys_select_previous_group": \
+                                #~ self.__select_previous_group,
+                     #~ "gkeys_select_next_window": \
+                                #~ self.__select_next_window_in_group,
+                     #~ "gkeys_select_previous_window": \
+                                #~ self.__select_previous_window_in_group}
+        #~ keyname = Gdk.keyval_name(event.keyval)
+        #~ # Check if it's a number shortcut.
+        #~ if Gdk.EventMask.SUPER_MASK & event.get_state():
+            #~ keys = [str(n) for n in range(10)]
+            #~ if keyname in keys:
+                #~ self.__on_number_shortcut_pressed(int(keyname),
+                                                  #~ keyboard_grabbed=True)
+                #~ return
+        #~ # Check if it's any other global shortcut.
+        #~ for name, func in functions.items():
+            #~ if not self.globals.settings[name]:
+                #~ continue
+            #~ keystring = self.globals.settings["%s_keystr" % name]
+            #~ keystr = keystr.replace("[", "<")
+            #~ keystr = keystr.replace("]", ">")
+            #~ mod_keys = {"super": Gdk.EventMask.SUPER_MASK,
+                        #~ "alt": Gdk.ModifierType.MOD1_MASK,
+                        #~ "control": Gdk.ModifierType.CONTROL_MASK,
+                        #~ "shift": Gdk.ModifierType.SHIFT_MASK}
+            #~ if "ISO_Left_Tab" in keystring:
+                #~ # ISO_Left_Tab implies that shift has been used in combination
+                #~ # with tab so we don't need to check if shift is pressed
+                #~ # or not.
+                #~ del mod_keys["shift"]
+            #~ elif "shift" in keystring.lower() and "Tab" in keystring:
+                #~ keystring = keystring.replace("Tab", "ISO_Left_Tab")
+            #~ for key, mask in mod_keys.items():
+                #~ if (key in keystring.lower()) !=  bool(mask & event.get_state()):
+                    #~ break
+            #~ else:
+                #~ keystring = keystring.rsplit(">")[-1]
+                #~ if keyname.lower() == keystring.lower():
+                    #~ func()
 
-    def __key_released(self, widget, event):
-        print "key releasead: ", Gdk.keyval_name(event.keyval)
-        keyname = Gdk.keyval_name(event.keyval)
-        for key in self.mod_keys:
-            if key in keyname:
-                group = self.next_group
-                if group:
-                    if group.get_count() > 0:
-                        group.scrollpeak_select()
-                    else:
-                        if group.media_controls:
-                            success = group.media_controls.show_player()
-                            if success:
-                                group.scrollpeak_abort()
-                        if not group.media_controls or not success:
-                            group.action_launch_application()
-                self.next_group = None
-                Gdk.keyboard_ungrab(event.time)
-                if self.parent:
-                    disconnect(self.parent)
-                break
+    #~ def __key_released(self, widget, event):
+        #~ print "key releasead: ", Gdk.keyval_name(event.keyval)
+        #~ keyname = Gdk.keyval_name(event.keyval)
+        #~ for key in self.mod_keys:
+            #~ if key in keyname:
+                #~ self.__select_or_launch()
+                #~ Gdk.keyboard_ungrab(event.time)
+                #~ if self.parent:
+                    #~ disconnect(self.parent)
+                #~ break
+
+    def __select_or_launch(self, *args):
+        group = self.next_group
+        if group:
+            if group.get_count() > 0:
+                group.scrollpeak_select()
+            else:
+                if group.media_controls:
+                    success = group.media_controls.show_player()
+                    if success:
+                        group.scrollpeak_abort()
+                if not group.media_controls or not success:
+                    group.action_launch_application()
+        self.next_group = None
+        self.kbd_sid = None
 
     def __init_number_shortcuts(self, *args):
         for i in range(10):
@@ -1904,11 +1916,11 @@ class DockBar():
             if self.next_group is not None and self.next_group != group:
                 self.next_group.scrollpeak_abort()
             self.next_group = group
-            if self.parent and not keyboard_grabbed:
-                print "kbdgrb", Gdk.keyboard_grab(self.parent.get_window(), False, Gdk.CURRENT_TIME)
-                connect(self.parent, "key-release-event", self.__key_released)
-                connect(self.parent, "key-press-event", self.__key_pressed)
-                self.mod_keys = ["Super"]
+            #~ if self.parent and not keyboard_grabbed:
+                #~ print "kbdgrb", Gdk.keyboard_grab(self.parent.get_window(), False, Gdk.CURRENT_TIME)
+                #~ connect(self.parent, "key-release-event", self.__key_released)
+                #~ connect(self.parent, "key-press-event", self.__key_pressed)
+                #~ self.mod_keys = ["Super"]
         else:
             Gdk.keyboard_ungrab(Gdk.CURRENT_TIME)
             if self.next_group:
