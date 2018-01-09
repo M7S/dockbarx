@@ -227,9 +227,11 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
             if name and exe:
                 self.quicklist[name] = exe
 
-    def launch(self, uri=None):
+    def launch(self, uri=None, command=None):
+        if command is None:
+            command = self.getExec()
+
         os.chdir(os.path.expanduser("~"))
-        command = self.getExec()
         if command == "":
             return
 
@@ -308,18 +310,10 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
     def get_quicklist(self):
         return self.quicklist
 
-    def launch_quicklist_entry(self, entry):
+    def launch_quicklist_entry(self, entry, uri=None):
         if not entry in self.quicklist:
             return
-        cmd = self.quicklist[entry]
-
-        # Nautilus and zeitgeist don't encode ' and " in uris and
-        # that's needed if we should launch with /bin/sh -c
-        cmd = cmd.replace("'", "%27")
-        cmd = cmd.replace('"', "%22")
-        cmd = unquote(cmd)
-        logger.info("Executing: %s"%cmd)
-        os.system("/bin/sh -c '%s' &"%cmd)
+        self.launch(uri, self.quicklist[entry])
 
     def getIcon(self, *args):
         try:
