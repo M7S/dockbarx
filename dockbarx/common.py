@@ -206,12 +206,12 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
         xdg.DesktopEntry.DesktopEntry.__init__(self, file_name)
         # Quicklist
         self.quicklist = ODict()
-        if not "X-Ayatana-Desktop-Shortcuts" in self.content["Desktop Entry"]:
+        if not "Actions" in self.content["Desktop Entry"]:
             return
-        entries = self.content["Desktop Entry"]["X-Ayatana-Desktop-Shortcuts"]
+        entries = self.content["Desktop Entry"]["Actions"]
         entries = entries.split(";")
         for entry in entries:
-            sg = self.content.get("%s Shortcut Group" % entry)
+            sg = self.content.get("Desktop Action %s" % entry)
             if not sg:
                 continue
             lo = locale.getlocale()[0]
@@ -228,9 +228,11 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
             if name and exe:
                 self.quicklist[name] = exe
 
-    def launch(self, uri=None):
+    def launch(self, uri=None, command=None):
+        if command is None:
+            command = self.getExec()
+
         os.chdir(os.path.expanduser("~"))
-        command = self.getExec()
         if command == "":
             return
 
@@ -309,18 +311,10 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
     def get_quicklist(self):
         return self.quicklist
 
-    def launch_quicklist_entry(self, entry):
+    def launch_quicklist_entry(self, entry, uri=None):
         if not entry in self.quicklist:
             return
-        cmd = self.quicklist[entry]
-
-        # Nautilus and zeitgeist don't encode ' and " in uris and
-        # that's needed if we should launch with /bin/sh -c
-        cmd = cmd.replace("'", "%27")
-        cmd = cmd.replace('"', "%22")
-        cmd = unquote(cmd)
-        logger.info("Executing: %s"%cmd)
-        os.system("/bin/sh -c '%s' &"%cmd)
+        self.launch(uri, self.quicklist[entry])
 
     def getIcon(self, *args):
         try:
