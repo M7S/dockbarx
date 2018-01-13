@@ -578,6 +578,7 @@ class DockBar():
         if self.groups is not None:
             for group in self.groups:
                 self.groups.remove(group)
+                group.destroy()
             self.groups.destroy()
             del self.groups
         del self.skip_tasklist_windows

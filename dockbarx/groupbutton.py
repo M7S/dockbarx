@@ -320,12 +320,19 @@ class Group(ListOfWindows):
 
 
     def show_launch_popup(self):
-        #~ if self.popup.get_window():
-            #~ self.popup.get_window().property_change(ATOM_PREVIEWS,
-                                              #~ ATOM_PREVIEWS,
-                                              #~ 32,
-                                              #~ Gdk.PropMode.REPLACE,
-                                              #~ [0,5,0,0,0,0,0])
+        if self.popup.get_window():
+            if display is not None:
+                # If display is None no preview is in use
+                # and there's no need to remove it.
+                global X
+                if X is None:
+                    from Xlib import X
+                d = display.Display()
+                dw = d.create_resource_object('window', self.get_window().get_xid())
+                dw.change_property(d.intern_atom('_KDE_WINDOW_PREVIEW'),
+                             d.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
+                             [0,5,0,0,0,0,0],
+                             X.PropModeReplace)
         self.menu_is_shown = False
         #Launch program item
         if not self.launch_menu:
@@ -2115,12 +2122,18 @@ class GroupPopup(CairoPopup):
         if previews is None:
             previews = [0,5,0,0,0,0,0]
         if self.get_window():
-            pass
-            #~ self.get_window().property_change(ATOM_PREVIEWS,
-                                        #~ ATOM_PREVIEWS,
-                                        #~ 32,
-                                        #~ Gdk.PropMode.REPLACE,
-                                        #~ previews)
+            global X
+            global display
+            if display is None:
+                from Xlib import display
+            if X is None:
+                from Xlib import X
+            d = display.Display()
+            dw = d.create_resource_object('window', self.get_window().get_xid())
+            dw.change_property(d.intern_atom('_KDE_WINDOW_PREVIEW'),
+                         d.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
+                         previews,
+                         X.PropModeReplace)
 
     def on_leave_notify_event(self, widget, event):
         CairoPopup.on_leave_notify_event(self, widget, event)

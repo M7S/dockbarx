@@ -510,8 +510,9 @@ class CairoPopup(Gtk.Window):
                                                 self.__on_popup_style_reloaded)
 
     def destroy(self):
-        self.popup_style.disconnect(self.popup_reloaded_sid)
-        self.popup_style = None
+        if self.popup_style is not None:
+            self.popup_style.disconnect(self.popup_reloaded_sid)
+            self.popup_style = None
         Gtk.Window.destroy(self)
 
     def __get_arrow_size(self):

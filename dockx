@@ -1094,12 +1094,11 @@ class DockX(CairoDockX):
         self.queue_draw()
 
     def __on_position_changed(self, *args):
-        self.position_dock()
-        self.queue_draw()
-        self.__compute_should_autohide()
-        self.compute_padding()
-        if self.autohide:
-            self.hide_dock()
+        pos = self.globals.settings["dock/position"]
+        orient = {"top": "up", "left": "left",
+                   "right": "right", "bottom": "down"}[pos]
+        self.dockbar.set_orient(orient)
+        self.reload()
 
     def __on_overlap_changed(self, *args):
         a = self.get_allocation()
