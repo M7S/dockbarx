@@ -19,10 +19,8 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-gi.require_version("GConf", "2.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GConf
 import os
 from tarfile import open as taropen
 from xml.sax import make_parser
@@ -109,7 +107,7 @@ class Theme():
             raise
         tar.close()
         return theme_handler.get_name()
-        
+
     @staticmethod
     def get_info(path_to_tar):
         tar = taropen(path_to_tar)
@@ -228,7 +226,7 @@ class AppletsFrame():
         self.applets = DockXApplets()
         applet_list = self.applets.get_list()
         unused_list = self.applets.get_unused_list()
-        
+
         self.box = Gtk.VBox(False, 7)
         hbox = Gtk.HBox()
         vbox = Gtk.VBox()
@@ -241,33 +239,33 @@ class AppletsFrame():
         vbox.pack_start(Gtk.Label("Applets in use", True, True, 0), False, True, 0)
         vbox.pack_start(sw, True, True, 0)
         hbox.pack_start(vbox, True, True, 0)
-        
-        
+
+
         bbox = Gtk.VBox()
 
-        self.add_button = self.create_image_button(Gtk.STOCK_GO_BACK, 
-                                              self.on_add_button_clicked, 
+        self.add_button = self.create_image_button(Gtk.STOCK_GO_BACK,
+                                              self.on_add_button_clicked,
                                               bbox)
         self.add_button.set_sensitive(False)
-        self.remove_button = self.create_image_button(Gtk.STOCK_GO_FORWARD, 
-                                                 self.on_remove_button_clicked, 
+        self.remove_button = self.create_image_button(Gtk.STOCK_GO_FORWARD,
+                                                 self.on_remove_button_clicked,
                                                  bbox)
         self.remove_button.set_sensitive(False)
         self.preferences_button = self.create_image_button(
-                                            Gtk.STOCK_PREFERENCES, 
-                                            self.on_preferences_button_clicked, 
+                                            Gtk.STOCK_PREFERENCES,
+                                            self.on_preferences_button_clicked,
                                             bbox)
         self.preferences_button.set_sensitive(False)
-        reload_button = self.create_image_button(Gtk.STOCK_REFRESH, 
-                                                 self.on_reload_button_clicked, 
+        reload_button = self.create_image_button(Gtk.STOCK_REFRESH,
+                                                 self.on_reload_button_clicked,
                                                  bbox)
         ali = Gtk.Alignment.new(0.5, 0.5, 1, 0)
         ali.add(bbox)
         hbox.pack_start(ali, False, False, 0)
 
         vbox = Gtk.VBox()
-        self.av_applet_view = self.create_treeview(unused_list, 
-                                                   "Available applets", 
+        self.av_applet_view = self.create_treeview(unused_list,
+                                                   "Available applets",
                                                    False, True)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
@@ -278,7 +276,7 @@ class AppletsFrame():
         #~ frame.add(self.av_applet_view)
         #~ vbox.pack_start(frame, True, True, 0)
         hbox.pack_start(vbox, True, True, 0)
-        
+
         self.box.pack_start(hbox, True, True, 0)
         self.textbuffer = self.create_textview(self.box)
         self.box.show_all()
@@ -307,7 +305,7 @@ class AppletsFrame():
         if parent:
             parent.pack_start(sw, False, False, 0)
         return textview.get_buffer()
-        
+
     def create_treeview(self, content, name, reorderable=False, sort=False):
         store = Gtk.ListStore(str)
         self.reload_model(store, content)
@@ -379,12 +377,12 @@ class AppletsFrame():
         applet = model[i][0]
         model.remove(i)
         self.applet_view.get_model().append([applet])
-        
+
         self.textbuffer.set_text("")
         self.add_button.set_sensitive(False)
         self.remove_button.set_sensitive(False)
         self.preferences_button.set_sensitive(False)
-        
+
 
     def on_remove_button_clicked(self, *args):
         s = self.applet_view.get_selection()
@@ -394,7 +392,7 @@ class AppletsFrame():
         applet = model[i][0]
         model.remove(i)
         self.av_applet_view.get_model().append([applet])
-        
+
         self.textbuffer.set_text("")
         self.add_button.set_sensitive(False)
         self.remove_button.set_sensitive(False)
@@ -587,7 +585,7 @@ class PrefDialog():
         self.theme_settings_frame = frame
         frame.set_border_width(5)
         table = Gtk.Table(True)
-        
+
         align = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         hbox = Gtk.HBox()
         hbox.set_border_width(10)
@@ -609,7 +607,7 @@ class PrefDialog():
         hbox.pack_start(self.popup_style_combo, False, True, 0)
         hbox.pack_start(button, False, True, 0)
         table.attach(align, 0,6, 0,1)
-        
+
         self.default_color_names = {
             "color1": "Window list background",
             "color2": "Normal text",
@@ -713,7 +711,7 @@ class PrefDialog():
                                                    self.__checkbutton_toggled,
                                                    s)
             self.badge_color_buttons.append(Gtk.ColorButton())
-            text = (_("Custom badge text color"), 
+            text = (_("Custom badge text color"),
                     _("Custom badge background color"))[i]
             s = ("badge_fg", "badge_bg")[i]
             self.badge_color_buttons[i].set_title(text)
@@ -724,7 +722,7 @@ class PrefDialog():
                          xoptions = Gtk.AttachOptions.FILL, xpadding = 5)
             table.attach(self.badge_color_buttons[i], 1, 2, i, i + 1)
         vbox.pack_start(table, False, True, 0)
-        
+
         bfbox = Gtk.HBox()
         self.custom_badge_cb = Gtk.CheckButton(_("Custom font and size"))
         self.custom_badge_cb.connect("toggled", self.__checkbutton_toggled,
@@ -741,7 +739,7 @@ class PrefDialog():
         vbox.pack_start(bfbox, False, True, 5)
         frame.add(vbox)
         bpbox.pack_start(frame, True, True, 0)
-        
+
 
         # Progress frame
         frame = Gtk.Frame()
@@ -763,14 +761,14 @@ class PrefDialog():
                                                    self.__checkbutton_toggled,
                                                    s)
             self.progress_color_buttons.append(Gtk.ColorButton())
-            text = (_("Custom progress bar foreground color"), 
+            text = (_("Custom progress bar foreground color"),
                     _("Custom progress bar background color"))[i]
             s = ("progress_fg", "progress_bg")[i]
             self.progress_color_buttons[i].set_title(text)
             self.progress_color_buttons[i].set_use_alpha(True)
             self.progress_color_buttons[i].connect("color-set",
                                                    self.__bp_color_set, s)
-            table.attach(self.custom_progress_color_cbs[i], 0, 1, 
+            table.attach(self.custom_progress_color_cbs[i], 0, 1,
                          i, i + 1, xoptions = Gtk.AttachOptions.FILL, xpadding = 5)
             table.attach(self.progress_color_buttons[i], 1, 2, i, i + 1)
         vbox.pack_start(table, False, True, 0)
@@ -797,7 +795,7 @@ class PrefDialog():
         self.show_tooltip_cb.connect("toggled", self.__checkbutton_toggled,
                                  "groupbutton_show_tooltip")
         popup_box.pack_start(self.show_tooltip_cb, False, True, 5)
-        
+
         self.preview_size_spinbox = Gtk.HBox()
         self.preview_size_spinbox.set_border_width(5)
         spinlabel = Gtk.Label(label=_("Preview size"))
@@ -811,7 +809,7 @@ class PrefDialog():
         self.preview_size_spinbox.show_all()
         self.preview_size_spinbox.set_no_show_all(True)
         popup_box.pack_start(self.preview_size_spinbox, False, True, 5)
-        
+
         self.window_title_width_spinbox = Gtk.HBox()
         self.window_title_width_spinbox.set_border_width(5)
         spinlabel = Gtk.Label(label=_("Window title width"))
@@ -1033,7 +1031,7 @@ class PrefDialog():
         frame.add(hbox)
         groupbutton_box.pack_start(frame, False, True, 0)
 
-      
+
 
         #--- Plugins page
         self.media_buttons_cb = Gtk.CheckButton(_("Use media buttons"))
@@ -1248,7 +1246,7 @@ class PrefDialog():
                                        "dock/end_decorations")
         hbox.pack_start(self.end_decoration_cb, False, True, 5)
         dock_box.pack_start(hbox, False, True, 0)
-        
+
         hbox = Gtk.HBox()
         hbox.set_border_width(5)
         hbox.set_spacing(5)
@@ -1316,7 +1314,7 @@ class PrefDialog():
         hbox.pack_start(self.dock_theme_combo, False, True, 0)
         hbox.pack_start(button, False, True, 0)
         dock_box.pack_start(hbox, False, True, 5)
-        
+
         #Dock Colors
         frame = Gtk.Frame()
         frame.set_label(_("Colors"))
@@ -1360,7 +1358,7 @@ class PrefDialog():
         hbox.pack_start(self.dock_bar2_box, True, True, 0)
         frame.add(hbox)
         dock_box.pack_start(frame, False, True, 0)
-        
+
 
         #--- AWN page
         hbox = Gtk.HBox()
@@ -1378,7 +1376,7 @@ class PrefDialog():
         label = Gtk.Label(label=_("AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the awn applet Taskmanager is not running. Set dodge behavior here instead."))
         label.set_line_wrap(True)
         awn_box.pack_start(label, False, True, 0)
-        
+
 
         notebook.append_page(awn_box, Gtk.Label(label=_("AWN")))
         notebook.append_page(dock_box, Gtk.Label(label=_("Dock")))
@@ -1509,7 +1507,7 @@ class PrefDialog():
             self.badge_color_buttons[i].set_color(color)
             alpha = self.globals.settings[s + "_alpha"] * 256
             self.badge_color_buttons[i].set_alpha(alpha)
-            
+
         for i in (0, 1):
             s = ("progress_custom_fg_color", "progress_custom_bg_color")[i]
             active = self.globals.settings[s]
@@ -1696,7 +1694,7 @@ class PrefDialog():
         else:
             self.preview_size_spinbox.hide()
             self.window_title_width_spinbox.show()
-        
+
         # Advanced page stuff
         self.ignore_workspace_cb.set_active(
                             self.globals.settings["show_only_current_desktop"])
@@ -1775,7 +1773,7 @@ class PrefDialog():
             self.dock_bar2_box.show()
         else:
             self.dock_bar2_box.hide()
-        
+
         # Awn
         model = self.awn_behavior_box.get_model()
         for i in range(len(model)):
@@ -2155,7 +2153,7 @@ class PrefDialog():
 
         dialog.run()
         dialog.destroy()
-            
+
     def __set_dock_theme(self, button=None):
         value = self.dock_theme_combo.get_active_text()
         if value is None:
@@ -2292,7 +2290,7 @@ class PrefDialog():
 
     def __show_preview_minimized_dialogs(self):
         # This function is not used right now, it can cause compiz to freeze.
-        
+
         # Check if the needed compiz plugin is activated
         # and ask if it should be if it isn't.
         try:
@@ -2338,7 +2336,7 @@ class PrefDialog():
                 plugins.append("kdecompat")
                 compiz_call_sync("workarounds/screen0/keep_minimized_windows",
                                  "set", True)
-        
+
     def __show_opacify_dialog(self):
         # Check if the needed compiz plugin is activated
         # and ask if it should be if it isn't.

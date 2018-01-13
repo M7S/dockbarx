@@ -150,7 +150,7 @@ class Spacer(Gtk.EventBox):
 
     def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
-        
+
 class GroupList(list):
     def __init__(self, dockbar, orient):
         list.__init__(self)
@@ -169,7 +169,7 @@ class GroupList(list):
         else:
             self.container = Gtk.VBox()
             self.box = Gtk.VBox()
-        self.allocation_sid = self.box.connect("size-allocate", 
+        self.allocation_sid = self.box.connect("size-allocate",
                                                self.on_size_allocate)
         self.box.pack_start(self.container, False, False, 0)
         self.empty = Spacer(dockbar)
@@ -210,36 +210,36 @@ class GroupList(list):
         list.insert(self, index, group)
         self.container.reorder_child(group.button, index)
         self.manage_size_overflow()
-        
+
     def append(self, group):
         list.append(self, group)
         self.container.pack_start(group.button, False, False, 0)
         self.manage_size_overflow()
-        
+
     def insert(self, index, group):
         list.insert(self, index, group)
         self.container.pack_start(group.button, False, False, 0)
         self.container.reorder_child(button, index)
         self.manage_size_overflow()
-        
+
     def remove(self, group):
         list.remove(self, group)
         group.destroy()
         self.manage_size_overflow()
-        
+
     def show(self):
         self.box.show()
         self.container.show()
-        
+
     def set_spacing(self, gap):
         self.container.set_spacing(gap)
-        
+
     def set_aspect_ratio(self, aspect_ratio):
         if aspect_ratio == self.aspect_ratio:
             return
         self.aspect_ratio = aspect_ratio
         self.calculate_button_size()
-        
+
     def set_orient(self, orient):
         for pair in (("up", "down"), ("left", "right")):
             if orient in pair and self.orient in pair:
@@ -273,9 +273,9 @@ class GroupList(list):
         self.empty = Spacer(self.dockbar_r())
         self.box.pack_start(self.empty, True, True, 0)
         self.__make_arrow_buttons()
-        self.allocation_sid = self.box.connect("size-allocate", 
+        self.allocation_sid = self.box.connect("size-allocate",
                                                self.on_size_allocate)
-        
+
     def __make_arrow_buttons(self):
         if self.arrow_box is not None:
             self.next_button.destroy()
@@ -294,19 +294,19 @@ class GroupList(list):
         box.pack_start(self.next_button, True, True, 0)
         box.pack_start(self.previous_button, True, True, 0)
         self.box.pack_start(self.arrow_box, False, False, 0)
-        
+
         #Connections
         next_sid = self.next_button.connect("clicked", self.on_next_button_clicked)
         previous_sid = self.previous_button.connect("clicked", self.on_previous_button_clicked)
-        
+
     def show_arrow_buttons(self):
         self.arrows_visible = True
         self.arrow_box.show_all()
-    
+
     def hide_arrow_buttons(self):
         self.arrows_visible = False
         self.arrow_box.hide()
-        
+
     def get_shown_groups(self):
         # returns groups that are visible
         groups = []
@@ -350,7 +350,7 @@ class GroupList(list):
             self.next_button.set_sensitive(True)
         # Hide all buttons and then show the ones that is
         # in the currently shown set.
-            
+
         for group in groups:
             group.button.hide()
         begin = self.overflow_set * max_buttons
@@ -361,7 +361,7 @@ class GroupList(list):
         for group in groups[begin:end]:
             group.button.show()
         #TODO: Fix locked popup behavior when group disapears or move
-        
+
     def calculate_button_size(self):
         # Calculate the button size.
         if self.orient in ("down", "up"):
@@ -378,13 +378,13 @@ class GroupList(list):
             # still can be shown at once.
             self.button_size = button_size
             self.manage_size_overflow()
-            
+
     def set_max_size(self, max_size):
         # When runned in dock (and possibly other cases) the max
         # size is set from outside this class using this funtction.
         self.max_size = max_size
         self.manage_size_overflow()
-        
+
     def calculate_max_size(self):
         if self.max_size is None:
             # Maxsize is not set externally use the allocation size.
@@ -406,28 +406,28 @@ class GroupList(list):
         # buttons.
         size = size + self.container.get_spacing()
         return size
-        
+
     def on_size_allocate(self, widget, allocation):
         if allocation.width <= 1:
             # Not yet realized.
             return
         self.calculate_button_size()
-        
+
     def on_next_button_clicked(self, *args):
         self.overflow_set = self.overflow_set + 1
         self.manage_size_overflow()
-        
+
     def on_previous_button_clicked(self, *args):
         self.overflow_set = self.overflow_set - 1
         self.manage_size_overflow()
-        
+
     def destroy(self):
         self.box.disconnect(self.allocation_sid)
         self.container.destroy()
         self.empty.destroy()
         self.box.destroy()
-        
-        
+
+
 class DockBar():
     def __init__(self, parent):
         logger.info("DockbarX %s"%VERSION)
@@ -448,7 +448,6 @@ class DockBar():
         self.keyboard_show_dock = False
         self.no_theme_change_reload = False
         self.no_dbus_reload = False
-        self.expose_on_clear = False
         self.orient = "down"
 
         self.globals = Globals()
@@ -460,11 +459,11 @@ class DockBar():
 
     #### Parent functions
     # The dock/applet/widget interacts with dockbar through these functions.
-    
+
     def load(self):
         """Loads DockbarX. Should be run once DockbarX is initiated."""
-        
-        # Most things are imported here instead of immediately at startup 
+
+        # Most things are imported here instead of immediately at startup
         # since python gnomeapplet must be realized quickly to avoid crashes.
         global subprocess
         import subprocess
@@ -524,7 +523,7 @@ class DockBar():
         if self.globals.settings["unity"]:
             self.unity_watcher.start()
         self.globals.connect("unity-changed", self.__on_unity_changed)
-        
+
         # Generate Gio apps so that windows and .desktop files
         # can be matched correctly with eachother.
         self.apps_by_id = {}
@@ -564,7 +563,7 @@ class DockBar():
                         self.app_ids_by_exec[exe] = id
                     else:
                         self.app_ids_by_exec[exe] = id
-                        
+
         self.reload(tell_parent=False)
 
     def reload(self, event=None, data=None, tell_parent=True):
@@ -587,7 +586,7 @@ class DockBar():
         disconnect(self.globals)
         if self.theme:
             self.theme.remove()
-            
+
         # Start building up stuff again.
         self.skip_tasklist_windows = []
         self.windows = {}
@@ -674,7 +673,7 @@ class DockBar():
         if self.groups is None:
             return
         self.groups.set_orient(orient)
-        
+
         # Set aspect ratio and spacing.
         if self.orient in ("up", "down"):
             aspect_ratio = self.theme.get_aspect_ratio(False)
@@ -682,7 +681,7 @@ class DockBar():
             aspect_ratio = self.theme.get_aspect_ratio(True)
         self.groups.set_aspect_ratio(aspect_ratio)
         self.groups.set_spacing(self.theme.get_gap())
-        
+
         # Add the group buttons to the new container.
         for group in self.groups:
             preview = self.globals.settings["preview"]
@@ -694,11 +693,11 @@ class DockBar():
                 group.popup.point("down")
             if orient in ("left", "right"):
                 group.popup.point("left")
-                
+
         if self.globals.settings["show_only_current_desktop"]:
             self.__on_desktop_changed()
         #~ self.groups.manage_size_overflow() # Don't think line does anything useful here. Remove if everything looks OK.
-        
+
         # If a floating window panel is shown, close it.
         lp = self.globals.get_locked_popup()
         if lp:
@@ -768,7 +767,7 @@ class DockBar():
         # Starts the preference dialog
         os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
                    "/usr/bin/dbx_preference")
-                   
+
     #### Menu
     def create_popup_menu(self, event):
         if self.parent_handles_menu:
@@ -790,7 +789,7 @@ class DockBar():
         about_item.show()
         menu.popup(None, None, None, event.button, event.time)
         self.globals.gtkmenu = menu
-        
+
     def __menu_closed(self, menushell):
         self.globals.gtkmenu = None
         menushell.destroy()
@@ -857,7 +856,7 @@ class DockBar():
             return
         for group in self.groups:
             group.desktop_changed()
-        self.groups.manage_size_overflow()    
+        self.groups.manage_size_overflow()
 
 
     #### Groupbuttons
@@ -932,8 +931,8 @@ class DockBar():
             res_class = u"" + wm_class_property[1].lower()
             res_name  = u"" + wm_class_property[0].lower()
         except:
-        res_class = window.get_class_group().get_res_class().lower()
-        res_name = window.get_class_group().get_name().lower()
+            res_class = window.get_class_group().get_res_class().lower()
+            res_name = window.get_class_group().get_name().lower()
         if window.has_name():
             fallback = window.get_name().lower()
         else:
@@ -956,7 +955,7 @@ class DockBar():
         chromium = False
         if ".exe" in identifier:
             if self.globals.settings["separate_wine_apps"]:
-            wine = True
+                wine = True
             else:
                 identifier = "wine"
         if identifier in ("chromium-browser", "chrome-browser"):
@@ -1083,7 +1082,7 @@ class DockBar():
                             break
             if not app_id:
                 if rc.find(" ")>-1:
-                    rc = rc.partition(" ")[0] 
+                    rc = rc.partition(" ")[0]
                     # Workaround for apps
                     # with identifier like this "App 1.2.3" (name with ver)
                     if rc in self.apps_by_id.keys():
@@ -1149,7 +1148,7 @@ class DockBar():
                 if app == a:
                     return self.d_e_ids_by_chromium_cmd[cmd]
         return None
-        
+
     def __on_ooo_window_name_changed(self, window):
         identifier = None
         for group in self.groups:
@@ -1293,7 +1292,7 @@ class DockBar():
         # Remove existing groupbutton for the same program
         window_list = []
         index = None
-            
+
         if drop_point == "after":
             index = -1
         elif drop_point == "before":
@@ -1404,7 +1403,7 @@ class DockBar():
                 logger.debug("Couldn't add launcher: " + \
                              "path %s doesn't exist" % path)
                 return
-                
+
         # Safety in case something has gone wrong and there's duplicates
         # in the list.
         if (identifier or path) in self.groups.get_identifiers():
@@ -1771,7 +1770,7 @@ class DockBar():
             #~ self.parent.add_events(Gdk.EventMask.KEY_PRESS_MASK)
             #~ connect(self.parent, "key-release-event", self.__key_released)
             #~ connect(self.parent, "key-press-event", self.__key_pressed)
-            
+
             #~ # Find the mod key(s) which realse should finnish the selection.
             #~ mod_keys = ["Control", "Super", "Alt"]
             #~ mod_keys = [key for key in mod_keys \
