@@ -928,8 +928,8 @@ class DockBar():
             #Support of wine applications - get name of .exe as identifier
             gdkw = gtk.gdk.window_foreign_new(window.get_xid())
             wm_class_property = gdkw.property_get(ATOM_WM_CLASS)[2].split("\0")
-            res_class = u"" + wm_class_property[1].lower()
-            res_name  = u"" + wm_class_property[0].lower()
+            res_class = wm_class_property[1].lower()
+            res_name  = wm_class_property[0].lower()
         except:
             res_class = window.get_class_group().get_res_class().lower()
             res_name = window.get_class_group().get_name().lower()
@@ -1026,7 +1026,7 @@ class DockBar():
 
     def __find_desktop_entry_id(self, identifier):
         id = None
-        rc = u""+identifier.lower()
+        rc = identifier.lower()
         if rc != "":
             if rc in self.desktop_entry_by_id:
                 id = rc
@@ -1061,7 +1061,7 @@ class DockBar():
     def __find_gio_app(self, identifier):
         app = None
         app_id = None
-        rc = u""+identifier.lower()
+        rc = identifier.lower()
         if rc != "":
             if rc in self.apps_by_id:
                 app_id = rc
@@ -1191,7 +1191,7 @@ class DockBar():
 
         # Try to match the launcher against the groups that aren't pinned.
         id = path[path.rfind("/")+1:path.rfind(".")].lower()
-        name = u"" + desktop_entry.getName()
+        name = desktop_entry.getName()
         exe = desktop_entry.getExec()
         wine = False
         chromium = False
@@ -1230,7 +1230,7 @@ class DockBar():
             if group.pinned:
                 continue
             identifier = group.identifier
-            rc = u"" + identifier.lower()
+            rc = identifier.lower()
             if not rc:
                 continue
             if wine:
@@ -1444,7 +1444,7 @@ class DockBar():
             if exe != "":
                 self.d_e_ids_by_exec[exe] = id
 
-            name = u"" + desktop_entry.getName().lower()
+            name = desktop_entry.getName().lower()
             if name.find(" ")>-1:
                 self.d_e_ids_by_longname[name] = id
             else:
