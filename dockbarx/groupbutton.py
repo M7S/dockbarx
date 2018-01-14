@@ -167,7 +167,7 @@ class Group(ListOfWindows):
         self.screen = wnck.screen_get_default()
         self.root_xid = int(gtk.gdk.screen_get_default().get_root_window().xid)
         self.update_name()
-        
+
         self.monitor = self.get_monitor()
         mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(self.monitor)
         self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
@@ -244,7 +244,7 @@ class Group(ListOfWindows):
         self.nextlist = None
         for window in self:
             window.desktop_changed()
-        
+
         if self.locked_popup:
             self.locked_popup.get_child_().show_all()
             self.locked_popup.resize(10, 10)
@@ -351,7 +351,7 @@ class Group(ListOfWindows):
         if self.locked_popup:
             self.locked_popup.destroy()
             self.popup.hide()
-        
+
     #### Window handling
     def add_window(self, wnck_window):
         if wnck_window in self:
@@ -497,7 +497,7 @@ class Group(ListOfWindows):
         if self.deopacify_sid:
             gobject.source_remove(self.deopacify_sid)
             self.deopacify_sid = None
-            
+
 
     #### Media Controls
     def add_media_controls(self, media_controls):
@@ -656,10 +656,10 @@ class Group(ListOfWindows):
         menu.build_group_menu(self.desktop_entry, self.dockmanager, \
                               self.quicklist, self.pinned, self.locked_popup, \
                               use_locked_popup, win_nr, minimize, maximize)
-        
+
         self.__menu_get_zg_files()
         return menu
-                        
+
     def __menu_get_zg_files(self):
         # Get information from zeitgeist
         self.zg_most_used_files = None
@@ -719,7 +719,7 @@ class Group(ListOfWindows):
     def __menu_recent_today_handler(self, events):
         self.zg_recent_today_files = zg.pythonify_zg_events(events)
         self.__menu_update_zg()
-        
+
     def __menu_update_zg(self):
         # Updates zeitgeist recent, most used and related menus when
         # all of them has been received.
@@ -744,7 +744,7 @@ class Group(ListOfWindows):
             identifier = int(identifier.rsplit("_", 1)[-1])
             data = dbus.String("", variant_level=1)
             t = dbus.UInt32(event.time)
-            self.quicklist.send_event(identifier, "hovered", 
+            self.quicklist.send_event(identifier, "hovered",
                                       data, t)
             return
 
@@ -753,7 +753,7 @@ class Group(ListOfWindows):
             identifier = int(identifier.rsplit("_", 1)[-1])
             data = dbus.String("", variant_level=1)
             t = dbus.UInt32(0)
-            self.quicklist.send_event(identifier, "clicked", 
+            self.quicklist.send_event(identifier, "clicked",
                                       data, t)
             return
         if identifier in self.zg_files:
@@ -1079,7 +1079,7 @@ class Group(ListOfWindows):
                 grp_win_stacked.pop(0).wnck.activate(event.time)
                 if grp_win_stacked and delay:
                     sleep(0.05)
-                    
+
 
     def action_select_only(self, widget, event):
         self.action_select_or_minimize_group(widget, event, False)
@@ -1261,19 +1261,19 @@ class Group(ListOfWindows):
 
     def action_compiz_scale_windows(self, widget, event):
         windows = self.get_unminimized_windows()
-        
+
         if not windows:
             return
         self.popup.hide()
         if len(windows) == 1:
             self[0].action_select_window(widget, event)
             return
-            
+
         if self.globals.get_compiz_version() >= '0.9.4':
             screen_path = 'screen0'
         else:
             screen_path = 'allscreens'
-            
+
         if self.globals.settings["show_only_current_desktop"]:
             path = "scale/%s/initiate_key"%screen_path
         else:
@@ -1323,7 +1323,7 @@ class Group(ListOfWindows):
             screen_path = 'screen0'
         else:
             screen_path = 'allscreens'
-            
+
         try:
             compiz_call_async("scale/%s/initiate_key"%screen_path, "activate",
                         "root", self.root_xid)
@@ -1541,7 +1541,7 @@ class GroupButton(CairoAppButton):
                         screen_path = 'screen0'
                     else:
                         screen_path = 'allscreens'
-                
+
                     compiz_call_async("water/%s/point"%screen_path, "activate",
                                 "root", group.root_xid, "x", x, "y", y)
                 except:
@@ -1625,7 +1625,7 @@ class GroupButton(CairoAppButton):
             group.popup.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.launch_effect_timeout = gobject.timeout_add(length,
                                                 self.remove_launch_effect)
-                                                
+
     def remove_launch_effect(self):
         group = self.group_r()
         if self.launch_effect_timeout:
@@ -1886,6 +1886,10 @@ class GroupButton(CairoAppButton):
         if self.globals.settings["opacify"] and \
            self.globals.settings["opacify_group"]:
             self.opacify(delay)
+        # Select on hover
+        umw = group.get_unminimized_windows()
+        if umw:
+            umw[0].action_select_window(self, event)
 
     def do_leave_notify_event(self, event):
         group = self.group_r()
@@ -2190,7 +2194,7 @@ class GroupPopup(CairoPopup):
             return
         self.hide()
         return
-        
+
     def hide_if_not_hovered(self, timer=0):
         self.hide_time = time()
         self.cancel_hide_request()
@@ -2276,7 +2280,7 @@ class LockedPopup(GroupPopup):
             return
         mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
                                                         group.get_monitor())
-        
+
         width, height = self.get_size()
         if self.dockbar_r().orient in ("down", "up"):
             button_window = group.button.window
@@ -2293,7 +2297,7 @@ class LockedPopup(GroupPopup):
                                        mgeo.width/2 + width / 2)
         self.move(mgeo.width/2 - width / 2, mgeo.height - height - strut - 1)
         self.__set_own_strut()
-        
+
         try:
             child_func = self.get_child_().on_popup_reallocate
         except AttributeError:
@@ -2314,12 +2318,12 @@ class LockedPopup(GroupPopup):
             mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
                                                         group.get_monitor())
             height = mgeo.y + mgeo.height - y
-            x1 = mgeo.x + x 
+            x1 = mgeo.x + x
             x2 = mgeo.x + x + a.width
             strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
-            self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32, 
-                                        gtk.gdk.PROP_MODE_REPLACE, strut[:4])  
-            self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL", 
+            self.window.property_change("_NET_WM_STRUT", "CARDINAL", 32,
+                                        gtk.gdk.PROP_MODE_REPLACE, strut[:4])
+            self.window.property_change("_NET_WM_STRUT_PARTIAL", "CARDINAL",
                                         32, gtk.gdk.PROP_MODE_REPLACE, strut)
 
     def __get_other_strut(self, x1, x2):
@@ -2466,7 +2470,7 @@ class WindowList(gtk.VBox):
                     cw, ch = window.wnck.get_client_window_geometry()[2:4]
                     #~ w = int(w - 2 * (float(w) / ww) * (ww - cw))
                     h = int(h - 2 * (float(h) / wh) * (wh - ch))
-                previews.extend([x, y, w, h]) 
+                previews.extend([x, y, w, h])
         else:
             previews = [0,5,0,0,0,0,0]
         return previews
@@ -2529,14 +2533,14 @@ class WindowList(gtk.VBox):
         else:
             self.alignment.add(self.window_box)
             self.window_box.show_all()
-            
+
     def __create_scrolled_window(self):
         group = self.group_r()
         scrolled_window = gtk.ScrolledWindow()
         scrolled_window.set_shadow_type(gtk.SHADOW_NONE)
         scrolled_window.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.adjustment = scrolled_window.get_vadjustment()
-        self.scroll_changed_sid = self.adjustment.connect("changed", 
+        self.scroll_changed_sid = self.adjustment.connect("changed",
                                             self.__on_scroll_changed)
         mgeo = gtk.gdk.screen_get_default().get_monitor_geometry(
                                                     group.get_monitor())
@@ -2544,7 +2548,7 @@ class WindowList(gtk.VBox):
         #       Does this need to be more gracefully calculated?
         scrolled_window.set_size_request(-1, mgeo.height - 100)
         return scrolled_window
-        
+
     def __on_scroll_changed(self, adjustment):
         if adjustment.upper == 1:
             # Not yet realised.
@@ -2553,8 +2557,8 @@ class WindowList(gtk.VBox):
             # The scrolled window is no longer needed.
             self.size_overflow = False
             self.__rebuild_list()
-        
-        
+
+
     def on_popup_reallocate(self, popup):
         popup.set_previews(self.get_previews_list())
         if not self.window_box:
@@ -2701,7 +2705,7 @@ class GroupMenu(gobject.GObject):
                     self.add_separator()
                     break
         self.add_quicklist(layout)
-                                  
+
     def populate_zg_menus(self, recent, most_used, related):
         # Makes Recent, Most used and Related submenus and return a dict of all zeitgeist identifiers and uris.
         zg_files = {}
@@ -2715,7 +2719,7 @@ class GroupMenu(gobject.GObject):
         self.__populate_zg_menu(_("Most used"), most_used, zg_files)
         self.__populate_zg_menu(_("Related"), related, zg_files)
         return zg_files
-            
+
     def __populate_zg_menu(self, name, files, zg_files):
         # Menu items for the files will be made and the indentifiers and uris will be saved in zg_files.
         menu = self.submenus[name]
@@ -2743,7 +2747,7 @@ class GroupMenu(gobject.GObject):
                 identifier = "zg_%s%s" % (label, n)
             zg_files[identifier] = uri
             self.add_item(label, name, identifier=identifier)
-        # zg_files is a dict so there is no need to return it. 
+        # zg_files is a dict so there is no need to return it.
 
     def add_item(self, name, submenu=None, identifier=None, toggle_type=""):
         # Todo: add toggle types
@@ -2821,7 +2825,7 @@ class GroupMenu(gobject.GObject):
 
     def get_menu(self):
         return self.menu
-    
+
     def get_item(self, identifier):
         return self.items.get(identifier)
 
@@ -2833,7 +2837,7 @@ class GroupMenu(gobject.GObject):
         if not layout:
             return False
         return self.add_quicklist_menu(layout, None)
-        
+
     def add_quicklist_menu(self, layout, parent):
         for layout_item in layout[2]:
             identifier = "unity_%s" % layout_item[0]
@@ -2853,9 +2857,9 @@ class GroupMenu(gobject.GObject):
             elif not label:
                 continue
             else:
-                item = self.add_item(label, 
-                                     parent, 
-                                     identifier, 
+                item = self.add_item(label,
+                                     parent,
+                                     identifier,
                                      toggle_type)
             if visible:
                 item.show()
@@ -2869,7 +2873,7 @@ class GroupMenu(gobject.GObject):
                     item.set_inconsistent(False)
                 else:
                     item.set_inconsistent(True)
-        
+
     def update_quicklist_menu(self, layout):
         open_menus = []
         if not self.gtk_menu:
@@ -2924,7 +2928,7 @@ class GroupMenu(gobject.GObject):
 
     def remove_quicklist(self):
         self.update_quicklist_menu([0,{},[]])
-        
+
     def set_properties(self, identifier, props):
         item = self.get_item(identifier)
         if item is None:
@@ -2954,14 +2958,14 @@ class GroupMenu(gobject.GObject):
                 item.child.set_text(label)
             else:
                 item.set_label(label)
-        
+
     def delete_menu(self):
         del self.submenus
         del self.items
         disconnect(self)
         self.menu.destroy()
         del self.menu
-        
+
     def __on_item_hovered(self, button, event, identifier):
         self.emit("item-hovered", event, identifier)
 
