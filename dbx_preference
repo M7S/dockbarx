@@ -1401,7 +1401,9 @@ class PrefDialog():
         notebook.set_current_page(0)
         if not dock:
             dock_box.hide()
-            dock_applets_box.hide()
+            #~ dock_applets_box.hide()
+        # Applets doesn't work at the moment so lets hide the box.
+        dock_applets_box.hide()
         if not awn:
             awn_box.hide()
 
