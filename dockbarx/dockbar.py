@@ -27,6 +27,7 @@ import os
 import dbus
 import cairowidgets
 import weakref
+import re
 from time import time
 from xdg.DesktopEntry import ParsingError
 
@@ -172,13 +173,20 @@ class GroupList(list):
         if item is None:
             raise KeyError, item
         if isinstance(item, (str, unicode)):
-            for group in self:
-                if group.identifier == item or \
-                   (group.desktop_entry is not None and
-                    group.desktop_entry.getFileName() == item):
-                    return group
+            group = self.match(item)
+            if group is not None:
+                return group
             raise KeyError, item
         return list.__getitem__(self, item)
+
+    def match(self, item):
+        for group in self:
+            if group.identifier == item or \
+                re.match(group.identifier, item) or \
+               (group.desktop_entry is not None and
+                group.desktop_entry.getFileName() == item):
+                return group
+        return None
 
     def get(self, item, default=None):
         try:
@@ -945,8 +953,9 @@ class DockBar():
                 connect(window, "name-changed",
                         self.__on_ooo_window_name_changed)
         self.windows[window] = identifier
-        if identifier in self.groups.get_identifiers():
-            self.groups[identifier].add_window(window)
+        group = self.groups.match(identifier)
+        if group is not None:
+            group.add_window(window)
             return
 
         if wine:
