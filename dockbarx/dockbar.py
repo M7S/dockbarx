@@ -1511,7 +1511,7 @@ class DockBar():
             _("If the program is already running you should be able to find the identifier of the program from the dropdown list."))
         #create the text input field
         #entry = Gtk.Entry()
-        combobox = Gtk.combo_box_entry_new_text()
+        combobox = Gtk.ComboBoxText.new_with_entry()
         entry = combobox.get_child()
         if identifier:
             entry.set_text(identifier)
@@ -1520,12 +1520,11 @@ class DockBar():
         for group in self.groups:
             if not group.pinned:
                 combobox.append_text(group.identifier)
-        entry = combobox.get_child()
         #allow the user to press enter to do ok
         entry.connect("activate",
                       lambda widget: dialog.response(Gtk.ResponseType.OK))
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label(_("Identifier:", True, True, 0)), False, False, 5)
+        hbox.pack_start(Gtk.Label(_("Identifier:")), False, False, 5)
         hbox.pack_end(combobox, True, True, 0)
         dialog.vbox.pack_end(hbox, True, True, 0)
         dialog.show_all()
