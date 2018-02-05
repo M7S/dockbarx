@@ -27,7 +27,7 @@ import msgfmt
 import os
 import sys
 
-VERSION = "0.92"
+VERSION = "0.93"
 
 class build_trans(cmd.Command):
     description = "Compile .po files into .mo files"
@@ -104,7 +104,7 @@ class install_data(_install_data):
                 files.append(fpath)
         if files:
             self.data_files.append((os.path.join(install_path, path), files))
-                
+
 
 cmdclass = {
     "build": build,

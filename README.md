@@ -1,5 +1,5 @@
 # DockbarX
-### Version 0.92
+### Version 0.93
 
 ## About DockbarX
 DockBarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as an an Avant Window Navigator applet, as a Xfce4 panel applet[^1], as a matepanel applet[^2] or as a legacy gnome2 panel applet. DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
@@ -38,8 +38,8 @@ https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
 
 ## Manual Installation
 
-1. Following dependecies needs to be installed: 
-  - zeitgeist, python-wnck, python-imaging, python-keybinder and python-xlib. 
+1. Following dependecies needs to be installed:
+  - zeitgeist, python-wnck, python-imaging, python-keybinder and python-xlib.
   - Install python-gnomeapplet if you want to use DockbarX as a gnome-panel applet (gnome2) you should install python-gnomeapplet. (This doesn't work in newer releases of Ubuntu.)
   - To use dockbarx as an AWN applet, you also need to copy the content of the AWN folder to ~/.config/awn/applets.
   - Some of the stand alone dock applets require dependencies:
@@ -85,7 +85,7 @@ A: Never. That would demand quite a bit of restructuring of the code and I belie
 A: Dockbarx connects group buttons and windows by using the resource class name of the application. When a launcher is added dockbarx tries to guess the resource class name of that launcher. This works in most cases but not always. Apparently it didn't work for your program X. To fix this, right click on the launcher for program X and choose "Edit Resource name" and enter the correct resource name. If the program is already running you should be able to find it's resource class name in the drop-down list.
 
 *Q: There is no menu option to pin program X, but there is one for program Y and Z. Why?*
-A: Dockbarx wasn't able to identify program X correctly then. You can "pin" the program by dragging it's icon from the gnome menu instead. Oh, and you will probably have to enter the resource name manually as well (see previous question). 
+A: Dockbarx wasn't able to identify program X correctly then. You can "pin" the program by dragging it's icon from the gnome menu instead. Oh, and you will probably have to enter the resource name manually as well (see previous question).
 
 *Q: How do I get to preference dialog?*
 
@@ -97,7 +97,7 @@ A: Make sure you enable the GLib extension in Compiz settings manager and that t
 
 *Q: Opacify doen't work?*
 
-A: A common misunderstanding is that opacify should have something to do with transparency of dockbarx itself, it doesn't. Opacify is a way to find localize a window with dockbar. When opacify is on and you roll over a name in the window list with the mouse, all other windows will become transparent so that you easy can spot the window. 
+A: A common misunderstanding is that opacify should have something to do with transparency of dockbarx itself, it doesn't. Opacify is a way to find localize a window with dockbar. When opacify is on and you roll over a name in the window list with the mouse, all other windows will become transparent so that you easy can spot the window.
 
 *Q: How do I install a theme?*
 
@@ -110,7 +110,7 @@ A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome
 ### AWN questions
 *Q: When I use dockbarx in AWN, IntelliHide and Window Dodge behaviors doesn't work. Why? Can I do anything about it?*
 
-A: For IntelliHide and Window Dodge to work, AWN Taskmanager applet has to be activated. So to get back IntelliHide or Window Dodge, simply add Taskmanager to your applet list again. If you think using Taskmanager and DockbarX at the same time looks a bit weird, you can go to the Task Manager tab of AWN preference and check the option "Display launchers only" and then remove all the launchers in the list. That will give you a completely invisible Taskmanager that will make sure IntelliHide and Window Dodge works as they should. 
+A: For IntelliHide and Window Dodge to work, AWN Taskmanager applet has to be activated. So to get back IntelliHide or Window Dodge, simply add Taskmanager to your applet list again. If you think using Taskmanager and DockbarX at the same time looks a bit weird, you can go to the Task Manager tab of AWN preference and check the option "Display launchers only" and then remove all the launchers in the list. That will give you a completely invisible Taskmanager that will make sure IntelliHide and Window Dodge works as they should.
 
 [^1]: Using [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin)
 

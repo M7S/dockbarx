@@ -37,7 +37,7 @@ from log import logger
 import i18n
 _ = i18n.language.gettext
 
-VERSION = "0.92"
+VERSION = "0.93"
 
 
 ATOM_WM_CLASS = gtk.gdk.atom_intern("WM_CLASS")
@@ -835,7 +835,7 @@ class DockBar():
             return
         for group in self.groups:
             group.desktop_changed()
-        self.groups.manage_size_overflow()    
+        self.groups.manage_size_overflow()
 
 
     #### Groupbuttons
