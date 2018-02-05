@@ -1,4 +1,15 @@
 Changelog:
+0.93-gtk3
+- First Gtk3 release.
+- Fix: "Quicklist" (Desktop Action) Execs are launched the same way as normal Execs (by Ben Burrill)
+- Fixed identifier choice when no name is immediately present (by Ben Burrill)
+- Fixed two visibility bugs of arrow buttons (by Xu Zhen)
+- Improved button group identifier reading - support for wine apps and no name windows (by luigi1809)
+- Fixed unminimize error in groupbutton (by salphaon).
+- Remove misused "Version" key from desktop files (by Lesik).
+- Replace outdated Unity quicklist with FreeDesktop Standard Actions (by Gregor Santner).
+- Fixed issue where groups were not given tooltip names until they were opened. (by DanielPower).
+
 0.92
 - DockbarX can now update the window list so that the last used window always is first in the list. (This behavior is now used by default but can be changed in preferences.)
 - Fixed issue #5: Icons in Dockbarx disappear after changing workspace.
@@ -149,13 +160,13 @@ Features:
 Bug Fixes:
 Large parts of the code has been rewritten since 0.43 so many bugs has been fixed unknowingly and some new has bugs has probaly appeared instead. Some important bug fixes are:
 - Bug #540950: The long lasting bug where DockbarX crashes on login is probably fixed now.
-- Bug #688442: Popup windows appearing on the wrong monitor in multi-monitor set-ups should be fixed as well. 
+- Bug #688442: Popup windows appearing on the wrong monitor in multi-monitor set-ups should be fixed as well.
 - Compiz scale and swith actions works compiz 0.9 thanks to a patch by BlackDex
 
 
 0.43
 Features:
-- Media buttons. All music players that shows up in ubuntus sound menu (in other words mediaplayers that uses mpris2 - that includes Spotify Linux Preview that doesn't show up in ubuntus sound menu) has play/pause, previous and next buttons. You can disable them from preference window. 
+- Media buttons. All music players that shows up in ubuntus sound menu (in other words mediaplayers that uses mpris2 - that includes Spotify Linux Preview that doesn't show up in ubuntus sound menu) has play/pause, previous and next buttons. You can disable them from preference window.
 - DockbarX now supports helpers via DockManager. You have to install DockManager and enable it from dockbarx preference window before you can use it.
 - Prism applications are separated from each other instead of being grouped together now.
 - Small visual changes to window list and group menu. The look when using DockbarX without compositing is imporved a bit.
@@ -173,7 +184,7 @@ Other changes:
 End user features:
 - You can now choose if you want the close button on the window items or not.
 Bug fixes:
-- Close and Close all in group menu didn't work. 
+- Close and Close all in group menu didn't work.
 - A couple of other small bugs.
 
 0.42
@@ -183,7 +194,7 @@ End user features:
 - If the previews takes up too much space to fit the screen, a list without previews will be shown instead.
 - The size of previews are now set in such a way that the window is shrunk until it fits a in box with the same size aspect ratio as the monitor (the size you set from preference window is the height of this box). Previously it was fitted into a square (size*size). This makes the height of the previews more even.
 - Vertical panels now stacks the previews vertically. The placement of the window list is set according to the golden ratio instead of aligning the top of the button and the window list.
-- For those of you who doesn't like the new menu: The old gtk menu is back and you can choose to use it from preference window.  
+- For those of you who doesn't like the new menu: The old gtk menu is back and you can choose to use it from preference window.
 
 Bug fixes:
 - Bug #688953: & and other symbols in window titles made the titles in the window list unreadable.
@@ -204,7 +215,7 @@ Bug fixes:
 End user features:
 - The default theme has changed. The new default theme DBX is made by BigRZA. It's made to look good with Radiance and Ambiance. (The old default theme is still included under the name Old.)
 - Another theme by BigRZA, Sunny Colors is also included, simply because its a great looking theme.
-- The theme Human bar is removed since it was pretty much an older version of the new default theme. 
+- The theme Human bar is removed since it was pretty much an older version of the new default theme.
 - Number of entries in recent and most used menus are increased to eight (for real this time).
 - A few new languages and updates to translations. Big thanks to all translators!
 
@@ -291,7 +302,7 @@ End user features:
 - The number of items in "Recent" and "Most used" submenus has been increased to eight and the timespan from which the Resent and Most used files are searched are increased from 14 days to 30 days.
 - Rules added for programs that couldn't be pinned automatically, like amarok 1.4 or thunderbird 2. (Information about other programs that can't be pinned with DockbarX are most welcome!)
 - Launching is more compatible with freedesktop standards. This means among other things that launching multiple files should work with most programs now.
-- Launchers should be more stable now, since they no longer use different systems depending on if they were added by dragging an icon from gnome menu or by using "Pin application" option in the group button menu. 
+- Launchers should be more stable now, since they no longer use different systems depending on if they were added by dragging an icon from gnome menu or by using "Pin application" option in the group button menu.
 
 Bug fixes:
 - Bug #599829 fixed: Separate OpenOffice apps works again.
@@ -303,7 +314,7 @@ Bug fixes:
 x.0.39.4
 End user features:
 - DockbarX can now pin wine applications and is better at recognizing wine application launchers automatically.
-- The preference dialog is redesigned to take less space (should even fit a eeepc 700 screen now) and to have the options in more intuitive places.  
+- The preference dialog is redesigned to take less space (should even fit a eeepc 700 screen now) and to have the options in more intuitive places.
 - Changing between showing and not showing previews doesn't require reloading DockbarX anymore.
 - New translations added.
 
@@ -321,8 +332,8 @@ Bug fixes:
 - Bug #591511 fixed: "Select action" options couldn't be changed. (Patch by eoe42)
 
 Translations:
-- Brazilian Portuguese, Dutch, German, Greek, Polish and Russian added. Some of these translations are only half-done, but they are still included to encourage people to go on finish them. 
-- Swedish updated. 
+- Brazilian Portuguese, Dutch, German, Greek, Polish and Russian added. Some of these translations are only half-done, but they are still included to encourage people to go on finish them.
+- Swedish updated.
 Big thanks to all translators!
 
 x.0.39.2
@@ -399,7 +410,7 @@ End user features:
 Theme making features:
 - Themable launching effect added. The command is <if type="launching">.
 - New custom color system. The themes can now set default colors, opacity values and the color name that will be shown in preference dialog.
-- There are now eight custom colors. The functions of color1 to color4 (popup window color and text colors) are hardcoded since the popup window isn't theme-able. Color5 is the color previously known as "attention glow". Color6 to color8 set to "not used" if the theme maker doesn't give them a name. 
+- There are now eight custom colors. The functions of color1 to color4 (popup window color and text colors) are hardcoded since the popup window isn't theme-able. Color5 is the color previously known as "attention glow". Color6 to color8 set to "not used" if the theme maker doesn't give them a name.
 See theming HOWTO for more details.
 
 Bug fixes:
@@ -411,13 +422,13 @@ Bug fixes:
 x.0.24.0
 A new launcher system (inspried by Aleksey's elegant launcher system from vanilla dockbar):
 - When you add a launcher by dragging a application from gnome menu you no longer have to enter a resource class name, dockbarx guesses it.
-- If dockbarx isn't able to guess the resource class name of a launcher correctly a "right click" menu option "Edit resource name" is added so that you manually edit the resource class name. 
+- If dockbarx isn't able to guess the resource class name of a launcher correctly a "right click" menu option "Edit resource name" is added so that you manually edit the resource class name.
 - You can add launchers by pinning running applications via the "right click" menu (works for most applications, if the options are missing for an application you can still make a launcher by dragging the icon from gnome menu and manually edit the resource class name.)
 - The launchers information are now stored in gconf instead for in the file  ~/.dockbarx/launchers.list. This will hopefully be a bit more stable.
 - Some bugs in the launcher system are fixed. Some launchers that failed to be created or failed to launch it's application in previous versions should work now.
 
 Other features:
-- A new theme "Human Bar" by bigRZA is included. 
+- A new theme "Human Bar" by bigRZA is included.
 - Dockbarx should now use slightly less memory (not that much though).
 - Keyboard shortcuts added for the "right click" menus.
 
@@ -465,7 +476,7 @@ Bug fixes:
 - One of the most long lived and most irritating bugs are now gone: Popup windows now closes even when the mouse is leaving it over one of the rounded corners.
 - Some other cases where the popup window didn't close when it should are now fixed, as well.
 - Untested bug fix for opacify for ubuntu 8.04 (hardy) and other systems with older versions of compiz fusion.
-- Bug #424629: Dockbarx does no longer crash if an invalid theme 
+- Bug #424629: Dockbarx does no longer crash if an invalid theme
 is found in ~/.dockbarx/themes or /usr/share/dockbarx/themes. A dialog message is shown if no working themes are found.
 
 ... and some code cleanup.
@@ -495,7 +506,7 @@ Bug fixes:
 
 
 Experimental 0.21.10
-- Dockbarx now uses themes. They are .tar.gz files that should be put in /usr/share/dockbar/themes or ~/.dockbar/themes. Documentation on how to make themes will come later but you could always take a look on the existing theme files and try to change them, if you are curious. Be aware the much will still change when it comes to the format of the config file in the theme, though. New themes are added simply by moving them to either folder. 
+- Dockbarx now uses themes. They are .tar.gz files that should be put in /usr/share/dockbar/themes or ~/.dockbar/themes. Documentation on how to make themes will come later but you could always take a look on the existing theme files and try to change them, if you are curious. Be aware the much will still change when it comes to the format of the config file in the theme, though. New themes are added simply by moving them to either folder.
 - There are no more delays before closing the popup window when the mouse cursor is moved away from the group button (this should make those of you who uses no popup delay happy). On the other hand, when the mouse cursor is resting in the gap between group button and windowpane the window won't close (this should make slow moving people happy). This will hopefully lead to fewer situations where the popup window is left open as well.
 
 Experimental 0.21.9
@@ -588,7 +599,7 @@ Experimental 0.20.5
 Experimental 0.20.4
 - Adjustable popup delay (default 250 ms)
 - As requested: Popup window alignment can be set in the preference dialog (Center alignment default)
-- Dockbar now uses other gconf values than just strings (doesn't matter to you End-Users, unless you want to change settings with gconf-editor instead of preference dialog) 
+- Dockbar now uses other gconf values than just strings (doesn't matter to you End-Users, unless you want to change settings with gconf-editor instead of preference dialog)
 
 Experimental 0.20.3
 - Bug fix: DockBar won't crash if it can't find launcher_icon.png or active_icon.png
@@ -599,7 +610,7 @@ Experimental 0.20.2
 
 Experimental 0.20
 - The name is changed to DockBar Experimental or dockbarx for short to make it possible to have both vanilla DockBar
-  and Dockbar Experimental installed at the same time. 
+  and Dockbar Experimental installed at the same time.
 - Features ported back from vanilla DockBar 0.20 and 0.19:
    - Preference and about dialog, gconf configuration
    - Configurable "needs attention" effect
@@ -613,9 +624,9 @@ Experimental 0.20
 - Behavior when multiple workspaces or viewports are used are configurable from Preference dialog
 - The popup window is centered over the group button now
 - Code cleanup and some bug fixes
-- A new good-looking launcher button image that works against both light and dark backgrounds, made by Sami Rissanen (st6)  
+- A new good-looking launcher button image that works against both light and dark backgrounds, made by Sami Rissanen (st6)
 
-        
+
 0.13-l3
 - Notifications for for windows that requires urgent attention.
 - Dockbar won't crash if there are no launcher_icon.png or active_icon.png, it will just warn you that it might look uglier.
