@@ -698,27 +698,27 @@ class IconFactory():
         # Todo: Add error check for saturation
         sat = float(saturation)
         if sat != 100:
--            im = self.__surface2pil(surface)
--            w, h = im.size
--            pixels = im.load()
--            for x in range(w):
--                for y in range(h):
--                    r, g, b, a = pixels[x, y]
--                    l = (r + g + b) / 3.0 * (100 - sat) / 100.0
--                    r = int(r * sat / 100.0 + l)
--                    g = int(g * sat / 100.0 + l)
--                    b = int(b * sat / 100.0 + l)
--                    a = int(a * alpha)
--                    pixels[x, y] = (r, g, b, a)
--            return self.__pil2surface(im)
--        else:
--            w = surface.get_width()
--            h = surface.get_height()
--            new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
--            ctx = gtk.gdk.CairoContext(cairo.Context(new))
--            ctx.set_source_surface(surface)
--            ctx.paint_with_alpha(alpha)
--            return new
+            im = self.__surface2pil(surface)
+            w, h = im.size
+            pixels = im.load()
+            for x in range(w):
+                for y in range(h):
+                    r, g, b, a = pixels[x, y]
+                    l = (r + g + b) / 3.0 * (100 - sat) / 100.0
+                    r = int(r * sat / 100.0 + l)
+                    g = int(g * sat / 100.0 + l)
+                    b = int(b * sat / 100.0 + l)
+                    a = int(a * alpha)
+                    pixels[x, y] = (r, g, b, a)
+            return self.__pil2surface(im)
+        else:
+            w = surface.get_width()
+            h = surface.get_height()
+            new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+            ctx = gtk.gdk.CairoContext(cairo.Context(new))
+            ctx.set_source_surface(surface)
+            ctx.paint_with_alpha(alpha)
+            return new
 
 
     def __command_composite(self, surface, bg, fg, opacity="100",
