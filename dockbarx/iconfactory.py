@@ -697,7 +697,7 @@ class IconFactory():
         alpha = self.__get_alpha(opacity)
         # Todo: Add error check for saturation
         sat = float(saturation)
-        if sat < 100:
+        if sat != 100:
             im = self.__surface2pil(surface)
             w, h = im.size
             pixels = im.load()
