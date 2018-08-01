@@ -938,7 +938,8 @@ class DockBar():
         if identifier == "prism" and \
            self.globals.settings["separate_prism_apps"]:
             identifier = self.__get_prism_app_name(window)
-        elif identifier.startswith("openoffice.org") or \
+        elif identifier.startswith("openoffice") or \
+           identifier.startswith("soffice") or \
            identifier.startswith("libreoffice"):
             identifier = self.__get_ooo_app_name(window)
             if self.globals.settings["separate_ooo_apps"]:
@@ -1075,6 +1076,12 @@ class DockBar():
         resclass = window.get_class_group().get_res_class().lower()
         if "libreoffice" in resclass:
             office = "libreoffice"
+        elif "soffice" in resclass:
+            office = "libreoffice"
+        elif "openoffice " in resclass:
+            office = "openoffice" + resclass.split(" ")[1][0]
+        elif "openoffice.org 3" in resclass:
+            office = "openoffice.org3"
         elif "openoffice.org" in resclass:
             office = "openoffice.org"
         if not self.globals.settings["separate_ooo_apps"]:
