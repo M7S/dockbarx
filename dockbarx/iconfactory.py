@@ -127,6 +127,9 @@ class IconFactory():
     def get_icon(self, size):
         return self.__find_icon_pixbuf(size)
 
+    def reset_icon(self):
+        self.icon = None
+
     def reset_surfaces(self, arg=None):
         self.surfaces = {}
         self.average_color = None

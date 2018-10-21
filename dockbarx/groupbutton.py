@@ -364,6 +364,7 @@ class Group(ListOfWindows):
                 self.update_name()
             class_group = window.wnck.get_class_group()
             self.button.icon_factory.set_class_group(class_group)
+            class_group.connect("icon-changed", self.group_icon_changed)
         if self.button.launch_effect:
             self.button.remove_launch_effect()
         if window.needs_attention:
@@ -461,6 +462,11 @@ class Group(ListOfWindows):
             self.locked_popup.resize(10, 10)
             self.locked_popup.show()
 
+    def group_icon_changed(self, class_group):
+        self.button.icon_factory.reset_icon()
+        self.button.icon_factory.reset_surfaces()
+        self.button.update_state()
+        self.button.drag_source_set_icon_pixbuf(self.button.icon_factory.get_icon(32))
 
     #### Opacify
     def opacify(self, delay=0):

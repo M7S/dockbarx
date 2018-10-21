@@ -77,6 +77,7 @@ class CairoAppButton(gtk.EventBox):
         child = self.area.get_child()
         if child:
             child.queue_draw()
+        self.queue_draw()
 
     def do_expose_event(self, event):
         if self.surface is not None:
