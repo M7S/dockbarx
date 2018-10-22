@@ -906,21 +906,22 @@ class DockBar():
         except:
             res_class = window.get_class_group().get_res_class().lower()
             res_name = window.get_class_group().get_name().lower()
-        if window.has_name():
-            fallback = window.get_name().lower()
-        else:
-            #in case window has no name - issue with Spotify
-            pid = window.get_pid()
-            try:
-                f = open("/proc/"+str(pid)+"/cmdline", "r")
-            except:
-                raise
-            cmd = f.readline().split("\0")[0]
-            if "/" in cmd:
-                fallback = cmd.split("/")[-1]
+        identifier = res_class or res_name
+        if not identifier:
+            if window.has_name():
+                identifier = window.get_name().lower()
             else:
-                fallback = cmd
-        identifier = res_class or res_name or fallback
+                #in case window has no name - issue with Spotify
+                pid = window.get_pid()
+                try:
+                    f = open("/proc/"+str(pid)+"/cmdline", "r")
+                except:
+                    raise
+                cmd = f.readline().split("\0")[0]
+                if "/" in cmd:
+                    identifier = cmd.split("/")[-1]
+                else:
+                    identifier = cmd
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
             identifier = SPECIAL_RES_CLASSES[identifier]
