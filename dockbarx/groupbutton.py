@@ -465,7 +465,7 @@ class Group(ListOfWindows):
     def group_icon_changed(self, class_group):
         self.button.icon_factory.reset_icon()
         self.button.icon_factory.reset_surfaces()
-        self.button.update_state()
+        self.button.update_state(force_update=True)
         self.button.drag_source_set_icon_pixbuf(self.button.icon_factory.get_icon(32))
 
     #### Opacify
