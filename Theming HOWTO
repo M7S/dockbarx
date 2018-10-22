@@ -61,7 +61,7 @@ Here is a <colors></colors> section containing all the default values used by do
 <colors>
 	<color1 name="Popup background" default="#333333" opacity="80" />
 	<color2 name="Normal text" default="#FFFFFF" opacity="no" />
-	<color3 name="Active window" text default="#FFFF75" opacity="no" />
+	<color3 name="Active window text" default="#FFFF75" opacity="no" />
 	<color4 name="Minimized window text" default="#9C9C9C" opacity="no" />
 	<color5 name="Active color" default="#FFFF75" opacity="63" />
 	<color6 name="Not used" default="#000000" opacity="no" />
