@@ -1427,6 +1427,7 @@ class PrefDialog():
             self.globals.update_colors(None)
 
     def __find_themes(self):
+        # Reads the themes from /usr/share/dockbarx/themes and
         # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
         # and returns a dict of the theme names and paths so
         # that a theme can be loaded.
