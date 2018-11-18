@@ -56,6 +56,31 @@ except:
     action_unminimize = 1 << 13
     action_maximize = 1 << 14
 
+def get_namebar_homedir():
+    homedir = os.environ['HOME']
+    default = os.path.join(homedir, '.local', 'share')
+    appdir = os.path.join(
+	os.getenv('XDG_DATA_HOME', default),
+	'namebar'
+    )
+    """
+    Migration Path
+    From "$HOME/.namebar" to "${XDG_DATA_HOME:-$HOME/.local/share}/namebar"
+    """
+    old_appdir = os.path.join(homedir, '.namebar')
+    if os.path.exists(old_appdir) and os.path.isdir(old_appdir):
+	try:
+	    os.rename(old_appdir, appdir)
+	except OSError:
+	    sys.stderr.write('Could not move dir "%s" to "%s". \
+			     Move the contents of "%s" to "%s" manually \
+			     and then remove the first location.'
+			     % (old_appdir, appdir, old_appdir, appdir))
+    """
+    End Migration Path
+    """
+    return appdir
+
 class AboutDialog():
     __instance = None
 
@@ -91,7 +116,7 @@ class PrefDialog():
         self.dialog = gtk.Dialog("NameBar preferences")
         self.dialog.connect("response",self.dialog_close)
 
-        self.namebar= namebar
+        self.namebar = namebar
 
         try:
             ca = self.dialog.get_content_area()
@@ -337,12 +362,13 @@ class PrefDialog():
             GCONF_CLIENT.set_int(key, alpha)
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
+        # Reads the themes from /usr/share/namebar/themes and
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/namebar/themes
         # and returns a dict of the theme names and paths so that
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/namebar/themes", "%s/.namebar/themes" % os.path.expanduser("~")]
+        dirs = ["/usr/share/namebar/themes", os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):
@@ -356,10 +382,10 @@ class PrefDialog():
             md = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
+                'No working themes found in "/usr/share/namebar/themes" or "${XDG_DATA_HOME:-$HOME/.local/share}/namebar/themes"')
             md.run()
             md.destroy()
-            print 'Preference dialog error: No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"'
+            print 'Preference dialog error: No working themes found in "/usr/share/namebar/themes" or "${XDG_DATA_HOME:-$HOME/.local/share}/namebar/themes"'
         return themes
 
     def change_theme(self, button=None):
@@ -622,12 +648,13 @@ class NameBar(DockXApplet):
                     self.container.pack_end(pack_dict[item], False)
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
+        # Reads the themes from /usr/share/namebar/themes and
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/namebar/themes
         # and returns a dict of the theme names and paths so that
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/namebar/themes", "%s/.namebar/themes"%os.path.expanduser("~")]
+        dirs = ["/usr/share/namebar/themes", os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):
@@ -641,10 +668,10 @@ class NameBar(DockXApplet):
             md = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
+                'No working themes found in "/usr/share/namebar/themes" or "${XDG_DATA_HOME:-$HOME/.local/share}/namebar/themes"')
             md.run()
             md.destroy()
-            print 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"'
+            print 'No working themes found in "/usr/share/namebar/themes" or "${XDG_DATA_HOME:-$HOME/.local/share}/namebar/themes"'
             sys.exit(1)
         return themes
 

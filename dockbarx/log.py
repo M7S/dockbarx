@@ -24,8 +24,10 @@ import os
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 logger = logging.getLogger("DockbarX")
 
+from common import get_app_homedir
+
 def log_to_file():
-    log_dir = os.path.join(os.path.expanduser("~"), ".dockbarx", "log")
+    log_dir = os.path.join(get_app_homedir(), "log")
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     log_file = os.path.join(log_dir, "dockbarx.log")

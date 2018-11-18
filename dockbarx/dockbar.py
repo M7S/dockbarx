@@ -1322,8 +1322,7 @@ class DockBar():
             self.__add_window(window)
 
     def edit_launcher(self, path, identifier):
-        launcher_dir = os.path.join(os.path.expanduser("~"),
-                                    ".dockbarx", "launchers")
+        launcher_dir = os.path.join(get_app_homedir(), "launchers")
         if not os.path.exists(launcher_dir):
             os.makedirs(launcher_dir)
         if path:
