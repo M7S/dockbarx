@@ -7,7 +7,7 @@ DockBarX is a lightweight taskbar / panel replacement for Linux which works as a
 DockbarX is free software and is licensed under GPL3.
 
 ## Install in Ubuntu from ppa
-The main DockbarX ppa is not maintained for the moment. You can use Xu Zhen's unofficial DockbarX ppa instead. To add ppa and install the application in Ubuntu (and derivatives), use the following commands:
+The main DockbarX ppa is not maintained for the moment. You can use Xu Zhen's unofficial DockbarX ppa instead. To add the ppa and install the application in Ubuntu (and derivatives), use the following commands:
 
 ```
 sudo add-apt-repository ppa:xuzhen666/dockbarx
