@@ -830,6 +830,7 @@ class DockBar():
                                              Wnck.WindowType.DIALOG]):
             return
         connect(window, "state-changed", self.__on_window_state_changed)
+        # ~ connect(window, "class-changed", self.__on_window_class_changed)
         if window.is_skip_tasklist():
             self.skip_tasklist_windows.append(window)
             return
@@ -850,6 +851,14 @@ class DockBar():
                 self.parent.remove_window(window)
             self.__remove_window(window)
             self.skip_tasklist_windows.append(window)
+
+    def __on_window_class_changed(self, window):
+        # Remove and readd window to update the class name.
+        # TODO: check if this is working at all. Class name doesn't seem to be updated in wnck.
+        if window.is_skip_tasklist():
+            return()
+        self.__remove_window(window)
+        self.__add_window(window)
 
     def __on_desktop_changed(self, screen=None, workspace=None):
         if not self.globals.settings["show_only_current_desktop"]:
@@ -924,15 +933,9 @@ class DockBar():
         return group
 
     def __add_window(self, window):
-        try:
-            #Support of wine applications - get name of .exe as identifier
-            gdkw = gtk.gdk.window_foreign_new(window.get_xid())
-            wm_class_property = gdkw.property_get(ATOM_WM_CLASS)[2].split("\0")
-            res_class = wm_class_property[1].lower()
-            res_name  = wm_class_property[0].lower()
-        except:
-            res_class = window.get_class_group().get_res_class().lower()
-            res_name = window.get_class_group().get_name().lower()
+        window = Wnck.Window.get(window.get_xid())
+        res_class = window.get_class_group().get_res_class().lower()
+        res_name = window.get_class_group().get_name().lower()
         if window.has_name():
             fallback = window.get_name().lower()
         else:
@@ -941,12 +944,13 @@ class DockBar():
             try:
                 f = open("/proc/"+str(pid)+"/cmdline", "r")
             except:
-                raise
-            cmd = f.readline().split("\0")[0]
-            if "/" in cmd:
-                fallback = cmd.split("/")[-1]
+                pass
             else:
-                fallback = cmd
+                cmd = f.readline().split("\0")[0]
+                if "/" in cmd:
+                    fallback = cmd.split("/")[-1]
+                else:
+                    fallback = cmd
         identifier = res_class or res_name or fallback
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
@@ -965,7 +969,8 @@ class DockBar():
         if identifier == "prism" and \
            self.globals.settings["separate_prism_apps"]:
             identifier = self.__get_prism_app_name(window)
-        elif identifier.startswith("openoffice.org") or \
+        elif identifier.startswith("openoffice") or \
+           identifier.startswith("soffice") or \
            identifier.startswith("libreoffice"):
             identifier = self.__get_ooo_app_name(window)
             if self.globals.settings["separate_ooo_apps"]:
@@ -1102,6 +1107,12 @@ class DockBar():
         resclass = window.get_class_group().get_res_class().lower()
         if "libreoffice" in resclass:
             office = "libreoffice"
+        elif "soffice" in resclass:
+            office = "libreoffice"
+        elif "openoffice " in resclass:
+            office = "openoffice" + resclass.split(" ")[1][0]
+        elif "openoffice.org 3" in resclass:
+            office = "openoffice.org3"
         elif "openoffice.org" in resclass:
             office = "openoffice.org"
         if not self.globals.settings["separate_ooo_apps"]:
