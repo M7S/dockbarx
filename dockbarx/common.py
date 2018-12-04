@@ -30,6 +30,7 @@ import gtk
 import weakref
 import locale
 from log import logger
+import sys
 
 GCONF_CLIENT = gconf.client_get_default()
 GCONF_DIR = "/apps/dockbarx"
@@ -89,10 +90,10 @@ def get_app_homedir():
 	try:
 	    os.rename(old_appdir, appdir)
 	except OSError:
-	    sys.stderr.write('Could not move dir "%s" to "%s". \
-			     Move the contents of "%s" to "%s" manually \
-			     and then remove the first location.'
-			     % (old_appdir, appdir, old_appdir, appdir))
+	    sys.stderr.write(
+		"Could not move dir '%s' to '%s'. Move the contents of '%s' to '%s' manually and then remove the first location.\n"
+		% (old_appdir, appdir, old_appdir, appdir)
+	    )
     """
     End Migration Path
     """
