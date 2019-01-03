@@ -107,6 +107,11 @@ A: If you find a theme on the web that you like, copy the file (should be SOMETH
 
 A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad. I'm happy to help theme developers as much as I can.
 
+*Q: How can I backup and restore all preferences to move my settings to another linux setup.*
+A: backup: gconftool --dump /apps/dockbarx > dockbarx.xml
+restore: gconftool --load dockbarx.xml
+and don't forget to copy ~/.dockbarx
+
 ### AWN questions
 *Q: When I use dockbarx in AWN, IntelliHide and Window Dodge behaviors doesn't work. Why? Can I do anything about it?*
 
