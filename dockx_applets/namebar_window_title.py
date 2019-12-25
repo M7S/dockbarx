@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #	Copyright 2009, 2010 Matias Sars
 #
@@ -197,10 +197,10 @@ class PrefDialog():
         self.size_spin.set_value(settings['size'])
 
         # Text style
-        for name, setting_base in self.color_labels_and_settings.items():
+        for name, setting_base in list(self.color_labels_and_settings.items()):
             color = Gdk.color_parse(settings[setting_base+'_color'])
             self.color_buttons[name].set_color(color)
-            if settings.has_key(setting_base+"_alpha"):
+            if setting_base+"_alpha" in settings:
                 alpha = settings[setting_base+"_alpha"] * 256
                 self.color_buttons[name].set_use_alpha(True)
                 self.color_buttons[name].set_alpha(alpha)
@@ -259,7 +259,7 @@ class PrefDialog():
         if new_color != color_string:
             key = "%s/%s_color" % (GCONF_DIR, setting_base)
             GCONF_CLIENT.set_string(key, new_color)
-        if settings.has_key("%s_alpha" % setting_base):
+        if "%s_alpha" % setting_base in settings:
             alpha = settings["%s_alpha" % setting_base]
             new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
             if new_alpha != alpha:
@@ -272,7 +272,7 @@ class PrefDialog():
         color_string = DEFAULT_SETTINGS["%s_color" % setting_base]
         key = "%s/%s_color" % (GCONF_DIR, setting_base)
         GCONF_CLIENT.set_string(key, color_string)
-        if DEFAULT_SETTINGS.has_key(setting_base+"_alpha"):
+        if setting_base+"_alpha" in DEFAULT_SETTINGS:
             alpha = DEFAULT_SETTINGS[setting_base+"_alpha"]
             key = "%s/%s_alpha" % (GCONF_DIR, setting_base)
             GCONF_CLIENT.set_int(key, alpha)
@@ -304,7 +304,7 @@ class WindowTitleApplet(DockXApplet):
         gconf_set = { str: GCONF_CLIENT.set_string,
                      bool: GCONF_CLIENT.set_bool,
                      int: GCONF_CLIENT.set_int }
-        for name, value in settings.items():
+        for name, value in list(settings.items()):
             gc_value = None
             try:
                 gc_value = GCONF_CLIENT.get_value(GCONF_DIR + '/' + name)
@@ -407,7 +407,7 @@ class WindowTitleApplet(DockXApplet):
         self.sw_state_changed_handler = self.shown_window.connect('state-changed', self.on_shown_window_state_changed)
 
         self.container.show_all()
-        name = u""+self.shown_window.get_name()
+        name = ""+self.shown_window.get_name()
         self.label.set_tooltip_text(name)
         self.label.set_text(name)
         if self.shown_window == self.active_window \
@@ -484,7 +484,7 @@ class WindowTitleApplet(DockXApplet):
 
 
     def on_window_name_changed(self, window):
-        name = u""+window.get_name()
+        name = ""+window.get_name()
         self.label.set_tooltip_text(name)
         self.label.set_text(name)
 

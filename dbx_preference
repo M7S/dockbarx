@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   dbx_preference.py
 #
@@ -46,21 +46,21 @@ class ThemeHandler(ContentHandler):
         self.nested_attributes = []
 
     def startElement(self, name, attrs):
-        name = name.lower().encode()
+        name = name.lower()
         if name == "theme":
-            for attr in attrs.keys():
+            for attr in list(attrs.keys()):
                 if attr.lower() == "name":
                     self.name = attrs[attr]
             return
         # Add all attributes to a dictionary
         d = {}
-        for key, value in attrs.items():
+        for key, value in list(attrs.items()):
             # make sure that all text is in lower
             # except for file_names
-            if key.encode().lower() == "file_name":
-                d[key.encode().lower()] = value.encode()
+            if key.lower() == "file_name":
+                d[key.lower()] = value
             else:
-                d[key.encode().lower()] = value.encode().lower()
+                d[key.lower()] = value.lower()
         # Add a ODict to the dictionary in which all
         # content will be put.
         d["content"] = ODict()
@@ -82,7 +82,7 @@ class ThemeHandler(ContentHandler):
         # Remove Content Odict if the element
         # had no content.
         d = self.nested_attributes.pop()
-        if d["content"].keys() == []:
+        if list(d["content"].keys()) == []:
                 d.pop("content")
 
     def get_dict(self):
@@ -144,32 +144,32 @@ class Theme():
         self.default_colors = {}
         self.default_alphas = {}
         colors = {}
-        if self.theme.has_key("colors"):
+        if "colors" in self.theme:
             colors = self.theme["colors"]["content"]
         for i in range(1, 9):
             c = "color%s"%i
-            if colors.has_key(c):
+            if c in colors:
                 d = colors[c]
-                if d.has_key("name"):
+                if "name" in d:
                     self.color_names[c] = d["name"]
-                if d.has_key("default"):
+                if "default" in d:
                     if self.test_color(d["default"]):
                         self.default_colors[c] = d["default"]
                     else:
-                        print "Theme error: %s\'s default" % c + \
-                              " for theme %s cannot be read." % self.name
-                        print "A default color should start with an \"#\"" + \
+                        print("Theme error: %s\'s default" % c + \
+                              " for theme %s cannot be read." % self.name)
+                        print("A default color should start with an \"#\"" + \
                               " and be followed by six hex-digits, " + \
-                              "for example \"#FF13A2\"."
-                if d.has_key("opacity"):
+                              "for example \"#FF13A2\".")
+                if "opacity" in d:
                     alpha = d["opacity"]
                     if self.test_alpha(alpha):
                         self.default_alphas[c] = alpha
                     else:
-                        print "Theme error: %s\'s opacity" % c + \
-                              " for theme %s cannot be read." % self.name
-                        print "The opacity should be a number (\"0\"-\"100\")" + \
-                              " or the words \"not used\"."
+                        print("Theme error: %s\'s opacity" % c + \
+                              " for theme %s cannot be read." % self.name)
+                        print("The opacity should be a number (\"0\"-\"100\")" + \
+                              " or the words \"not used\".")
 
         tar.close()
 
@@ -434,6 +434,7 @@ class PrefDialog():
 
 
         self.globals = Globals()
+        self.dialog = Gtk.Dialog(_("DockBarX preferences"))
         self.__load_theme()
         self.popup_style = PopupStyle()
         if self.theme:
@@ -446,7 +447,6 @@ class PrefDialog():
         self.globals.connect("theme-changed", self.__on_theme_changed)
         self.globals.connect("preference-update", self.__update)
 
-        self.dialog = Gtk.Dialog(_("DockBarX preferences"))
         self.dialog.connect("response", self.__dialog_close)
         self.dialog.set_icon_name("dockbarx")
 
@@ -512,7 +512,7 @@ class PrefDialog():
             label = Gtk.Label(label=text)
             label.set_alignment(1,0.5)
             self.wb_combos[text] = Gtk.ComboBoxText()
-            for action in self.wb_actions.values():
+            for action in list(self.wb_actions.values()):
                 self.wb_combos[text].append_text(action)
             self.wb_combos[text].connect("changed", self.__cb_changed)
 
@@ -560,7 +560,7 @@ class PrefDialog():
         label = Gtk.Label(label=_("Theme:"))
         label.set_alignment(1,0.5)
         self.theme_combo = Gtk.ComboBoxText()
-        theme_names = self.themes.keys()
+        theme_names = list(self.themes.keys())
         theme_names.sort()
         for theme in theme_names:
                 self.theme_combo.append_text(theme)
@@ -593,7 +593,7 @@ class PrefDialog():
         label = Gtk.Label(label=_("Window list style:"))
         label.set_alignment(1,0.5)
         self.popup_style_combo = Gtk.ComboBoxText()
-        style_names = self.popup_styles.keys()
+        style_names = list(self.popup_styles.keys())
         style_names.sort()
         for style in style_names:
             self.popup_style_combo.append_text(style)
@@ -957,7 +957,7 @@ class PrefDialog():
             label = Gtk.Label(label=text)
             label.set_alignment(1,0.5)
             self.gb_combos[text] = Gtk.ComboBoxText()
-            for (action) in self.gb_actions.values():
+            for (action) in list(self.gb_actions.values()):
                 self.gb_combos[text].append_text(action)
             self.gb_combos[text].connect("changed", self.__cb_changed)
 
@@ -1184,7 +1184,7 @@ class PrefDialog():
         self.gkeys_apply_buttons = {}
         self.gkeys_clear_buttons = {}
         for i in range(0, len(self.gkeys)):
-            s = self.gkeys.keys()[i]
+            s = list(self.gkeys.keys())[i]
             t = self.gkeys[s]
             self.gkeys_checkbuttons[s] = Gtk.CheckButton(t)
             self.gkeys_checkbuttons[s].connect("toggled",
@@ -1301,7 +1301,7 @@ class PrefDialog():
         label = Gtk.Label(label=_("Dock theme:"))
         label.set_alignment(1,0.5)
         self.dock_theme_combo = Gtk.ComboBoxText()
-        theme_names = self.dock_themes.keys()
+        theme_names = list(self.dock_themes.keys())
         theme_names.sort()
         for theme in theme_names:
             self.dock_theme_combo.append_text(theme)
@@ -1410,7 +1410,7 @@ class PrefDialog():
     def __load_theme(self):
         self.themes = self.__find_themes()
         default_theme_path = None
-        for theme, path in self.themes.items():
+        for theme, path in list(self.themes.items()):
             if theme.lower() == self.globals.settings["theme"].lower():
                 self.theme = Theme(path)
                 break
@@ -1455,15 +1455,15 @@ class PrefDialog():
         for theme_path in theme_paths:
             try:
                 name = Theme.check(theme_path)
-            except Exception, detail:
-                print "Error loading theme from %s"%theme_path
-                print detail
+            except Exception as detail:
+                print("Error loading theme from %s"%theme_path)
+                print(detail)
                 name = None
             if name is not None:
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            messag = _("No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes")
+            message = _("No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes")
             flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
             md = Gtk.MessageDialog(self.dialog,
                                    flags,
@@ -1537,7 +1537,7 @@ class PrefDialog():
                             self.globals.settings["locked_list_no_overlap"])
 
         # Group button keys
-        for cb_name, setting_name in self.gb_labels_and_settings.items():
+        for cb_name, setting_name in list(self.gb_labels_and_settings.items()):
             value = self.gb_actions[self.globals.settings[setting_name]]
             combobox = self.gb_combos[cb_name]
             model = combobox.get_model()
@@ -1547,7 +1547,7 @@ class PrefDialog():
                     break
 
         # Window item keys
-        for cb_name, setting_name in self.wb_labels_and_settings.items():
+        for cb_name, setting_name in list(self.wb_labels_and_settings.items()):
             value = self.wb_actions[self.globals.settings[setting_name]]
             combobox = self.wb_combos[cb_name]
             model = combobox.get_model()
@@ -1615,9 +1615,14 @@ class PrefDialog():
             if a in self.globals.colors \
             and not (c in self.theme_alphas \
                      and "no" in self.theme_alphas[c]):
-                alpha = self.globals.colors[a] * 256
+                alpha = int(self.globals.colors[a]) * 256 # Todo: Alpha should always be a number. Find out why it sometimes is a string instead of simply converting it here.
                 self.color_buttons[c].set_use_alpha(True)
-                self.color_buttons[c].set_alpha(alpha)
+                try:
+                    self.color_buttons[c].set_alpha(alpha)
+                except:
+                    print(c)
+                    print(alpha)
+                    raise
             else:
                 self.color_buttons[c].set_use_alpha(False)
 
@@ -1837,10 +1842,10 @@ class PrefDialog():
         if value is None:
             return
         # Groupbutton settings
-        for name, cb in self.gb_combos.items():
+        for name, cb in list(self.gb_combos.items()):
             if cb == combobox:
                 setting_name = self.gb_labels_and_settings[name]
-                for (action, translation) in self.gb_actions.items():
+                for (action, translation) in list(self.gb_actions.items()):
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
                             if setting_name.startswith("dock/"):
@@ -1855,10 +1860,10 @@ class PrefDialog():
                 break
 
         # Window item settings
-        for name, cb in self.wb_combos.items():
+        for name, cb in list(self.wb_combos.items()):
             if cb == combobox:
                 setting_name = self.wb_labels_and_settings[name]
-                for (action, translation) in self.wb_actions.items():
+                for (action, translation) in list(self.wb_actions.items()):
                     if value == translation:
                         if action != self.globals.settings[setting_name]:
                             if setting_name.startswith("dock/"):
@@ -1978,7 +1983,7 @@ class PrefDialog():
         cs = color.to_string()
         # cs has 16-bit per color, we want 8.
         new_color = cs[0:3] + cs[5:7] + cs[9:11]
-        theme_name = self.theme.get_name().lower().replace(" ", "_").encode()
+        theme_name = self.theme.get_name().lower().replace(" ", "_")
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
         path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
@@ -1986,7 +1991,7 @@ class PrefDialog():
         if new_color != color_string:
             self.theme_gsettings.set_string(c, new_color)
         if button.get_use_alpha():
-            if self.globals.colors.has_key(c+"_alpha"):
+            if c+"_alpha" in self.globals.colors:
                 alpha = self.globals.colors[c+"_alpha"]
             else:
                 alpha = None
@@ -1998,21 +2003,21 @@ class PrefDialog():
         # Reset gconf color setting to default.
         if not self.theme:
             return
-        if self.theme_colors.has_key(c):
+        if c in self.theme_colors:
             color_string = self.theme_colors[c]
         else:
             color_string = self.globals.DEFAULT_COLORS[c]
-        theme_name = self.theme.get_name().lower().replace(" ", "_").encode()
+        theme_name = self.theme.get_name().lower().replace(" ", "_")
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
         path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
         self.theme_gsettings = Gio.Settings("org.dockbarx.dockbarx.theme", path)
         self.theme_gsettings.set_string(c, color_string)
-        if self.theme_alphas.has_key(c):
+        if c in self.theme_alphas:
             if "no" in self.theme_alphas[c]:
                 return
             alpha = int(round(int(self.theme_alphas[c]) * 2.55))
-        elif self.globals.DEFAULT_COLORS.has_key(c+"_alpha"):
+        elif c+"_alpha" in self.globals.DEFAULT_COLORS:
             alpha = self.globals.DEFAULT_COLORS[c+"_alpha"]
         else:
             return
@@ -2049,7 +2054,7 @@ class PrefDialog():
         if value is None:
             return
         file_name = self.popup_styles[value]
-        theme_name = self.theme.get_name().lower().replace(" ", "_").encode()
+        theme_name = self.theme.get_name().lower().replace(" ", "_")
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
         path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
@@ -2060,7 +2065,7 @@ class PrefDialog():
         if not self.theme:
             return
         file_name = self.theme.default_popup_style
-        theme_name = self.theme.get_name().lower().replace(" ", "_").encode()
+        theme_name = self.theme.get_name().lower().replace(" ", "_")
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
         path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
@@ -2078,7 +2083,7 @@ class PrefDialog():
             # has changed anyway.
             self.__load_theme()
             self.theme_combo.get_model().clear()
-            theme_names = self.themes.keys()
+            theme_names = list(self.themes.keys())
             theme_names.sort()
             for theme in theme_names:
                     self.theme_combo.append_text(theme)
@@ -2088,14 +2093,14 @@ class PrefDialog():
     def __on_theme_changed(self, arg):
         self.__load_theme()
         self.theme_combo.get_model().clear()
-        theme_names = self.themes.keys()
+        theme_names = list(self.themes.keys())
         theme_names.sort()
         for theme in theme_names:
                 self.theme_combo.append_text(theme)
 
         self.popup_style_combo.get_model().clear()
         self.popup_styles = self.popup_style.get_styles(self.theme.get_name())
-        style_names = self.popup_styles.keys()
+        style_names = list(self.popup_styles.keys())
         style_names.sort()
         for style in style_names:
             self.popup_style_combo.append_text(style)
@@ -2111,7 +2116,7 @@ class PrefDialog():
                 color_names["color%s"%i]="Not used"
         for i in range(1, 9):
             c = "color%s"%i
-            if color_names.has_key(c):
+            if c in color_names:
                 text = color_names[c].capitalize()
             else:
                 text = self.default_color_names[c]
@@ -2132,7 +2137,7 @@ class PrefDialog():
     def __show_theme_info(self, *args):
         name = self.theme_combo.get_active_text()
         info = None
-        for theme, path in self.themes.items():
+        for theme, path in list(self.themes.items()):
             if theme.lower() == name.lower():
                 info = Theme.get_info(path)
                 break
@@ -2166,7 +2171,7 @@ class PrefDialog():
         # Update the list of themes.
         self.dock_theme_combo.get_model().clear()
         self.dock_themes = self.dock_theme.get_themes()
-        theme_names = self.dock_themes.keys()
+        theme_names = list(self.dock_themes.keys())
         theme_names.sort()
         for theme in theme_names:
                 self.dock_theme_combo.append_text(theme)
@@ -2220,9 +2225,9 @@ class PrefDialog():
                                     "/net/launchpad/DockManager/Daemon")
             daemon.ShowPreferences(dbus_interface=\
                                   "net.launchpad.DockManager.Daemon")
-        except dbus.exceptions.DBusException, e:
-            print "Couldn't open DockManager Preferences"
-            print "reason: %s " % e
+        except dbus.exceptions.DBusException as e:
+            print("Couldn't open DockManager Preferences")
+            print("reason: %s " % e)
 
     def __set_font(self, button, name):
         font = button.get_font_name()

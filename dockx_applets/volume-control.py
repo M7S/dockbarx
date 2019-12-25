@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # Copyright (C) 2008 - 2010  onox <denkpadje@gmail.com>
 #               2012 Matias Sars
 #
@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import with_statement
+
 
 from collections import defaultdict
 import os
@@ -238,8 +238,8 @@ class VolumeControlApplet:
 
         try:
             self.backend = GStreamerBackend(self)
-        except BackendError, e:
-            print "Error: %s" % e
+        except BackendError as e:
+            print("Error: %s" % e)
             return None
         else:
             timing = Timing()
@@ -357,7 +357,7 @@ class VolumeControlApplet:
         binds = {"combobox-theme": self.combobox_theme_changed_cb,
                  "combobox-device": self.combobox_device_changed_cb,
                  "combobox-mixer-track": self.combobox_track_changed_cb}
-        for name, callback in binds.items():
+        for name, callback in list(binds.items()):
             obj = prefs.get_object(name).connect("changed", callback)
         #~ binder = self.applet.settings.get_binder(prefs)
         #~ binder.bind("theme", "combobox-theme", key_callback=self.combobox_theme_changed_cb)
@@ -383,7 +383,7 @@ class VolumeControlApplet:
         # Only use themes that are likely to provide all the files
         def filter_theme(theme):
             return os.path.isfile(os.path.join(theme_dir, theme, "scalable/status/audio-volume-high.svg"))
-        themes = filter(filter_theme, os.listdir(theme_dir))
+        themes = list(filter(filter_theme, os.listdir(theme_dir)))
         self.themes = [system_theme_name] + sorted(themes) + sorted(os.listdir(moonbeam_theme_dir))
         
         if self.applet.get_setting("theme") not in self.themes:
@@ -480,7 +480,7 @@ class VolumeControlApplet:
                 title = str(volume) + "%"
 
                 if os.path.isdir(os.path.join(moonbeam_theme_dir, self.theme)):
-                    icon = str(filter(lambda i: volume >= i, moonbeam_ranges)[0])
+                    icon = str([i for i in moonbeam_ranges if volume >= i][0])
                 else:
                     icon = [key for key, value in volume_ranges if volume >= value][0]
 
@@ -651,7 +651,7 @@ class GStreamerBackend:
 
         def filter_track(track):
             return bool(track.flags & Gst.interfaces.MIXER_TRACK_OUTPUT) and track.num_channels > 0
-        return filter(filter_track, mixer.list_tracks())
+        return list(filter(filter_track, mixer.list_tracks()))
 
     def set_device(self, device_label):
         """Set the mixer to the device labeled by the given label.
@@ -667,7 +667,7 @@ class GStreamerBackend:
         been found.
 
         """
-        return self.__devices.keys()
+        return list(self.__devices.keys())
 
     def get_default_device_label(self):
         """Return the label of the first known device. Assumes at least

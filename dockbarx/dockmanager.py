@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   dockbar.py
 #
@@ -21,8 +21,8 @@ import weakref
 import dbus
 import dbus.service
 
-from common import ODict, Globals
-from log import logger
+from .common import ODict, Globals
+from .log import logger
 
 class DockManager(dbus.service.Object):
     def __new__(cls, dockbar):

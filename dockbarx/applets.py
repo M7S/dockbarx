@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   DockbarX applets
 #
@@ -25,7 +25,7 @@ import dbus
 import weakref
 from gi.repository import GObject
 from dbus.mainloop.glib import DBusGMainLoop
-from log import logger
+from .log import logger
 
 
 
@@ -101,10 +101,10 @@ class DockXApplets():
             if key == "name":
                 name = value
             settings[key] = value
-        if not settings.has_key("name"):
+        if "name" not in settings:
             text = "The applet in file %s has no name" % path
             return None, text
-        if not settings.has_key("exec"):
+        if "exec" not in settings:
             text = "Applet %s in file %s has no exec" % (name, path)
             return None, text
         if description_nr is None or description_nr >= len(lines):
@@ -140,7 +140,7 @@ class DockXApplets():
         except:
             #GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list", GConf.ValueType.STRING,["DockbarX"])
             return ["DockbarX"]
-        all_applets = self.applets.keys() + ["DockbarX", "Spacer"]
+        all_applets = list(self.applets.keys()) + ["DockbarX", "Spacer"]
         applet_list = [a for a in old_list if a in all_applets]
         if not "DockbarX" in applet_list:
             applet_list.append("DockbarX")
@@ -159,7 +159,7 @@ class DockXApplets():
                                   #~ GConf.ValueType.STRING,
                                   #~ ["DockbarX"])
             applet_list = ["DockbarX"]
-        all_applets = self.applets.keys()
+        all_applets = list(self.applets.keys())
         unused_applets = [a for a in all_applets if a not in applet_list]
         # There should be totally two spacers.
         while (unused_applets + applet_list).count("Spacer") < 2:
@@ -168,7 +168,7 @@ class DockXApplets():
         
         
     def set_list(self, applet_list):
-        all_applets = self.applets.keys() + ["DockbarX", "Spacer"]
+        all_applets = list(self.applets.keys()) + ["DockbarX", "Spacer"]
         applet_list = [a for a in applet_list if a in all_applets]
         if not "DockbarX" in applet_list:
             applet_list.append("DockbarX")

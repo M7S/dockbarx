@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   dockbar.py
 #
@@ -21,8 +21,8 @@ from gi.repository import Gtk
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 
-from cairowidgets import *
-from log import logger
+from .cairowidgets import *
+from .log import logger
 import weakref
 
 DBusGMainLoop(set_as_default=True)
@@ -113,7 +113,7 @@ class MediaButtons(Gtk.Alignment):
         pass
 
     def __error_handler(self, err):
-        print "DBus error in media buttons:", err
+        print("DBus error in media buttons:", err)
 
     def __on_properties_changed(self, iface, changed_props, inv_props):
         if "PlaybackStatus" in changed_props:

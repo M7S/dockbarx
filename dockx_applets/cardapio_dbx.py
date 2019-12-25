@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 #  
 #  Copyright (C) 2010 Cardapio Team (tvst@hotmail.com)
 # 

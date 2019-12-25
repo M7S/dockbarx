@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   common.py
 #
@@ -17,7 +17,6 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import os
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
@@ -25,12 +24,12 @@ from gi.repository import GObject
 from gi.repository import Gio
 from gi.repository import GLib
 import xdg.DesktopEntry
-from urllib import unquote
+from urllib.parse import unquote
 from time import time
 from gi.repository import Gtk
 import weakref
 import locale
-from log import logger
+from .log import logger
 import struct
 
 
@@ -137,7 +136,7 @@ class ODict():
             return False
 
     def __iter__(self):
-        return self.keys().__iter__()
+        return list(self.keys()).__iter__()
 
     def __eq__(self, x):
         if type(x) == dict:
@@ -276,7 +275,7 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
         # Replace file/uri arguments
         if "%f" in command or "%u" in command:
             # Launch once for every file (or uri).
-            iterlist = range(max(1, len(files)))
+            iterlist = list(range(max(1, len(files))))
         else:
             # Launch only one time.
             iterlist = [0]
@@ -335,7 +334,7 @@ class Opacify():
 
     def opacify(self, windows, opacifier=None):
         """Add semi-transparency to windows"""
-        if type(windows) in [long, int]:
+        if type(windows) in [int, int]:
             windows = [windows]
         if windows:
             windows = [str(xid) for xid in windows]
@@ -417,9 +416,9 @@ class Opacify():
             v = [alpha, alpha, alpha]
             for i in range(1, steps+1):
                 if fadeins:
-                    v[mid_index] = 100 - ((steps - i) * (100 - alpha) / steps)
+                    v[mid_index] = 100 - ((steps - i) * (100 - alpha) // steps)
                 if fadeouts:
-                    v[max_index] = 100 - (i*(100-alpha) / steps)
+                    v[max_index] = 100 - (i*(100-alpha) // steps)
                 sid = time()
                 if i == 1:
                     self.__compiz_call(v + values, matches)
@@ -439,7 +438,7 @@ class Opacify():
             v[max_index] = 100
             self.__compiz_call(v + values, matches)
             for i in range(1, steps+1):
-                v[max_index] = 100 - ( i * (100 - alpha) / steps)
+                v[max_index] = 100 - ( i * (100 - alpha) // steps)
                 sid = time()
                 self.sids[sid] = GObject.timeout_add(i * interval,
                                                      self.__compiz_call,
@@ -450,7 +449,7 @@ class Opacify():
             # Deopacify
             v = [0, 0, 0]
             for i in range(1, steps):
-                value = 100 - ((steps - i) * (100 - alpha) / steps)
+                value = 100 - ((steps - i) * (100 - alpha) // steps)
                 v = [max(value, old_value) for old_value in old_values]
                 sid = time()
                 self.sids[sid] = GObject.timeout_add(i * interval,
@@ -731,7 +730,7 @@ class Globals(GObject.GObject):
     def __on_gsettings_changed(self, settings, gkey, data=None):
         key = gkey.replace("-", "_")
         if not key in self.settings:
-            print "The changed setting is not in settings dictionary:", key
+            print("The changed setting is not in settings dictionary:", key)
             return
         self.settings[key] = self.gsettings.get_value(gkey).unpack()
         #~ entry_get = { str: entry.get_value().get_string,
@@ -757,7 +756,7 @@ class Globals(GObject.GObject):
 
         #~ # Theme colors and popup style
         #~ if self.theme_name:
-            #~ theme_name = self.theme_name.replace(" ", "_").encode()
+            #~ theme_name = self.theme_name.replace(" ", "_")
             #~ try:
                 #~ theme_name = theme_name.translate(None, '!?*()/#"@')
             #~ except:
@@ -831,7 +830,7 @@ class Globals(GObject.GObject):
         key = gkey.replace("-", "_")
         key = "dock/%s" % key
         if not key in self.settings:
-            print "The changed setting is not in settings dictionary:", key
+            print("The changed setting is not in settings dictionary:", key)
             return
         self.settings[key] = self.dock_gsettings.get_value(gkey).unpack()
 
@@ -876,7 +875,7 @@ class Globals(GObject.GObject):
         #~ gconf_set = { str: GCONF_CLIENT.set_string,
                       #~ bool: GCONF_CLIENT.set_bool,
                       #~ int: GCONF_CLIENT.set_int }
-        for name, value in settings.items():
+        for name, value in list(settings.items()):
             gs_name = name.replace("_", "-")
             if name.startswith("awn/"):
                 continue
@@ -888,7 +887,7 @@ class Globals(GObject.GObject):
             gs_value = gsettings.get_value(gs_name).unpack()
             if type(gs_value) != type(value):
                 # Todo: Remove this if unneccessary.
-                print "Gsettings import. Wrong types for", name, "- New type:", gs_value, "Old type:", value
+                print("Gsettings import. Wrong types for", name, "- New type:", gs_value, "Old type:", value)
             settings[name] = gs_value
         return settings
 
@@ -896,7 +895,7 @@ class Globals(GObject.GObject):
         self.theme_name = theme_name
         if self.theme_gsettings is not None:
             self.theme_gsettings.disconnect(self.theme_gsettings_sid)
-        theme_name = theme_name.lower().replace(" ", "_").encode()
+        theme_name = theme_name.lower().replace(" ", "_")
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
         path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
@@ -918,17 +917,8 @@ class Globals(GObject.GObject):
         for i in range(1, 9):
             c = "color%s"%i
             a = "color%s-alpha"%i
-
-            color = self.theme_gsettings.get_value(c)
-            alpha = self.theme_gsettings.get_value(a)
-            if self.theme_gsettings.get_user_value(c) is None:
-                # DConf-editor can't see relocatable schemas
-                # so we will set the settings manually so that they will show up.
-                self.theme_gsettings.set_value(c, color)
-            if self.theme_gsettings.get_user_value(a) is None:
-                self.theme_gsettings.set_value(a, alpha)
-            color = color.unpack()
-            alpha = alpha.unpack()
+            color = self.theme_gsettings.get_value(c).unpack()
+            alpha = self.theme_gsettings.get_value(a).unpack()
             if color == "default":
                 if c in theme_colors:
                     color = theme_colors[c]
@@ -946,6 +936,19 @@ class Globals(GObject.GObject):
                 else:
                     alpha = self.DEFAULT_COLORS.get("%s_alpha"%c, 255)
             self.colors["color%s_alpha" % i] = alpha
+            
+        for i in range(1, 9):
+            # DConf-editor can't see relocatable schemas
+            # so we will set the settings manually so that they will show up.
+            c = "color%s"%i
+            a = "color%s-alpha"%i
+
+            color = self.theme_gsettings.get_value(c)
+            alpha = self.theme_gsettings.get_value(a)
+            if self.theme_gsettings.get_user_value(c) is None:
+                self.theme_gsettings.set_value(c, color)
+            if self.theme_gsettings.get_user_value(a) is None:
+                self.theme_gsettings.set_value(a, alpha)
 
     def update_popup_style(self, default_style):
         # Runs when the theme has changed.

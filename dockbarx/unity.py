@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   unity.py
 #
@@ -23,7 +23,7 @@ import dbus.service
 from gi.repository import GObject
 import weakref
 from dbus.mainloop.glib import DBusGMainLoop
-from log import logger
+from .log import logger
 import time
 
 DBusGMainLoop(set_as_default=True)
@@ -126,7 +126,7 @@ class UnityWatcher():
         dockbar = self.dockbar_r()
         if app_uri in self.props_by_app and \
            sender == self.props_by_app[app_uri]["sender"]:
-            for key, value in properties.items():
+            for key, value in list(properties.items()):
                 self.props_by_app[app_uri][key] = value
         else:
             self.props_by_app[app_uri] = properties
@@ -162,7 +162,7 @@ class UnityWatcher():
                 if name == group.unity_launcher_bus_name:
                     # Remove counts, quicklists etc.
                     group.set_unity_properties({}, None)
-            for key, value in self.props_by_app.items():
+            for key, value in list(self.props_by_app.items()):
                 if name == value["sender"]:
                     del self.props_by_app[key]
 
@@ -271,7 +271,7 @@ class DBusMenu(object):
             item = self.__recursive_match(self.layout, props[0])
             if item is None:
                 continue
-            for key, value in props[1].items():
+            for key, value in list(props[1].items()):
                 item[1][key] = value
             changed_items.append(item)
             if group.menu is not None:

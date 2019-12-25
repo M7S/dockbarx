@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   cairowidgets.py
 #
@@ -31,9 +31,9 @@ from gi.repository import Pango
 from gi.repository import cairo as gicairo
 import cairo
 
-from common import Globals, connect, disconnect
-from theme import PopupStyle
-from log import logger
+from .common import Globals, connect, disconnect
+from .theme import PopupStyle
+from .log import logger
 
 
 

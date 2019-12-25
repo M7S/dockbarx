@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #	Copyright 2009, 2010 Matias Sars
 #
@@ -153,7 +153,7 @@ class PrefDialog():
         label.set_alignment(1,0.5)
         themes = self.find_themes()
         self.theme_combo = Gtk.ComboBoxText()
-        for theme in themes.keys():
+        for theme in list(themes.keys()):
                 self.theme_combo.append_text(theme)
         self.theme_combo.connect('changed', self.cb_changed)
         button = Gtk.Button()
@@ -248,10 +248,10 @@ class PrefDialog():
                 break
 
         # Text style
-        for name, setting_base in self.color_labels_and_settings.items():
+        for name, setting_base in list(self.color_labels_and_settings.items()):
             color = Gdk.color_parse(settings[setting_base+'_color'])
             self.color_buttons[name].set_color(color)
-            if settings.has_key(setting_base+"_alpha"):
+            if setting_base+"_alpha" in settings:
                 alpha = settings[setting_base+"_alpha"] * 256
                 self.color_buttons[name].set_use_alpha(True)
                 self.color_buttons[name].set_alpha(alpha)
@@ -318,7 +318,7 @@ class PrefDialog():
         if new_color != color_string:
             key = "%s/%s_color" % (GCONF_DIR, setting_base)
             GCONF_CLIENT.set_string(key, new_color)
-        if settings.has_key("%s_alpha" % setting_base):
+        if "%s_alpha" % setting_base in settings:
             alpha = settings["%s_alpha" % setting_base]
             new_alpha = min(int(float(button.get_alpha()) / 256 + 0.5), 255)
             if new_alpha != alpha:
@@ -331,7 +331,7 @@ class PrefDialog():
         color_string = DEFAULT_SETTINGS["%s_color" % setting_base]
         key = "%s/%s_color" % (GCONF_DIR, setting_base)
         GCONF_CLIENT.set_string(key, color_string)
-        if DEFAULT_SETTINGS.has_key(setting_base+"_alpha"):
+        if setting_base+"_alpha" in DEFAULT_SETTINGS:
             alpha = DEFAULT_SETTINGS[setting_base+"_alpha"]
             key = "%s/%s_alpha" % (GCONF_DIR, setting_base)
             GCONF_CLIENT.set_int(key, alpha)
@@ -359,7 +359,7 @@ class PrefDialog():
                 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
             md.run()
             md.destroy()
-            print 'Preference dialog error: No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"'
+            print('Preference dialog error: No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
         return themes
 
     def change_theme(self, button=None):
@@ -381,8 +381,8 @@ class Theme():
                 pixbuf_loader.get_pixbuf()
         except KeyError:
             tar.close()
-            print "Nambar couldn't read the image %s from theme file %s"%('active/%s_normal.png'%button, path_to_tar)
-            print "This theme will be ignored."
+            print("Nambar couldn't read the image %s from theme file %s"%('active/%s_normal.png'%button, path_to_tar))
+            print("This theme will be ignored.")
             return False
         tar.close()
         return True
@@ -477,7 +477,7 @@ class NameBar(DockXApplet):
         gconf_set = { str: GCONF_CLIENT.set_string,
                      bool: GCONF_CLIENT.set_bool,
                      int: GCONF_CLIENT.set_int }
-        for name, value in settings.items():
+        for name, value in list(settings.items()):
             gc_value = None
             try:
                 gc_value = GCONF_CLIENT.get_value(GCONF_DIR + '/' + name)
@@ -509,7 +509,7 @@ class NameBar(DockXApplet):
         #--- Load theme
         self.themes = self.find_themes()
         default_theme_path = None
-        for theme, path in self.themes.items():
+        for theme, path in list(self.themes.items()):
             if theme == settings['theme']:
                 self.theme = Theme(path)
                 break
@@ -523,7 +523,7 @@ class NameBar(DockXApplet):
             else:
                 # Just use one of the themes that where found if default
                 # theme couldn't be found either.
-                path = self.themes.values()[0]
+                path = list(self.themes.values())[0]
                 self.theme = Theme(path)
 
         self.pixbufs = self.theme.get_pixbufs()
@@ -644,14 +644,14 @@ class NameBar(DockXApplet):
                 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
             md.run()
             md.destroy()
-            print 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"'
+            print('No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
             sys.exit(1)
         return themes
 
     def change_theme(self):
         self.themes = self.find_themes()
         default_theme_path = None
-        for theme, path in self.themes.items():
+        for theme, path in list(self.themes.items()):
             if theme == settings['theme']:
                 self.theme = Theme(path)
                 break
@@ -725,7 +725,7 @@ class NameBar(DockXApplet):
 
         self.container.show_all()
         #~ self.icon.set_from_pixbuf(self.shown_window.get_mini_icon())
-        name = u""+self.shown_window.get_name()
+        name = ""+self.shown_window.get_name()
         self.label.set_tooltip_text(name)
         self.label.set_text(name)
         if self.shown_window.get_actions() & action_minimize:
@@ -822,7 +822,7 @@ class NameBar(DockXApplet):
 
 
     def on_window_name_changed(self, window):
-        name = u""+window.get_name()
+        name = ""+window.get_name()
         self.label.set_tooltip_text(name)
         self.label.set_text(name)
 

@@ -32,3 +32,5 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+
+new-dependencies

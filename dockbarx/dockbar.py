@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   dockbar.py
 #
@@ -27,19 +27,19 @@ from gi.repository import GObject
 import sys
 import os
 import dbus
-import cairowidgets
+from . import cairowidgets
 import weakref
 from time import time
 from xdg.DesktopEntry import ParsingError
 
 
-from common import *
-from log import logger
+from .common import *
+from .log import logger
 
-import i18n
+from . import i18n
 _ = i18n.language.gettext
 
-VERSION = "0.93-gtk3"
+VERSION = "1.0-beta"
 
 
 ATOM_WM_CLASS = Gdk.atom_intern("WM_CLASS", False)
@@ -135,7 +135,7 @@ class Spacer(Gtk.EventBox):
 
     def on_drag_motion(self, widget, drag_context, x, y, t):
         if not self.drag_entered:
-            self.on_drag_enter(drag_context, x, y, t)
+            self.on_drag_enter(widget, drag_context, x, y, t)
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
             Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, t)
@@ -180,14 +180,14 @@ class GroupList(list):
     def __getitem__(self, item):
         # Item can be a identifier, path or index
         if item is None:
-            raise KeyError, item
-        if isinstance(item, (str, unicode)):
+            raise KeyError(item)
+        if isinstance(item, str):
             for group in self:
                 if group.identifier == item or \
                    (group.desktop_entry is not None and
                     group.desktop_entry.getFileName() == item):
                     return group
-            raise KeyError, item
+            raise KeyError(item)
         return list.__getitem__(self, item)
 
     def get(self, item, default=None):
@@ -329,12 +329,12 @@ class GroupList(list):
         max_size = self.calculate_max_size()
         if max_size < self.button_size:
             return
-        max_buttons = max_size / self.button_size
+        max_buttons = max_size // self.button_size
         if len(groups) <= self.overflow_set * max_buttons:
             # The current overflow_set is too high and would
             # show a empty screen, let's decrease it to something
             # that will actually show something.
-            self.overflow_set = (len(groups) - 1) / max_buttons
+            self.overflow_set = (len(groups) - 1) // max_buttons
         if len(groups) <= max_buttons:
             self.hide_arrow_buttons()
         else:
@@ -344,13 +344,12 @@ class GroupList(list):
             self.previous_button.set_sensitive(False)
         else:
             self.previous_button.set_sensitive(True)
-        if self.overflow_set == (len(groups) - 1) / max_buttons:
+        if self.overflow_set == (len(groups) - 1) // max_buttons:
             self.next_button.set_sensitive(False)
         else:
             self.next_button.set_sensitive(True)
         # Hide all buttons and then show the ones that is
         # in the currently shown set.
-
         for group in groups:
             group.button.hide()
         begin = self.overflow_set * max_buttons
@@ -361,6 +360,8 @@ class GroupList(list):
         for group in groups[begin:end]:
             group.button.show()
         #TODO: Fix locked popup behavior when group disapears or move
+        self.box.queue_draw()
+        self.box.queue_resize()
 
     def calculate_button_size(self):
         # Calculate the button size.
@@ -384,6 +385,9 @@ class GroupList(list):
         # size is set from outside this class using this funtction.
         self.max_size = max_size
         self.manage_size_overflow()
+        
+    def get_max_size(self):
+        return self.max_size
 
     def calculate_max_size(self):
         if self.max_size is None:
@@ -477,20 +481,20 @@ class DockBar():
         from gi.repository import Wnck
         global Group
         global GroupIdentifierError
-        from groupbutton import Group, GroupIdentifierError
+        from .groupbutton import Group, GroupIdentifierError
         global Theme
         global NoThemesError
         global PopupStyle
-        from theme import Theme, NoThemesError, PopupStyle
+        from .theme import Theme, NoThemesError, PopupStyle
         global Mpris2Watch
         global MediaButtons
-        from mediabuttons import Mpris2Watch, MediaButtons
+        from .mediabuttons import Mpris2Watch, MediaButtons
         global DockManager
-        from dockmanager import DockManager
+        from .dockmanager import DockManager
         global DockbarDBus
-        from dbx_dbus import DockbarDBus
+        from .dbx_dbus import DockbarDBus
         global UnityWatcher
-        from unity import UnityWatcher
+        from .unity import UnityWatcher
 
         # Media Controls
         self.media_controls = {}
@@ -599,7 +603,7 @@ class DockBar():
                 self.theme = Theme()
             else:
                 self.theme.on_theme_changed()
-        except NoThemesError, details:
+        except NoThemesError as details:
             logger.exception("Error: Couldn't find any themes")
             sys.exit(1)
 
@@ -736,6 +740,9 @@ class DockBar():
     def set_max_size(self, max_size):
         """Set the max size DockbarX is allowed to occupy."""
         self.groups.set_max_size(max_size)
+        
+    def get_max_size(self):
+        return self.groups.get_max_size()
 
     def set_parent_window_reporting(self, report):
         """If True, dockbarx reports to the parent when windows are added or removed"""
@@ -923,7 +930,7 @@ class DockBar():
         self.__media_player_check(identifier, group)
         self.unity_watcher.apply_for_group(group)
         self.update_pinned_apps_list()
-        group.button.update_state
+        group.button.update_state()
         # If the size is set (and is bigger than 10px everything else is assumed to be
         # accidentally given sizes during startup) we need to update the state to make
         # make a button surface with the right size.
@@ -1090,11 +1097,11 @@ class DockBar():
                     rc = rc.partition(" ")[0]
                     # Workaround for apps
                     # with identifier like this "App 1.2.3" (name with ver)
-                    if rc in self.apps_by_id.keys():
+                    if rc in list(self.apps_by_id.keys()):
                         app_id = rc
-                    elif rc in self.app_ids_by_name.keys():
+                    elif rc in list(self.app_ids_by_name.keys()):
                         app_id = self.app_ids_by_name[rc]
-                    elif rc in self.app_ids_by_exec.keys():
+                    elif rc in list(self.app_ids_by_exec.keys()):
                         app_id = self.app_ids_by_exec[rc]
             if app_id:
                 app = self.apps_by_id[app_id]
@@ -1195,7 +1202,7 @@ class DockBar():
         # the group button that the launcher was dropped on.
         try:
             desktop_entry = DesktopEntry(path)
-        except Exception, detail:
+        except Exception as detail:
             logger.exception("ERROR: Couldn't read dropped file. " + \
                              "Was it a desktop entry?")
             return False
@@ -1386,9 +1393,7 @@ class DockBar():
             if identifier is None:
                 identifier = ""
             path = group.desktop_entry.getFileName()
-            # Todo: Is there any drawbacks from using encode("utf-8") here?
-            gconf_pinned_apps.append(identifier.encode("utf-8") + ";" +
-                                     path.encode("utf-8"))
+            gconf_pinned_apps.append(identifier + ";" + path)
         self.globals.set_pinned_apps_list(gconf_pinned_apps)
 
     def __add_launcher(self, identifier, path):
@@ -1467,7 +1472,7 @@ class DockBar():
                   self.d_e_ids_by_exec,
                   self.d_e_ids_by_longname,
                   self.d_e_ids_by_wine_program):
-            for key, value in l.items():
+            for key, value in list(l.items()):
                 if value == id:
                     l.pop(key)
                     break
@@ -1703,7 +1708,7 @@ class DockBar():
            "gkeys_select_next_window": _("Select next window in group"),
            "gkeys_select_previous_window": _("Select previous window in group")
                        }
-        for (s, f) in functions.items():
+        for (s, f) in list(functions.items()):
             if self.gkeys[s] is not None:
                 Keybinder.unbind(self.gkeys[s])
                 self.gkeys[s] = None

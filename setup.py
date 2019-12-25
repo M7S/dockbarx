@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   setup.py
 #
@@ -27,7 +27,7 @@ import msgfmt
 import os
 import sys
 
-VERSION = "0.93-gtk3"
+VERSION = "1.0-beta"
 
 class build_trans(cmd.Command):
     description = "Compile .po files into .mo files"
@@ -42,7 +42,7 @@ class build_trans(cmd.Command):
                     "dockbarx": os.path.join(os.path.dirname(os.curdir), "po"),
                     "dockbarx-themes": os.path.join(os.path.dirname(os.curdir), "po-themes")
                   }
-        for (mo_file, po_dir) in po_dict.items():
+        for (mo_file, po_dir) in list(po_dict.items()):
             for path, names, filenames in os.walk(po_dir):
                 for f in filenames:
                     if f.endswith(".po"):
@@ -53,13 +53,13 @@ class build_trans(cmd.Command):
                         if not os.path.exists(dest_path):
                             os.makedirs(dest_path)
                         if not os.path.exists(dest):
-                            print "Compiling %s for %s" % (src, mo_file)
+                            print("Compiling %s for %s" % (src, mo_file))
                             msgfmt.make(src, dest)
                         else:
                             src_mtime = os.stat(src)[8]
                             dest_mtime = os.stat(dest)[8]
                             if src_mtime > dest_mtime:
-                                print "Compiling %s for %s" % (src, mo_file)
+                                print("Compiling %s for %s" % (src, mo_file))
                                 msgfmt.make(src, dest)
 
 class build(_build):
@@ -159,34 +159,34 @@ if len(sys.argv) == 2 and sys.argv[1] == "install":
     if os.path.exists("/usr/bin/dockbarx.py"):
         # Remove old dockbarx.py so that it isn't imported
         # instead of the package dockbarx when dockbarx is run.
-        print
-        print "There is a dockbarx.py in /usr/bin. " + \
-              "This has to be removed to make DockbarX run correctly."
-        remove = raw_input("Remove /usr/bin/dockbarx.py? (Y/n)")
+        print()
+        print("There is a dockbarx.py in /usr/bin. " + \
+              "This has to be removed to make DockbarX run correctly.")
+        remove = input("Remove /usr/bin/dockbarx.py? (Y/n)")
         if remove == "" or remove[0].lower() == "y":
             os.remove("/usr/bin/dockbarx.py")
         else:
-            print "/usr/bin/dockbarx.py is not removed. " + \
-                  "Please remove it or rename it manually."
+            print("/usr/bin/dockbarx.py is not removed. " + \
+                  "Please remove it or rename it manually.")
 
     if os.path.exists("/usr/bin/dockbarx_factory.py"):
-        print
-        print "There is a dockbarx_factory.py in /usr/bin. " + \
-              "This file is no longer used."
-        remove = raw_input("Remove /usr/bin/dockbarx_factory.py? (Y/n)")
+        print()
+        print("There is a dockbarx_factory.py in /usr/bin. " + \
+              "This file is no longer used.")
+        remove = input("Remove /usr/bin/dockbarx_factory.py? (Y/n)")
         if remove == "" or remove[0].lower() == "y":
             os.remove("/usr/bin/dockbarx_factory.py")
-            print "/usr/bin/dockbarx_factory.py is removed. "
+            print("/usr/bin/dockbarx_factory.py is removed. ")
         else:
-            print "/usr/bin/dockbarx_factory.py is not removed. "
+            print("/usr/bin/dockbarx_factory.py is not removed. ")
 
     if os.path.exists("/usr/bin/dbx_preference.py"):
-        print
-        print "There is a dbx_preference.py in /usr/bin. " + \
-              "This file is no longer used."
-        remove = raw_input("Remove /usr/bin/dbx_preference.py? (Y/n)")
+        print()
+        print("There is a dbx_preference.py in /usr/bin. " + \
+              "This file is no longer used.")
+        remove = input("Remove /usr/bin/dbx_preference.py? (Y/n)")
         if remove == "" or remove[0].lower() == "y":
             os.remove("/usr/bin/dbx_preference.py")
-            print "/usr/bin/dbx_preference.py is removed. "
+            print("/usr/bin/dbx_preference.py is removed. ")
         else:
-            print "/usr/bin/dbx_preference.py is not removed. "
+            print("/usr/bin/dbx_preference.py is not removed. ")

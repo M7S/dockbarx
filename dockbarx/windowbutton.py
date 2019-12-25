@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   windowbutton.py
 #
@@ -29,12 +29,12 @@ import weakref
 import gc
 gc.enable()
 
-from common import ODict, Globals, Opacify
-from common import connect, disconnect, opacify, deopacify
-from cairowidgets import *
-from log import logger
+from .common import ODict, Globals, Opacify
+from .common import connect, disconnect, opacify, deopacify
+from .cairowidgets import *
+from .log import logger
 
-import i18n
+from . import i18n
 _ = i18n.language.gettext
 
 
@@ -112,7 +112,7 @@ class Window():
             return 0
         gdk_screen = Gdk.Screen.get_default()
         x, y, w, h = self.wnck.get_geometry()
-        return gdk_screen.get_monitor_at_point(x + (w / 2), y  + (h / 2))
+        return gdk_screen.get_monitor_at_point(x + (w // 2), y  + (h // 2))
 
     def destroy(self):
         if self.deopacify_sid:

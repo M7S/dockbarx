@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   iconfactory.py
 #
@@ -32,11 +32,11 @@ import array
 from math import pi, cos, sin
 from PIL import Image
 
-from theme import Theme
-from common import Globals, connect, disconnect
-from log import logger
+from .theme import Theme
+from .common import Globals, connect, disconnect
+from .log import logger
 
-import i18n
+from . import i18n
 _ = i18n.language.gettext
 
 class IconFactory():
@@ -93,10 +93,10 @@ class IconFactory():
 
         self.max_win_nr = self.theme.get_windows_cnt()
         self.types_in_theme = 0
-        for type in self.theme.get_types():
-            if not type in self.TYPE_DICT:
+        for type_ in self.theme.get_types():
+            if not type_ in self.TYPE_DICT:
                 continue
-            self.types_in_theme = self.types_in_theme | self.TYPE_DICT[type]
+            self.types_in_theme = self.types_in_theme | self.TYPE_DICT[type_]
 
     def remove(self):
         del self.desktop_entry
@@ -137,42 +137,49 @@ class IconFactory():
         self.average_color = None
 
 
-    def surface_update(self, type = 0):
+    def surface_update(self, type_ = 0):
         # Checks if the requested pixbuf is already
         # drawn and returns it if it is.
         # Othervice the surface is drawn, saved and returned.
 
-        #The first four bits of type is for telling the number of windows
-        self.win_nr = min(type & 15, self.max_win_nr)
+        #The first four bits of type_ is for telling the number of windows
+        self.win_nr = min(type_ & 15, self.max_win_nr)
         # Remove all types that are not used by the theme (saves memory)
-        dnd = (type & self.DRAG_DROPP_START and "start") or \
-              (type & self.DRAG_DROPP_END and "end")
-        type = type & self.types_in_theme
-        type += self.win_nr
+        dnd = (type_ & self.DRAG_DROPP_START and "start") or \
+              (type_ & self.DRAG_DROPP_END and "end")
+        type_ = type_ & self.types_in_theme
+        type_ += self.win_nr
         self.orient = self.dockbar_r().orient
         is_vertical = self.orient in ("left", "right")
-        if type in self.surfaces:
-            surface = self.surfaces[type]
+        if type_ in self.surfaces:
+            surface = self.surfaces[type_]
         else:
             self.temp = {}
             surface = None
             commands = self.theme.get_icon_dict()
             self.ar = self.theme.get_aspect_ratio(is_vertical)
-            self.type = type
-            for command, args in commands.items():
-                try:
-                    f = getattr(self, "_IconFactory__command_%s"%command)
-                except:
-                    raise
-                else:
-                    surface = f(surface, **args)
+            self.type_ = type_
+            surface = self.__do_commands(surface, commands)
             # Todo: add size correction.
-            self.surfaces[type] = surface
+            self.surfaces[type_] = surface
             del self.temp
             gc.collect()
         if dnd:
-            surface = self.__dd_highlight(surface, self.orient, dnd)
+            print
+            surface = self.__dd_highlight(surface, is_vertical, dnd)
             gc.collect()
+        return surface
+    
+    def __do_commands(self, surface, commands):
+        for command, args in list(commands.items()):
+            try:
+                f = getattr(self, "_IconFactory__command_%s"%command)
+            except:
+                raise
+            else:
+                if "type" in args:
+                    args["type_"] = args.pop("type")
+                surface = f(surface, **args)
         return surface
 
 
@@ -268,7 +275,7 @@ class IconFactory():
 
         for i in range(1, 9):
             if alpha in ("color%s"%i, "opacity%s"%i):
-                if self.globals.colors.has_key("color%s_alpha"%i):
+                if "color%s_alpha"%i in self.globals.colors:
                     a = float(self.globals.colors["color%s_alpha"%i])/255
                 else:
                     logger.warning("Theme error: The theme has no" + \
@@ -317,14 +324,14 @@ class IconFactory():
 
 
     #### Flow commands
-    def __command_if(self, surface, type=None, windows=None,
+    def __command_if(self, surface, type_=None, windows=None,
                      size=None, orient=None, content=None):
         if content is None:
             return surface
         # TODO: complete this
 ##        l = []
 ##        splits = ["!", "(", ")", "&", "|"]
-##        for c in type:
+##        for c in type_:
 ##            if c in splits:
 ##                l.append(c)
 ##            elif l[-1] in splits:
@@ -333,14 +340,14 @@ class IconFactory():
 ##                l.append(c)
 ##            else:
 ##                l[-1] += c
-        # Check if the type condition is satisfied
-        if type is not None:
+        # Check if the type_ condition is satisfied
+        if type_ is not None:
             negation = False
-            if type[0] == "!" :
-                type = type[1:]
+            if type_[0] == "!" :
+                type_ = type_[1:]
                 negation = True
-            is_type = bool(type in self.TYPE_DICT \
-                      and self.type & self.TYPE_DICT[type])
+            is_type = bool(type_ in self.TYPE_DICT \
+                      and self.type_ & self.TYPE_DICT[type_])
             if not (is_type ^ negation):
                 return surface
 
@@ -405,13 +412,7 @@ class IconFactory():
                 return surface
 
         # All tests passed, proceed.
-        for command, args in content.items():
-            try:
-                f = getattr(self,"_IconFactory__command_%s"%command)
-            except:
-                raise
-            else:
-                surface = f(surface, **args)
+        surface = self.__do_commands(surface, content)
         return surface
 
     def __command_pixmap_from_self(self, surface, name, content=None):
@@ -426,12 +427,14 @@ class IconFactory():
         ctx.paint()
         if content is None:
             return surface
-        for command,args in content.items():
+        for command,args in list(content.items()):
             try:
                 f = getattr(self,"_IconFactory__command_%s"%command)
             except:
                 raise
             else:
+                if "type" in args:
+                        args["type_"] = args.pop("type")
                 self.temp[name] = f(self.temp[name], **args)
         return surface
 
@@ -448,12 +451,14 @@ class IconFactory():
         self.temp[name] = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         if content is None:
             return surface
-        for command,args in content.items():
+        for command,args in list(content.items()):
             try:
                 f = getattr(self,"_IconFactory__command_%s"%command)
             except:
                 raise
             else:
+                if "type" in args:
+                    args["type_"] = args.pop("type")
                 self.temp[name] = f(self.temp[name], **args)
         return surface
 
@@ -475,10 +480,10 @@ class IconFactory():
         if pb.get_width() != pb.get_height():
             if pb.get_width() < pb.get_height():
                 h = size
-                w = pb.get_width() * size/pb.get_height()
+                w = pb.get_width() * size // pb.get_height()
             elif pb.get_width() > pb.get_height():
                 w = size
-                h = pb.get_height() * size/pb.get_width()
+                h = pb.get_height() * size // pb.get_width()
             self.icon = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
             ctx = Gdk.CairoContext(cairo.Context(self.icon))
             pbs = pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
@@ -575,7 +580,7 @@ class IconFactory():
     def __icon_search_in_data_path(self, icon_name, icon_size):
         data_folders = None
 
-        if os.environ.has_key("XDG_DATA_DIRS"):
+        if "XDG_DATA_DIRS" in os.environ:
             data_folders = os.environ["XDG_DATA_DIRS"]
 
         if not data_folders:
@@ -799,7 +804,7 @@ class IconFactory():
         h0 = surface.get_height()
         # Check if the angle should be taken from a set.
         angle = self.__get_from_set(angle)
-        a =  float(angle)/180*pi
+        a =  float(angle) / 180 * pi
         if not resize or resize in ("False", "0"):
             w = w0
             h = h0
@@ -809,9 +814,9 @@ class IconFactory():
         new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(new)
 
-        ctx.translate(w/2.0, h/2.0)
+        ctx.translate(w / 2.0, h / 2.0)
         ctx.rotate(a)
-        ctx.translate(-w0/2.0, -h0/2.0)
+        ctx.translate(-w0 / 2.0, -h0 / 2.0)
         ctx.set_source_surface(surface, 0,0)
         ctx.paint()
         return new
@@ -850,7 +855,7 @@ class IconFactory():
         h = surface.get_height()
         glow = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(glow)
-        tk1 = tk/2.0
+        tk1 = tk / 2.0
         for x, y in ((-tk1,-tk1), (-tk1,tk1), (tk1,-tk1), (tk1,tk1)):
             ctx.set_source_surface(cs, x, y)
             ctx.paint_with_alpha(0.66)
@@ -944,7 +949,7 @@ class IconFactory():
     def __surface2pil(self, surface):
         w = surface.get_width()
         h = surface.get_height()
-        return Image.frombuffer("RGBA", (w, h), surface.get_data(),
+        return Image.frombuffer("RGBA", (w, h), surface.get_data().obj,
                                 "raw", "BGRA", 0,1)
 
     def __pil2surface(self, im):
@@ -1012,7 +1017,7 @@ class IconFactory():
     def __command_print_size(self, surface):
         w = surface.get_width()
         h = surface.get_height()
-        print w, h
+        print(w, h)
         return surface
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
 
@@ -1181,7 +1181,7 @@ class BatteryApplet():
             self.power_interface.connect_to_signal("DeviceRemoved", self.power_dbus_signal)
             # if everything good
             self.power_error = False
-        except dbus.exceptions.DBusException, exception:
+        except dbus.exceptions.DBusException as exception:
             # else show error message
             self.dbus_error(exception.__str__())
         if self.power_error:
@@ -1641,7 +1641,7 @@ class BatteryApplet():
                 os.system("gnome-screensaver-command --lock &")
             # to hibernate
             self.power_interface.Hibernate()
-        except dbus.exceptions.DBusException, exception:
+        except dbus.exceptions.DBusException as exception:
             # if hibernate fail, then do nothing
             pass
     
@@ -1654,7 +1654,7 @@ class BatteryApplet():
                 os.system("gnome-screensaver-command --lock &")
             # to suspend
             self.power_interface.Suspend()
-        except dbus.exceptions.DBusException, exception:
+        except dbus.exceptions.DBusException as exception:
             # if suspend fail, then do nothing
             pass
     

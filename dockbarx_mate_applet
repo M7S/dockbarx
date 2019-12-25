@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   dockbarx_factory
 #
@@ -28,8 +28,8 @@ try:
     import sys
     import dockbarx.dockbar
     from dockbarx.log import *
-except Exception, e:
-    print e
+except Exception as e:
+    print(e)
     sys.exit(1)
 
 class DockbarMateApplet(object):

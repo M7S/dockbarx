@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   groupbutton.py
 #
@@ -32,17 +32,17 @@ from gi.repository import Pango
 from xml.sax.saxutils import escape
 import weakref
 
-from windowbutton import Window
-from iconfactory import IconFactory
-from cairowidgets import CairoMenuItem, CairoCheckMenuItem
-from cairowidgets import CairoPopup, CairoToggleMenu, CairoAppButton
-from dockmanager import DockManagerItem
-from unity import DBusMenu
-from common import *
-import zg
-from log import logger
+from .windowbutton import Window
+from .iconfactory import IconFactory
+from .cairowidgets import CairoMenuItem, CairoCheckMenuItem
+from .cairowidgets import CairoPopup, CairoToggleMenu, CairoAppButton
+from .dockmanager import DockManagerItem
+from .unity import DBusMenu
+from .common import *
+from . import zg
+from .log import logger
 
-import i18n
+from . import i18n
 _ = i18n.language.gettext
 
 display = None
@@ -262,14 +262,14 @@ class Group(ListOfWindows):
                 self.name = self.desktop_entry.getName()
             except:
                 pass
-        if self.name is None and len(self) > 0:
+        if (self.name is None or self.name == "") and len(self) > 0:
             # Uses first half of the name,
             # like "Amarok" from "Amarok - [SONGNAME]"
             # A program that uses a name like "[DOCUMENT] - [APPNAME]" would be
             # totally screwed up. So far no such program has been reported.
             self.name = self[0].wnck.get_class_group().get_name()
             self.name = self.name.split(" - ", 1)[0]
-        if self.name is None and self.identifier:
+        if not self.name and self.identifier:
             self.name = self.identifier
         if self.name is None:
             return
@@ -775,7 +775,7 @@ class Group(ListOfWindows):
             self.desktop_entry.launch_quicklist_entry(identifier[10:])
             return
         if self.dockmanager:
-            for id, menu_item in self.dockmanager.get_menu_items().items():
+            for id, menu_item in list(self.dockmanager.get_menu_items().items()):
                 if identifier == "dockmanager_%s" % id:
                     self.dockmanager.MenuItemActivated(id)
                     self.popup.hide()
@@ -817,14 +817,14 @@ class Group(ListOfWindows):
         y += a.y
         w, h = menu.size_request()
         if self.dockbar_r().orient in ("left", "right"):
-            if x < (self.screen.get_width() / 2):
+            if x < (self.screen.get_width() // 2):
                 x += a.width
             else:
                 x -= w
             if y + h > self.screen.get_height():
                 y -= h - a.height
         if self.dockbar_r().orient in ("down", "up"):
-            if y < (self.screen.get_height() / 2):
+            if y < (self.screen.get_height() // 2):
                 y += a.height
             else:
                 y -= h
@@ -1023,8 +1023,8 @@ class Group(ListOfWindows):
                     continue
                 workspace = window.wnck.get_workspace()
                 wx,wy,ww,wh = window.wnck.get_geometry()
-                vpx = wx/screen.get_width()
-                vpy = wy/screen.get_height()
+                vpx = wx//screen.get_width()
+                vpy = wy//screen.get_height()
                 if not workspace in workspaces:
                     workspaces[workspace] = {}
                 if not vpx in workspaces[workspace]:
@@ -1548,8 +1548,8 @@ class GroupButton(CairoAppButton):
             if gant == "compwater":
                 dummy, x,y = self.get_window().get_origin()
                 alloc = self.get_allocation()
-                x = x + alloc.x + alloc.width/2
-                y = y + alloc.y + alloc.height/2
+                x = x + alloc.x + alloc.width//2
+                y = y + alloc.y + alloc.height//2
                 try:
                     if self.globals.get_compiz_version() >= '0.9.4':
                         screen_path = 'screen0'
@@ -1724,7 +1724,9 @@ class GroupButton(CairoAppButton):
     def on_drag_data_get(self, widget, context, selection, targetType, eventTime):
         group = self.group_r()
         name = group.identifier or group.desktop_entry.getFileName()
-        selection.set(selection.get_target(), 8, name)
+        target = selection.get_target()
+        # Set requires bytes not string so we need to encode name.
+        selection.set(target, 8, name.encode())
 
 
     def on_drag_end(self, widget, drag_context, result=None):
@@ -1773,16 +1775,17 @@ class GroupButton(CairoAppButton):
         name = group.identifier or group.desktop_entry.getFileName()
         selection_target = selection.get_target().name()
         if selection_target == "text/groupbutton_name":
-            if selection.get_data() != name:
-                self.dockbar_r().groupbutton_moved(selection.get_data(), group,
-                                                   self.dnd_position)
+            # Selection data is in bytes we need to decode it to a string.
+            data = selection.get_data().decode()
+            if data != name:
+                self.dockbar_r().groupbutton_moved(data, group, self.dnd_position)
         elif selection_target == "text/uri-list":
             # Uri lists are tested on first motion instead on drop
             # to check if it's a launcher.
             # The data is saved in self.dd_uri to be used again
             # if the file is dropped.
-            self.dd_uri = selection.get_data()
-            if ".desktop" in selection.get_data():
+            self.dd_uri = selection.get_data().decode()
+            if ".desktop" in selection.get_data().decode():
                 # .desktop file! This is a potential launcher.
                 self.launcher_drag = True
             self.update_state()
@@ -1802,10 +1805,10 @@ class GroupButton(CairoAppButton):
         if self.launcher_drag:
             dnd_position = "end"
             if self.dockbar_r().orient in ("left", "right"):
-                if y <= self.get_allocation().height / 2:
+                if y <= self.get_allocation().height // 2:
                     dnd_position = "start"
             else:
-                if x <= self.get_allocation().width / 2:
+                if x <= self.get_allocation().width // 2:
                     dnd_position = "start"
             if dnd_position != self.dnd_position:
                 self.dnd_position = dnd_position
@@ -2070,7 +2073,7 @@ class GroupPopup(CairoPopup):
             if self.globals.settings["popup_align"] == "left":
                 x = b_alloc.x + wx
             if self.globals.settings["popup_align"] == "center":
-                x = b_alloc.x + wx + (b_alloc.width / 2) - (width / 2)
+                x = b_alloc.x + wx + (b_alloc.width // 2) - (width // 2)
             if self.globals.settings["popup_align"] == "right":
                 x = b_alloc.x + wx + b_alloc.width - width
             y = b_alloc.y + wy - offset
@@ -2079,17 +2082,17 @@ class GroupPopup(CairoPopup):
                 x = mgeo.x + mgeo.width - width
             if x < mgeo.x:
                 x = mgeo.x
-            if y >= mgeo.y + (mgeo.height / 2):
+            if y >= mgeo.y + (mgeo.height // 2):
                 direction = "down"
                 y = y - height
             else:
                 direction = "up"
                 y = y + b_alloc.height + (offset * 2)
-            p = wx + b_alloc.x + (b_alloc.width / 2) - x
+            p = wx + b_alloc.x + (b_alloc.width // 2) - x
         else:
             # Set position in such a way that the arrow is splits the
             # height at golden ratio...
-            y = b_alloc.y + wy + (b_alloc.height / 2) - int(height * 0.382)
+            y = b_alloc.y + wy + (b_alloc.height // 2) - int(height * 0.382)
             # ..but don't allow the popup to be lower than the upper egde of
             # the button.
             if y > b_alloc.y + wy:
@@ -2100,13 +2103,13 @@ class GroupPopup(CairoPopup):
             if y < mgeo.y:
                 y = mgeo.y
             x = b_alloc.x + wx
-            if x >= mgeo.x + (mgeo.width / 2):
+            if x >= mgeo.x + (mgeo.width // 2):
                 direction = "right"
                 x = x - width - offset
             else:
                 direction = "left"
                 x = x + b_alloc.width + offset
-            p = wy + b_alloc.y + (b_alloc.height / 2) - y
+            p = wy + b_alloc.y + (b_alloc.height // 2) - y
         self.point(direction, p)
         self.move(x, y)
         try:
@@ -2263,7 +2266,7 @@ class LockedPopup(GroupPopup):
             dummy, wx, wy = button_window.get_origin()
         else:
             wx, wy = (0, 0)
-        if group.dockbar_r().orient in ("left", "right") or wy < mgeo.height / 2:
+        if group.dockbar_r().orient in ("left", "right") or wy < mgeo.height // 2:
             # The popup should be placed at bottom of the screen and have no arrow.
             GroupPopup.__init__(self, group, False, type_="locked_list")
             self.point("down", 20)
@@ -2309,14 +2312,14 @@ class LockedPopup(GroupPopup):
                 dummy, wx, wy = button_window.get_origin()
             else:
                 wx, wy = (0, 0)
-            if wy > mgeo.height / 2:
+            if wy > mgeo.height // 2:
                 GroupPopup.on_size_allocate(self, widget, allocation)
                 self.__set_own_strut()
                 return
         GroupPopup.on_size_allocate(self, widget, allocation)
-        strut = self.__get_other_strut(mgeo.width/2 - width / 2,
-                                       mgeo.width/2 + width / 2)
-        self.move(mgeo.width/2 - width / 2, mgeo.height - height - strut - 1)
+        strut = self.__get_other_strut(mgeo.width // 2 - width // 2,
+                                       mgeo.width // 2 + width // 2)
+        self.move(mgeo.width // 2 - width // 2, mgeo.height - height - strut - 1)
         self.__set_own_strut()
 
         try:
@@ -2639,7 +2642,7 @@ class WindowList(Gtk.VBox):
 class GroupMenu(GObject.GObject):
     __gsignals__ = {
         "item-activated": (GObject.SignalFlags.RUN_FIRST, None, (str, )),
-        "item-hovered": (GObject.SignalFlags.RUN_FIRST, None, (long, str, )),
+        "item-hovered": (GObject.SignalFlags.RUN_FIRST, None, (int, str, )),
         "menu-resized": (GObject.SignalFlags.RUN_FIRST, None, ())}
 
     def __init__(self, gtk_menu=False):
@@ -2712,7 +2715,7 @@ class GroupMenu(GObject.GObject):
         dm_menu_items = dockmanager.get_menu_items()
         if dm_menu_items:
             self.add_separator()
-        for (identifier, item) in dm_menu_items.items():
+        for (identifier, item) in list(dm_menu_items.items()):
             submenu = item.get("container-title", None)
             if submenu and not self.has_submenu(submenu):
                 self.add_submenu(submenu)
@@ -2915,12 +2918,12 @@ class GroupMenu(GObject.GObject):
         open_menus = []
         if not self.gtk_menu:
             # Get all open submenus
-            for identifier, menu in self.submenus.items():
+            for identifier, menu in list(self.submenus.items()):
                 if menu.get_toggled():
                     open_menus.append(identifier)
         # Remove the old parts of the quicklist and add the new.
         if layout[0] == 0:
-            for identifier, item in self.items.items():
+            for identifier, item in list(self.items.items()):
                 if not identifier.startswith("unity_"):
                     continue
                 for child in self.menu.get_children():

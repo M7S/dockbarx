@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #	Copyright 2009, 2010 Matias Sars
 #
@@ -134,7 +134,7 @@ class PrefDialog():
         label.set_alignment(1,0.5)
         themes = self.find_themes()
         self.theme_combo = Gtk.ComboBoxText()
-        for theme in themes.keys():
+        for theme in list(themes.keys()):
                 self.theme_combo.append_text(theme)
         self.theme_combo.connect('changed', self.cb_changed)
         button = Gtk.Button()
@@ -226,7 +226,7 @@ class PrefDialog():
                 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
             md.run()
             md.destroy()
-            print 'Preference dialog error: No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"'
+            print('Preference dialog error: No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
         return themes
 
     def change_theme(self, button=None):
@@ -248,8 +248,8 @@ class Theme():
                 pixbuf_loader.get_pixbuf()
         except KeyError:
             tar.close()
-            print "Nambar couldn't read the image %s from theme file %s"%('active/%s_normal.png'%button, path_to_tar)
-            print "This theme will be ignored."
+            print("Nambar couldn't read the image %s from theme file %s"%('active/%s_normal.png'%button, path_to_tar))
+            print("This theme will be ignored.")
             return False
         tar.close()
         return True
@@ -343,7 +343,7 @@ class WindowButtonApplet(DockXApplet):
         gconf_set = { str: GCONF_CLIENT.set_string,
                      bool: GCONF_CLIENT.set_bool,
                      int: GCONF_CLIENT.set_int }
-        for name, value in settings.items():
+        for name, value in list(settings.items()):
             gc_value = None
             try:
                 gc_value = GCONF_CLIENT.get_value(GCONF_DIR + '/' + name)
@@ -379,7 +379,7 @@ class WindowButtonApplet(DockXApplet):
         #--- Load theme
         self.themes = self.find_themes()
         default_theme_path = None
-        for theme, path in self.themes.items():
+        for theme, path in list(self.themes.items()):
             if theme == settings['theme']:
                 self.theme = Theme(path)
                 break
@@ -393,7 +393,7 @@ class WindowButtonApplet(DockXApplet):
             else:
                 # Just use one of the themes that where found if default
                 # theme couldn't be found either.
-                path = self.themes.values()[0]
+                path = list(self.themes.values())[0]
                 self.theme = Theme(path)
 
         self.pixbufs = self.theme.get_pixbufs()
@@ -483,14 +483,14 @@ class WindowButtonApplet(DockXApplet):
                 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
             md.run()
             md.destroy()
-            print 'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"'
+            print('No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
             sys.exit(1)
         return themes
 
     def change_theme(self):
         self.themes = self.find_themes()
         default_theme_path = None
-        for theme, path in self.themes.items():
+        for theme, path in list(self.themes.items()):
             if theme == settings['theme']:
                 self.theme = Theme(path)
                 break

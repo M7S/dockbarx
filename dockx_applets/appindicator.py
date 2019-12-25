@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #   dockbar.py
 #
@@ -106,7 +106,7 @@ class AppIndicator(Gtk.EventBox):
 
     def menu_closed(self, *args):
         if self.menu is not None:
-            for key in self.sids.keys():
+            for key in list(self.sids.keys()):
                 sid = self.sids.pop(key)
                 self.menu.disconnect(sid)
             self.sd_sid = self.menu.get_menu().disconnect(self.sd_sid)
@@ -245,7 +245,7 @@ class AppIndicatorApplet(DockXApplet):
             if previous_owner == "" and current_owner !="":
                 self.connect_dbus(name)
             if previous_owner != "" and current_owner == "":
-                print "indicator-application-service disappeared"
+                print("indicator-application-service disappeared")
                 self.disconnect_dbus()
 
     def connect_dbus(self, address):
@@ -253,7 +253,7 @@ class AppIndicatorApplet(DockXApplet):
             self.ayatana = BUS.get_object(address,
                                       "/org/ayatana/indicator/service")
         except:
-            print "Error: Couldn't make dbus connection with %s" % address
+            print("Error: Couldn't make dbus connection with %s" % address)
             return
         self.ayatana.Watch(dbus_interface="org.ayatana.indicator.service",
                            reply_handler=self.reply_handler,
@@ -290,7 +290,7 @@ class AppIndicatorApplet(DockXApplet):
                        "ApplicationLabelChanged": self.on_label_changed,
                        "ApplicationRemoved": self.ind_removed,
                        "ApplicationTitleChanged": self.on_title_changed}
-        for sig, call_func in connections.items():
+        for sig, call_func in list(connections.items()):
             self.sids.append(iface.connect_to_signal(sig, call_func))
 
     def ind_added(self, *args):
@@ -328,13 +328,13 @@ class AppIndicatorApplet(DockXApplet):
         ind.on_title_changed(title)
     
     def error_loading(self, err):
-        print err
+        print(err)
 
     def reply_handler(self, *args):
         pass
 
     def error_handler(self, err):
-        print err
+        print(err)
         
 def get_dbx_applet(dbx_dict):
     global aiapplet

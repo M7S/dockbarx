@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 #   zg.py
 #	Copyright 2010 Siegfried-Angel Gevatter Pujals and Matias Sars
@@ -34,7 +34,7 @@ else:
         iface = client.ZeitgeistDBusInterface()
         zgclient = client.ZeitgeistClient()
     except RuntimeError:
-        print "Error: Could not connect to Zeitgeist."
+        print("Error: Could not connect to Zeitgeist.")
         iface = None
 
 def pythonify_zg_events(events):
@@ -45,7 +45,7 @@ def pythonify_zg_events(events):
     return return_list
 
 def err_handler(*args):
-    print "Zeitgeist error:", args
+    print("Zeitgeist error:", args)
 
 def _get(name=None,
          result_type=None,
