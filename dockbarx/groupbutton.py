@@ -1406,6 +1406,9 @@ class GroupButton(CairoAppButton):
                                         desktop_entry=group.desktop_entry,
                                         size=size)
         self.old_alloc = self.get_allocation()
+        
+        # The icon size is decided from allocation or manually.
+        self.manual_size = False
 
         self.opacify_sid = None
         self.deopacify_sid = None
@@ -1530,6 +1533,9 @@ class GroupButton(CairoAppButton):
             if self.get_allocation().width !=  width or \
                self.get_allocation().height != height:
                 self.set_size_request(width, height)
+                # The size of dockbarx isn't changed when the
+                # button size is changed. This is a (ugly?) fix for it.
+                GObject.idle_add(self.dockbar_r().groups.box.queue_resize)
             self.update(surface)
         return
 
@@ -1625,6 +1631,9 @@ class GroupButton(CairoAppButton):
                 x += alloc.x
                 y += alloc.y
                 window.wnck.set_icon_geometry(x, y, alloc.width, alloc.height)
+                
+    def set_manual_size(self, ms):
+        self.manual_size = ms
 
     def apply_launch_effect(self, length=None):
         group = self.group_r()
@@ -1867,18 +1876,9 @@ class GroupButton(CairoAppButton):
         CairoAppButton.on_size_allocate(self, widget, allocation)
         if self.old_alloc == self.get_allocation():
             return
-        #~ if self.dockbar_r().orient in ("left", "right") \
-        #~ and allocation.width > 10 and allocation.width < 220 \
-        #~ and allocation.width != self.old_alloc.width:
-            #~ # A minimium size on 11 is set to stop unnecessary calls
-            #~ # work when the button is created
-            #~ self.icon_factory.set_size(allocation.width)
-            #~ self.update_state(force_update=True)
-        #~ elif self.dockbar_r().orient in ("down", "up") \
-        #~ and allocation.height > 10 and allocation.height < 220\
-        #~ and allocation.height != self.old_alloc.height:
-            #~ self.icon_factory.set_size(allocation.height)
-            #~ self.update_state(force_update=True)
+        if not self.manual_size:
+            # Let's update the size of the icons
+            self.__set_size_from_allocation(allocation)
         # If you have a locked popup on a horizontal dockbar it needs to be
         # removed and re-added so that the arrow points to the right position.
         group = self.group_r()
@@ -1886,9 +1886,26 @@ class GroupButton(CairoAppButton):
             group.remove_locked_popup()
             group.add_locked_popup()
         self.old_alloc = allocation
-
         # Update icon geometry
         self.set_icongeo()
+        
+        
+    def __set_size_from_allocation(self, allocation):
+        if self.dockbar_r().orient in ("left", "right") and \
+         allocation.width > 10 and allocation.width < 220 and \
+         allocation.width != self.old_alloc.width:
+            # A minimium size on 11 is set to stop unnecessary calls
+            # work when the button is created
+            self.icon_factory.set_size(allocation.width)
+        elif self.dockbar_r().orient in ("down", "up") and \
+         allocation.height > 10 and allocation.height < 220 and \
+         allocation.height != self.old_alloc.height:
+            self.icon_factory.set_size(allocation.height)
+        else:
+            return
+        # Update state to resize the icon.
+        self.update_state(force_update=True)
+        
 
     def on_enter_notify_event(self, widget, event):
         group = self.group_r()

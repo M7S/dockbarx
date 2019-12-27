@@ -735,6 +735,10 @@ class DockBar():
         self.size = size
         for group in self.groups:
             group.button.icon_factory.set_size(size)
+            # The size is manually set from now on. 
+            # Tell the should not be set from allocation anymore.
+            group.button.set_manual_size(True)
+            # Update the button so that it get the new size.
             group.button.update_state(force_update=True)
 
     def set_max_size(self, max_size):
@@ -794,7 +798,7 @@ class DockBar():
         menu.append(about_item)
         about_item.connect("activate", self.on_ppm_about)
         about_item.show()
-        menu.popup(None, None, None, event.button, event.time)
+        menu.popup(None, None, None, None, event.button, event.time)
         self.globals.gtkmenu = menu
 
     def __menu_closed(self, menushell):

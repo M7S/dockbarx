@@ -8,5 +8,6 @@ __all__ = ["dockbar",
            "theme",
            "common",
            "i18n",
+           "log",
            "mediabuttons",
            "zg"]
