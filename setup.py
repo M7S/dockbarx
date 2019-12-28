@@ -23,7 +23,7 @@ from distutils import cmd
 from distutils.command.install_data import install_data as _install_data
 from distutils.command.build import build as _build
 
-import msgfmt
+import polib
 import os
 import sys
 
@@ -54,13 +54,15 @@ class build_trans(cmd.Command):
                             os.makedirs(dest_path)
                         if not os.path.exists(dest):
                             print("Compiling %s for %s" % (src, mo_file))
-                            msgfmt.make(src, dest)
+                            po = polib.pofile(src);
+                            po.save_as_mofile(dest)
                         else:
                             src_mtime = os.stat(src)[8]
                             dest_mtime = os.stat(dest)[8]
                             if src_mtime > dest_mtime:
                                 print("Compiling %s for %s" % (src, mo_file))
-                                msgfmt.make(src, dest)
+                                po = polib.pofile(src);
+                                po.save_as_mofile(dest)
 
 class build(_build):
     sub_commands = _build.sub_commands + [("build_trans", None)]
