@@ -137,9 +137,6 @@ class IconFactory():
         self.icon = None
 
 
-    def reset_icon(self):
-        self.icon = None
-
     def reset_surfaces(self, arg=None):
         self.surfaces = {}
         self.average_color = None
