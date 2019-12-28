@@ -137,6 +137,9 @@ class IconFactory():
         self.icon = None
 
 
+    def reset_icon(self):
+        self.icon = None
+
     def reset_surfaces(self, arg=None):
         self.surfaces = {}
         self.average_color = None
@@ -565,7 +568,7 @@ class IconFactory():
             pixbuf = self.icon_theme.load_icon("application-default-icon",
                                                 size, 0)
         else:
-            pixbuf = GdkPixbuf.Pixbuf(GdkPixbuf.Colorspace.RGB, True, 8, size,size)
+            pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, size, size)
             pixbuf.fill(0x00000000)
         if self.desktop_entry:
             name = self.desktop_entry.getName()

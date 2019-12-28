@@ -473,6 +473,8 @@ class Group(ListOfWindows):
             self.locked_popup.show()
 
     def group_icon_changed(self, class_group):
+        if self.button.icon_factory is None:
+            return
         self.button.icon_factory.reset_icon()
         self.button.icon_factory.reset_surfaces()
         self.button.update_state(force_update=True)

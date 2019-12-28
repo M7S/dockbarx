@@ -748,8 +748,8 @@ class Globals(GObject.GObject):
             self.set_shown_popup(None)
             self.set_locked_popup(None)
 
-            self.gsettings = Gio.Settings("org.dockbarx.dockbarx", "/org/dockbarx/dockbarx/")
-            self.dock_gsettings = Gio.Settings("org.dockbarx.dockx", "/org/dockbarx/dockx/")
+            self.gsettings = Gio.Settings.new_with_path("org.dockbarx.dockbarx", "/org/dockbarx/dockbarx/")
+            self.dock_gsettings = Gio.Settings.new_with_path("org.dockbarx.dockx", "/org/dockbarx/dockx/")
             self.settings = self.__get_settings(self.DEFAULT_SETTINGS)
 
             self.gsettings.connect("changed", self.__on_gsettings_changed)
@@ -930,7 +930,7 @@ class Globals(GObject.GObject):
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
             theme_name = theme_name.replace(sign, "")
         path = "/org/dockbarx/dockbarx/themes/%s/" % theme_name
-        self.theme_gsettings = Gio.Settings("org.dockbarx.dockbarx.theme", path)
+        self.theme_gsettings = Gio.Settings.new_with_path("org.dockbarx.dockbarx.theme", path)
         self.theme_gsettings_sid = self.theme_gsettings.connect("changed", self.__on_theme_gsettings_changed)
 
     def update_colors(self, theme_name, theme_colors={}, theme_alphas={}):
@@ -1013,7 +1013,7 @@ class Globals(GObject.GObject):
         if self.dock_theme_gsettings is not None:
             self.dock_theme_gsettings.disconnect(self.dock_theme_gsettings_sid)
         path = "/org/dockbarx/dockx/themes/%s/" % theme.lower()
-        self.dock_theme_gsettings = Gio.Settings("org.dockbarx.dockx.theme", path)
+        self.dock_theme_gsettings = Gio.Settings.new_with_path("org.dockbarx.dockx.theme", path)
         self.dock_theme_gsettings_sid = self.dock_theme_gsettings.connect("changed", self.__on_dock_theme_gsettings_changed)
         colors = self.dock_theme_gsettings.get_value("colors").unpack()
         self.default_dock_colors = default_colors
