@@ -783,28 +783,12 @@ class DockX(CairoDockX):
         mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
         if self.globals.settings["dock/position"] == "left":
             strut = [x + w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
-            # Make sure that there's no monitor on the left side of this one.
-            if s.get_monitor_at_point(mx - 5, y + h // 2) != self.monitor:
-                set_strut = False
         elif self.globals.settings["dock/position"] == "right":
             strut = [0, sw - x, 0, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0]
-            if s.get_monitor_at_point(mx + mw + 5, y + h // 2) != self.monitor:
-                set_strut = False
         elif self.globals.settings["dock/position"] == "top":
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
-            if s.get_monitor_at_point(x + w // 2, my - 5) != self.monitor:
-                set_strut = False
         else:
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
-            if s.get_monitor_at_point(x + w // 2, my + mh + 5) != self.monitor:
-                set_strut = False
-        if not set_strut:
-            d = display.Display()
-            topw = d.create_resource_object('window',
-                                    self.get_toplevel().get_window().get_xid())
-            topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
-            topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
-            return
         d = display.Display()
         topw = d.create_resource_object('window',
                                 self.get_toplevel().get_window().get_xid())

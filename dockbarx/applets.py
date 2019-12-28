@@ -26,6 +26,7 @@ import weakref
 from gi.repository import GObject
 from dbus.mainloop.glib import DBusGMainLoop
 from .log import logger
+from .common import get_app_homedir
 
 
 
@@ -37,13 +38,14 @@ class DockXApplets():
         self.find_applets()
 
     def find_applets(self):
-        # Reads the themes from /usr/share/dockbarx/themes/dock_themes and
-        # ~/.dockbarx/themes/dock_themes and returns a dict
-        # of the theme file names and paths so that a theme can be loaded
+        # Reads the applets from /usr/share/dockbarx/applets and
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/applets
+        # and returns a dict of the applets file names and paths so that a
+        # applet can be loaded.
         self.applets = {}
         home_folder = os.path.expanduser("~")
-        theme_folder = home_folder + "/.dockbarx/applets"
-        dirs = ["/usr/share/dockbarx/applets", theme_folder]
+        applets_folder = os.path.join(get_app_homedir(), "applets")
+        dirs = ["/usr/share/dockbarx/applets", applets_folder]
         for dir in dirs:
             if not(os.path.exists(dir) and os.path.isdir(dir)):
                 continue

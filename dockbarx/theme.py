@@ -27,6 +27,7 @@ import os
 import array
 from .common import ODict
 from .common import Globals
+from .common import get_app_homedir
 from .log import logger
 from PIL import Image
 
@@ -147,12 +148,13 @@ class Theme(GObject.GObject):
 
     def find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes and
-        # ~/.dockbarx/themes and returns a dict
-        # of the theme names and paths so that a theme can be loaded
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
+        # and returns a dict of the theme names and paths so
+        # that a theme can be loaded.
         themes = {}
         theme_paths = []
         homeFolder = os.path.expanduser("~")
-        theme_folder = homeFolder + "/.dockbarx/themes"
+        theme_folder = os.path.join(get_app_homedir(), "themes")
         dirs = ["/usr/share/dockbarx/themes", theme_folder]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
@@ -172,11 +174,10 @@ class Theme(GObject.GObject):
             md = Gtk.MessageDialog(None,
                 Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                 Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
-                _("No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes"))
+                _("No working themes found in /usr/share/dockbarx/themes or ~/.local/share/dockbarx/themes"))
             md.run()
             md.destroy()
-            raise NoThemesError("No working themes found in " + \
-                        "/usr/share/dockbarx/themes or ~/.dockbarx/themes")
+            raise NoThemesError("No working themes found in /usr/share/dockbarx/themes or ${XDG_DATA_HOME:-$HOME/.local/share}/.dockbarx/themes")
         return themes
 
     def reload(self):
@@ -407,12 +408,12 @@ class PopupStyle(GObject.GObject):
 
     def find_styles(self):
         # Reads the styles from /usr/share/dockbarx/themes/popup_styles and
-        # ~/.dockbarx/themes/popup_styles and returns a dict
-        # of the style file names and paths so that a style can be loaded
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes/popup_styles
+        # and returns a dict of the style file names and paths so that a
+        # style can be loaded
         styles = {}
         style_paths = []
-        homeFolder = os.path.expanduser("~")
-        style_folder = homeFolder + "/.dockbarx/themes/popup_styles"
+        style_folder = os.path.join(get_app_homedir(), "themes", "popup_styles")
         dirs = ["/usr/share/dockbarx/themes/popup_styles", style_folder]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
@@ -523,8 +524,7 @@ class PopupStyle(GObject.GObject):
         # For DockbarX preference. This function makes a dict of the names and
         # file names of the styles for all styles that can be opened correctly.
         styles = {}
-        home_folder = os.path.expanduser("~")
-        style_folder = home_folder + "/.dockbarx/themes/popup_styles"
+        style_folder = os.path.join(get_app_homedir(), "themes", "popup_styles")
         dirs = ["/usr/share/dockbarx/themes/popup_styles", style_folder]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
@@ -615,12 +615,12 @@ class DockTheme(GObject.GObject):
 
     def find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes/dock_themes and
-        # ~/.dockbarx/themes/dock_themes and returns a dict
-        # of the theme file names and paths so that a theme can be loaded
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
+        # and returns a dict of the theme names and paths so
+        # that a theme can be loaded.
         themes = {}
         theme_paths = []
-        homeFolder = os.path.expanduser("~")
-        theme_folder = homeFolder + "/.dockbarx/themes/dock"
+        theme_folder = os.path.join(get_app_homedir(), "themes")
         dirs = ["/usr/share/dockbarx/themes/dock", theme_folder]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
@@ -737,8 +737,7 @@ class DockTheme(GObject.GObject):
         # For DockbarX preference. This function makes a dict of the names and
         # file names of the themes for all themes that can be opened correctly.
         themes = {}
-        home_folder = os.path.expanduser("~")
-        theme_folder = home_folder + "/.dockbarx/themes/dock"
+        theme_folder = os.path.join(get_app_homedir(), "themes", "dock")
         dirs = ["/usr/share/dockbarx/themes/dock", theme_folder]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):

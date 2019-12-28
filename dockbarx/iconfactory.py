@@ -131,6 +131,11 @@ class IconFactory():
 
     def get_icon(self, size):
         return self.__find_icon_pixbuf(size)
+        
+ 
+    def reset_icon(self):
+        self.icon = None
+
 
     def reset_surfaces(self, arg=None):
         self.surfaces = {}
@@ -707,7 +712,7 @@ class IconFactory():
         alpha = self.__get_alpha(opacity)
         # Todo: Add error check for saturation
         sat = float(saturation)
-        if sat < 100:
+        if sat != 100:
             im = self.__surface2pil(surface)
             w, h = im.size
             pixels = im.load()

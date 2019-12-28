@@ -30,6 +30,7 @@ from gi.repository import Gtk
 import weakref
 import locale
 from .log import logger
+import sys
 import struct
 
 
@@ -72,6 +73,33 @@ def check_program(name):
     for dir in os.environ['PATH'].split(':'):
         prog = os.path.join(dir, name)
         if os.path.exists(prog): return prog
+        
+
+def get_app_homedir():
+    homedir = os.environ['HOME']
+    default = os.path.join(homedir, '.local', 'share')
+    appdir = os.path.join(
+	os.getenv('XDG_DATA_HOME', default),
+	'dockbarx'
+    )
+    """
+    Migration Path
+    From "$HOME/.dockbarx" to "${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx"
+    """
+    old_appdir = os.path.join(homedir, '.dockbarx')
+    if os.path.exists(old_appdir) and os.path.isdir(old_appdir):
+	try:
+	    os.rename(old_appdir, appdir)
+	except OSError:
+	    sys.stderr.write(
+		"Could not move dir '%s' to '%s'. Move the contents of '%s' to '%s' manually and then remove the first location.\n"
+		% (old_appdir, appdir, old_appdir, appdir)
+	    )
+    """
+    End Migration Path
+    """
+    return appdir
+
 
 class Connector():
     """A class to simplify disconnecting of signals"""

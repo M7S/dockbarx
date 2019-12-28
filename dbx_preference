@@ -1440,12 +1440,12 @@ class PrefDialog():
 
     def __find_themes(self):
         # Reads the themes from /usr/share/dockbarx/themes and
-        # ~/.dockbarx/themes and returns a dict of the theme names
-        # and paths so that a theme can be loaded.
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
+        # and returns a dict of the theme names and paths so
+        # that a theme can be loaded.
         themes = {}
         theme_paths = []
-        homeFolder = os.path.expanduser("~")
-        theme_folder = homeFolder + "/.dockbarx/themes"
+        theme_folder = os.path.join(get_app_homedir(), "themes")
         dirs = ["/usr/share/dockbarx/themes", theme_folder]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
@@ -1463,7 +1463,7 @@ class PrefDialog():
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            message = _("No working themes found in /usr/share/dockbarx/themes or ~/.dockbarx/themes")
+            message = _("No working themes found in /usr/share/dockbarx/themes or ~/.local/share/dockbarx/themes")
             flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
             md = Gtk.MessageDialog(self.dialog,
                                    flags,

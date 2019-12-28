@@ -25,6 +25,7 @@ from gi.repository import Wnck
 from gi.repository import GConf
 from tarfile import open as taropen
 from dockbarx.applets import DockXApplet, DockXAppletDialog
+from .namebar import get_namebar_homedir
 
 VERSION = '0.1'
 
@@ -91,7 +92,7 @@ class PrefDialog():
         self.dialog = Gtk.Dialog("WindowButtonApplet preferences")
         self.dialog.connect("response",self.dialog_close)
 
-        self.namebar= namebar
+        self.namebar = namebar
 
         try:
             ca = self.dialog.get_content_area()
@@ -204,12 +205,13 @@ class PrefDialog():
             GCONF_CLIENT.set_string("%s/custom_layout" % GCONF_DIR, text)
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
+        # Reads the themes from /usr/share/namebar/themes and
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/namebar/themes
         # and returns a dict of the theme names and paths so that
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/namebar/themes", "%s/.namebar/themes" % os.path.expanduser("~")]
+        dirs = ["/usr/share/namebar/themes", os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):
@@ -223,10 +225,10 @@ class PrefDialog():
             md = Gtk.MessageDialog(None,
                 Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                 Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
-                'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
+                'No working themes found in "/usr/share/namebar/themes" or "~/.local/share/namebar/themes"')
             md.run()
             md.destroy()
-            print('Preference dialog error: No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
+            print('Preference dialog error: No working themes found in "/usr/share/namebar/themes" or "~/.local/share/namebar/themes"')
         return themes
 
     def change_theme(self, button=None):
@@ -461,12 +463,13 @@ class WindowButtonApplet(DockXApplet):
                     self.container.pack_end(pack_dict[item], False)
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and ~/.dockbarx/themes
+        # Reads the themes from /usr/share/namebar/themes and
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/namebar/themes
         # and returns a dict of the theme names and paths so that
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/namebar/themes", "%s/.namebar/themes"%os.path.expanduser("~")]
+        dirs = ["/usr/share/namebar/themes", os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):
@@ -480,10 +483,10 @@ class WindowButtonApplet(DockXApplet):
             md = Gtk.MessageDialog(None,
                 Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                 Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
-                'No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
+                'No working themes found in "/usr/share/namebar/themes" or "~/.local/share/namebar/themes"')
             md.run()
             md.destroy()
-            print('No working themes found in "/usr/share/namebar/themes" or "~/.namebar/themes"')
+            print('No working themes found in "/usr/share/namebar/themes" or "~/.local/share/namebar/themes"')
             sys.exit(1)
         return themes
 
