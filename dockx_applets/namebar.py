@@ -56,11 +56,14 @@ except:
     action_unminimize = 1 << 13
     action_maximize = 1 << 14
 
-
+namebar_appdir = None
 def get_namebar_homedir():
+    global namebar_appdir
+    if namebar_appdir is not None:
+        return namebar_appdir
     homedir = os.environ['HOME']
     default = os.path.join(homedir, '.local', 'share')
-    appdir = os.path.join(
+    namebar_appdir = os.path.join(
     os.getenv('XDG_DATA_HOME', default),
     'namebar'
     )
@@ -71,16 +74,16 @@ def get_namebar_homedir():
     old_appdir = os.path.join(homedir, '.namebar')
     if os.path.exists(old_appdir) and os.path.isdir(old_appdir):
         try:
-            os.rename(old_appdir, appdir)
+            os.rename(old_appdir, namebar_appdir)
         except OSError:
             sys.stderr.write('Could not move dir "%s" to "%s". \
                      Move the contents of "%s" to "%s" manually \
                      and then remove the first location.'
-                     % (old_appdir, appdir, old_appdir, appdir))
+                     % (old_appdir, namebar_appdir, old_appdir, namebar_appdir))
     """
     End Migration Path
     """
-    return appdir
+    return namebar_appdir
 
 
 class AboutDialog():

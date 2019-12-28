@@ -26,7 +26,11 @@ import sys
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 logger = logging.getLogger("DockbarX")
 
+appdir = None
 def get_app_homedir():
+    global appdir
+    if appdir is not None:
+        return appdir
     homedir = os.environ['HOME']
     default = os.path.join(homedir, '.local', 'share')
     appdir = os.path.join(

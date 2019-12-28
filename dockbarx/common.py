@@ -74,8 +74,11 @@ def check_program(name):
         prog = os.path.join(dir, name)
         if os.path.exists(prog): return prog
         
-
+appdir = None
 def get_app_homedir():
+    global appdir
+    if appdir is not None:
+        return appdir
     homedir = os.environ['HOME']
     default = os.path.join(homedir, '.local', 'share')
     appdir = os.path.join(
