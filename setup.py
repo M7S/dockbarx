@@ -26,6 +26,7 @@ from distutils.command.build import build as _build
 import msgfmt
 import os
 import sys
+import subprocess
 
 VERSION = "1.0-beta"
 
@@ -54,13 +55,13 @@ class build_trans(cmd.Command):
                             os.makedirs(dest_path)
                         if not os.path.exists(dest):
                             print("Compiling %s for %s" % (src, mo_file))
-                            msgfmt.make(src, dest)
+                            subprocess.run(['msgfmt', '-o', dest, src])
                         else:
                             src_mtime = os.stat(src)[8]
                             dest_mtime = os.stat(dest)[8]
                             if src_mtime > dest_mtime:
                                 print("Compiling %s for %s" % (src, mo_file))
-                                msgfmt.make(src, dest)
+                                subprocess.run(['msgfmt', '-o', dest, src])
 
 class build(_build):
     sub_commands = _build.sub_commands + [("build_trans", None)]
