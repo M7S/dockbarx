@@ -33,6 +33,7 @@ import dockbarx.dockbar
 gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GObject
+from gi.repository import GLib
 from dockbarx.common import Globals
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
@@ -75,7 +76,7 @@ class CairoDockX(Gtk.Window):
         # Save the ctx since the rotation will be turned around and we want it back.
         ctx.save()
         w,h = self.get_size()
-        if self.is_composited():
+        if self.get_screen().is_composited():
             ctx.set_source_rgba(1, 1, 1, 0)
         else:
             ctx.set_source_rgb(0.8, 0.8, 0.8)
@@ -98,7 +99,7 @@ class CairoDockX(Gtk.Window):
         ctx.set_source_rgba(0, 0, 0, 0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
         ctx.paint()
-        if self.is_composited():
+        if self.get_screen().is_composited():
             if self.dockbar is not None:
                 ctx.set_source_rgba(1, 1, 1, 1)
                 a = self.dockbar.get_container().get_allocation()
@@ -124,7 +125,7 @@ class CairoDockX(Gtk.Window):
             ctx.append_path(stroke_path)
             ctx.set_line_width(0.8)
             ctx.stroke()
-        if self.is_composited():
+        if self.get_screen().is_composited():
             self.get_window().shape_combine_mask(None, 0, 0)
             self.get_window().input_shape_combine_mask(pixmap, 0, 0)
         else:
@@ -139,7 +140,7 @@ class CairoDockX(Gtk.Window):
         alpha = self.globals.dock_colors["bg_alpha"] / 255.0
         #~ ctx.new_path()
         #~ ctx.append_path(fill_path)
-        if self.is_composited():
+        if self.get_screen().is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:
             ctx.set_source_rgb(red, green, blue)
@@ -200,7 +201,7 @@ class CairoDockX(Gtk.Window):
         alpha= self.globals.dock_colors["bar2_bg_alpha"] / 255.0
         #~ ctx.new_path()
         #~ ctx.append_path(fill_path)
-        if self.is_composited():
+        if self.get_screen().is_composited():
             ctx.set_source_rgba(red, green, blue, alpha)
         else:
             ctx.set_source_rgb(red, green, blue)
@@ -288,7 +289,7 @@ class CairoDockX(Gtk.Window):
             rel_size2 = float(self.theme.get("rel_size", 100.0))
             slope2 = -(float(self.theme.get("slope", 90)) - 90) / 180.0 * pi
             sp2 = int(self.theme.get("side_padding", 6))
-            if not self.is_composited() and rel_size2 < 100:
+            if not self.get_screen().is_composited() and rel_size2 < 100:
                 rel_size2 = 100.0
         else:
             slope = -(float(self.theme.get("slope", 90)) - 90) / 180.0 * pi
@@ -305,7 +306,7 @@ class CairoDockX(Gtk.Window):
                 rel_size2 = 0
                 slope2 = 0
                 sp2 = 0
-            if not self.is_composited() and rel_size < 100:
+            if not self.get_screen().is_composited() and rel_size < 100:
                 rel_size = 100.0
         size = int(self.globals.settings["dock/size"] * rel_size / 100)
         size2 = int(self.globals.settings["dock/size"] * rel_size2 / 100)
@@ -491,7 +492,10 @@ class DockX(CairoDockX):
         else:
             self.autohide = True
         self.screen = Wnck.Screen.get_default()
-        self.monitor = monitor
+        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+            self.monitor = Gdk.Display.get_default().get_monitor(monitor)
+        else:
+            self.monitor = monitor
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
         self.db_loaded = False
@@ -562,8 +566,9 @@ class DockX(CairoDockX):
         mr = self.get_monitor_geometry()
         mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
         l, r, t, b = self.__get_monitor_and_strut_borders()
-        sw = self.get_screen().get_width()
-        sh = self.get_screen().get_height()
+        sr = self.get_screen_geometry()
+        sw = sr.width
+        sh = sr.height
         rel_size = float(self.theme.get("rel_size", 100))
         db_size = self.globals.settings["dock/size"]
         size = max(db_size, int(db_size * rel_size / 100))
@@ -635,7 +640,7 @@ class DockX(CairoDockX):
         self.show_all()
         self.connect_applet_signals()
         # Do a first calculation of dockbarx max size after everything has been realised.
-        GObject.idle_add(self.__calulate_db_max_size_on_realized)
+        GLib.idle_add(self.__calulate_db_max_size_on_realized)
 
     def __destroy_old(self):
         self.disconnect_applet_signals()
@@ -764,6 +769,11 @@ class DockX(CairoDockX):
             applets.extend(self.box)
         return applets
 
+    def __get_monitor_at_point(self, screen, x, y):
+        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+            return screen.get_display().get_monitor_at_point(x, y)
+        else:
+            return screen.get_monitor_at_point(x, y)
 
     def __set_dock_strut(self, x, y, w, h):
         if not self.get_window():
@@ -776,10 +786,11 @@ class DockX(CairoDockX):
             topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
             topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
             return
+        mr = self.get_monitor_geometry()
         s = self.get_screen()
-        sw = s.get_width()
-        sh = s.get_height()
-        mr = s.get_monitor_geometry(self.monitor)
+        sr = self.get_screen_geometry()
+        sw = sr.width
+        sh = sr.height
         mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
         if self.globals.settings["dock/position"] == "left":
             strut = [x + w, 0, 0, 0, y, y + h - 1, 0, 0, 0, 0, 0, 0]
@@ -808,8 +819,9 @@ class DockX(CairoDockX):
         size = self.globals.settings["dock/size"]
         mr = self.get_monitor_geometry()
         mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
-        sw = self.get_screen().get_width()
-        sh = self.get_screen().get_height()
+        sr = self.get_screen_geometry()
+        sw = sr.width
+        sh = sr.height
         strut = [mx, sw - (mx + mw), my,  sh - (my + mh)]
         d = display.Display()
         strut_atom = d.get_atom('_NET_WM_STRUT')
@@ -1021,7 +1033,7 @@ class DockX(CairoDockX):
         bd = {"left": 1000, "right": 1000, "top": 1000, "bottom": 1000}
         x, y, w, h = window.get_geometry()
         gdk_screen = Gdk.Screen.get_default()
-        monitor = gdk_screen.get_monitor_at_point(x + (w // 2), y  + (h // 2))
+        monitor = self.__get_monitor_at_point(gdk_screen, x + (w // 2), y  + (h // 2))
         if monitor != self.monitor:
             return
         mr = self.get_monitor_geometry()
@@ -1203,6 +1215,31 @@ class DockX(CairoDockX):
                     Gtk.main_iteration()
         self.calculate_dockbar_max_size()
 
+    def get_screen_geometry(self):
+        try:
+            screen = self.get_screen()
+        except RuntimeError:
+            # If dockx (CairoDockX) isn't initiated yet it will throw RuntimeError.
+            screen = None
+        if screen is None:
+            screen = Gdk.Screen.get_default()
+        geo = Gdk.Rectangle()
+        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+            display = screen.get_display();
+            for i in range(0, display.get_n_monitors()):
+                monitor = display.get_monitor(i)
+                monitor_geo = monitor.get_geometry()
+                w = monitor_geo.x + monitor_geo.width
+                if w > geo.width:
+                    geo.width = w
+                h = monitor_geo.y + monitor_geo.height
+                if h > geo.height:
+                    geo.height = h
+        else:
+            geo.width = screen.get_width();
+            geo.height = screen.get_height();
+        return geo
+
     def get_monitor_geometry(self):
         try:
             screen = self.get_screen()
@@ -1211,7 +1248,10 @@ class DockX(CairoDockX):
             screen = None
         if screen is None:
             screen = Gdk.Screen.get_default()
-        return screen.get_monitor_geometry(self.monitor)
+        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+            return screen.get_display().get_primary_monitor().get_geometry();
+        else:
+            return screen.get_monitor_geometry(self.monitor)
 
     def reload(self, *args):
         self.db_loaded = False
@@ -1231,21 +1271,21 @@ class DockX(CairoDockX):
         #Create popup menu
         menu = Gtk.Menu()
         menu.connect("selection-done", self.__menu_closed)
-        preference_item = Gtk.MenuItem(_("Preferences"))
+        preference_item = Gtk.MenuItem.new_with_label(_("Preferences"))
         menu.append(preference_item)
         preference_item.connect("activate",
                                 self.__menu_preferences_selected)
         preference_item.show()
-        reload_item = Gtk.MenuItem(_("Reload"))
+        reload_item = Gtk.MenuItem.new_with_label(_("Reload"))
         menu.append(reload_item)
         reload_item.connect("activate", self.__menu_reload_selected)
         reload_item.show()
-        about_item = Gtk.MenuItem(_("About"))
+        about_item = Gtk.MenuItem.new_with_label(_("About"))
         menu.append(about_item)
         about_item.connect("activate",
                            lambda e: dockbarx.dockbar.AboutDialog())
         about_item.show()
-        close_item = Gtk.MenuItem(_("Close"))
+        close_item = Gtk.MenuItem.new_with_label(_("Close"))
         menu.append(close_item)
         close_item.connect("activate", self.__menu_close_selected)
         close_item.show()
