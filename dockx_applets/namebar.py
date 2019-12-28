@@ -61,8 +61,8 @@ def get_namebar_homedir():
     homedir = os.environ['HOME']
     default = os.path.join(homedir, '.local', 'share')
     appdir = os.path.join(
-	os.getenv('XDG_DATA_HOME', default),
-	'namebar'
+    os.getenv('XDG_DATA_HOME', default),
+    'namebar'
     )
     """
     Migration Path
@@ -70,13 +70,13 @@ def get_namebar_homedir():
     """
     old_appdir = os.path.join(homedir, '.namebar')
     if os.path.exists(old_appdir) and os.path.isdir(old_appdir):
-	try:
-	    os.rename(old_appdir, appdir)
-	except OSError:
-	    sys.stderr.write('Could not move dir "%s" to "%s". \
-			     Move the contents of "%s" to "%s" manually \
-			     and then remove the first location.'
-			     % (old_appdir, appdir, old_appdir, appdir))
+        try:
+            os.rename(old_appdir, appdir)
+        except OSError:
+            sys.stderr.write('Could not move dir "%s" to "%s". \
+                     Move the contents of "%s" to "%s" manually \
+                     and then remove the first location.'
+                     % (old_appdir, appdir, old_appdir, appdir))
     """
     End Migration Path
     """

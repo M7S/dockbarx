@@ -30,8 +30,8 @@ def get_app_homedir():
     homedir = os.environ['HOME']
     default = os.path.join(homedir, '.local', 'share')
     appdir = os.path.join(
-	os.getenv('XDG_DATA_HOME', default),
-	'dockbarx'
+    os.getenv('XDG_DATA_HOME', default),
+    'dockbarx'
     )
     """
     Migration Path
@@ -39,13 +39,13 @@ def get_app_homedir():
     """
     old_appdir = os.path.join(homedir, '.dockbarx')
     if os.path.exists(old_appdir) and os.path.isdir(old_appdir):
-	try:
-	    os.rename(old_appdir, appdir)
-	except OSError:
-	    sys.stderr.write(
-		"Could not move dir '%s' to '%s'. Move the contents of '%s' to '%s' manually and then remove the first location.\n"
-		% (old_appdir, appdir, old_appdir, appdir)
-	    )
+        try:
+            os.rename(old_appdir, appdir)
+        except OSError:
+            sys.stderr.write(
+            "Could not move dir '%s' to '%s'. Move the contents of '%s' to '%s' manually and then remove the first location.\n"
+            % (old_appdir, appdir, old_appdir, appdir)
+            )
     """
     End Migration Path
     """
