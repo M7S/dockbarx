@@ -146,7 +146,6 @@ class DockManager(dbus.service.Object):
 
     def remove(self):
         self.remove_from_connection()
-        self.globals.disconnect(self.badge_sid)
 
 class DockManagerItem(dbus.service.Object):
     counter = 0

@@ -685,6 +685,10 @@ class PrefDialog():
               _("Use gtk menu (old style) instead of DockbarX style menu."))
         self.old_menu_cb.connect("toggled",
                                  self.__checkbutton_toggled, "old_menu")
+        self.old_menu_cb.set_margin_top(5)
+        self.old_menu_cb.set_margin_bottom(5)
+        self.old_menu_cb.set_margin_start(10)
+        self.old_menu_cb.set_margin_end(10)
         appearance_box.pack_start(self.old_menu_cb, False, True, 0)
 
         bpbox = Gtk.HBox()
@@ -1410,7 +1414,7 @@ class PrefDialog():
         notebook.append_page(advanced_box, Gtk.Label(label=_("Advanced")))
         ca.pack_start(notebook, True, True, 0)
         self.__update()
-        self.dialog.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
+        self.dialog.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
         self.dialog.show_all()
         awn = False
         dock = False
@@ -1656,7 +1660,11 @@ class PrefDialog():
             if a in self.globals.colors \
             and not (c in self.theme_alphas \
                      and "no" in self.theme_alphas[c]):
-                alpha = int(self.globals.colors[a]) # Todo: Alpha should always be a number. Find out why it sometimes is a string instead of simply converting it here.
+                try:
+                    alpha = int(self.globals.colors[a]) # Todo: Alpha should always be a number. Find out why it sometimes is a string instead of simply converting it here.
+                except ValueError:
+                    # in some themes, <colorX name="Not used" default="#000000" opacity="no" />
+                    alpha = 255
                 if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
                     Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], True)
                     color = Gtk.ColorChooser.get_rgba(self.color_buttons[c])
@@ -2222,8 +2230,8 @@ class PrefDialog():
                 break
         if info is None:
             return
-        dialog = Gtk.Dialog(_("Theme Info"),
-                            buttons=(Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        dialog = Gtk.Dialog(_("Theme Info"))
+        dialog.add_buttons(_("_OK"), Gtk.ResponseType.OK)
         dialog.set_default_size(600, 400)
         sw = Gtk.ScrolledWindow()
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -2235,6 +2243,8 @@ class PrefDialog():
         textview.show()
         dialog.vbox.pack_start(sw, True, True, 0)
 
+        if isinstance(info, bytes):
+            info = info.decode()
         textbuffer.set_text(info)
 
         dialog.run()

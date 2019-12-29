@@ -23,6 +23,8 @@ sys.path.insert(0, "/usr/lib/cardapio")
 from misc import *
 from CardapioAppletInterface import *
 from Cardapio import Cardapio
+import dockbarx.i18n
+_ = dockbarx.i18n.language.gettext
 
 class CardapioDockXApplet(CardapioAppletInterface):
 
@@ -49,9 +51,14 @@ class CardapioDockXApplet(CardapioAppletInterface):
 
         self.cardapio = cardapio
 
-        self.preferences = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
-        self.edit = Gtk.ImageMenuItem(Gtk.STOCK_EDIT)
-        self.about = Gtk.ImageMenuItem(Gtk.STOCK_ABOUT)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 10:
+            self.preferences = Gtk.MenuItem.new_with_mnemonic(_("_Preferences"))
+            self.edit = Gtk.MenuItem.new_with_mnemonic(_("_Edit"))
+            self.about = Gtk.MenuItem.new_with_mnemonic(_("_About"))
+        else:
+            self.preferences = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
+            self.edit = Gtk.ImageMenuItem(Gtk.STOCK_EDIT)
+            self.about = Gtk.ImageMenuItem(Gtk.STOCK_ABOUT)
 
         self.preferences.connect('activate', self._open_options_dialog)
         self.edit.connect('activate', self._launch_edit_app)

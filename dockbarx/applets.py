@@ -27,7 +27,8 @@ from gi.repository import GObject
 from dbus.mainloop.glib import DBusGMainLoop
 from .log import logger
 from .common import get_app_homedir
-
+from . import i18n
+_ = i18n.language.gettext
 
 
 DBusGMainLoop(set_as_default=True) # for async calls
@@ -339,7 +340,7 @@ class DockXApplet(Gtk.EventBox):
 class DockXAppletDialog(Gtk.Dialog):
     Title = "Applet Preferences"
     def __init__(self, name, t=None, flags=0,
-                 buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)):
+                 buttons=(_("_Close"), Gtk.ResponseType.CLOSE)):
         if not name:
             logger.error("Error: DockXAppletDialog can't be initialized" \
                          "without a name as it's first argument")

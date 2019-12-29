@@ -922,19 +922,19 @@ class DockX(CairoDockX):
         if self.globals.settings["dock/mode"] != "centered":
             self.move(self.old_x, self.old_y)
         if self.autohide_sid is not None:
-            GObject.source_remove(self.autohide_sid)
+            GLib.source_remove(self.autohide_sid)
         if self.autounhide_sid is not None:
-            GObject.source_remove(self.autounhide_sid)
+            GLib.source_remove(self.autounhide_sid)
             self.autounhide_sid = None
-        self.autohide_sid = GObject.timeout_add(200, self.__hide_check)
+        self.autohide_sid = GLib.timeout_add(200, self.__hide_check)
 
     def hide_dock(self):
         self.hide()
         if self.autohide_sid is not None:
-            GObject.source_remove(self.autohide_sid)
+            GLib.source_remove(self.autohide_sid)
             self.autohide_sid = None
         if self.autounhide_sid is not None:
-            GObject.source_remove(self.autounhide_sid)
+            GLib.source_remove(self.autounhide_sid)
         display = Gdk.Display.get_default()
         mr = self.get_monitor_geometry()
         mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
@@ -954,14 +954,17 @@ class DockX(CairoDockX):
             x1 = mx
             x2 = mx + mw - 1
             y1 = y2 = my + mh - 1
-        self.autounhide_sid = GObject.timeout_add(200, self.__unhide_check,
+        self.autounhide_sid = GLib.timeout_add(200, self.__unhide_check,
                                                   display, x1, x2, y1, y2)
 
     def __unhide_check(self, display, x1, x2, y1, y2):
         if not self.should_autohide:
             self.show_dock()
             return False
-        s, x, y, mod = display.get_pointer()
+        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 20:
+            s, x, y = display.get_default_seat().get_pointer().get_position()
+        else:
+            s, x, y, mod = display.get_pointer()
         if y >= y1 and y <= y2 and x >= x1 and x <= x2:
             self.show_dock()
             return False
@@ -971,7 +974,12 @@ class DockX(CairoDockX):
         if self.globals.shown_popup() is not None or not self.should_autohide:
             return True
         pos = self.globals.settings["dock/position"]
-        x, y = self.get_pointer()
+        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 20:
+            device = self.get_display().get_default_seat().get_pointer()
+            n, x, y, m = self.get_window().get_device_position(device)
+        else:
+            x, y = self.get_pointer()
+
         a = self.get_allocation()
         if x >= 0 and x < a.width and y >= 0 and y < a.height:
             return True
@@ -1022,7 +1030,7 @@ class DockX(CairoDockX):
                return
         self.last_geometry_window = weakref.ref(window)
         self.geometry_time = time.time()
-        GObject.timeout_add(120, self.__calc_border_distance, window, True)
+        GLib.timeout_add(120, self.__calc_border_distance, window, True)
 
     def __on_active_window_changed(self, screen, previous_active_window):
         if self.globals.settings["dock/behavior"] == "dodge active window":
@@ -1109,10 +1117,10 @@ class DockX(CairoDockX):
             if self.autohide:
                 self.autohide = False
                 if self.autohide_sid is not None:
-                    GObject.source_remove(self.autohide_sid)
+                    GLib.source_remove(self.autohide_sid)
                     self.autohide_sid = None
                 if self.autounhide_sid is not None:
-                    GObject.source_remove(self.autounhide_sid)
+                    GLib.source_remove(self.autounhide_sid)
                     self.autounhide_sid = None
                 self.show()
                 for window in self.dockbar.get_windows():

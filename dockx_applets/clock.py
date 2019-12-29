@@ -22,6 +22,8 @@ from gi.repository import GObject
 import time
 import os
 from dockbarx.applets import DockXApplet, DockXAppletDialog
+import dockbarx.i18n
+_ = dockbarx.i18n.language.gettext
 
 
 DEFAULT_CUSTOM_FORMAT = \
@@ -56,7 +58,10 @@ class ClockApplet(DockXApplet):
         self.connect("clicked", self.on_clicked)
 
         self.menu = Gtk.Menu()
-        preferences_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 10:
+            preferences_item = Gtk.MenuItem.new_with_mnemonic(_("_Preferences"))
+        else:
+            preferences_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
         preferences_item.connect('activate', self.open_preferences)
         self.menu.insert(preferences_item, 0)
         self.menu.show_all()
@@ -160,7 +165,7 @@ class ClockAppletPreferences(DockXAppletDialog):
         self.cf_entry.set_tooltip_text("The format is identical to gnome-panel clock's custom format. Google 'gnome-panel custom clock' for exampels.")
         hbox.pack_start(self.cf_entry, True, True, 0)
         self.cf_button = Gtk.Button()
-        image = Gtk.Image.new_from_stock(Gtk.STOCK_APPLY,
+        image = Gtk.Image.new_from_icon_name("gtk-apply",
                                          Gtk.IconSize.SMALL_TOOLBAR)
         self.cf_button.add(image)
         self.cf_button.connect("clicked", self.__set_custom_format)
