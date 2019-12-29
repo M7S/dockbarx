@@ -25,6 +25,8 @@ from gi.repository import Wnck
 from gi.repository import GConf
 from tarfile import open as taropen
 from dockbarx.applets import DockXApplet, DockXAppletDialog
+import dockbarx.i18n
+_ = dockbarx.i18n.language.gettext
 
 
 VERSION = '0.1'
@@ -145,7 +147,7 @@ class PrefDialog():
             self.color_buttons[text].set_title(text)
             self.color_buttons[text].connect("color-set",  self.color_set, text)
             self.clear_buttons[text] = Gtk.Button()
-            image = Gtk.Image.new_from_stock(Gtk.STOCK_CLEAR,Gtk.IconSize.SMALL_TOOLBAR)
+            image = Gtk.Image.new_from_icon_name("gtk-clear", Gtk.IconSize.SMALL_TOOLBAR)
             self.clear_buttons[text].add(image)
             self.clear_buttons[text].connect("clicked", self.color_reset, text)
 
@@ -179,7 +181,7 @@ class PrefDialog():
 
         self.update()
 
-        self.dialog.add_button(Gtk.STOCK_CLOSE,Gtk.ResponseType.CLOSE)
+        self.dialog.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
         self.dialog.show_all()
 
     def update(self):
@@ -285,7 +287,10 @@ class WindowTitleApplet(DockXApplet):
         DockXApplet.__init__(self, dbx_dict)
 
         self.menu = Gtk.Menu()
-        preferences_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 10:
+            preferences_item = Gtk.MenuItem.new_with_mnemonic(_("_Preferences"))
+        else:
+            preferences_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
         preferences_item.connect('activate', self.open_preferences)
         self.menu.insert(preferences_item, 0)
         self.menu.show_all()

@@ -715,7 +715,10 @@ class DockBar():
 
     def get_container(self):
         """Returns the HBox/VBox that contains all group buttons"""
-        return self.groups.box
+        if self.groups:
+            return self.groups.box
+        else:
+            return None
 
     def get_windows(self):
         """Returns the dict of wnck windows and identifiers"""

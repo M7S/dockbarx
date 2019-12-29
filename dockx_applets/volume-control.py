@@ -35,6 +35,9 @@ import pygst
 pyGst.require("0.10")
 from gi.repository import Gst
 
+import dockbarx.i18n
+_ = dockbarx.i18n.language.gettext
+
 gst_message_types = (Gst.interfaces.MIXER_MESSAGE_MUTE_TOGGLED.value_nick,
                      Gst.interfaces.MIXER_MESSAGE_VOLUME_CHANGED.value_nick)
 
@@ -344,9 +347,8 @@ class VolumeControlApplet:
         preference_item.show_all()
         menu.append(preference_item)
         # Set up preferences
-        self.dialog = Gtk.Dialog(title=_("volume control"),
-                            flags=0,
-                            buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE))
+        self.dialog = Gtk.Dialog(title=_("volume control"));
+        self.dialog.add_buttons(_("_Close"), Gtk.ResponseType.CLOSE)
         self.dialog.connect("delete-event", lambda w, e: w.hide() or True)
         self.dialog.connect("response", lambda w, e: w.hide() or True)
         prefs.get_object("dialog-vbox").reparent(self.dialog.vbox)

@@ -623,10 +623,10 @@ class WindowItem(CairoButton):
         minimize_item = None
         if window.wnck.get_actions() & WNCK_WINDOW_ACTION_MINIMIZE \
         and not window.wnck.is_minimized():
-            minimize_item = Gtk.MenuItem(_("_Minimize"))
+            minimize_item = Gtk.MenuItem.new_with_mnemonic(_("_Minimize"))
         elif window.wnck.get_actions() & WNCK_WINDOW_ACTION_UNMINIMIZE \
         and window.wnck.is_minimized():
-            minimize_item = Gtk.MenuItem(_("Un_minimize"))
+            minimize_item = Gtk.MenuItem.new_with_mnemonic(_("Un_minimize"))
         if minimize_item:
             menu.append(minimize_item)
             minimize_item.connect("activate", window.action_minimize_window)
@@ -635,16 +635,16 @@ class WindowItem(CairoButton):
         maximize_item = None
         if not window.wnck.is_maximized() \
         and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
-            maximize_item = Gtk.MenuItem(_("Ma_ximize"))
+            maximize_item = Gtk.MenuItem.new_with_mnemonic(_("Ma_ximize"))
         elif window.wnck.is_maximized() \
         and window.wnck.get_actions() & WNCK_WINDOW_ACTION_UNMINIMIZE:
-            maximize_item = Gtk.MenuItem(_("Unma_ximize"))
+            maximize_item = Gtk.MenuItem.new_with_mnemonic(_("Unma_ximize"))
         if maximize_item:
             menu.append(maximize_item)
             maximize_item.connect("activate", window.action_maximize_window)
             maximize_item.show()
         # Close
-        close_item = Gtk.MenuItem(_("_Close"))
+        close_item = Gtk.MenuItem.new_with_mnemonic(_("_Close"))
         menu.append(close_item)
         close_item.connect("activate", window.action_close_window)
         close_item.show()
