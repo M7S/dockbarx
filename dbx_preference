@@ -1581,7 +1581,7 @@ class PrefDialog():
             value = self.gb_actions[self.globals.settings[setting_name]]
             combobox = self.gb_combos[cb_name]
             model = combobox.get_model()
-            for i in range(len(combobox.get_model())):
+            for i in range(len(model)):
                 if model[i][0] == value:
                     combobox.set_active(i)
                     break

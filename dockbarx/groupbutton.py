@@ -1427,7 +1427,7 @@ class GroupButton(CairoAppButton):
         self.old_alloc = self.get_allocation()
         
         # The icon size is decided from allocation or manually.
-        self.manual_size = False
+        self.manual_size = size is not None
 
         self.opacify_sid = None
         self.deopacify_sid = None
