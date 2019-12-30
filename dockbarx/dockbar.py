@@ -1198,7 +1198,7 @@ class DockBar():
     def minimize_other_groups(self, group):
         for g in self.groups:
             if group != g:
-                for window in g.get_list():
+                for window in g:
                     window.wnck.minimize()
 
 

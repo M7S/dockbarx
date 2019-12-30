@@ -22,6 +22,7 @@ import sys
 log_to_file()
 sys.stderr = StdErrWrapper()
 sys.stdout = StdOutWrapper()
+import signal
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -1267,7 +1268,7 @@ class DockX(CairoDockX):
         self.db_loaded = True
         self.applets.find_applets()
         self.theme.reload()
-        self.position_dock(rebuild=True)
+        # self.position_dock(rebuild=True)  # already in __on_dock_theme_reloaded
         if self.autohide:
             self.__compute_should_autohide()
 
@@ -1496,6 +1497,7 @@ if "--monitor" in sys.argv:
         raise
 dockx = DockX(monitor)
 del monitor
+signal.signal(signal.SIGINT, dockx.on_destroy)
 Gtk.main()
 
 

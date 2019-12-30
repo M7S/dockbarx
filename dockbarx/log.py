@@ -25,6 +25,7 @@ import sys
 
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 logger = logging.getLogger("DockbarX")
+file_handler = None
 
 appdir = None
 def get_app_homedir():
@@ -93,6 +94,11 @@ class StdOutWrapper():
             self.message_text = ""
         else:
             self.message_text +=  s
+
+    def flush(self):
+        if file_handler:
+            file_handler.flush();
+        return
 
 class StdErrWrapper(StdOutWrapper):
     """

@@ -120,7 +120,7 @@ class IconFactory():
 
     def set_size(self, size):
         if size <= 0:
-            # To avoid chrashes.
+            # To avoid crashes.
             size = 15
         self.size = size
         self.surfaces = {}
@@ -472,7 +472,7 @@ class IconFactory():
     def __command_get_icon(self,surface=None, size="0"):
         size = int(self.__get_use_size() + self.__process_size(size))
         if size <= 0:
-            # To avoid chrashes.
+            # To avoid crashes.
             size = 15
         if self.icon and\
            self.icon.get_width() == size and \
