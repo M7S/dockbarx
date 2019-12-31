@@ -29,7 +29,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 import gnomeapplet
 import dockbarx.dockbar
-from gi.repository import GObject
+from gi.repository import GLib
 
 class DockBarWindow():
     """DockBarWindow sets up the window if run-in-window is used."""
@@ -92,7 +92,7 @@ class DockbarGnomeapplet():
         # Most of initializion must happen after dockbarx is
         # realized since python gnomeapplets crash if it
         # takes too long to realize.
-        GObject.idle_add(self.__load_on_realized)
+        GLib.idle_add(self.__load_on_realized)
 
     def __load_on_realized(self):
         # Wait while gtk events are pending.

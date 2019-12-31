@@ -387,7 +387,7 @@ class Opacify():
                 return
         # If last fade in/out isn't completed abort the rest of it.
         while self.sids:
-            GObject.source_remove(self.sids.popitem()[1])
+            GLib.source_remove(self.sids.popitem()[1])
 
         steps = self.globals.settings["opacify_smoothness"]
         interval = self.globals.settings["opacify_duration"] / steps
@@ -454,7 +454,7 @@ class Opacify():
                 if i == 1:
                     self.__compiz_call(v + values, matches)
                 else:
-                    self.sids[sid] = GObject.timeout_add((i - 1) * interval,
+                    self.sids[sid] = GLib.timeout_add((i - 1) * interval,
                                                          self.__compiz_call,
                                                          v+values,
                                                          None,
@@ -471,7 +471,7 @@ class Opacify():
             for i in range(1, steps+1):
                 v[max_index] = 100 - ( i * (100 - alpha) // steps)
                 sid = time()
-                self.sids[sid] = GObject.timeout_add(i * interval,
+                self.sids[sid] = GLib.timeout_add(i * interval,
                                                      self.__compiz_call,
                                                      v + values,
                                                      None,
@@ -483,7 +483,7 @@ class Opacify():
                 value = 100 - ((steps - i) * (100 - alpha) // steps)
                 v = [max(value, old_value) for old_value in old_values]
                 sid = time()
-                self.sids[sid] = GObject.timeout_add(i * interval,
+                self.sids[sid] = GLib.timeout_add(i * interval,
                                                      self.__compiz_call,
                                                      v + values,
                                                      None,
@@ -491,7 +491,7 @@ class Opacify():
             delay = steps * interval + 1
             sid = time()
             v = [100, alpha, alpha]
-            self.sids[sid] = GObject.timeout_add(delay,
+            self.sids[sid] = GLib.timeout_add(delay,
                                                  self.__compiz_call,
                                                  v + values,
                                                  matches,
