@@ -2202,6 +2202,8 @@ class GroupPopup(CairoPopup):
         except:
             logger.exception("If an empty popup was shown this " + \
                              "might have somethin to do with it:")
+        for window in group:
+            window.item.set_show_preview(True)
         CairoPopup.show_all(self)
         self.popup_showing = True
 

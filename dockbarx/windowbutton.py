@@ -24,10 +24,14 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import GObject
+from gi.repository import GLib
 from gi.repository import Pango
 import weakref
 import gc
 gc.enable()
+import Xlib
+from Xlib.display import Display
+from PIL import Image
 
 from .common import ODict, Globals, Opacify
 from .common import connect, disconnect, opacify, deopacify
@@ -416,13 +420,8 @@ class WindowItem(CairoButton):
         if window.wnck.is_minimized():
             pixbuf = self.__make_minimized_icon(icon)
             self.icon_image.set_from_pixbuf(pixbuf)
-            if self.globals.settings["preview"] and \
-               (self.globals.get_compiz_version() < "0.9" or \
-               not self.globals.settings["preview_minimized"]):
-                   self.preview.set_from_pixbuf(window.wnck.get_icon())
         else:
             self.icon_image.set_from_pixbuf(icon)
-            self.preview.clear()
 
     def minimized_changed(self):
         window = self.window_r()
@@ -480,6 +479,7 @@ class WindowItem(CairoButton):
 
     def set_show_preview(self, show_preview):
         if show_preview:
+            self.set_preview_image()
             self.preview.show()
         else:
             self.preview.hide()
@@ -488,6 +488,30 @@ class WindowItem(CairoButton):
         a = self.preview.get_allocation()
         self.area.set_preview_allocation(a)
         return a
+    
+    def set_preview_image(self):
+        window = self.window_r()
+        if window.wnck.is_minimized():
+            # TODO: self.globals.settings["preview_minimized"]
+            self.preview.set_from_pixbuf(window.wnck.get_icon())
+        else:
+            try:
+                xwin = Display().create_resource_object('window', window.xid)
+                xwin.composite_redirect_window(Xlib.ext.composite.RedirectAutomatic)
+                geo = xwin.get_geometry()
+                pixmap = xwin.composite_name_window_pixmap()
+                image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
+            except:
+                return;
+            im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
+            data = im.tobytes()
+            if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 14:
+                data = GLib.Bytes.new(data)
+                pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
+            else:
+                pixbuf = GdkPixbuf.Pixbuf.new_from_data(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
+            w, h = self.preview.get_size_request()
+            self.preview.set_from_pixbuf(pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR))
 
     #### Events
     def on_enter_notify_event(self, widget, event):
