@@ -346,8 +346,7 @@ class Group(ListOfWindows):
         self.menu_is_shown = False
         #Launch program item
         if not self.launch_menu:
-            self.launch_menu = Gtk.VBox()
-            self.launch_menu.set_spacing(2)
+            self.launch_menu = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
             launch_program_item = CairoMenuItem(_("_Launch application"))
             launch_program_item.connect("clicked",
                                 self.action_launch_application)
@@ -2203,6 +2202,8 @@ class GroupPopup(CairoPopup):
         except:
             logger.exception("If an empty popup was shown this " + \
                              "might have somethin to do with it:")
+        for window in group:
+            window.item.set_show_preview(True)
         CairoPopup.show_all(self)
         self.popup_showing = True
 
@@ -2419,11 +2420,11 @@ class LockedPopup(GroupPopup):
         global display
         if display is None:
             from Xlib import display
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
-            monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
-        else:
-            monitor = self.get_screen().get_monitor_geometry(0)
-        mx, my, mw, mh = monitor
+        # if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        #     monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
+        # else:
+        #     monitor = self.get_screen().get_monitor_geometry(0)
+        # mx, my, mw, mh = monitor
         d = display.Display()
         root = d.screen().root
         windows = root.query_tree()._data['children']
@@ -2462,8 +2463,9 @@ class LockedPopup(GroupPopup):
         GroupPopup.destroy(self)
 
 
-class WindowList(Gtk.VBox):
+class WindowList(Gtk.Box):
     def __init__(self, group):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.globals = Globals()
         self.group_r = weakref.ref(group)
         self.dockbar_r = weakref.ref(group.dockbar_r())
@@ -2490,7 +2492,7 @@ class WindowList(Gtk.VBox):
                 self.__on_show_previews_changed)
 
     def destroy(self, *args, **kvargs):
-        Gtk.VBox.destroy(self, *args, **kvargs)
+        Gtk.Box.destroy(self, *args, **kvargs)
 
     def show_all(self):
         group = self.group_r()
@@ -2502,7 +2504,7 @@ class WindowList(Gtk.VBox):
                 window.item.hide()
             else:
                 window.item.show()
-        Gtk.VBox.show_all(self)
+        Gtk.Box.show_all(self)
 
     def update_title(self, *args):
         group = self.group_r()
@@ -2602,14 +2604,11 @@ class WindowList(Gtk.VBox):
     def __rebuild_list(self):
         oldbox = self.window_box
         if self.mini_mode:
-            self.window_box = Gtk.HBox()
-            self.window_box.set_spacing(2)
+            self.window_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 2)
         elif self.show_previews and self.dockbar_r().orient in ("down", "up"):
-            self.window_box = Gtk.HBox()
-            self.window_box.set_spacing(4)
+            self.window_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 4)
         else:
-            self.window_box = Gtk.VBox()
-            self.window_box.set_spacing(2)
+            self.window_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
         if oldbox:
             for c in oldbox.get_children():
                 oldbox.remove(c)
@@ -2708,8 +2707,7 @@ class GroupMenu(GObject.GObject):
         if gtk_menu:
             self.menu = Gtk.Menu()
         else:
-            self.menu = Gtk.VBox()
-            self.menu.set_spacing(2)
+            self.menu = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
             self.menu.can_be_shown = lambda: True
             self.menu.on_popup_reallocate = lambda p: p.set_previews(None)
         self.menu.show()
