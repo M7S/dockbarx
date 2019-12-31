@@ -110,9 +110,13 @@ class Window():
     def get_monitor(self):
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
-        gdk_display = Gdk.Screen.get_default().get_display()
         x, y, w, h = self.wnck.get_geometry()
-        return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
+        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+            gdk_display = Gdk.Screen.get_default().get_display()
+            return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
+        else:
+            gdk_screen = Gdk.Screen.get_default()
+            return gdk_screen.get_monitor_at_point(x + (w // 2), y  + (h // 2))
 
     def destroy(self):
         if self.deopacify_sid:
