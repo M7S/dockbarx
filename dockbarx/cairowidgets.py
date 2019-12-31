@@ -1044,10 +1044,8 @@ class CairoCheckMenuItem(CairoMenuItem):
         CairoMenuItem.__init__(self, None)
         self.indicator = Gtk.CheckMenuItem()
         self.indicator.set_draw_as_radio(toggle_type == "radio")
-        self.indicator.set_margin_left(12)
-        self.indicator.set_margin_right(5)
         self.area.label = Gtk.Label()
-        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        hbox = Gtk.HBox()
         hbox.pack_start(self.indicator, False, False, 2)
         hbox.pack_start(self.area.label, False, False, 2)
         alignment = Gtk.Alignment.new(0.5,0.5,0,0)
@@ -1070,12 +1068,11 @@ class CairoCheckMenuItem(CairoMenuItem):
         return self.indicator.set_inconsistent()
 
 
-class CairoToggleMenu(Gtk.Box):
+class CairoToggleMenu(Gtk.VBox):
     __gsignals__ = {"toggled": (GObject.SignalFlags.RUN_FIRST,
                                 None,(bool, ))}
 
     def __init__(self, label=None, show_menu=False):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL)
         GObject.GObject.__init__(self)
         self.globals = Globals()
 
@@ -1124,10 +1121,9 @@ class CairoToggleMenu(Gtk.Box):
         return self.show_menu
 
 
-class CairoVBox(Gtk.Box):
+class CairoVBox(Gtk.VBox):
 
     def __init__(self, label=None, show_menu=False):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL)
         GObject.GObject.__init__(self)
         self.set_app_paintable(1)
         self.globals = Globals()

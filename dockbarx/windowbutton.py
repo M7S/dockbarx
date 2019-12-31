@@ -24,14 +24,10 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import GObject
-from gi.repository import GLib
 from gi.repository import Pango
 import weakref
 import gc
 gc.enable()
-import Xlib
-from Xlib.display import Display
-from PIL import Image
 
 from .common import ODict, Globals, Opacify
 from .common import connect, disconnect, opacify, deopacify
@@ -114,13 +110,9 @@ class Window():
     def get_monitor(self):
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
+        gdk_display = Gdk.Screen.get_default().get_display()
         x, y, w, h = self.wnck.get_geometry()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
-            gdk_display = Gdk.Screen.get_default().get_display()
-            return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
-        else:
-            gdk_screen = Gdk.Screen.get_default()
-            return gdk_screen.get_monitor_at_point(x + (w // 2), y  + (h // 2))
+        return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
 
     def destroy(self):
         if self.deopacify_sid:
@@ -316,27 +308,26 @@ class WindowItem(CairoButton):
         self.label.set_alignment(0, 0.5)
         self.__update_label()
         self.area.set_needs_attention(window.wnck.needs_attention())
-        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        hbox = Gtk.HBox()
         icon = window.wnck.get_mini_icon()
         self.icon_image = Gtk.Image()
         self.icon_image.set_from_pixbuf(icon)
         hbox.pack_start(self.icon_image, False, False, 0)
         hbox.pack_start(self.label, True, True, 4)
-        self.close_button.set_halign(Gtk.Align.START)
-        self.close_button.set_valign(Gtk.Align.CENTER)
-        hbox.pack_start(self.close_button, False, False, 0)
+        alignment = Gtk.Alignment.new(1, 0.5, 0, 0)
+        alignment.add(self.close_button)
+        hbox.pack_start(alignment, False, False, 0)
 
-        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        vbox = Gtk.VBox()
         vbox.pack_start(hbox, False, False, 0)
+        self.preview_box = Gtk.Alignment.new(0.5, 0.5, 0, 0)
+        self.preview_box.set_padding(4, 2, 0, 0)
         self.preview = Gtk.Image()
-        self.preview.set_halign(Gtk.Align.CENTER)
-        self.preview.set_valign(Gtk.Align.CENTER)
-        self.preview.set_margin_top(4)
-        self.preview.set_margin_bottom(2)
+        self.preview_box.add(self.preview)
         self.preview.show()
-        vbox.pack_start(self.preview, True, True, 0)
+        vbox.pack_start(self.preview_box, True, True, 0)
         self.add(vbox)
-        self.preview.set_no_show_all(True)
+        self.preview_box.set_no_show_all(True)
         vbox.show_all()
         
         self.show_all()
@@ -420,8 +411,13 @@ class WindowItem(CairoButton):
         if window.wnck.is_minimized():
             pixbuf = self.__make_minimized_icon(icon)
             self.icon_image.set_from_pixbuf(pixbuf)
+            if self.globals.settings["preview"] and \
+               (self.globals.get_compiz_version() < "0.9" or \
+               not self.globals.settings["preview_minimized"]):
+                   self.preview.set_from_pixbuf(window.wnck.get_icon())
         else:
             self.icon_image.set_from_pixbuf(icon)
+            self.preview.clear()
 
     def minimized_changed(self):
         window = self.window_r()
@@ -479,39 +475,14 @@ class WindowItem(CairoButton):
 
     def set_show_preview(self, show_preview):
         if show_preview:
-            self.set_preview_image()
-            self.preview.show()
+            self.preview_box.show()
         else:
-            self.preview.hide()
+            self.preview_box.hide()
 
     def get_preview_allocation(self):
         a = self.preview.get_allocation()
         self.area.set_preview_allocation(a)
         return a
-    
-    def set_preview_image(self):
-        window = self.window_r()
-        if window.wnck.is_minimized():
-            # TODO: self.globals.settings["preview_minimized"]
-            self.preview.set_from_pixbuf(window.wnck.get_icon())
-        else:
-            try:
-                xwin = Display().create_resource_object('window', window.xid)
-                xwin.composite_redirect_window(Xlib.ext.composite.RedirectAutomatic)
-                geo = xwin.get_geometry()
-                pixmap = xwin.composite_name_window_pixmap()
-                image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
-            except:
-                return;
-            im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
-            data = im.tobytes()
-            if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 14:
-                data = GLib.Bytes.new(data)
-                pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
-            else:
-                pixbuf = GdkPixbuf.Pixbuf.new_from_data(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
-            w, h = self.preview.get_size_request()
-            self.preview.set_from_pixbuf(pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR))
 
     #### Events
     def on_enter_notify_event(self, widget, event):

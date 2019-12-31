@@ -26,8 +26,6 @@ from tarfile import open as taropen
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 import dbus
-import sys
-import signal
 
 from dockbarx.common import *
 from dockbarx.applets import DockXApplets
@@ -448,7 +446,7 @@ class PrefDialog():
         self.globals.connect("theme-changed", self.__on_theme_changed)
         self.globals.connect("preference-update", self.__update)
 
-        self.dialog.connect("response", self.dialog_close)
+        self.dialog.connect("response", self.__dialog_close)
         self.dialog.set_icon_name("dockbarx")
 
         self.gsettings = Gio.Settings.new_with_path("org.dockbarx.dockbarx", "/org/dockbarx/dockbarx/")
@@ -1861,7 +1859,7 @@ class PrefDialog():
                 self.awn_behavior_box.set_active(i)
                 break
 
-    def dialog_close(self,par1,par2):
+    def __dialog_close(self,par1,par2):
         self.dialog.destroy()
         Gtk.main_quit()
 
@@ -2467,7 +2465,5 @@ class PrefDialog():
                 compiz_call_sync("core/allscreens/active_plugins", "set",
                                  plugins)
 
-Gtk.init(sys.argv)
-dialog = PrefDialog()
-signal.signal(signal.SIGINT, dialog.dialog_close)
+PrefDialog()
 Gtk.main()

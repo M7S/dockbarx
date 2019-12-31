@@ -164,11 +164,11 @@ class GroupList(list):
         self.aspect_ratio = None
         self.max_size = None
         if self.orient in ("down", "up"):
-            self.container = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+            self.container = Gtk.HBox()
+            self.box = Gtk.HBox()
         else:
-            self.container = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+            self.container = Gtk.VBox()
+            self.box = Gtk.VBox()
         self.allocation_sid = self.box.connect("size-allocate",
                                                self.on_size_allocate)
         self.box.pack_start(self.container, False, False, 0)
@@ -250,11 +250,11 @@ class GroupList(list):
         self.orient = orient
         # Make new box and container
         if self.orient in ("down", "up"):
-            container = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+            container = Gtk.HBox()
+            box = Gtk.HBox()
         else:
-            container = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-            box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+            container = Gtk.VBox()
+            box = Gtk.VBox()
         # Remove the children from the container.
         for child in self.container.get_children():
             self.container.remove(child)
@@ -282,11 +282,11 @@ class GroupList(list):
             self.previous_button.destroy()
             self.arrow_box.destroy()
         if self.orient in ("down", "up"):
-            box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+            box = Gtk.VBox()
             self.next_button = cairowidgets.CairoArrowButton("right")
             self.previous_button = cairowidgets.CairoArrowButton("left")
         else:
-            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+            box = Gtk.HBox()
             self.next_button = cairowidgets.CairoArrowButton("down")
             self.previous_button = cairowidgets.CairoArrowButton("up")
         self.arrow_box = Gtk.Alignment.new(0.5, 0.5, 0, 0)
@@ -714,8 +714,8 @@ class DockBar():
         return self.orient
 
     def get_container(self):
-        """Returns the Box that contains all group buttons"""
-        if self.groups is not None:
+        """Returns the HBox/VBox that contains all group buttons"""
+        if self.groups:
             return self.groups.box
         else:
             return None
@@ -1545,7 +1545,7 @@ class DockBar():
         #allow the user to press enter to do ok
         entry.connect("activate",
                       lambda widget: dialog.response(Gtk.ResponseType.OK))
-        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        hbox = Gtk.HBox()
         hbox.pack_start(Gtk.Label(_("Identifier:")), False, False, 5)
         hbox.pack_end(combobox, True, True, 0)
         dialog.vbox.pack_end(hbox, True, True, 0)
