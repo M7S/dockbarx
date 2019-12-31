@@ -1044,6 +1044,8 @@ class CairoCheckMenuItem(CairoMenuItem):
         CairoMenuItem.__init__(self, None)
         self.indicator = Gtk.CheckMenuItem()
         self.indicator.set_draw_as_radio(toggle_type == "radio")
+        self.indicator.set_margin_left(12)
+        self.indicator.set_margin_right(5)
         self.area.label = Gtk.Label()
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         hbox.pack_start(self.indicator, False, False, 2)
