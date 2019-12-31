@@ -114,7 +114,7 @@ class Window():
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
         x, y, w, h = self.wnck.get_geometry()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             gdk_display = Gdk.Screen.get_default().get_display()
             return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
         else:
@@ -504,7 +504,7 @@ class WindowItem(CairoButton):
                 return;
             im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
             data = im.tobytes()
-            if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 14:
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
                 data = GLib.Bytes.new(data)
                 pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
             else:

@@ -172,7 +172,7 @@ class Group(ListOfWindows):
         self.update_name()
 
         self.monitor = self.get_monitor()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             mgeo = self.monitor.get_geometry();
         else:
             mgeo = Gdk.Screen.get_default().get_monitor_geometry(self.monitor)
@@ -234,7 +234,7 @@ class Group(ListOfWindows):
     def get_monitor(self):
         window = self.dockbar_r().groups.box.get_window()
         gdk_screen = Gdk.Screen.get_default()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             display = gdk_screen.get_display();
             if window is not None:
                 return display.get_monitor_at_window(window)
@@ -2094,7 +2094,7 @@ class GroupPopup(CairoPopup):
         b_alloc = group.button.get_allocation()
         width, height = self.get_size()
 
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             mgeo = group.get_monitor().get_geometry();
         else:
             mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
@@ -2301,7 +2301,7 @@ class GroupPopup(CairoPopup):
 class LockedPopup(GroupPopup):
     def __init__(self, group):
         self.globals = Globals()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             mgeo = group.get_monitor().get_geometry();
         else:
             mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
@@ -2346,7 +2346,7 @@ class LockedPopup(GroupPopup):
             # The group doesn't seem to be remove properly when a new
             # locked popup is opened.
             return
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             mgeo = group.get_monitor().get_geometry();
         else:
             mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
@@ -2396,7 +2396,7 @@ class LockedPopup(GroupPopup):
             #~ group = self.group_r()
             #~ a = self.get_allocation()
             #~ x, y = self.get_position()
-            #~ if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+            #~ if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             #~     mgeo = group.get_monitor().get_geometry();
             #~ else:
             #~     mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
@@ -2421,7 +2421,7 @@ class LockedPopup(GroupPopup):
         global display
         if display is None:
             from Xlib import display
-        # if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        # if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
         #     monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
         # else:
         #     monitor = self.get_screen().get_monitor_geometry(0)
@@ -2576,7 +2576,7 @@ class WindowList(Gtk.Box):
         if self.mini_mode:
             return
         if show_previews:
-            if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
                 mgeo = group.get_monitor().get_geometry();
             else:
                 mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
@@ -2637,7 +2637,7 @@ class WindowList(Gtk.Box):
         self.adjustment = scrolled_window.get_vadjustment()
         self.scroll_changed_sid = self.adjustment.connect("changed",
                                             self.__on_scroll_changed)
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             mgeo = group.get_monitor().get_geometry();
         else:
             mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
