@@ -1489,15 +1489,20 @@ class DockXDBus(dbus.service.Object):
 
 
 monitor = 0
-if "--monitor" in sys.argv:
-    i = sys.argv.index("--monitor") + 1
+argv = sys.argv
+if "--monitor" in argv:
+    i = argv.index("--monitor")
     try:
-        monitor = int(sys.argv[i])
-    except:
-        raise
+        monitor = int(sys.argv[i + 1])
+    except IndexError:
+        print("Warning: No monitor specified", file=sys.stderr)
+    except ValueError:
+        print("Warning: Invalid monitor index: " + sys.argv[i + 1], file=sys.stderr)
+    argv = argv[:i] + argv[i + 2:]
+Gtk.init(argv)
 dockx = DockX(monitor)
 del monitor
+del argv
 signal.signal(signal.SIGINT, dockx.on_destroy)
 Gtk.main()
-
 
