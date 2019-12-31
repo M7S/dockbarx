@@ -312,26 +312,27 @@ class WindowItem(CairoButton):
         self.label.set_alignment(0, 0.5)
         self.__update_label()
         self.area.set_needs_attention(window.wnck.needs_attention())
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         icon = window.wnck.get_mini_icon()
         self.icon_image = Gtk.Image()
         self.icon_image.set_from_pixbuf(icon)
         hbox.pack_start(self.icon_image, False, False, 0)
         hbox.pack_start(self.label, True, True, 4)
-        alignment = Gtk.Alignment.new(1, 0.5, 0, 0)
-        alignment.add(self.close_button)
-        hbox.pack_start(alignment, False, False, 0)
+        self.close_button.set_halign(Gtk.Align.START)
+        self.close_button.set_valign(Gtk.Align.CENTER)
+        hbox.pack_start(self.close_button, False, False, 0)
 
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         vbox.pack_start(hbox, False, False, 0)
-        self.preview_box = Gtk.Alignment.new(0.5, 0.5, 0, 0)
-        self.preview_box.set_padding(4, 2, 0, 0)
         self.preview = Gtk.Image()
-        self.preview_box.add(self.preview)
+        self.preview.set_halign(Gtk.Align.CENTER)
+        self.preview.set_valign(Gtk.Align.CENTER)
+        self.preview.set_margin_top(4)
+        self.preview.set_margin_bottom(2)
         self.preview.show()
-        vbox.pack_start(self.preview_box, True, True, 0)
+        vbox.pack_start(self.preview, True, True, 0)
         self.add(vbox)
-        self.preview_box.set_no_show_all(True)
+        self.preview.set_no_show_all(True)
         vbox.show_all()
         
         self.show_all()
@@ -479,9 +480,9 @@ class WindowItem(CairoButton):
 
     def set_show_preview(self, show_preview):
         if show_preview:
-            self.preview_box.show()
+            self.preview.show()
         else:
-            self.preview_box.hide()
+            self.preview.hide()
 
     def get_preview_allocation(self):
         a = self.preview.get_allocation()
