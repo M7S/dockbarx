@@ -715,7 +715,7 @@ class DockBar():
 
     def get_container(self):
         """Returns the HBox/VBox that contains all group buttons"""
-        if self.groups:
+        if self.groups is not None:
             return self.groups.box
         else:
             return None
