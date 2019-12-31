@@ -2418,11 +2418,11 @@ class LockedPopup(GroupPopup):
         global display
         if display is None:
             from Xlib import display
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
-            monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
-        else:
-            monitor = self.get_screen().get_monitor_geometry(0)
-        mx, my, mw, mh = monitor
+        # if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        #     monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
+        # else:
+        #     monitor = self.get_screen().get_monitor_geometry(0)
+        # mx, my, mw, mh = monitor
         d = display.Display()
         root = d.screen().root
         windows = root.query_tree()._data['children']
