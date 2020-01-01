@@ -85,7 +85,7 @@
     </key>
 
     <key name='preview' type='b'>
-      <default>false</default>
+      <default>true</default>
       <summary>Use thumbnails in window list</summary>
       <description>
         Use thumbnails in window list.

@@ -75,7 +75,7 @@ def check_program(name):
     for dir in os.environ['PATH'].split(':'):
         prog = os.path.join(dir, name)
         if os.path.exists(prog): return prog
-        
+
 appdir = None
 def get_app_homedir():
     global appdir
@@ -594,7 +594,7 @@ class Globals(GObject.GObject):
           "no_popup_for_one_window": False,
           "show_only_current_desktop": False,
           "show_only_current_monitor": False,
-          "preview": False,
+          "preview": True,
           "preview_size": 150,
           "preview_minimized": True,
           "old_menu": False,
@@ -952,7 +952,7 @@ class Globals(GObject.GObject):
                 else:
                     alpha = self.DEFAULT_COLORS.get("%s_alpha"%c, 255)
             self.colors["color%s_alpha" % i] = alpha
-            
+
         for i in range(1, 9):
             # DConf-editor can't see relocatable schemas
             # so we will set the settings manually so that they will show up.
