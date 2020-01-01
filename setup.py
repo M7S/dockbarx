@@ -115,9 +115,7 @@ cmdclass = {
 }
 
 data_files=[
-            ("/usr/share/dockbarx/applets", ["dockx_applets/cardapio_dbx.py",
-                                             "dockx_applets/cardapio.applet",
-                                             "dockx_applets/clock.py",
+            ("/usr/share/dockbarx/applets", ["dockx_applets/clock.py",
                                              "dockx_applets/clock.applet",
                                              "dockx_applets/namebar.py",
                                              "dockx_applets/namebar.applet",
