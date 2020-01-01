@@ -503,6 +503,7 @@ class WindowItem(CairoButton):
                 pixmap = xwin.composite_name_window_pixmap()
                 image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
             except:
+                self.preview.set_from_pixbuf(window.wnck.get_icon())
                 return;
             im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
             data = im.tobytes()
