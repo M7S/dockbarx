@@ -23,7 +23,6 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
-from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Pango
 import weakref
@@ -115,7 +114,7 @@ class Window():
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
         x, y, w, h = self.wnck.get_geometry()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             gdk_display = Gdk.Screen.get_default().get_display()
             return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
         else:
@@ -124,7 +123,7 @@ class Window():
 
     def destroy(self):
         if self.deopacify_sid:
-            GObject.source_remove(self.deopacify_sid)
+            GLib.source_remove(self.deopacify_sid)
             self.deopacify()
         self.remove_delayed_select()
 
@@ -144,12 +143,12 @@ class Window():
 
     def select_after_delay(self, delay):
         if self.select_sid:
-            GObject.source_remove(self.select_sid)
-        self.select_sid = GObject.timeout_add(delay, self.action_select_window)
+            GLib.source_remove(self.select_sid)
+        self.select_sid = GLib.timeout_add(delay, self.action_select_window)
 
     def remove_delayed_select(self):
         if self.select_sid:
-            GObject.source_remove(self.select_sid)
+            GLib.source_remove(self.select_sid)
             self.select_sid = None
 
     #### Windows's Events
@@ -201,7 +200,7 @@ class Window():
 
     def deopacify(self):
         if self.item.deopacify_sid:
-            GObject.source_remove(self.item.deopacify_sid)
+            GLib.source_remove(self.item.deopacify_sid)
             self.item.deopacify_sid = None
         if self.deopacify_sid:
             self.deopacify_sid = None
@@ -366,12 +365,12 @@ class WindowItem(CairoButton):
     def clean_up(self):
         window = self.window_r()
         if self.deopacify_sid:
-            GObject.source_remove(self.deopacify_sid)
+            GLib.source_remove(self.deopacify_sid)
             window.deopacify()
         if self.opacify_sid:
-            GObject.source_remove(self.opacify_sid)
+            GLib.source_remove(self.opacify_sid)
         if self.press_sid:
-            GObject.source_remove(self.press_sid)
+            GLib.source_remove(self.press_sid)
         self.close_button.destroy()
 
     def show(self):
@@ -505,7 +504,7 @@ class WindowItem(CairoButton):
                 return;
             im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
             data = im.tobytes()
-            if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 14:
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
                 data = GLib.Bytes.new(data)
                 pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
             else:
@@ -523,7 +522,7 @@ class WindowItem(CairoButton):
             return
         if self.globals.settings["opacify"]:
             self.opacify_sid = \
-                GObject.timeout_add(100, self.__opacify)
+                GLib.timeout_add(100, self.__opacify)
 
     def on_leave_notify_event(self, widget, event):
         # In compiz there is a enter and a leave
@@ -533,17 +532,17 @@ class WindowItem(CairoButton):
         self.pressed = False
         if self.globals.settings["opacify"]:
             self.deopacify_sid = \
-                            GObject.timeout_add(200, self.__deopacify)
+                            GLib.timeout_add(200, self.__deopacify)
 
     def on_button_press_event(self, widget, event):
         # In compiz there is a enter and a leave event before
         # a press event.
         # self.pressed is used to stop functions started with
-        # GObject.timeout_add from self.__on_mouse_enter
+        # GLib.timeout_add from self.__on_mouse_enter
         # or self.__on_mouse_leave.
         CairoButton.on_button_press_event(self, widget, event)
         self.pressed = True
-        self.press_sid = GObject.timeout_add(600, self.__set_pressed_false)
+        self.press_sid = GLib.timeout_add(600, self.__set_pressed_false)
 
     def __set_pressed_false(self):
         # Helper function for __on_press_event.
@@ -600,13 +599,13 @@ class WindowItem(CairoButton):
             self.group_r().popup.expose()
             self.drag_entered = True
             self.dnd_select_window = \
-                GObject.timeout_add(600, self.window_r().action_select_window)
+                GLib.timeout_add(600, self.window_r().action_select_window)
         Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         return True
 
     def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
-        GObject.source_remove(self.dnd_select_window)
+        GLib.source_remove(self.dnd_select_window)
         self.group_r().popup.expose()
         self.group_r().popup.hide_if_not_hovered()
 
@@ -626,7 +625,7 @@ class WindowItem(CairoButton):
             window.opacify()
             # Just for safety in case no leave-signal is sent
             self.deopacify_sid = \
-                            GObject.timeout_add(500, self.__deopacify)
+                            GLib.timeout_add(500, self.__deopacify)
         return False
 
     def __deopacify(self):
@@ -639,7 +638,7 @@ class WindowItem(CairoButton):
             return True
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
-        window.deopacify_sid = GObject.timeout_add(150, window.deopacify)
+        window.deopacify_sid = GLib.timeout_add(150, window.deopacify)
         return False
 
     #### Menu functions

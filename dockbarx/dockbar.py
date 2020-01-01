@@ -24,6 +24,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkX11
 from gi.repository import GObject
+from gi.repository import GLib
 import sys
 import os
 import dbus
@@ -1386,7 +1387,7 @@ class DockBar():
             logger.warning("Error: Found no program for editing .desktop files.")
             return
         process = subprocess.Popen([program, new_path], env=os.environ)
-        GObject.timeout_add(100, self.__wait_for_launcher_editor,
+        GLib.timeout_add(100, self.__wait_for_launcher_editor,
                             process, path, new_path, identifier)
 
     def update_pinned_apps_list(self, arg=None):
@@ -1780,9 +1781,9 @@ class DockBar():
 
     def __set_select_or_launch_timout(self, t=600):
         if self.kbd_sid is not None:
-            GObject.source_remove(self.kbd_sid)
+            GLib.source_remove(self.kbd_sid)
             self.kbd_sid = None
-        self.kbd_sid = GObject.timeout_add(t, self.__select_or_launch)
+        self.kbd_sid = GLib.timeout_add(t, self.__select_or_launch)
 
     #~ def __grab_keyboard(self, keystr):
         #~ if self.parent:
@@ -1978,7 +1979,7 @@ class DockBar():
             self.next_group = None
             if self.keyboard_show_dock:
                 self.parent.show()
-                GObject.timeout_add(600, self.parent.show_dock)
+                GLib.timeout_add(600, self.parent.show_dock)
         if not windows:
             success = False
             if group.media_controls:

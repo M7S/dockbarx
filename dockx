@@ -493,7 +493,7 @@ class DockX(CairoDockX):
         else:
             self.autohide = True
         self.screen = Wnck.Screen.get_default()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             self.monitor = Gdk.Display.get_default().get_monitor(monitor)
         else:
             self.monitor = monitor
@@ -771,7 +771,7 @@ class DockX(CairoDockX):
         return applets
 
     def __get_monitor_at_point(self, screen, x, y):
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             return screen.get_display().get_monitor_at_point(x, y)
         else:
             return screen.get_monitor_at_point(x, y)
@@ -962,7 +962,7 @@ class DockX(CairoDockX):
         if not self.should_autohide:
             self.show_dock()
             return False
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 20:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 20:
             s, x, y = display.get_default_seat().get_pointer().get_position()
         else:
             s, x, y, mod = display.get_pointer()
@@ -975,7 +975,7 @@ class DockX(CairoDockX):
         if self.globals.shown_popup() is not None or not self.should_autohide:
             return True
         pos = self.globals.settings["dock/position"]
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 20:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 20:
             device = self.get_display().get_default_seat().get_pointer()
             n, x, y, m = self.get_window().get_device_position(device)
         else:
@@ -1233,7 +1233,7 @@ class DockX(CairoDockX):
         if screen is None:
             screen = Gdk.Screen.get_default()
         geo = Gdk.Rectangle()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             display = screen.get_display();
             for i in range(0, display.get_n_monitors()):
                 monitor = display.get_monitor(i)
@@ -1257,7 +1257,7 @@ class DockX(CairoDockX):
             screen = None
         if screen is None:
             screen = Gdk.Screen.get_default()
-        if Gdk.MAJOR_VERSION > 3 or Gdk.MINOR_VERSION >= 22:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             return screen.get_display().get_primary_monitor().get_geometry();
         else:
             return screen.get_monitor_geometry(self.monitor)

@@ -25,6 +25,7 @@ from gi.repository import GdkX11
 from math import pi, tan
 from xml.sax.saxutils import escape
 from gi.repository import GObject
+from gi.repository import GLib
 gi.require_version("PangoCairo", "1.0")
 from gi.repository import PangoCairo
 from gi.repository import Pango
@@ -1153,7 +1154,7 @@ class CairoVBox(Gtk.Box):
 class CairoPreview(Gtk.Image):
     def __init__(self):
         GObject.GObject.__init__(self)
-        GObject.timeout_add(100, self.draw)
+        GLib.timeout_add(100, self.draw)
         self.connect("visibility-notify-event", self.on_visibility_notify_event)
         self.connect("draw", self.on_draw)
 
