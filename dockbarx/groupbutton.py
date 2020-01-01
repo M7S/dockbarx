@@ -490,7 +490,7 @@ class Group(ListOfWindows):
         self.button.icon_factory.reset_surfaces()
         self.button.update_state(force_update=True)
         self.button.drag_source_set_icon_pixbuf(self.button.icon_factory.get_icon(32))
-        
+
 
     #### Opacify
     def opacify(self, delay=0):
@@ -1426,7 +1426,7 @@ class GroupButton(CairoAppButton):
                                         desktop_entry=group.desktop_entry,
                                         size=size)
         self.old_alloc = self.get_allocation()
-        
+
         # The icon size is decided from allocation or manually.
         self.manual_size = size is not None
 
@@ -1651,7 +1651,7 @@ class GroupButton(CairoAppButton):
                 x += alloc.x
                 y += alloc.y
                 window.wnck.set_icon_geometry(x, y, alloc.width, alloc.height)
-                
+
     def set_manual_size(self, ms):
         self.manual_size = ms
 
@@ -1908,8 +1908,8 @@ class GroupButton(CairoAppButton):
         self.old_alloc = allocation
         # Update icon geometry
         self.set_icongeo()
-        
-        
+
+
     def __set_size_from_allocation(self, allocation):
         if self.dockbar_r().orient in ("left", "right") and \
          allocation.width > 10 and allocation.width < 220 and \
@@ -1925,7 +1925,7 @@ class GroupButton(CairoAppButton):
             return
         # Update state to resize the icon.
         self.update_state(force_update=True)
-        
+
 
     def on_enter_notify_event(self, widget, event):
         group = self.group_r()
@@ -2484,6 +2484,8 @@ class WindowList(Gtk.Box):
         self.set_spacing(2)
         self.alignment = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         self.title = Gtk.Label()
+        # Title needs to be shown so that we can calculate the height of the window list.
+        self.title.show()
         self.title.set_use_markup(True)
         self.update_title()
         self.update_title_tooltip()
@@ -2580,6 +2582,7 @@ class WindowList(Gtk.Box):
         if self.mini_mode:
             return
         if show_previews:
+            # Only show the previews if there is enough room on the screen.
             if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
                 mgeo = group.get_monitor().get_geometry();
             else:
@@ -2592,10 +2595,10 @@ class WindowList(Gtk.Box):
                 if width > mgeo.width:
                     show_previews = False
             else:
-                height = 12 + self.title.size_request()[1]
+                height = 12 + self.title.get_preferred_height()[0]
                 for window in group.get_windows():
                     height += window.item.update_preview()[1]
-                    height += 24 + window.item.label.size_request()[1]
+                    height += 24 + window.item.label.get_preferred_height()[0]
                 if height > mgeo.height:
                     show_previews = False
         self.show_previews = show_previews
