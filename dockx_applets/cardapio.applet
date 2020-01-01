@@ -1,6 +1,0 @@
-@dbx applet
-name=Cardapio
-exec=cardapio_dbx.py
-
-@description
-An alternative gnome menu, launcher and much more.

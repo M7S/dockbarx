@@ -523,18 +523,6 @@ msgstr ""
 "Unity sayaçlarını (işaretlerini), ilerleme çubuklarını ve dinamik hızlı "
 "listelerini kullan"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "DockManager'ı kullan"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "Yardımcılar"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Diğer görüş alanlarındaki/çalışma alanlarındaki pencereleri yoksay"
@@ -716,19 +704,6 @@ msgstr "Kaçırma davranışı"
 #: dbx_preference:1354
 msgid "disabled"
 msgstr "devre dışı"
-
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-"AWN \"Akıllı gizleme\" ve \"Pencerelerden sakın\" davranışları, Awn Görev "
-"Yöneticisi uygulamacığı etkin değilse çalışmaz. Bunun yerine kaçınma "
-"davranışını kullanın."
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
 
 #: dbx_preference:1366
 msgid "Dock"

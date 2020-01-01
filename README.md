@@ -9,7 +9,6 @@ The gtk3 version of DockbarX is a lightweight taskbar / panel replacement for Li
 1. Following dependecies needs to be installed (many of them might be installed already on your system):
   - gir1.2-keybinder-3.0, python3-cairo, python3-dbus, python3-distutils, python3-gi, python3-gi-cairo, python3-pil, python3-polib, python3-xdg and python3-xlib.
   - (Optional) zeitgeist, to access latest and most used documents.
-  - (Optional) To use DockManager helpers, you need to install dockmanager and dockmanager-daemon as well as libdesktop-agnostic-cfg-gconf and libdesktop-agnostic-vfs-gio. The last two might not need to be installed separately on distributions that aren't Debian based.
 2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install `$ sudo ./setup.py install`
 
 ## Usage
@@ -67,11 +66,6 @@ A: If you find a theme on the web that you like, copy the file (should be SOMETH
 *Q: How can I make an theme of my own?*
 
 A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad. I'm happy to help theme developers as much as I can.
-
-### AWN questions
-*Q: When I use dockbarx in AWN, IntelliHide and Window Dodge behaviors doesn't work. Why? Can I do anything about it?*
-
-A: For IntelliHide and Window Dodge to work, AWN Taskmanager applet has to be activated. So to get back IntelliHide or Window Dodge, simply add Taskmanager to your applet list again. If you think using Taskmanager and DockbarX at the same time looks a bit weird, you can go to the Task Manager tab of AWN preference and check the option "Display launchers only" and then remove all the launchers in the list. That will give you a completely invisible Taskmanager that will make sure IntelliHide and Window Dodge works as they should.
 
 [^1]: Using [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin)
 

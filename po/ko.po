@@ -510,18 +510,6 @@ msgstr "유니티 고정 빠른 실행 목록 사용"
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr "유니티 계측기 (배지), 진행 표시줄과 동적 빠른 실행 목록 사용"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "독 관리자"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "독 관리자 사용"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "도우미"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "다른 작업 공간 위의 창 무시하기"
@@ -696,18 +684,6 @@ msgstr "비키기 동작 방식"
 #: dbx_preference:1354
 msgid "disabled"
 msgstr "사용 않음"
-
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-"AWN 애플릿 작업 관리자가 실행 중이 아니라면 AWN 동작 방식 모드 \"똑똑한 숨기기\" 그리고 \"창 피하기\"는 작동하지 "
-"않습니다. 대신 비키기 동작 방식을 이용해 주십시오."
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
 
 #: dbx_preference:1366
 msgid "Dock"

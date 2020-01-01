@@ -542,10 +542,6 @@ class Globals(GObject.GObject):
         "popup-style-changed": (GObject.SignalFlags.RUN_FIRST,
                                 None,()),
         "color-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
-        "dockmanager-changed": (GObject.SignalFlags.RUN_FIRST,
-                                None,()),
-        "dockmanager-badge-changed": (GObject.SignalFlags.RUN_FIRST,
-                                      None,()),
         "badge-look-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "progress-bar-look-changed": (GObject.SignalFlags.RUN_FIRST,
                                       None,()),
@@ -584,8 +580,6 @@ class Globals(GObject.GObject):
         "dock-theme-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-color-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-end-decorations-changed": (GObject.SignalFlags.RUN_FIRST,
-                                  None,()),
-        "awn-behavior-changed": (GObject.SignalFlags.RUN_FIRST,
                                   None,())
     }
 
@@ -616,7 +610,6 @@ class Globals(GObject.GObject):
           "select_next_use_lastest_active": False,
           "select_next_activate_immediately": False,
 
-          "dockmanager": False,
           "media_buttons": True,
           "quicklist": True,
           "unity": True,
@@ -702,9 +695,7 @@ class Globals(GObject.GObject):
           "dock/offset":0,
           "dock/mode": "centered",
           "dock/behavior": "panel",
-          "dock/end_decorations": False,
-
-          "awn/behavior": "disabled"}
+          "dock/end_decorations": False}
 
     DEFAULT_COLORS={
                       "color1": "#333333",
@@ -772,8 +763,6 @@ class Globals(GObject.GObject):
         #~ key = entry.get_key().split("/")[-1]
         #~ if entry.get_key().split("/")[-2] == "dock":
             #~ key = "dock/" + key
-        #~ elif entry.get_key().split("/")[-2] == "awn":
-            #~ key = "awn/" + key
         #~ elif entry.get_key().split("/")[-2] == "applets":
             #~ key = "applets/" + key
         #~ elif len(entry.get_key().split("/"))>=3 and \
@@ -814,8 +803,6 @@ class Globals(GObject.GObject):
                     #~ pref_update = True
 
         #TODO: Add check for sane values for critical settings.
-        #~ if "awn/behavior" == key:
-            #~ self.emit("awn-behavior-changed")
         if "locked_list_no_overlap" == key:
             self.emit("locked-list-overlap-changed")
         elif "locked_list_in_menu" == key:
@@ -842,8 +829,6 @@ class Globals(GObject.GObject):
             self.emit("quicklist-changed")
         elif "unity" == key:
             self.emit("unity-changed")
-        elif "dockmanager" == key:
-            self.emit("dockmanager-changed")
         elif "use_number_shortcuts" == key:
             self.emit("use-number-shortcuts-changed")
         elif key == "theme":
@@ -910,9 +895,7 @@ class Globals(GObject.GObject):
                       #~ int: GCONF_CLIENT.set_int }
         for name, value in list(settings.items()):
             gs_name = name.replace("_", "-")
-            if name.startswith("awn/"):
-                continue
-            elif name.startswith("dock/"):
+            if name.startswith("dock/"):
                 gs_name = gs_name.split("/")[-1]
                 gsettings = self.dock_gsettings
             else:

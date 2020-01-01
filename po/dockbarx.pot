@@ -61,28 +61,6 @@ msgstr ""
 msgid "bottom-up"
 msgstr ""
 
-#: dockx_applets/namebar_window_title.py:166 dockx_applets/namebar.py:206
-msgid "Alignment: "
-msgstr ""
-
-#: dockx_applets/namebar_window_title.py:169
-#: dockx_applets/namebar_window_title.py:239 dockx_applets/namebar.py:209
-#: dockx_applets/namebar.py:298 dbx_preference:1241
-msgid "left"
-msgstr ""
-
-#: dockx_applets/namebar_window_title.py:169
-#: dockx_applets/namebar_window_title.py:240 dockx_applets/namebar.py:209
-#: dockx_applets/namebar.py:299 dbx_preference:1225
-msgid "centered"
-msgstr ""
-
-#: dockx_applets/namebar_window_title.py:169
-#: dockx_applets/namebar_window_title.py:241 dockx_applets/namebar.py:209
-#: dockx_applets/namebar.py:300 dbx_preference:1241
-msgid "right"
-msgstr ""
-
 #: dockx_applets/volume-control.py:48
 msgid "Volume Control"
 msgstr ""
@@ -613,18 +591,6 @@ msgstr ""
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr ""
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr ""
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr ""
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr ""
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr ""
@@ -784,16 +750,6 @@ msgstr ""
 
 #: dbx_preference:1354
 msgid "disabled"
-msgstr ""
-
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-
-#: dbx_preference:1365
-msgid "AWN"
 msgstr ""
 
 #: dbx_preference:1366

@@ -526,18 +526,6 @@ msgstr ""
 "Utiliser les compteurs (badges), barres de progression et listes rapides "
 "dynamiques de Unity"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "Utiliser le DockManager"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "Assistants"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Ignorer les fenêtres sur d'autres espaces travail"
@@ -718,16 +706,6 @@ msgstr "Comportement d'évitement"
 #: dbx_preference:1354
 msgid "disabled"
 msgstr "Désactivé"
-
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
 
 #: dbx_preference:1366
 msgid "Dock"

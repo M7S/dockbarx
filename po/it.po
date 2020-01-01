@@ -523,14 +523,6 @@ msgstr ""
 "Usa i contatori Unity(badges), le passe di progresso e le quicklists "
 "dinamiche"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "Usa DockManager"
-
 #: dbx_preference:1055
 msgid "Helpers"
 msgstr "Aiutanti"
@@ -715,19 +707,6 @@ msgstr "Evita funzione"
 #: dbx_preference:1354
 msgid "disabled"
 msgstr "disabilitato"
-
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-"Le modalità di comportamento di AWN \"Nascondimento intelligente\" e \"Evita "
-"le finestre\" non funzionano se l'applet di awn Taskmanager non è in "
-"esecuzione. Imposta, invece, il comportamento elusivo."
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
 
 #: dbx_preference:1366
 msgid "Dock"

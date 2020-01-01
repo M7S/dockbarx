@@ -510,18 +510,6 @@ msgstr "使用Unity静态快捷列表"
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr "使用Unity计数器（标记）、进度条和动态快捷列表"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "停靠栏管理器"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "使用停靠栏管理器"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "辅助组件"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "忽略其他视图或工作区上的窗口"
@@ -694,16 +682,6 @@ msgstr "闪避窗口行为"
 #: dbx_preference:1354
 msgid "disabled"
 msgstr "禁用"
-
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr "AWN行为模式“自动隐藏”和“躲避窗口”在AWN小工具“任务管理器”未运行时无法工作。请在此处设置闪避窗口行为以代替。"
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
 
 #: dbx_preference:1366
 msgid "Dock"

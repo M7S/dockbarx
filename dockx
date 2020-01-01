@@ -837,7 +837,7 @@ class DockX(CairoDockX):
                 continue
             if prop1 is not None:
                 cl = w.get_wm_class()
-                if cl and cl[0] in ("dockx", "dockbarx_factory"):
+                if cl and cl[0] == "dockx":
                     continue
                 if self.globals.settings["dock/position"] == "left":
                     if prop1.value[6] < my + mh and \
@@ -884,7 +884,7 @@ class DockX(CairoDockX):
                 # Hopefully this one is never needed because
                 # it won't work well with dualscreens.
                 cl = w.get_wm_class()
-                if cl and cl[0] in ("dockx", "dockbarx_factory"):
+                if cl and cl[0] == "dockx":
                     continue
                 for i in range(4):
                     strut[i] = max(strut[i], prop2.value[i])
