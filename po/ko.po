@@ -510,18 +510,6 @@ msgstr "유니티 고정 빠른 실행 목록 사용"
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr "유니티 계측기 (배지), 진행 표시줄과 동적 빠른 실행 목록 사용"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "독 관리자"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "독 관리자 사용"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "도우미"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "다른 작업 공간 위의 창 무시하기"

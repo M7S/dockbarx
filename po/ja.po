@@ -511,18 +511,6 @@ msgstr "Unity の静的クイックリストを使用する"
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr "Unity のカウンター（バッジ）やプログレスバー、動的クイックリストを使用する"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "ドックマネージャ"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "ドックマネージャを使用する"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "ヘルパー"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "他のビューポート/ワークスペース上のウィンドウは無視する"

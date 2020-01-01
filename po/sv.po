@@ -522,18 +522,6 @@ msgstr ""
 "Använd Unity räknare (emblem), förloppsmätare och dynamiska snabblistor "
 "(quicklists)"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "Använd DockManager"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "Hjälpare"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Ignorera fönster på andra vyportar/arbetsytor"

@@ -542,10 +542,6 @@ class Globals(GObject.GObject):
         "popup-style-changed": (GObject.SignalFlags.RUN_FIRST,
                                 None,()),
         "color-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
-        "dockmanager-changed": (GObject.SignalFlags.RUN_FIRST,
-                                None,()),
-        "dockmanager-badge-changed": (GObject.SignalFlags.RUN_FIRST,
-                                      None,()),
         "badge-look-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "progress-bar-look-changed": (GObject.SignalFlags.RUN_FIRST,
                                       None,()),
@@ -614,7 +610,6 @@ class Globals(GObject.GObject):
           "select_next_use_lastest_active": False,
           "select_next_activate_immediately": False,
 
-          "dockmanager": False,
           "media_buttons": True,
           "quicklist": True,
           "unity": True,
@@ -834,8 +829,6 @@ class Globals(GObject.GObject):
             self.emit("quicklist-changed")
         elif "unity" == key:
             self.emit("unity-changed")
-        elif "dockmanager" == key:
-            self.emit("dockmanager-changed")
         elif "use_number_shortcuts" == key:
             self.emit("use-number-shortcuts-changed")
         elif key == "theme":

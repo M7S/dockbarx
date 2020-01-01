@@ -525,18 +525,6 @@ msgstr ""
 "Използване на броячите, лентите за състояние и динамичните бързи списъци на "
 "Unity"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "Използване на DockManager"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "Помощници"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Пренебрегване на прозорци на други работни места"

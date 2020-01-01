@@ -523,14 +523,6 @@ msgstr ""
 "Usa i contatori Unity(badges), le passe di progresso e le quicklists "
 "dinamiche"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "Usa DockManager"
-
 #: dbx_preference:1055
 msgid "Helpers"
 msgstr "Aiutanti"

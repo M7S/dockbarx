@@ -526,18 +526,6 @@ msgstr ""
 "Utiliser les compteurs (badges), barres de progression et listes rapides "
 "dynamiques de Unity"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "Utiliser le DockManager"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "Assistants"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Ignorer les fenêtres sur d'autres espaces travail"

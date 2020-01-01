@@ -210,14 +210,6 @@
       </description>
     </key>
 
-    <key name='dockmanager' type='b'>
-      <default>false</default>
-      <summary>Use dockmanager helpers</summary>
-      <description>
-        Use dockmanager helpers.
-      </description>
-    </key>
-
     <key name='media-buttons' type='b'>
       <default>true</default>
       <summary>Enable media buttons</summary>

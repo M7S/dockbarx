@@ -1075,22 +1075,6 @@ class PrefDialog():
                               "unity")
         plugins_box.pack_start(self.unity_cb, False, True, 0)
 
-        dockmanager_frame = Gtk.Frame()
-        dockmanager_frame.set_label(_("DockManager"))
-        dockmanager_frame.set_border_width(5)
-        dockmanager_box = Gtk.VBox()
-        dockmanager_box.set_border_width(5)
-        self.dockmanager_cb = Gtk.CheckButton.new_with_label(_("Use DockManager"))
-        self.dockmanager_cb.connect("toggled",
-                                    self.__checkbutton_toggled,
-                                    "dockmanager")
-        dockmanager_box.pack_start(self.dockmanager_cb, False, True, 0)
-        helpers_button = Gtk.Button.new_with_label(_("Helpers"))
-        helpers_button.connect("clicked", self.__open_dockmanager_settings)
-        dockmanager_box.pack_start(helpers_button, False, True, 0)
-        dockmanager_frame.add(dockmanager_box)
-        plugins_box.pack_start(dockmanager_frame, False, True, 0)
-
 
         #--- Advanced page
         self.ignore_workspace_cb = Gtk.CheckButton.new_with_label(
@@ -1610,8 +1594,6 @@ class PrefDialog():
         self.quicklist_cb.set_active(
                             self.globals.settings["quicklist"])
         self.unity_cb.set_active(self.globals.settings["unity"])
-        dockmanager = self.globals.settings["dockmanager"]
-        self.dockmanager_cb.set_active(dockmanager)
 
         # Colors and settings
         self.theme_settings_frame.set_label(_("Settings and colors for %s") % \
@@ -2271,17 +2253,6 @@ class PrefDialog():
         for key in colors.copy():
             colors[key] = str(colors[key])
         self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
-
-    def __open_dockmanager_settings(self, *args):
-        bus = dbus.SessionBus()
-        try:
-            daemon = bus.get_object("net.launchpad.DockManager.Daemon",
-                                    "/net/launchpad/DockManager/Daemon")
-            daemon.ShowPreferences(dbus_interface=\
-                                  "net.launchpad.DockManager.Daemon")
-        except dbus.exceptions.DBusException as e:
-            print("Couldn't open DockManager Preferences")
-            print("reason: %s " % e)
 
     def __set_font(self, button, name):
         if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:

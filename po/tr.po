@@ -523,18 +523,6 @@ msgstr ""
 "Unity sayaçlarını (işaretlerini), ilerleme çubuklarını ve dinamik hızlı "
 "listelerini kullan"
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "DockManager'ı kullan"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "Yardımcılar"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Diğer görüş alanlarındaki/çalışma alanlarındaki pencereleri yoksay"

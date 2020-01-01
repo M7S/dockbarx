@@ -520,18 +520,6 @@ msgstr ""
 msgid "Use Unity counters (badges), progress bars and dynamic quicklists"
 msgstr ""
 
-#: dbx_preference:1046
-msgid "DockManager"
-msgstr "DockManager"
-
-#: dbx_preference:1050
-msgid "Use DockManager"
-msgstr "Usar DockManager"
-
-#: dbx_preference:1055
-msgid "Helpers"
-msgstr "Ayudantes"
-
 #: dbx_preference:1064
 msgid "Ignore windows on other viewports/workspaces"
 msgstr "Ignorar ventanas en otras áreas de trabajo"

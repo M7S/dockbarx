@@ -443,7 +443,6 @@ class DockBar():
         self.popup_style = None
         self.skip_tasklist_windows = None
         self.next_group = None
-        self.dockmanager = None
         self.groups = None
         self.size = None
         self.kbd_sid = None
@@ -459,8 +458,6 @@ class DockBar():
         self.globals.connect("theme-changed", self.__on_theme_changed)
         self.globals.connect("media-buttons-changed",
                              self.__on_media_controls_changed)
-        self.globals.connect("dockmanager-changed",
-                             self.__on_dockmanager_changed)
 
     #### Parent functions
     # The dock/applet/widget interacts with dockbar through these functions.
@@ -490,8 +487,6 @@ class DockBar():
         global Mpris2Watch
         global MediaButtons
         from .mediabuttons import Mpris2Watch, MediaButtons
-        global DockManager
-        from .dockmanager import DockManager
         global DockbarDBus
         from .dbx_dbus import DockbarDBus
         global UnityWatcher
@@ -619,7 +614,6 @@ class DockBar():
         self.groups.set_spacing(self.theme.get_gap())
         self.groups.set_aspect_ratio(self.theme.get_aspect_ratio())
         self.groups.show()
-        self.__start_dockmanager()
 
         #--- Initiate launchers
         self.desktop_entry_by_id = {}
@@ -1617,82 +1611,6 @@ class DockBar():
         else:
             for group in self.groups:
                 group.remove_media_controls()
-
-    #### DockManager
-    def get_dm_paths(self):
-        paths = []
-        for group in self.groups:
-            path = group.get_dm_path()
-            if path is not None:
-                paths.append(path)
-        return paths
-
-    def get_dm_paths_by_name(self, name):
-        paths = []
-        for group in self.groups:
-            path = group.get_dm_path_by_name(name)
-            if path is not None:
-                paths.append(path)
-        return paths
-
-    def get_dm_paths_by_desktop_file(self, name):
-        paths = []
-        for group in self.groups:
-            path = group.get_dm_path_by_desktop_file(name)
-            if path is not None:
-                paths.append(path)
-        return paths
-
-    def get_dm_paths_by_pid(self, pid):
-        paths = []
-        for group in self.groups:
-            path = group.get_dm_path_by_pid(pid)
-            if path is not None:
-                paths.append(path)
-        return paths
-
-    def get_dm_paths_by_xid(self):
-        paths = []
-        for group in self.groups:
-            path = group.get_dm_path_by_xid(xid)
-            if path is not None:
-                paths.append(path)
-        return paths
-
-    def add_dm_item(self, path):
-        self.dockmanager.ItemAdded(dbus.ObjectPath(path))
-
-    def remove_dm_item(self, path):
-        self.dockmanager.ItemRemoved(dbus.ObjectPath(path))
-
-    def __start_dockmanager(self):
-        if not self.globals.settings['dockmanager']:
-            return
-        if not self.dockmanager:
-            try:
-                self.dockmanager = DockManager(self)
-            except:
-                logger.exception("Couldn't start Dockmanager, is it " + \
-                                 "prehaps already in use by some other dock?")
-                return
-        if not self.dockmanager:
-            return
-        for group in self.groups:
-            group.add_dockmanager()
-        self.dockmanager.reset()
-
-    def __stop_dockmanager(self):
-        for group in self.groups:
-            group.remove_dockmanager()
-        if self.dockmanager:
-            self.dockmanager.remove()
-            self.dockmanager = None
-
-    def __on_dockmanager_changed(self, *args):
-        if self.globals.settings["dockmanager"]:
-            self.__start_dockmanager()
-        else:
-            self.__stop_dockmanager()
 
     def __on_unity_changed(self, *args):
         if self.globals.settings["unity"]:

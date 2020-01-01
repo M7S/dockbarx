@@ -38,7 +38,6 @@ from .windowbutton import Window
 from .iconfactory import IconFactory
 from .cairowidgets import CairoMenuItem, CairoCheckMenuItem
 from .cairowidgets import CairoPopup, CairoToggleMenu, CairoAppButton
-from .dockmanager import DockManagerItem
 from .unity import DBusMenu
 from .common import *
 from . import zg
@@ -186,11 +185,6 @@ class Group(ListOfWindows):
         self.popup.set_child_(self.window_list)
         self.locked_popup = None
 
-        #--- Dockmanager
-        self.dockmanager = None
-        if self.globals.settings["dockmanager"]:
-            self.add_dockmanager()
-
 
     def __eq__(self, item):
         # __eq__ needs to be defined since a group doesn't equal another
@@ -202,7 +196,6 @@ class Group(ListOfWindows):
 
     def destroy(self):
         # Remove group button.
-        self.remove_dockmanager()
         self.remove_media_controls()
         self.remove_launch_timer()
         if self.quicklist:
@@ -543,57 +536,6 @@ class Group(ListOfWindows):
             self.media_controls = None
             self.button.update_tooltip()
 
-    #### DockManager
-    def add_dockmanager(self):
-        dockbar = self.dockbar_r()
-        if not self.dockmanager and dockbar.dockmanager:
-            try:
-                self.dockmanager = DockManagerItem(self)
-            except:
-                logger.exception("Could not add Dockmanager item to %s" % \
-                                 self.name)
-                self.dockmanager = None
-            else:
-                dockbar.add_dm_item(self.dockmanager.get_path())
-
-    def remove_dockmanager(self):
-        if self.dockmanager:
-            self.dockbar_r().remove_dm_item(self.dockmanager.get_path())
-            self.dockmanager.remove()
-            self.dockmanager = None
-
-    def get_dm_path(self, match=None):
-        if self.dockmanager is None:
-            return None
-        return self.dockmanager.get_path()
-
-    def get_dm_path_by_name(self, name):
-        if self.dockmanager is None:
-            return None
-        if name == self.identifier:
-            return self.dockmanager.get_path()
-
-    def get_dm_path_by_desktop_file(self, name):
-        if self.dockmanager is None:
-            return None
-        df_name = self.desktop_entry.getFileName().rsplit('/')[-1]
-        if name == df_name:
-            return self.dockmanager.get_path()
-
-    def get_dm_path_by_pid(self, pid):
-        if self.dockmanager is None:
-            return None
-        pids = [window.wnck.get_pid() for window in self]
-        if pid in pids:
-            return self.dockmanager.get_path()
-
-    def get_dm_path_by_xid(self, xid):
-        if self.dockmanager is None:
-            return None
-        xids = [window.wnck.get_xid() for window in self]
-        if xid in xids:
-            return self.dockmanager.get_path()
-
     def get_desktop_entry_file_name(self):
         if self.desktop_entry:
             file_name = self.desktop_entry.getFileName()
@@ -683,7 +625,7 @@ class Group(ListOfWindows):
         minimize = self.get_unminimized_count() > 0
 
         menu = GroupMenu(self.globals.settings["old_menu"])
-        menu.build_group_menu(self.desktop_entry, self.dockmanager, \
+        menu.build_group_menu(self.desktop_entry, \
                               self.quicklist, self.pinned, self.locked_popup, \
                               use_locked_popup, win_nr, minimize, maximize)
 
@@ -794,12 +736,6 @@ class Group(ListOfWindows):
            quicklist.get(identifier[10:]) is not None:
             self.desktop_entry.launch_quicklist_entry(identifier[10:])
             return
-        if self.dockmanager:
-            for id, menu_item in list(self.dockmanager.get_menu_items().items()):
-                if identifier == "dockmanager_%s" % id:
-                    self.dockmanager.MenuItemActivated(id)
-                    self.popup.hide()
-                    return
         menu_funcs = \
             {_("_Close"): self.action_close_all_windows,
              _("_Close") + _(" all windows"): self.action_close_all_windows,
@@ -2717,7 +2653,7 @@ class GroupMenu(GObject.GObject):
             self.menu.on_popup_reallocate = lambda p: p.set_previews(None)
         self.menu.show()
 
-    def build_group_menu(self, desktop_entry, dockmanager, quicklist, \
+    def build_group_menu(self, desktop_entry, quicklist, \
                          pinned, locked_popup, use_locked_popup, \
                          win_nr, minimize, maximize):
         # Launcher stuff
@@ -2732,9 +2668,6 @@ class GroupMenu(GObject.GObject):
             self.add_submenu(_("Properties"))
             self.add_item(_("Edit Identifier"), _("Properties"))
             self.add_item(_("Edit Launcher"), _("Properties"))
-        # DockManager
-        if dockmanager:
-            self.__build_dockmanager_menu(dockmanager)
         # Quicklist
         self.__build_quicklist_menu(desktop_entry, quicklist)
         # Recent and most used files
@@ -2766,19 +2699,6 @@ class GroupMenu(GObject.GObject):
             else:
                 self.add_item(_("Unma_ximize") + t)
             self.add_item(_("_Close") + t)
-
-    def __build_dockmanager_menu(self, dockmanager):
-        dm_menu_items = dockmanager.get_menu_items()
-        if dm_menu_items:
-            self.add_separator()
-        for (identifier, item) in list(dm_menu_items.items()):
-            submenu = item.get("container-title", None)
-            if submenu and not self.has_submenu(submenu):
-                self.add_submenu(submenu)
-            if item["label"]:
-                identifier = "dockmanager_%s" % identifier
-                self.add_item(item["label"], submenu,
-                              identifier=identifier)
 
     def __build_quicklist_menu(self, desktop_entry, quicklist):
         # Unity static quicklist
