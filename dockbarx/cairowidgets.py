@@ -315,7 +315,11 @@ class CairoCloseButton(CairoSmallButton):
                                            "#FFFFF")
                 xa = self.popup_style.get("close_button_x_alpha", 0)
         if button_source is None:
-            button_source = self.__make_button_surface(w, h, bgc, bga, xc, xa)
+            button_source = self.__make_button_surface(self.size, self.size, bgc, bga, xc, xa)
+        if (self.size < w):
+            x = (w - self.size) // 2
+        if (self.size < h):
+            y = (h - self.size) // 2
         ctx.set_source_surface(button_source, x, y)
         ctx.paint()
 
