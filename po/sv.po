@@ -715,18 +715,6 @@ msgstr "Döljbeteende"
 msgid "disabled"
 msgstr "inaktiverad"
 
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-"AWN beteendena \"Dölj smart\" och \"Undvik fönster\" fungerar inte om AWN "
-"appleten Aktivitetshanterare inte kör. Sätt döljbeteende här istället."
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
-
 #: dbx_preference:1366
 msgid "Dock"
 msgstr "Docka"

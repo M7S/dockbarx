@@ -695,16 +695,6 @@ msgstr "闪避窗口行为"
 msgid "disabled"
 msgstr "禁用"
 
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr "AWN行为模式“自动隐藏”和“躲避窗口”在AWN小工具“任务管理器”未运行时无法工作。请在此处设置闪避窗口行为以代替。"
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
-
 #: dbx_preference:1366
 msgid "Dock"
 msgstr "停靠栏"

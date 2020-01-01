@@ -470,7 +470,6 @@ class PrefDialog():
         dock_box = Gtk.VBox()
         self.applets_frame = AppletsFrame()
         dock_applets_box = self.applets_frame.get_box()
-        awn_box = Gtk.VBox()
 
         #--- Window item page
         hbox = Gtk.HBox()
@@ -1387,25 +1386,6 @@ class PrefDialog():
         dock_box.pack_start(frame, False, True, 0)
 
 
-        #--- AWN page
-        hbox = Gtk.HBox()
-        hbox.set_border_width(5)
-        hbox.set_spacing(5)
-        label = Gtk.Label(label=_("Dodge behavior"))
-        hbox.pack_start(label, False, False, 0)
-        self.awn_behavior_box = Gtk.ComboBoxText()
-        for beh in (_("disabled"), _("dodge windows"),
-                    _("dodge active window")):
-            self.awn_behavior_box.append_text(beh)
-        self.awn_behavior_box.connect("changed", self.__cb_changed)
-        hbox.pack_start(self.awn_behavior_box, False, True, 0)
-        awn_box.pack_start(hbox, False, True, 0)
-        label = Gtk.Label(label=_("AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the awn applet Taskmanager is not running. Set dodge behavior here instead."))
-        label.set_line_wrap(True)
-        awn_box.pack_start(label, False, True, 0)
-
-
-        notebook.append_page(awn_box, Gtk.Label(label=_("AWN")))
         notebook.append_page(dock_box, Gtk.Label(label=_("Dock")))
         notebook.append_page(dock_applets_box, Gtk.Label(label=_("Dock Applets")))
         notebook.append_page(appearance_box, Gtk.Label(label=_("Appearance")))
@@ -1418,21 +1398,16 @@ class PrefDialog():
         self.__update()
         self.dialog.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
         self.dialog.show_all()
-        awn = False
         dock = False
         for name in dbus.SessionBus().list_names():
             if str(name).startswith("org.dockbar.DockX"):
                 dock = True
-            if str(name).startswith("org.dockbar.AWNapplet"):
-                awn = True
         notebook.set_current_page(0)
         if not dock:
             dock_box.hide()
             #~ dock_applets_box.hide()
         # Applets doesn't work at the moment so lets hide the box.
         dock_applets_box.hide()
-        if not awn:
-            awn_box.hide()
 
     def __load_theme(self):
         self.themes = self.__find_themes()
@@ -1853,14 +1828,6 @@ class PrefDialog():
         else:
             self.dock_bar2_box.hide()
 
-        # Awn
-        model = self.awn_behavior_box.get_model()
-        for i in range(len(model)):
-            beh = self.globals.settings["awn/behavior"].lower()
-            if model[i][0].lower() == _(beh):
-                self.awn_behavior_box.set_active(i)
-                break
-
     def dialog_close(self,par1,par2):
         self.dialog.destroy()
         Gtk.main_quit()
@@ -2001,15 +1968,6 @@ class PrefDialog():
                 if value == _(p) and \
                    p != self.globals.settings["dock/behavior"]:
                     self.dock_gsettings.set_string("behavior", p)
-
-        #TODO: make AWN schema
-        #if combobox == self.awn_behavior_box:
-        #    pos = ("disabled", "dodge windows",
-        #           "dodge active window")
-        #    for p in pos:
-        #        if value == _(p) and \
-        #           p != self.globals.settings["awn/behavior"]:
-        #            GCONF_CLIENT.set_string(GCONF_DIR+"/awn/behavior", p)
 
     def __adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to gconf

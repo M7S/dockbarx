@@ -716,19 +716,6 @@ msgstr "Evita funzione"
 msgid "disabled"
 msgstr "disabilitato"
 
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-"Le modalità di comportamento di AWN \"Nascondimento intelligente\" e \"Evita "
-"le finestre\" non funzionano se l'applet di awn Taskmanager non è in "
-"esecuzione. Imposta, invece, il comportamento elusivo."
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
-
 #: dbx_preference:1366
 msgid "Dock"
 msgstr "Dock"

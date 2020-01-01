@@ -717,16 +717,6 @@ msgstr "Comportamento de desvio"
 msgid "disabled"
 msgstr "desabilitado"
 
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
-
 #: dbx_preference:1366
 msgid "Dock"
 msgstr "Dock"

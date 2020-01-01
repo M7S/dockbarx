@@ -697,18 +697,6 @@ msgstr "비키기 동작 방식"
 msgid "disabled"
 msgstr "사용 않음"
 
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-"AWN 애플릿 작업 관리자가 실행 중이 아니라면 AWN 동작 방식 모드 \"똑똑한 숨기기\" 그리고 \"창 피하기\"는 작동하지 "
-"않습니다. 대신 비키기 동작 방식을 이용해 주십시오."
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
-
 #: dbx_preference:1366
 msgid "Dock"
 msgstr "독"

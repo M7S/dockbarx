@@ -68,11 +68,6 @@ A: If you find a theme on the web that you like, copy the file (should be SOMETH
 
 A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad. I'm happy to help theme developers as much as I can.
 
-### AWN questions
-*Q: When I use dockbarx in AWN, IntelliHide and Window Dodge behaviors doesn't work. Why? Can I do anything about it?*
-
-A: For IntelliHide and Window Dodge to work, AWN Taskmanager applet has to be activated. So to get back IntelliHide or Window Dodge, simply add Taskmanager to your applet list again. If you think using Taskmanager and DockbarX at the same time looks a bit weird, you can go to the Task Manager tab of AWN preference and check the option "Display launchers only" and then remove all the launchers in the list. That will give you a completely invisible Taskmanager that will make sure IntelliHide and Window Dodge works as they should.
-
 [^1]: Using [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin)
 
 

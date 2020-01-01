@@ -698,18 +698,6 @@ msgstr "回避の挙動"
 msgid "disabled"
 msgstr "無効"
 
-#: dbx_preference:1360
-msgid ""
-"AWN behavior modes \"Intellihide\" and \"Avoid windows\" doesn't work if the "
-"awn applet Taskmanager is not running. Set dodge behavior here instead."
-msgstr ""
-"AWN の挙動モードである”賢く隠す”や”ウィンドウ回避”は、AWN "
-"のタスクマネージャ・アプレットが実行されていないと働きません。代わりにこちらで回避の挙動を指定してください。"
-
-#: dbx_preference:1365
-msgid "AWN"
-msgstr "AWN"
-
 #: dbx_preference:1366
 msgid "Dock"
 msgstr "ドック"
