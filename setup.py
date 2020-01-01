@@ -134,8 +134,7 @@ data_files=[
                                              "dockx_applets/namebar_window_buttons.py",
                                              "dockx_applets/namebar_window_title.applet",
                                              "dockx_applets/namebar_window_title.py"]),
-            ("/usr/bin", ["dockbarx_factory", "dockbarx_mate_applet", "dbx_preference", "dockx"]),
-            ("/usr/lib/bonobo/servers", ["GNOME_DockBarXApplet.server"]),
+            ("/usr/bin", ["dockbarx_mate_applet", "dbx_preference", "dockx"]),
             ("/usr/share/applications/", ["dbx_preference.desktop"]),
             ("/usr/share/applications/", ["DockX.desktop"]),
             ("/usr/share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml"]),
@@ -170,17 +169,6 @@ if len(sys.argv) == 2 and sys.argv[1] == "install":
         else:
             print("/usr/bin/dockbarx.py is not removed. " + \
                   "Please remove it or rename it manually.")
-
-    if os.path.exists("/usr/bin/dockbarx_factory.py"):
-        print()
-        print("There is a dockbarx_factory.py in /usr/bin. " + \
-              "This file is no longer used.")
-        remove = input("Remove /usr/bin/dockbarx_factory.py? (Y/n)")
-        if remove == "" or remove[0].lower() == "y":
-            os.remove("/usr/bin/dockbarx_factory.py")
-            print("/usr/bin/dockbarx_factory.py is removed. ")
-        else:
-            print("/usr/bin/dockbarx_factory.py is not removed. ")
 
     if os.path.exists("/usr/bin/dbx_preference.py"):
         print()

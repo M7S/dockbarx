@@ -2440,14 +2440,14 @@ class LockedPopup(GroupPopup):
             prop2 = w.get_full_property(strut_atom, 0)
             if prop1 is not None:
                 cl = w.get_wm_class()
-                if cl and cl[0] in ("dockx", "dockbarx_factory"):
+                if cl and cl[0] == "dockx":
                     continue
                 if prop1.value[10] <= x2 or prop1.value[11] >= x1:
                     strut = max(strut, prop1.value[3])
                 continue
             if prop2 is not None:
                 cl = w.get_wm_class()
-                if cl and cl[0] in ("dockx", "dockbarx_factory"):
+                if cl and cl[0] == "dockx":
                     continue
                 strut = max(strut, prop2.value[3])
         return strut
