@@ -374,7 +374,8 @@ class WindowItem(CairoButton):
         self.close_button.destroy()
 
     def show(self):
-        self.update_preview()
+        if self.globals.settings["preview"]:
+            self.update_preview()
         CairoButton.show(self)
 
     def __on_show_close_button_changed(self, *args):
@@ -478,7 +479,8 @@ class WindowItem(CairoButton):
 
     def set_show_preview(self, show_preview):
         if show_preview:
-            self.set_preview_image()
+            if self.group_r().popup.popup_showing:
+                self.set_preview_image()
             self.preview.show()
         else:
             self.preview.hide()

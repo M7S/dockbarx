@@ -2203,10 +2203,12 @@ class GroupPopup(CairoPopup):
         except:
             logger.exception("If an empty popup was shown this " + \
                              "might have somethin to do with it:")
-        for window in group:
-            window.item.set_show_preview(True)
-        CairoPopup.show_all(self)
+
         self.popup_showing = True
+        if self.globals.settings["preview"]:
+            for window in group:
+                window.item.set_show_preview(True)
+        CairoPopup.show_all(self)
 
         # Hide locked popup.
         if self.globals.get_locked_popup():
@@ -2530,8 +2532,9 @@ class WindowList(Gtk.Box):
             return False
 
     def add_item(self, item):
-        item.set_show_preview(self.show_previews)
-        item.update_preview()
+        if self.show_previews:
+            item.update_preview()
+            item.set_show_preview(self.show_previews)
         self.window_box.pack_start(item, True, True, 0)
 
     def reorder_item(self, index, item):
