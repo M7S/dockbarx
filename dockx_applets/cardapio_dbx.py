@@ -17,6 +17,8 @@
 #
 
 import sys
+import gi
+gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from dockbarx.applets import DockXApplet
 sys.path.insert(0, "/usr/lib/cardapio")

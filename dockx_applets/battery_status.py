@@ -33,9 +33,10 @@ import os
 import sys
 import platform
 import time
+import gi
+gi.require_version("Gtk", "3.0")
 from gi.repository import GObject
 from gi.repository import Gtk
-import gi
 from gi.repository import GConf
 import dbus
 from dockbarx.applets import DockXApplet

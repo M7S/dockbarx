@@ -20,6 +20,8 @@
 from tarfile import open as taropen
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
+import gi
+gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import GObject
 import cairo

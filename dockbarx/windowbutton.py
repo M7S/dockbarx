@@ -17,7 +17,6 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Wnck
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -25,6 +24,8 @@ from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from gi.repository import Pango
+gi.require_version('Wnck', '3.0')
+from gi.repository import Wnck
 import weakref
 import gc
 gc.enable()
@@ -332,7 +333,6 @@ class WindowItem(CairoButton):
         self.preview.set_valign(Gtk.Align.CENTER)
         self.preview.set_margin_top(4)
         self.preview.set_margin_bottom(2)
-        self.preview.show()
         vbox.pack_start(self.preview, True, True, 0)
         self.add(vbox)
         self.preview.set_no_show_all(True)
@@ -374,7 +374,8 @@ class WindowItem(CairoButton):
         self.close_button.destroy()
 
     def show(self):
-        self.update_preview()
+        if self.globals.settings["preview"]:
+            self.update_preview()
         CairoButton.show(self)
 
     def __on_show_close_button_changed(self, *args):
@@ -478,7 +479,8 @@ class WindowItem(CairoButton):
 
     def set_show_preview(self, show_preview):
         if show_preview:
-            self.set_preview_image()
+            if self.group_r().popup.popup_showing:
+                self.set_preview_image()
             self.preview.show()
         else:
             self.preview.hide()
@@ -501,6 +503,7 @@ class WindowItem(CairoButton):
                 pixmap = xwin.composite_name_window_pixmap()
                 image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
             except:
+                self.preview.set_from_pixbuf(window.wnck.get_icon())
                 return;
             im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
             data = im.tobytes()
