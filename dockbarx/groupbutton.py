@@ -25,6 +25,7 @@ from gi.repository import Gdk
 from gi.repository import GdkX11
 from gi.repository import GObject
 from gi.repository import GLib
+gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from time import time
 from time import sleep

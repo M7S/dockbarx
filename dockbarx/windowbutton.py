@@ -17,7 +17,6 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Wnck
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -25,6 +24,8 @@ from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from gi.repository import Pango
+gi.require_version('Wnck', '3.0')
+from gi.repository import Wnck
 import weakref
 import gc
 gc.enable()

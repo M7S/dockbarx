@@ -21,6 +21,7 @@ from gi.repository import Gtk
 from gi.repository import Pango
 import sys
 import os
+gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GConf
 from tarfile import open as taropen

@@ -20,13 +20,15 @@
 import os
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 from gi.repository import GObject
 from gi.repository import Gio
 from gi.repository import GLib
 import xdg.DesktopEntry
 from urllib.parse import unquote
 from time import time
-from gi.repository import Gtk
 import weakref
 import locale
 from .log import logger
