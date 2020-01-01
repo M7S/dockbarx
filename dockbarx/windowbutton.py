@@ -333,7 +333,6 @@ class WindowItem(CairoButton):
         self.preview.set_valign(Gtk.Align.CENTER)
         self.preview.set_margin_top(4)
         self.preview.set_margin_bottom(2)
-        self.preview.show()
         vbox.pack_start(self.preview, True, True, 0)
         self.add(vbox)
         self.preview.set_no_show_all(True)
