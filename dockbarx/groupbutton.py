@@ -1153,7 +1153,8 @@ class Group(ListOfWindows):
                                                         self.scrollpeak_select)
             while Gtk.events_pending():
                     Gtk.main_iteration()
-            self.scrollpeak_window.opacify()
+            if self.scrollpeak_window: #TODO: find out why scollpeak_window is None sometimes.
+                self.scrollpeak_window.opacify()
 
     def action_select_previous(self, widget=None, event=None):
         self.action_select_next(widget, event, previous=True)
