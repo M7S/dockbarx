@@ -337,7 +337,7 @@ class WindowItem(CairoButton):
         self.add(vbox)
         self.preview.set_no_show_all(True)
         vbox.show_all()
-        
+
         self.show_all()
         self.update_show_state()
 
@@ -409,7 +409,7 @@ class WindowItem(CairoButton):
         pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, icon.get_width(), icon.get_height())
         pixbuf.fill(0x00000000)
         minimized_icon = pixbuf.copy()
-        icon.composite(pixbuf, 0, 0, pixbuf.get_width(), pixbuf.get_height(), 
+        icon.composite(pixbuf, 0, 0, pixbuf.get_width(), pixbuf.get_height(),
                        0, 0, 1, 1, GdkPixbuf.InterpType.BILINEAR, 190)
         pixbuf.saturate_and_pixelate(minimized_icon, 0.12, False)
         return minimized_icon
@@ -489,7 +489,7 @@ class WindowItem(CairoButton):
         a = self.preview.get_allocation()
         self.area.set_preview_allocation(a)
         return a
-    
+
     def set_preview_image(self):
         window = self.window_r()
         if window.wnck.is_minimized():

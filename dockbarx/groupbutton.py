@@ -1885,7 +1885,7 @@ class GroupButton(CairoAppButton):
         else:
             delay = self.globals.settings["second_popup_delay"]
         if not self.globals.gtkmenu and not self.globals.dragging:
-            group.popup.show(delay)
+            group.popup.show_after_delay(delay)
         self.update_state()
         # Opacify
         if self.globals.settings["opacify"] and \
@@ -2124,14 +2124,27 @@ class GroupPopup(CairoPopup):
         CairoPopup.on_leave_notify_event(self, widget, event)
         self.hide_if_not_hovered()
 
-    def show(self, delay=None, force=False):
+    def show_after_delay(self, delay=0, force=False):
+        # Prepare window preview so they are ready when the popup is shown.
+        if self.globals.settings["preview"]:
+            for window in group:
+                GLib.idle_add(window.item.set_preview_image)
+        if not delay:
+            # No delay, show it now.
+            self.show(force)
+            return
+        if self.show_sid is not None:
+            GLib.source_remove(self.show_sid)
+            self.show_sid = None
+        self.show_sid = GLib.timeout_add(delay, self.show, force)
+        return
+
+
+    def show(self, force=False):
         group = self.group_r()
         if self.show_sid is not None:
             GLib.source_remove(self.show_sid)
             self.show_sid = None
-        if delay:
-            self.show_sid = GLib.timeout_add(delay, self.show)
-            return
         if group.locked_popup:
             if force:
                 group.locked_popup.hide()
@@ -2147,9 +2160,6 @@ class GroupPopup(CairoPopup):
                              "might have something to do with it:")
 
         self.popup_showing = True
-        if self.globals.settings["preview"]:
-            for window in group:
-                window.item.set_show_preview(True)
         CairoPopup.show_all(self)
 
         # Hide locked popup.
