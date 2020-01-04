@@ -730,7 +730,7 @@ class IconFactory():
             w = surface.get_width()
             h = surface.get_height()
             new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-            ctx = cairo.Context(new))
+            ctx = cairo.Context(new)
             ctx.set_source_surface(surface)
             ctx.paint_with_alpha(alpha)
             return new
