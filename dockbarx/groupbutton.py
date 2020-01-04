@@ -1871,12 +1871,13 @@ class GroupButton(CairoAppButton):
             # pressed (compiz bug).
             return
         self.mouse_over = True
-        self.update_state()
         window_cnt = group.get_count()
         if window_cnt <= 1 and \
            self.globals.settings["no_popup_for_one_window"]:
+            self.update_state()
             return
         if  window_cnt == 0 and not group.media_controls:
+            self.update_state()
             return
 
         if self.globals.get_shown_popup() is None:
@@ -1885,6 +1886,7 @@ class GroupButton(CairoAppButton):
             delay = self.globals.settings["second_popup_delay"]
         if not self.globals.gtkmenu and not self.globals.dragging:
             group.popup.show(delay)
+        self.update_state()
         # Opacify
         if self.globals.settings["opacify"] and \
            self.globals.settings["opacify_group"]:
@@ -1900,7 +1902,6 @@ class GroupButton(CairoAppButton):
             return
         self.mouse_over = False
         self.pressed = False
-        self.update_state()
         group.popup.cancel_show_request()
         group.popup.hide_if_not_hovered()
         if self.globals.settings["opacify"] \
@@ -1909,6 +1910,7 @@ class GroupButton(CairoAppButton):
         if not self.globals.settings["select_next_activate_immediately"] and \
            group.scrollpeak_sid is not None:
             group.scrollpeak_select()
+        self.update_state()
 
 
 
@@ -2012,6 +2014,8 @@ class GroupPopup(CairoPopup):
 
     def set_child_(self, child):
         old_child = self.alignment.get_child()
+        if old_child == child:
+            return
         if old_child:
             self.alignment.remove(old_child)
         self.alignment.add(child)
@@ -2140,7 +2144,7 @@ class GroupPopup(CairoPopup):
                 return
         except:
             logger.exception("If an empty popup was shown this " + \
-                             "might have somethin to do with it:")
+                             "might have something to do with it:")
 
         self.popup_showing = True
         if self.globals.settings["preview"]:

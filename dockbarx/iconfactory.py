@@ -131,8 +131,8 @@ class IconFactory():
 
     def get_icon(self, size):
         return self.__find_icon_pixbuf(size)
-        
- 
+
+
     def reset_icon(self):
         self.icon = None
 
@@ -174,7 +174,7 @@ class IconFactory():
             surface = self.__dd_highlight(surface, is_vertical, dnd)
             gc.collect()
         return surface
-    
+
     def __do_commands(self, surface, commands):
         for command, args in list(commands.items()):
             try:
@@ -490,7 +490,7 @@ class IconFactory():
                 w = size
                 h = pb.get_height() * size // pb.get_width()
             self.icon = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
-            ctx = Gdk.CairoContext(cairo.Context(self.icon))
+            ctx = cairo.Context(self.icon)
             pbs = pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
             woffset = round((size - w) / 2.0)
             hoffset = round((size - h) / 2.0)
@@ -730,7 +730,7 @@ class IconFactory():
             w = surface.get_width()
             h = surface.get_height()
             new = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
-            ctx = Gdk.CairoContext(cairo.Context(new))
+            ctx = cairo.Context(new))
             ctx.set_source_surface(surface)
             ctx.paint_with_alpha(alpha)
             return new
