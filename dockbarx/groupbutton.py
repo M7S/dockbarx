@@ -399,7 +399,7 @@ class Group(ListOfWindows):
 
         # Set minimize animation
         # (if the eventbox is created already,
-        # otherwice the icon animation is set in sizealloc())
+        # otherwise the icon animation is set in sizealloc())
         self.button.set_icongeo(window)
         self.remove_launch_timer()
 
@@ -1145,12 +1145,8 @@ class Group(ListOfWindows):
             self.scrollpeak_window.item.set_highlighted(True)
             if self.scrollpeak_sid is not None:
                 GLib.source_remove(self.scrollpeak_sid)
-            if keyboard_select:
-                self.scrollpeak_sid = GLib.timeout_add(600,
-                                                        self.scrollpeak_select)
-            else:
-                self.scrollpeak_sid = GLib.timeout_add(1500,
-                                                        self.scrollpeak_select)
+            if not keyboard_select:
+                self.scrollpeak_sid = GLib.timeout_add(1500, self.scrollpeak_select)
             while Gtk.events_pending():
                     Gtk.main_iteration()
             if self.scrollpeak_window: #TODO: find out why scollpeak_window is None sometimes.
@@ -2125,22 +2121,30 @@ class GroupPopup(CairoPopup):
         self.hide_if_not_hovered()
 
     def show_after_delay(self, delay=0, force=False):
+        group = self.group_r()
         # Prepare window preview so they are ready when the popup is shown.
         if self.globals.settings["preview"]:
             for window in group:
                 GLib.idle_add(window.item.set_preview_image)
         if not delay:
             # No delay, show it now.
-            self.show(force)
+            self.__show(force)
             return
         if self.show_sid is not None:
             GLib.source_remove(self.show_sid)
             self.show_sid = None
-        self.show_sid = GLib.timeout_add(delay, self.show, force)
+        self.show_sid = GLib.timeout_add(delay, self.__show, force)
         return
 
 
     def show(self, force=False):
+        group = self.group_r()
+        if self.globals.settings["preview"]:
+            for window in group:
+                GLib.idle_add(window.item.set_preview_image)
+        self.__show(force)
+
+    def __show(self, force=False):
         group = self.group_r()
         if self.show_sid is not None:
             GLib.source_remove(self.show_sid)

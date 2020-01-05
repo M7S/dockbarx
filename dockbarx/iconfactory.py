@@ -145,7 +145,7 @@ class IconFactory():
     def surface_update(self, type_ = 0):
         # Checks if the requested pixbuf is already
         # drawn and returns it if it is.
-        # Othervice the surface is drawn, saved and returned.
+        # Otherwise the surface is drawn, saved and returned.
 
         #The first four bits of type_ is for telling the number of windows
         self.win_nr = min(type_ & 15, self.max_win_nr)

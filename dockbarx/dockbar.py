@@ -36,6 +36,7 @@ from xdg.DesktopEntry import ParsingError
 
 from .common import *
 from .log import logger
+from .key_listener import KeyListener
 
 from . import i18n
 _ = i18n.language.gettext
@@ -386,7 +387,7 @@ class GroupList(list):
         # size is set from outside this class using this funtction.
         self.max_size = max_size
         self.manage_size_overflow()
-        
+
     def get_max_size(self):
         return self.max_size
 
@@ -446,6 +447,8 @@ class DockBar():
         self.groups = None
         self.size = None
         self.kbd_sid = None
+        self.key_listener = None
+        self.listen_for_super_sid = None
 
         self.parent_window_reporting = False
         self.parent_handles_menu = False
@@ -733,7 +736,7 @@ class DockBar():
         self.size = size
         for group in self.groups:
             group.button.icon_factory.set_size(size)
-            # The size is manually set from now on. 
+            # The size is manually set from now on.
             # Tell the should not be set from allocation anymore.
             group.button.set_manual_size(True)
             # Update the button so that it get the new size.
@@ -742,7 +745,7 @@ class DockBar():
     def set_max_size(self, max_size):
         """Set the max size DockbarX is allowed to occupy."""
         self.groups.set_max_size(max_size)
-        
+
     def get_max_size(self):
         return self.groups.get_max_size()
 
@@ -1778,60 +1781,6 @@ class DockBar():
     def __select_previous_window_in_group(self):
         self.__select_next_window_in_group(previous=True)
 
-    #~ def __key_pressed(self, widget, event):
-        #~ print "Keypressed"
-        #~ functions = {"gkeys_select_next_group": self.__select_next_group,
-                     #~ "gkeys_select_previous_group": \
-                                #~ self.__select_previous_group,
-                     #~ "gkeys_select_next_window": \
-                                #~ self.__select_next_window_in_group,
-                     #~ "gkeys_select_previous_window": \
-                                #~ self.__select_previous_window_in_group}
-        #~ keyname = Gdk.keyval_name(event.keyval)
-        #~ # Check if it's a number shortcut.
-        #~ if Gdk.EventMask.SUPER_MASK & event.get_state():
-            #~ keys = [str(n) for n in range(10)]
-            #~ if keyname in keys:
-                #~ self.__on_number_shortcut_pressed(int(keyname),
-                                                  #~ keyboard_grabbed=True)
-                #~ return
-        #~ # Check if it's any other global shortcut.
-        #~ for name, func in functions.items():
-            #~ if not self.globals.settings[name]:
-                #~ continue
-            #~ keystring = self.globals.settings["%s_keystr" % name]
-            #~ keystr = keystr.replace("[", "<")
-            #~ keystr = keystr.replace("]", ">")
-            #~ mod_keys = {"super": Gdk.EventMask.SUPER_MASK,
-                        #~ "alt": Gdk.ModifierType.MOD1_MASK,
-                        #~ "control": Gdk.ModifierType.CONTROL_MASK,
-                        #~ "shift": Gdk.ModifierType.SHIFT_MASK}
-            #~ if "ISO_Left_Tab" in keystring:
-                #~ # ISO_Left_Tab implies that shift has been used in combination
-                #~ # with tab so we don't need to check if shift is pressed
-                #~ # or not.
-                #~ del mod_keys["shift"]
-            #~ elif "shift" in keystring.lower() and "Tab" in keystring:
-                #~ keystring = keystring.replace("Tab", "ISO_Left_Tab")
-            #~ for key, mask in mod_keys.items():
-                #~ if (key in keystring.lower()) !=  bool(mask & event.get_state()):
-                    #~ break
-            #~ else:
-                #~ keystring = keystring.rsplit(">")[-1]
-                #~ if keyname.lower() == keystring.lower():
-                    #~ func()
-
-    #~ def __key_released(self, widget, event):
-        #~ print "key releasead: ", Gdk.keyval_name(event.keyval)
-        #~ keyname = Gdk.keyval_name(event.keyval)
-        #~ for key in self.mod_keys:
-            #~ if key in keyname:
-                #~ self.__select_or_launch()
-                #~ Gdk.keyboard_ungrab(event.time)
-                #~ if self.parent:
-                    #~ disconnect(self.parent)
-                #~ break
-
     def __select_or_launch(self, *args):
         group = self.next_group
         if group is not None:
@@ -1870,6 +1819,7 @@ class DockBar():
                     pass
 
     def __on_number_shortcut_pressed(self, key, n, keyboard_grabbed=False):
+        # Pick the group that corresponds to the number pressed.
         if n == 0:
             n = 10
         n -= 1
@@ -1877,32 +1827,65 @@ class DockBar():
             group = self.groups[n]
         except IndexError:
             return
+        # Get the windows of the group.
         windows = group.get_windows()
         if len(windows) > 1:
+            # Show the window list and let it remain open until the
+            # super key is released.
             group.action_select_next(keyboard_select=True)
             if self.next_group is not None and self.next_group != group:
+                # If another window list is shown, close it.
                 self.next_group.scrollpeak_abort()
             self.next_group = group
-            #~ if self.parent and not keyboard_grabbed:
-                #~ print "kbdgrb", Gdk.keyboard_grab(self.parent.get_window(), False, Gdk.CURRENT_TIME)
-                #~ connect(self.parent, "key-release-event", self.__key_released)
-                #~ connect(self.parent, "key-press-event", self.__key_pressed)
-                #~ self.mod_keys = ["Super"]
-        else:
-            Gdk.keyboard_ungrab(Gdk.CURRENT_TIME)
-            if self.next_group:
-                self.next_group.scrollpeak_abort()
-            if self.parent:
-                disconnect(self.parent)
-            self.next_group = None
-            if self.keyboard_show_dock:
-                self.parent.show()
-                GLib.timeout_add(600, self.parent.show_dock)
+            # Load the key_listener module if it isn't loaded.
+            if self.key_listener is None:
+                self.key_listener = KeyListener()
+            # Listen for when the super key is released.
+            if self.listen_for_super_sid is None:
+                self.listen_for_super_sid = self.key_listener.connect("key-released", self.__on_super_released)
+                self.key_listener.listen_for_super_released()
+            return
+        # Only one or no windows.
+        if self.next_group:
+            self.next_group.scrollpeak_abort()
+        self.next_group = None
+        # No window list needs to be shown but we still
+        # like the dock to be shown if it's hidden.
+        if self.keyboard_show_dock:
+            self.parent.show()
+            GLib.timeout_add(600, self.parent.show_dock)
         if not windows:
+            # No windows.
+            # If it's a media player, let's try to show it.
             success = False
             if group.media_controls:
                 success = group.media_controls.show_player()
+            # Otherwise, launch the application.
             if not group.media_controls or not success:
                 group.action_launch_application()
         if len(windows) == 1:
+            # Just one window. Let's focus on it straight away.
             windows[0].action_select_window()
+
+    def __on_super_released(self, *args):
+        # Break the signal connection to avoid multiple release calls.
+        if self.listen_for_super_sid is not None:
+            self.key_listener.disconnect(self.listen_for_super_sid)
+            self.listen_for_super_sid = None
+        if not self.next_group:
+            return
+        group = self.next_group
+        if group.get_count() > 0:
+            # Select the highlighted window.
+            group.scrollpeak_select()
+        else:
+            # No open windows.
+            # Not sure when we get here since we we had
+            # more than one open window we the shortcut was pressed.
+            if group.media_controls:
+                success = group.media_controls.show_player()
+                if success:
+                    group.scrollpeak_abort()
+            if not group.media_controls or not success:
+                group.action_launch_application()
+        self.next_group = None

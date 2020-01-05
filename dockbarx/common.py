@@ -315,7 +315,7 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
         for i in iterlist:
             cmd = command
             # It's an assumption that no desktop entry has more than one
-            # of "%f", "%F", "%u" or "%U" in it's command. Othervice some
+            # of "%f", "%F", "%u" or "%U" in it's command. Otherwise some
             # files might be launched multiple times with this code.
             if "%f" in cmd:
                 try:
