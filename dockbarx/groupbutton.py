@@ -1258,8 +1258,8 @@ class Group(ListOfWindows):
             return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
-        #~ GLib.timeout_add(self.globals.settings["popup_delay"] + 200,
-                            #~ self.popup.hide)
+        GLib.timeout_add(self.globals.settings["popup_delay"] + 200,
+                            self.popup.hide)
         #~ self.deopacify()
 
     def action_compiz_shift_windows(self, widget, event):
@@ -1287,8 +1287,8 @@ class Group(ListOfWindows):
             return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
-        #~ GLib.timeout_add(self.globals.settings["popup_delay"]+ 200,
-                            #~ self.popup.hide)
+        GLib.timeout_add(self.globals.settings["popup_delay"]+ 200,
+                            self.popup.hide)
         #~ self.deopacify()
 
     def action_compiz_scale_all(self, widget, event):
@@ -1304,8 +1304,8 @@ class Group(ListOfWindows):
             return
         # A new button enter signal is sent when compiz is called,
         # a delay is therefor needed.
-        #~ GLib.timeout_add(self.globals.settings["popup_delay"]+ 200,
-                            #~ self.popup.hide)
+        GLib.timeout_add(self.globals.settings["popup_delay"]+ 200,
+                            self.popup.hide)
         self.popup.hide()
         self.deopacify()
 
