@@ -887,7 +887,7 @@ class Group(ListOfWindows):
         windows_stacked = screen.get_windows_stacked()
         grp_win_stacked = []
         ignorelist = []
-        minimized_win_cnt = len([w for w in self if w.wnck.is_minimized()])
+        minimized_windows = self.get_minimized_windows()
         moved = False
         grtop = False
         wingr = False
@@ -899,32 +899,35 @@ class Group(ListOfWindows):
         # them (unless they are on another workspace and work-
         # space behavior is somehting other than move) and
         # return.
-        unminimized = False
-        if minimized_win_cnt > 0:
-            for window in self:
-                if window.wnck.is_minimized():
-                    ignored = False
-                    if not window.wnck.is_pinned() \
-                    and window.wnck.get_workspace() is not None \
-                    and window.wnck.get_workspace() != active_workspace:
-                        if mode == "move":
-                            ws = screen.get_active_workspace()
-                            window.wnck.move_to_workspace(ws)
-                        else: # mode == "ignore" or "switch"
-                            ignored = True
-                    if not window.wnck.is_in_viewport(active_workspace):
-                        if mode == "move":
-                            wx, wy, ww, wh = window.wnck.get_geometry()
-                            window.wnck.set_geometry(0,3,wx%screen.get_width(),
-                                             wy%screen.get_height(),
-                                             ww, wh)
-                        else: # mode == "ignore" or "switch"
-                            ignored = True
-                    if not ignored:
-                        window.wnck.unminimize(event.time)
-                        unminimized = True
-        if unminimized:
-            return
+        if self.get_unminimized_count == 0:
+            # Only unminimize if all windows are minimize
+            unminimized = False
+            for window in minimized_windows:
+                ignored = False
+                # Check if the window is on another workspace
+                if not window.wnck.is_pinned() \
+                and window.wnck.get_workspace() is not None \
+                and window.wnck.get_workspace() != active_workspace:
+                    if mode == "move":
+                        ws = screen.get_active_workspace()
+                        window.wnck.move_to_workspace(ws)
+                    else: # mode == "ignore" or "switch"
+                        ignored = True
+                # Check if the window is on another viewport
+                if not window.wnck.is_in_viewport(active_workspace):
+                    if mode == "move":
+                        wx, wy, ww, wh = window.wnck.get_geometry()
+                        window.wnck.set_geometry(0,3,
+                                         wx%screen.get_width(),
+                                         wy%screen.get_height(),
+                                         ww, wh)
+                    else: # mode == "ignore" or "switch"
+                        ignored = True
+                if not ignored:
+                    window.wnck.unminimize(event.time)
+                    unminimized = True
+            if unminimized:
+                return
 
         # Make a list of the windows in group with the bottom most
         # first and top most last.
@@ -1035,9 +1038,14 @@ class Group(ListOfWindows):
             ignorelist.reverse()
             grp_win_stacked = [w for w in ignorelist if w in grp_win_stacked]
 
+        # Minimize all windows if the top most window belongs to the
+        # application and no windows has been moved to a diffrent
+        # workspace and minimizing is allowed.
         if grtop and not moved and minimize:
             for window in grp_win_stacked:
                 window.wnck.minimize()
+        # If the topmost window doesn't belong to the application,
+        # raise all windows.
         elif not grtop:
             delay = self.globals.settings["delay_on_select_all"]
             while grp_win_stacked:
