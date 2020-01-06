@@ -149,15 +149,18 @@ class Theme(GObject.GObject):
         self.reload()
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes and
+        # Reads the themes from $XDG_DATA_DIRS/dockbarx/themes and
         # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
         # and returns a dict of the theme names and paths so
         # that a theme can be loaded.
         themes = {}
         theme_paths = []
-        homeFolder = os.path.expanduser("~")
         theme_folder = os.path.join(get_app_homedir(), "themes")
-        dirs = ["/usr/share/dockbarx/themes", theme_folder]
+        data_dirs = os.environ.get("XDG_DATA_DIRS",
+                                      "/usr/local/share/:/usr/share/")
+        data_dirs = data_dirs.split(":")
+        dirs = [os.path.join(d, "dockbarx/themes") for d in data_dirs]
+        dirs.append(theme_folder)
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -409,14 +412,18 @@ class PopupStyle(GObject.GObject):
         return self.settings.get(key, default)
 
     def find_styles(self):
-        # Reads the styles from /usr/share/dockbarx/themes/popup_styles and
+        # Reads the styles from $XDG_DATA_DIRS/dockbarx/themes/popup_styles and
         # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes/popup_styles
         # and returns a dict of the style file names and paths so that a
         # style can be loaded
         styles = {}
         style_paths = []
         style_folder = os.path.join(get_app_homedir(), "themes", "popup_styles")
-        dirs = ["/usr/share/dockbarx/themes/popup_styles", style_folder]
+        data_dirs = os.environ.get("XDG_DATA_DIRS",
+                                      "/usr/local/share/:/usr/share/")
+        data_dirs = data_dirs.split(":")
+        dirs = [os.path.join(d, "dockbarx/themes/popup_styles") for d in data_dirs]
+        dirs.append(style_folder)
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -527,7 +534,11 @@ class PopupStyle(GObject.GObject):
         # file names of the styles for all styles that can be opened correctly.
         styles = {}
         style_folder = os.path.join(get_app_homedir(), "themes", "popup_styles")
-        dirs = ["/usr/share/dockbarx/themes/popup_styles", style_folder]
+        data_dirs = os.environ.get("XDG_DATA_DIRS",
+                                      "/usr/local/share/:/usr/share/")
+        data_dirs = data_dirs.split(":")
+        dirs = [os.path.join(d, "dockbarx/themes/popup_styles") for d in data_dirs]
+        dirs.append(style_folder)
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -616,14 +627,18 @@ class DockTheme(GObject.GObject):
         return self.resized_bg[bar]
 
     def find_themes(self):
-        # Reads the themes from /usr/share/dockbarx/themes/dock_themes and
-        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
+        # Reads the themes from $XDG_DATA_DIRS/dockbarx/themes/dock and
+        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes/dock
         # and returns a dict of the theme names and paths so
         # that a theme can be loaded.
         themes = {}
         theme_paths = []
-        theme_folder = os.path.join(get_app_homedir(), "themes")
-        dirs = ["/usr/share/dockbarx/themes/dock", theme_folder]
+        theme_folder = os.path.join(get_app_homedir(), "themes/dock")
+        data_dirs = os.environ.get("XDG_DATA_DIRS",
+                                      "/usr/local/share/:/usr/share/")
+        data_dirs = data_dirs.split(":")
+        dirs = [os.path.join(d, "dockbarx/themes/dock") for d in data_dirs]
+        dirs.append(theme_folder)
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -740,7 +755,11 @@ class DockTheme(GObject.GObject):
         # file names of the themes for all themes that can be opened correctly.
         themes = {}
         theme_folder = os.path.join(get_app_homedir(), "themes", "dock")
-        dirs = ["/usr/share/dockbarx/themes/dock", theme_folder]
+        data_dirs = os.environ.get("XDG_DATA_DIRS",
+                                      "/usr/local/share/:/usr/share/")
+        data_dirs = data_dirs.split(":")
+        dirs = [os.path.join(d, "dockbarx/themes/dock") for d in data_dirs]
+        dirs.append(theme_folder)
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):

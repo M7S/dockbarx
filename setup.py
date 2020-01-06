@@ -112,7 +112,7 @@ cmdclass = {
 }
 
 data_files=[
-            ("/usr/share/dockbarx/applets", ["dockx_applets/clock.py",
+            ("share/dockbarx/applets", ["dockx_applets/clock.py",
                                              "dockx_applets/clock.applet",
                                              "dockx_applets/appindicator.py",
                                              "dockx_applets/appindicator.applet",
@@ -123,13 +123,13 @@ data_files=[
                                              "dockx_applets/volume-control.py",
                                              "dockx_applets/volume-control.applet",
                                              "dockx_applets/volume-control.ui"]),
-            ("/usr/bin", ["dockbarx_mate_applet", "dbx_preference", "dockx"]),
-            ("/usr/share/applications/", ["dbx_preference.desktop"]),
-            ("/usr/share/applications/", ["DockX.desktop"]),
-            ("/usr/share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml"]),
-            ("/usr/share/dbus-1/services/", ["org.mate.panel.applet.DockbarXAppletFactory.service"]),
-            ("/usr/share/mate-panel/applets/", ["org.mate.panel.DockbarX.mate-panel-applet"]),
-            ("/usr/share/mate-panel/ui/", ["dockbarx-applet-menu.xml"]),
+            ("bin", ["dockbarx_mate_applet", "dbx_preference", "dockx"]),
+            ("share/applications/", ["dbx_preference.desktop"]),
+            ("share/applications/", ["DockX.desktop"]),
+            ("share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml"]),
+            ("share/dbus-1/services/", ["org.mate.panel.applet.DockbarXAppletFactory.service"]),
+            ("share/mate-panel/applets/", ["org.mate.panel.DockbarX.mate-panel-applet"]),
+            ("share/mate-panel/ui/", ["dockbarx-applet-menu.xml"]),
          ]
 
 setup(name="Dockbarx",
@@ -146,26 +146,4 @@ setup(name="Dockbarx",
 
 if len(sys.argv) == 2 and sys.argv[1] == "install":
     os.system("glib-compile-schemas /usr/share/glib-2.0/schemas")
-    if os.path.exists("/usr/bin/dockbarx.py"):
-        # Remove old dockbarx.py so that it isn't imported
-        # instead of the package dockbarx when dockbarx is run.
-        print()
-        print("There is a dockbarx.py in /usr/bin. " + \
-              "This has to be removed to make DockbarX run correctly.")
-        remove = input("Remove /usr/bin/dockbarx.py? (Y/n)")
-        if remove == "" or remove[0].lower() == "y":
-            os.remove("/usr/bin/dockbarx.py")
-        else:
-            print("/usr/bin/dockbarx.py is not removed. " + \
-                  "Please remove it or rename it manually.")
 
-    if os.path.exists("/usr/bin/dbx_preference.py"):
-        print()
-        print("There is a dbx_preference.py in /usr/bin. " + \
-              "This file is no longer used.")
-        remove = input("Remove /usr/bin/dbx_preference.py? (Y/n)")
-        if remove == "" or remove[0].lower() == "y":
-            os.remove("/usr/bin/dbx_preference.py")
-            print("/usr/bin/dbx_preference.py is removed. ")
-        else:
-            print("/usr/bin/dbx_preference.py is not removed. ")

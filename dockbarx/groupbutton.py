@@ -1911,7 +1911,6 @@ class GroupButton(CairoAppButton):
 
 
     def on_scroll_event(self, widget, event):
-        group = self.group_r()
         if event.direction == Gdk.ScrollDirection.UP:
             action = self.globals.settings["groupbutton_scroll_up"]
             group.action_function_dict[action](group, self, event)
@@ -1949,6 +1948,7 @@ class GroupButton(CairoAppButton):
 
     def on_button_press_event(self, widget, event):
         group = self.group_r()
+        print ("Button pressed:", event.button)
         if not event.button in (1, 2, 3):
             return True
         button = {1:"left", 2: "middle", 3: "right"}[event.button]

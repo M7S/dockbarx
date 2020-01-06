@@ -777,8 +777,8 @@ class DockBar():
 
     def open_preference(self):
         # Starts the preference dialog
-        os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
-                   "/usr/bin/dbx_preference")
+        os.spawnlp(os.P_NOWAIT,"dbx_preference",
+                   "dbx_preference")
 
     #### Menu
     def create_popup_menu(self, event):

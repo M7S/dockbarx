@@ -1309,8 +1309,8 @@ class DockX(CairoDockX):
         Gtk.main_quit()
 
     def __menu_preferences_selected(self, *args):
-        os.spawnlp(os.P_NOWAIT,"/usr/bin/dbx_preference",
-                   "/usr/bin/dbx_preference")
+        os.spawnlp(os.P_NOWAIT,"dbx_preference",
+                   "dbx_preference")
 
     def __menu_reload_selected(self, *args):
         self.reload()
