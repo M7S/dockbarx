@@ -34,3 +34,4 @@ nosetests.xml
 coverage.xml
 
 new-dependencies
+*.bak

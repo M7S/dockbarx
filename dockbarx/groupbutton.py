@@ -1400,6 +1400,9 @@ class GroupButton(CairoAppButton):
         #~ self.drag_source_add_text_targets()
         self.is_current_drag_source = False
 
+        # Make scroll events work.
+        self.add_events(Gdk.EventMask.SCROLL_MASK)
+        
         self.connect("enter-notify-event", self.on_enter_notify_event)
         self.connect("leave-notify-event", self.on_leave_notify_event)
         self.connect("button-release-event", self.on_button_release_event)

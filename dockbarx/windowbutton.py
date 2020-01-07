@@ -344,6 +344,9 @@ class WindowItem(CairoButton):
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
 
+        # Make scroll events work.
+        self.add_events(Gdk.EventMask.SCROLL_MASK)
+        
         self.connect("enter-notify-event", self.on_enter_notify_event)
         self.connect("leave-notify-event", self.on_leave_notify_event)
         self.connect("button-press-event", self.on_button_press_event)
