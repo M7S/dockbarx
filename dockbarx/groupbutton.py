@@ -676,40 +676,41 @@ class Group(ListOfWindows):
                 logger.exception("Couldn't get zeitgeist related" + \
                                  " files for %s" % self.name)
 
-    def __menu_recent_handler(self, events):
-        self.zg_recent_files = zg.pythonify_zg_events(events)
+    def __menu_recent_handler(self, source, result):
+        self.zg_recent_files = zg.pythonify_zg_events(source, result)
         self.__menu_update_zg()
 
-    def __menu_most_used_handler(self, events):
-        self.zg_most_used_files = zg.pythonify_zg_events(events)
+    def __menu_most_used_handler(self, source, result):
+        self.zg_most_used_files = zg.pythonify_zg_events(source, result)
         self.__menu_update_zg()
 
-    def __menu_related_handler(self, events):
-        self.zg_related_files = zg.pythonify_zg_events(events)
+    def __menu_related_handler(self, source, result):
+        self.zg_related_files = zg.pythonify_zg_events(source, result)
         self.__menu_update_zg()
 
-    def __menu_recent_today_handler(self, events):
-        self.zg_recent_today_files = zg.pythonify_zg_events(events)
+    def __menu_recent_today_handler(self, source, result):
+        self.zg_recent_today_files = zg.pythonify_zg_events(source, result)
         self.__menu_update_zg()
 
     def __menu_update_zg(self):
         # Updates zeitgeist recent, most used and related menus when
         # all of them has been received.
-        if self.zg_most_used_files is not None and \
-           self.zg_recent_files is not None and \
-           self.zg_related_files is not None and \
-           self.zg_recent_today_files is not None:
-            related_files = [rf for rf in self.zg_related_files \
-                             if not (rf in self.zg_recent_files or \
-                             rf in self.zg_recent_today_files)]
-            related_files = related_files[:3]
-            self.zg_files = self.menu.populate_zg_menus(self.zg_recent_files,
-                                                    self.zg_most_used_files,
-                                                    related_files)
-            self.zg_most_used_files = None
-            self.zg_recent_files = None
-            self.zg_related_files = None
-            self.zg_recent_today_files = None
+        if self.zg_most_used_files is None or \
+           self.zg_recent_files is None or \
+           self.zg_related_files is None or \
+           self.zg_recent_today_files is None:
+               return
+        related_files = [rf for rf in self.zg_related_files \
+                         if not (rf in self.zg_recent_files or \
+                         rf in self.zg_recent_today_files)]
+        related_files = related_files[:3]
+        self.zg_files = self.menu.populate_zg_menus(self.zg_recent_files,
+                                                self.zg_most_used_files,
+                                                related_files)
+        self.zg_most_used_files = None
+        self.zg_recent_files = None
+        self.zg_related_files = None
+        self.zg_recent_today_files = None
 
     def __on_menuitem_hovered(self, arg, t, identifier):
         if identifier.startswith("unity_") and self.quicklist:

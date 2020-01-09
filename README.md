@@ -8,7 +8,7 @@ The gtk3 version of DockbarX is a lightweight taskbar / panel replacement for Li
 
 1. Following dependecies needs to be installed (many of them might be installed already on your system):
   - gir1.2-keybinder-3.0, python3-cairo, python3-dbus, python3-distutils, python3-gi, python3-gi-cairo, python3-pil, python3-polib, python3-xdg and python3-xlib.
-  - (Optional) zeitgeist, to access latest and most used documents.
+  - (Optional) gir1.2-zeitgeist-2.0, to access latest and most used documents.
 2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install `$ sudo ./setup.py install`
 
 ## Usage
