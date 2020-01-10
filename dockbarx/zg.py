@@ -35,8 +35,12 @@ except:
     Zeitgeist = None
 else:
     zlog = Zeitgeist.Log.new()
-    
-    
+
+
+def is_available():
+    return Zeitgeist is not None
+
+
 def pythonify_zg_events(source, result):
     # Finish the event search
     try:
@@ -59,8 +63,8 @@ def _get(name=None,
          number_of_results=5,
          mimetypes=[],
          handler=None):
-    # ~ if iface is None:
-        # ~ return
+    if Zeitgeist is None:
+        return
     if result_type is None:
         result_type = Zeitgeist.ResultType.MOST_RECENT_SUBJECTS
     # Start and end times in time since epoch inmilliseconds.

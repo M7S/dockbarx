@@ -629,7 +629,8 @@ class Group(ListOfWindows):
                               self.quicklist, self.pinned, self.locked_popup, \
                               use_locked_popup, win_nr, minimize, maximize)
 
-        self.__menu_get_zg_files()
+        if zg.is_available():
+            self.__menu_get_zg_files()
         return menu
 
     def __menu_get_zg_files(self):
@@ -2705,11 +2706,12 @@ class GroupMenu(GObject.GObject):
         # Quicklist
         self.__build_quicklist_menu(desktop_entry, quicklist)
         # Recent and most used files
-        zg_identifier = self.add_separator(identifier="zg_separator")
-        zg_identifier.set_no_show_all(True)
-        for name in (_("Recent"), _("Most used"), _("Related")):
-            sm = self.add_submenu(name)
-            sm.set_no_show_all(True)
+        if zg.is_available():
+            zg_identifier = self.add_separator(identifier="zg_separator")
+            zg_identifier.set_no_show_all(True)
+            for name in (_("Recent"), _("Most used"), _("Related")):
+                sm = self.add_submenu(name)
+                sm.set_no_show_all(True)
         # Floating Window Panel
         if locked_popup or use_locked_popup:
             self.add_separator()
