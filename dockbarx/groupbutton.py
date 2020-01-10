@@ -2135,7 +2135,7 @@ class GroupPopup(CairoPopup):
     def show_after_delay(self, delay=0, force=False):
         group = self.group_r()
         # Prepare window preview so they are ready when the popup is shown.
-        if self.globals.settings["preview"]:
+        if self.get_child_() == group.window_list and group.window_list.show_previews:
             for window in group:
                 GLib.idle_add(window.item.set_preview_image)
         if not delay:
@@ -2151,7 +2151,7 @@ class GroupPopup(CairoPopup):
 
     def show(self, force=False):
         group = self.group_r()
-        if self.globals.settings["preview"]:
+        if self.get_child_() == group.window_list and group.window_list.show_previews:
             for window in group:
                 GLib.idle_add(window.item.set_preview_image)
         self.__show(force)
@@ -2621,13 +2621,13 @@ class WindowList(Gtk.Box):
         return scrolled_window
 
     def __on_scroll_changed(self, adjustment):
-        if adjustment.upper == 1:
+        if adjustment.get_upper() < 1:
             # Not yet realised.
             return
-        if adjustment.upper <= adjustment.page_size:
+        if adjustment.get_upper() <= adjustment.get_page_size():
             # The scrolled window is no longer needed.
             self.size_overflow = False
-            self.__rebuild_list()
+            GLib.idle_add(self.__rebuild_list)
 
 
     def on_popup_reallocate(self, popup):
