@@ -409,18 +409,22 @@ class AppletsFrame():
             return
         applet = self.applets.get(name)
         if hasattr(applet, "run_applet_dialog"):
-            self.applets.get(name).run_applet_dialog(name)
+            applet_id = self.applets.get_id(name)
+            self.applets.get(name).run_applet_dialog(applet_id)
 
     def on_reload_button_clicked(self, *args):
         applet_list = [applet[0] for applet in self.applet_view.get_model()]
         self.applets.set_list(applet_list)
         # Reload DockX
-        obj = BUS.get_object("org.dockbar.DockX", "/org/dockbar/DockX")
-        iface = dbus.Interface(obj, "org.dockbar.DockX")
-        func = getattr(iface, "Reload")
-        if func:
-            func(reply_handler=self.dbus_reply_handler,
-                 error_handler=self.dbus_reply_handler)
+        try:
+            obj = BUS.get_object("org.dockbar.DockX", "/org/dockbar/DockX")
+            iface = dbus.Interface(obj, "org.dockbar.DockX")
+            func = getattr(iface, "Reload")
+            if func:
+                func(reply_handler=self.dbus_reply_handler,
+                     error_handler=self.dbus_reply_handler)
+        except dbus.exceptions.DBusException:
+            pass
         # Refresh lists
         applet_list = self.applets.get_list()
         unused_list = self.applets.get_unused_list()
@@ -1390,8 +1394,6 @@ class PrefDialog():
         if not dock:
             dock_box.hide()
             #~ dock_applets_box.hide()
-        # Applets doesn't work at the moment so lets hide the box.
-        dock_applets_box.hide()
 
     def __load_theme(self):
         self.themes = self.__find_themes()
