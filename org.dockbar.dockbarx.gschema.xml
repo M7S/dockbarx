@@ -984,5 +984,16 @@
     </key>
   </schema>
 
+  <schema id="org.dockbarx.applets" path="/org/dockbarx/applets/">
+    <key name='enabled-list' type='as'>
+      <default>["DockbarX"]</default>
+      <summary>The applets in use</summary>
+      <description>
+        The applets in use.
+      </description>
+    </key>
+  </schema>
+
+
 </schemalist>
 

@@ -1,6 +1,7 @@
 @dbx applet
 name=Hello World
 exec=hello_world.py
+id=hello-world
 
 @description
-Writes "Hello World" on the panel.
+Writes "Hello World" or whatever you like on the panel.

@@ -20,17 +20,14 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
-from gi.repository import GObject
+from gi.repository import Gdk
+from gi.repository import GLib
 import time
 import os
 from dockbarx.applets import DockXApplet, DockXAppletDialog
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
 
-
-DEFAULT_CUSTOM_FORMAT = \
-            "<span foreground=\"#FFFFFF\" font=\"Sans 14\">%H:%M</span>"
-DEFAULT_COMMAND = "orage"
 
 class ClockApplet(DockXApplet):
     """A clock applet for DockbarX standalone dock"""
@@ -39,24 +36,22 @@ class ClockApplet(DockXApplet):
 
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        alignment = Gtk.Alignment.new(xalign=0.5, yalign=0.5)
-        self.add(alignment)
+        self.set_halign(Gtk.Align.CENTER)
+        self.set_valign(Gtk.Align.CENTER)
         self.label = Gtk.Label()
-        self.label.set_use_markup(True)
-        alignment.add(self.label)
-        alignment.show_all()
+        self.add(self.label)
+        self.label.show()
         self.show()
         self.label_text = ""
-        self.set_text_direction(self.get_setting("text_direction", "default"))
-        self.font = self.get_setting("font", "Sans 14")
-        self.color = self.get_setting("color", "#FFFFFF")
-        self.show_date = self.get_setting("show_date", False)
-        self.use_custom_format = self.get_setting("use_custom_format", False)
-        self.custom_format = self.get_setting("custom_format",
-                                              DEFAULT_CUSTOM_FORMAT)
-        self.command = self.get_setting("command", DEFAULT_COMMAND)
+        self.set_text_direction(self.get_setting("text_direction"))
+        self.font = self.get_setting("font")
+        self.color = self.get_setting("color")
+        self.show_date = self.get_setting("show_date")
+        self.use_custom_format = self.get_setting("use_custom_format")
+        self.custom_format = self.get_setting("custom_format")
+        self.command = self.get_setting("command")
         self.update()
-        GObject.timeout_add(1000, self.update)
+        GLib.timeout_add(1000, self.update)
         self.connect("clicked", self.on_clicked)
 
         self.menu = Gtk.Menu()
@@ -73,7 +68,7 @@ class ClockApplet(DockXApplet):
             # Todo: User made markup errors needs to be catched but how?
             text = time.strftime(self.custom_format)
             if text != self.label_text:
-                self.label.set_label(text)
+                self.label.set_markup(text)
                 self.label_text = text
             return True
         if self.show_date:
@@ -84,7 +79,7 @@ class ClockApplet(DockXApplet):
                                                                  self.font,
                                                                  tstr)
         if text != self.label_text:
-            self.label.set_label(text)
+            self.label.set_markup(text)
             self.label_text = text
         return True
 
@@ -121,7 +116,7 @@ class ClockApplet(DockXApplet):
             self.menu.popup(None, None, None, event.button, event.time)
 
     def open_preferences(self, *args):
-        run_applet_dialog(self.APPLET_NAME)
+        run_applet_dialog(self.get_id())
 
 
 class ClockAppletPreferences(DockXAppletDialog):
@@ -188,16 +183,17 @@ class ClockAppletPreferences(DockXAppletDialog):
         self.show_all()
 
     def run(self):
-        font = self.get_setting("font", "Sans 14")
+        font = self.get_setting("font")
         self.font_button.set_font_name(font)
-        color = Gdk.color_parse(self.get_setting("color", "#FFFFFF"))
+        color = Gdk.color_parse(self.get_setting("color"))
         self.color_button.set_color(color)
-        self.cf_entry.set_text(self.get_setting("custom_format",
-                                                DEFAULT_CUSTOM_FORMAT))
-        td = self.get_setting("text_direction", "default")
+        self.cf_entry.set_text(self.get_setting("custom_format"))
+        td = self.get_setting("text_direction")
         tds = ["default", "left-right", "top-down", "bottom-up"]
         self.td_cbt.set_active(tds.index(td))
-        cf = self.get_setting("use_custom_format", False)
+        sd = self.get_setting("show_date")
+        self.date_cb.set_active(sd)
+        cf = self.get_setting("use_custom_format")
         self.custom_clock_cb.set_active(cf)
         self.font_button.set_sensitive(not cf)
         self.color_button.set_sensitive(not cf)
@@ -246,8 +242,8 @@ def get_dbx_applet(dbx_dict):
     applet = ClockApplet(dbx_dict)
     return applet
 
-def run_applet_dialog(name):
-    dialog = ClockAppletPreferences(name)
+def run_applet_dialog(applet_id):
+    dialog = ClockAppletPreferences(applet_id)
     dialog.run()
     dialog.destroy()
         

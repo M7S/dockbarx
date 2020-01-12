@@ -541,6 +541,7 @@ class DockX(CairoDockX):
         self.globals.connect("theme-changed", self.reload)
         self.globals.connect("dock-end-decorations-changed",
                            self.__on_end_decorations_changed)
+        self.globals.connect("applets-enabled-list-changed", self.reload)
         self.theme.connect("dock-theme-reloaded",
                            self.__on_dock_theme_reloaded)
         screen = Gdk.Screen.get_default()
@@ -699,7 +700,8 @@ class DockX(CairoDockX):
                 appletscr = self.applets.get(name)
                 if appletscr is None:
                     continue
-                applet = appletscr.get_dbx_applet({"name":name, "dock":self})
+                applet_id = self.applets.get_id(name)
+                applet = appletscr.get_dbx_applet({"name":name, "id":applet_id, "dock":self})
                 expand = applet.get_expand() and panel
             if expand:
                 expanded = True

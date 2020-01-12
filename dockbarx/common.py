@@ -580,7 +580,10 @@ class Globals(GObject.GObject):
         "dock-theme-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-color-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-end-decorations-changed": (GObject.SignalFlags.RUN_FIRST,
-                                  None,())
+                                         None,()),
+
+        "applets-enabled-list-changed":  (GObject.SignalFlags.RUN_FIRST,
+                                          None,())
     }
 
     DEFAULT_SETTINGS = {
@@ -695,7 +698,9 @@ class Globals(GObject.GObject):
           "dock/offset":0,
           "dock/mode": "centered",
           "dock/behavior": "panel",
-          "dock/end_decorations": False}
+          "dock/end_decorations": False,
+          
+          "applets/enabled_list": ["DockbarX"]}
 
     DEFAULT_COLORS={
                       "color1": "#333333",
@@ -743,10 +748,12 @@ class Globals(GObject.GObject):
 
             self.gsettings = Gio.Settings.new_with_path("org.dockbarx.dockbarx", "/org/dockbarx/dockbarx/")
             self.dock_gsettings = Gio.Settings.new_with_path("org.dockbarx.dockx", "/org/dockbarx/dockx/")
+            self.applets_gsettings = Gio.Settings.new_with_path("org.dockbarx.applets", "/org/dockbarx/applets/")
             self.settings = self.__get_settings(self.DEFAULT_SETTINGS)
 
             self.gsettings.connect("changed", self.__on_gsettings_changed)
             self.dock_gsettings.connect("changed", self.__on_dock_gsettings_changed)
+            self.applets_gsettings.connect("changed", self.__on_applets_gsettings_changed)
 
 
             self.colors = {}
@@ -754,7 +761,7 @@ class Globals(GObject.GObject):
     def __on_gsettings_changed(self, settings, gkey, data=None):
         key = gkey.replace("-", "_")
         if not key in self.settings:
-            print("The changed setting is not in settings dictionary:", key)
+            logger.warning("The changed setting is not in settings dictionary: %s" % key)
             return
         self.settings[key] = self.gsettings.get_value(gkey).unpack()
         #~ entry_get = { str: entry.get_value().get_string,
@@ -848,7 +855,7 @@ class Globals(GObject.GObject):
         key = gkey.replace("-", "_")
         key = "dock/%s" % key
         if not key in self.settings:
-            print("The changed setting is not in settings dictionary:", key)
+            logger.warning("The changed setting is not in settings dictionary: %s" % key)
             return
         self.settings[key] = self.dock_gsettings.get_value(gkey).unpack()
 
@@ -866,6 +873,17 @@ class Globals(GObject.GObject):
             self.emit("dock-end-decorations-changed")
         elif "theme-file" == gkey:
             self.emit("dock-theme-changed")
+        self.emit("preference-update")
+
+    def __on_applets_gsettings_changed(self, settings, gkey, data=None):
+        key = gkey.replace("-", "_")
+        key = "applets/%s" % key
+        if not key in self.settings:
+            logger.warning("The changed setting is not in settings dictionary: %s" % key)
+            return
+        self.settings[key] = self.applets_gsettings.get_value(gkey).unpack()
+        if "enabled-list" == gkey:
+            self.emit("applets-enabled-list-changed")
         self.emit("preference-update")
 
     def __on_theme_gsettings_changed(self, settings, gkey, data=None):
@@ -898,12 +916,15 @@ class Globals(GObject.GObject):
             if name.startswith("dock/"):
                 gs_name = gs_name.split("/")[-1]
                 gsettings = self.dock_gsettings
+            elif name.startswith("applets/"):
+                gs_name = gs_name.split("/")[-1]
+                gsettings = self.applets_gsettings
             else:
                 gsettings = self.gsettings
             gs_value = gsettings.get_value(gs_name).unpack()
             if type(gs_value) != type(value):
                 # Todo: Remove this if unneccessary.
-                print("Gsettings import. Wrong types for", name, "- New type:", gs_value, "Old type:", value)
+                logger.warning("Gsettings import. Wrong types for %s - New type: %s, Old type: %s" % (name, gs_value, value))
             settings[name] = gs_value
         return settings
 
@@ -1063,6 +1084,8 @@ class Globals(GObject.GObject):
                 self.__compiz_version = "0.8"
         return self.__compiz_version
 
+    def set_applets_enabled_list(self, applets_list):
+        self.applets_gsettings.set_value("enabled-list", GLib.Variant("as", applets_list))
 
 
 __connector = Connector()

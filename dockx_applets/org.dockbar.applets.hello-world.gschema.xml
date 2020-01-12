@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<schemalist>
+  <!-- id must be "org.dockbarx.applets.applet-id" and 
+     path must be "/org/dockbarx/applets/applet-id/" -->
+  <schema id="org.dockbarx.applets.hello-world" path="/org/dockbarx/applets/hello-world/">
+    <key name='text' type='s'>
+      <default>"Hello World!"</default>
+      <summary>Text to display</summary>
+      <description>
+        Text to display
+      </description>
+    </key>
+  </schema>
+
+</schemalist>
+

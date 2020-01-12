@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<schemalist>
+
+  <schema id="org.dockbarx.applets.clock" path="/org/dockbarx/applets/clock/">
+    <key name='text-direction' type='s'>
+      <choices>
+        <choice value='default'/>
+        <choice value='top-down'/>
+        <choice value='left-right'/>
+        <choice value='bottom-up'/>
+      </choices>
+      <default>"default"</default>
+      <summary>Text direction</summary>
+      <description>
+        Text direction
+      </description>
+    </key>
+
+    <key name='font' type='s'>
+      <default>"Sans 14"</default>
+      <summary>Font</summary>
+      <description>
+        Font
+      </description>
+    </key>
+
+    <key name='color' type='s'>
+      <default>"#FFFFFF"</default>
+      <summary>Color</summary>
+      <description>
+        Color
+      </description>
+    </key>
+
+    <key name='show-date' type='b'>
+      <default>false</default>
+      <summary>Show date</summary>
+      <description>
+        Show date or not
+      </description>
+    </key>
+
+    <key name='use-custom-format' type='b'>
+      <default>false</default>
+      <summary>Use custom format</summary>
+      <description>
+        Use custom format or not
+      </description>
+    </key>
+
+    <key name='custom-format' type='s'>
+      <default>"\u003Cspan foreground=\"#FFFFFF\" font=\"Sans 14\">%H:%M\u003C/span>"</default>
+      <summary>Custom format</summary>
+      <description>
+        Custom format
+      </description>
+    </key>
+
+    <key name='command' type='s'>
+      <default>"orage"</default>
+      <summary>Command</summary>
+      <description>
+        Command
+      </description>
+    </key>
+
+
+  </schema>
+
+</schemalist>
+
