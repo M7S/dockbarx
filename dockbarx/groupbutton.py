@@ -2837,7 +2837,7 @@ class GroupMenu(GObject.GObject):
 
     def add_submenu(self, name, submenu=None, identifier=None):
         if self.gtk_menu:
-            item = Gtk.MenuItem(name)
+            item = Gtk.MenuItem.new_with_mnemonic(name)
             item.show()
             if submenu:
                 self.submenus[submenu].append(item)

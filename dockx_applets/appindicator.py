@@ -23,12 +23,15 @@ from gi.repository import Gtk
 import dbus
 import os
 import os.path
+from gi.repository import GdkPixbuf
 from gi.repository import GObject
+from gi.repository import GLib
 import weakref
 from dbus.mainloop.glib import DBusGMainLoop
 from dockbarx.applets import DockXApplet
 from dockbarx.unity import DBusMenu
 from dockbarx.groupbutton import GroupMenu as Menu
+from dockbarx.log import logger
 
 DBusGMainLoop(set_as_default=True)
 BUS = dbus.SessionBus()
@@ -75,10 +78,10 @@ class AppIndicator(Gtk.EventBox):
             self.remove(self.box)
             self.box.destroy()
         if self.applet_r().get_position() in ("left", "right"):
-            self.box = Gtk.VBox()
+            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
             self.label.set_angle(270)
         else:
-            self.box = Gtk.HBox()
+            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
             self.label.set_angle(0)
         self.box.pack_start(self.icon, True, True, 0)
         self.box.pack_start(self.label, True, True, 0)
@@ -103,13 +106,16 @@ class AppIndicator(Gtk.EventBox):
                                          #~ self.__on_menu_resized)
         gtkmenu = self.menu.get_menu()
         self.sd_sid = gtkmenu.connect("selection-done", self.menu_closed)
-        gtkmenu.popup(None, None, self.position_menu,
-                      event.button, event.time)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
+            gtkmenu.popup_at_pointer(event)
+        else:
+            gtkmenu.popup(None, None, self.position_menu, None,
+                          event.button, event.time)
 
     def menu_closed(self, *args):
         if self.menu is not None:
-            for key in list(self.sids.keys()):
-                sid = self.sids.pop(key)
+            while len(self.sids) > 0:
+                key, sid = self.sids.popitem()
                 self.menu.disconnect(sid)
             self.sd_sid = self.menu.get_menu().disconnect(self.sd_sid)
             self.menu.delete_menu()
@@ -166,10 +172,11 @@ class AppIndicator(Gtk.EventBox):
     def on_title_changed(self, title):
         self.title = title
 
-    def position_menu(self, menu):
-        x, y = self.get_window().get_origin()
+    def position_menu(self, menu, x, y, push_in):
+        dummy, x, y = self.get_window().get_origin()
         a = self.get_allocation()
-        w, h = menu.size_request()
+        requisition = menu.size_request()
+        w, h = requisition.width, requisition.height
         size = self.applet_r().get_size()
         if self.applet_r().get_position() == "left":
             x += size
@@ -193,9 +200,6 @@ class AppIndicator(Gtk.EventBox):
 class AppIndicatorApplet(DockXApplet):
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
-        self.alignment = Gtk.Alignment.new(0.5, 0.5)
-        self.add(self.alignment)
-        self.alignment.show()
 
         self.box = None
         self.repack()
@@ -208,7 +212,7 @@ class AppIndicatorApplet(DockXApplet):
                 self.connect_dbus(address)
                 break
         else:
-            GObject.idle_add(self.start_service)
+            GLib.idle_add(self.start_service)
         self.fdo.connect_to_signal("NameOwnerChanged",
                                     self.on_name_change_detected,
                                     dbus_interface=\
@@ -221,15 +225,14 @@ class AppIndicatorApplet(DockXApplet):
             children = self.box.get_children()
             for child in children:
                 self.box.remove(child)
-            self.alignment.remove(self.box)
+            self.remove(self.box)
             self.box.destroy()
         if self.get_position() in ("left", "right"):
-            self.box = Gtk.VBox(False, 4)
+            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 4)
         else:
-            self.box = Gtk.HBox(False, 4)
-            self.container = Gtk.HBox()
+            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 4)
         self.box.set_border_width(4)
-        self.alignment.add(self.box)
+        self.add(self.box)
         for child in children:
             self.box.pack_start(child, True, True, 0)
             child.repack()
@@ -247,7 +250,7 @@ class AppIndicatorApplet(DockXApplet):
             if previous_owner == "" and current_owner !="":
                 self.connect_dbus(name)
             if previous_owner != "" and current_owner == "":
-                print("indicator-application-service disappeared")
+                logger.error("indicator-application-service disappeared")
                 self.disconnect_dbus()
 
     def connect_dbus(self, address):
@@ -330,14 +333,14 @@ class AppIndicatorApplet(DockXApplet):
         ind.on_title_changed(title)
     
     def error_loading(self, err):
-        print(err)
+        logger.error(err)
 
     def reply_handler(self, *args):
         pass
 
     def error_handler(self, err):
         print(err)
-        
+
 def get_dbx_applet(dbx_dict):
     global aiapplet
     try:
