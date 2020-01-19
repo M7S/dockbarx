@@ -26,19 +26,68 @@ import imp
 import dbus
 import weakref
 from gi.repository import GObject
+from gi.repository import Gio
+from gi.repository import GLib
 from dbus.mainloop.glib import DBusGMainLoop
 from .log import logger
-from .common import get_app_homedir
+from .common import get_app_homedir, Globals
 from . import i18n
 _ = i18n.language.gettext
 
 
 DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
-           
+
+
+
+def get_applet_gsetting(applet_id):
+    return Gio.Settings.new_with_path("org.dockbarx.applets.%s" % applet_id,
+                                      "/org/dockbarx/applets/%s/" % applet_id)
+
+def set_applet_setting(gsettings, key, value, empty_list_type=str):
+    key = key.replace("_", "-")
+    if value is None:
+        gsettings.reset(key)
+        return
+
+    basic_types = {
+       str: "s",
+       bool: "b",
+       int: "i",
+       float: "d"
+    }
+    if isinstance(value, list):
+        if len(value) == 0:
+            if empty_list_type in basic_types:
+                vtype = basic_types[empty_list_type]
+            else:
+                raise ValueError("Unsupported type: %s" % empty_list_type)
+        else:
+            if type(value[0]) not in basic_types:
+                raise ValueError("The values in list must be string, bool, int, or float")
+            for v in value:
+                if type(v) != type(value[0]):
+                    raise ValueError("All values in the list must be of the same sort")
+            vtype = "a%s" % basic_types[type(value[0])]
+    else:
+        vtype = None
+        for t in basic_types:
+            if isinstance(value, t):
+                vtype = basic_types[t]
+                break
+        if vtype is None:
+            raise ValueError("The value must be a string, bool, int, float, or list")
+    gsettings.set_value(key, GLib.Variant(vtype, value))
+
+def get_applet_setting(gsettings, key):
+    key = key.replace("_", "-")
+    return gsettings.get_value(key).unpack()
+
+
 class DockXApplets():
     def __init__(self):
         self.find_applets()
+        self.globals = Globals()
 
     def find_applets(self):
         # Reads the applets from /usr/share/dockbarx/applets and
@@ -59,8 +108,7 @@ class DockXApplets():
                 path = os.path.join(dir, f)
                 applet, err = self.read_applet_file(path)
                 if err is not None:
-                    logger.debug("Error: Did not load applet from %s")
-                    logger.debug(err)
+                    logger.debug("Error: Did not load applet from %s: %s" % (path, err))
                     continue
                 name = applet["name"]
                 applet["dir"] = dir
@@ -107,13 +155,13 @@ class DockXApplets():
                 name = value
             settings[key] = value
         if "name" not in settings:
-            text = "The applet in file %s has no name" % path
+            text = "The applet has no name"
             return None, text
         if "exec" not in settings:
-            text = "Applet %s in file %s has no exec" % (name, path)
+            text = "Applet %s has no exec" % name
             return None, text
         if description_nr is None or description_nr >= len(lines):
-            text = "Applet %s in file %s has no description" % (name, path)
+            text = "Applet %s has no description" % name
             return None, text
         settings["description"] =  "\n".join(lines[description_nr:])
         return settings, None
@@ -131,6 +179,12 @@ class DockXApplets():
             return
         return applet
 
+    def get_id(self, name):
+        try:
+            return self.applets[name]["id"]
+        except:
+            return ""
+
     def get_description(self, name):
         try:
             return self.applets[name]["description"]
@@ -138,32 +192,17 @@ class DockXApplets():
             return ""
 
     def get_list(self):
-        try:
-            old_list = GCONF_CLIENT.get_list(GCONF_DIR + \
-                                             "/applets/applet_list",
-                                             GConf.ValueType.STRING)
-        except:
-            #GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list", GConf.ValueType.STRING,["DockbarX"])
-            return ["DockbarX"]
+        old_list = self.globals.settings["applets/enabled_list"]
         all_applets = list(self.applets.keys()) + ["DockbarX", "Spacer"]
         applet_list = [a for a in old_list if a in all_applets]
         if not "DockbarX" in applet_list:
             applet_list.append("DockbarX")
         if applet_list != old_list:
-            #GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",GConf.ValueType.STRING, applet_list)
-            pass
+            self.globals.set_applets_enabled_list(applet_list)
         return applet_list
 
     def get_unused_list(self):
-        try:
-            applet_list = GCONF_CLIENT.get_list(GCONF_DIR + \
-                                                "/applets/applet_list",
-                                                GConf.ValueType.STRING)
-        except:
-            #~ GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
-                                  #~ GConf.ValueType.STRING,
-                                  #~ ["DockbarX"])
-            applet_list = ["DockbarX"]
+        applet_list = self.globals.settings["applets/enabled_list"]
         all_applets = list(self.applets.keys())
         unused_applets = [a for a in all_applets if a not in applet_list]
         # There should be totally two spacers.
@@ -177,70 +216,8 @@ class DockXApplets():
         applet_list = [a for a in applet_list if a in all_applets]
         if not "DockbarX" in applet_list:
             applet_list.append("DockbarX")
-        GCONF_CLIENT.set_list(GCONF_DIR+"/applets/applet_list",
-                              GConf.ValueType.STRING,
-                              applet_list)
-
-# Functions used by both DockXApplet and DockXAppletDialog
-def set_setting(key, value, list_type=None, applet_name=None):
-    if applet_name is None:
-        return
-    gdir = "%s/applets/%s" % (GCONF_DIR, applet_name)
-    gconf_set = { str: GCONF_CLIENT.set_string,
-                  bool: GCONF_CLIENT.set_bool,
-                  float: GCONF_CLIENT.set_float,
-                  int: GCONF_CLIENT.set_int }
-    if type(value) == list:
-        list_types = { str: GConf.ValueType.STRING,
-                       bool: GConf.ValueType.BOOL,
-                       float: GConf.ValueType.FLOAT,
-                       int: GConf.ValueType.INT }
-        if len(value) == 0:
-            if type(list_type) in list_types:
-                lt = list_types[type(list_type)]
-            else:
-                lt = GCONF_CLIENT.set_string
-        else:
-            for v in values:
-                if v != value[0]:
-                    raise ValueError(
-                        "All values in the list must be of the same sort")
-            lt = list_types[type(value[0])]
-        GCONF_CLIENT.set_list(GCONF_DIR + "/applets/applet_list",
-                              list_types, VALUE)
+        self.globals.set_applets_enabled_list(applet_list)
         
-    else:
-        if type(value) not in gconf_set:
-            raise ValueError(
-                    "The value must be a string, bool, int or list")
-        gconf_set[type(value)]("%s/%s" % (gdir, key), value)
-        
-
-def get_setting(key, default=None, applet_name=None):
-    if applet_name is None:
-        return
-    #~ gdir = "%s/applets/%s" % (GCONF_DIR, applet_name)
-    try:
-        value = GCONF_CLIENT.get_value("%s/%s" % (gdir, key))
-    except:
-        if default is not None:
-            set_setting(key, default, applet_name=applet_name)
-        return default
-    return value
-
-
-def get_value(value):
-    pass
-    #~ if value.type == GConf.ValueType.LIST:
-        #~ return [get_value(item) for item in value.get_list()]
-    #~ else:
-        #~ return {
-                #~ "string": value.get_string,
-                #~ "int": value.get_int,
-                #~ "float": value.get_float,
-                #~ "bool": value.get_bool,
-                #~ "list": value.get_list
-               #~ }[value.type.value_nick]()
 
 class DockXApplet(Gtk.EventBox):
     """This is the base class for DockX applets"""
@@ -250,38 +227,46 @@ class DockXApplet(Gtk.EventBox):
 
     def __init__(self, dbx_dict):
         self.dockx_r = weakref.ref(dbx_dict["dock"])
-        self.APPLET_NAME = dbx_dict["name"].lower().replace(" ", "")
+        self.__applet_id = dbx_dict["id"]
         GObject.GObject.__init__(self)
         self.set_visible_window(False)
         self.set_no_show_all(True)
         self.mouse_pressed = False
         self.expand = False
-        # Set gconf notifiers
-        #~ gdir = "%s/applets/%s" % (GCONF_DIR, self.APPLET_NAME)
-        #~ GCONF_CLIENT.add_dir(gdir, GConf.ClientPreloadType.PRELOAD_NONE)
-        #~ GCONF_CLIENT.notify_add(gdir, self.__on_gconf_changed, None)
         self.connect("enter-notify-event", self.on_enter_notify_event)
         self.connect("leave-notify-event", self.on_leave_notify_event)
         self.connect("button-release-event", self.on_button_release_event)
         self.connect("button-press-event", self.on_button_press_event)
+        if self.__applet_id:
+            self.__settings = get_applet_gsetting(self.__applet_id)
+            self.__sid = self.__settings.connect("changed", self.__on_settings_changed)
+        else:
+            self.__settings = None
 
-    def get_setting(self, *args, **kwargs):
-        kwargs["applet_name"]=self.APPLET_NAME
-        return get_setting(*args, **kwargs)
+    def get_id(self):
+        return self.__applet_id
 
-    def set_setting(self, *args, **kwargs):
-        kwargs["applet_name"]=self.APPLET_NAME
-        return set_setting(*args, **kwargs)
+    def get_setting(self, key):
+        if self.__settings is None:
+            logger.error("Error: Cannot use plugin settings " \
+                         "without a id in the .applet file")
+            return
+        return get_applet_setting(self.__settings, key)
+
+    def set_setting(self, key, value, empty_list_type=None):
+        if self.__settings is None:
+            logger.error("Error: Cannot use plugin settings " \
+                         "without a id in the .applet file")
+            return
+        return set_applet_setting(self.__settings, key, value, empty_list_type)
 
     def on_setting_changed(self, key, value):
         # Method to be overridden by applet.
         pass
 
-    def __on_gconf_changed(self, client, par2, entry, par4):
-        if entry.get_value() is None:
-            return
-        key = entry.get_key().split("/")[-1]
-        value = get_value(entry.get_value())
+    def __on_settings_changed(self, gsettings, key):
+        value = get_applet_setting(gsettings, key)
+        key = key.replace("-", "_")
         self.on_setting_changed(key, value)
 
     def update(self):
@@ -324,8 +309,11 @@ class DockXApplet(Gtk.EventBox):
     def set_expand(self, expand):
         self.expand = expand
 
-    def on_button_release_event(self, widget, event):
+    def on_button_release_event(self, widget, button_event):
         if self.mousepressed:
+            event = Gdk.Event();
+            for p in [ "type", "window", "send_event", "time", "x", "y", "state", "button", "device", "x_root", "y_root" ]:
+                setattr(event.button, p, getattr(button_event, p))
             self.emit("clicked", event)
         self.mousepressed=False
 
@@ -337,24 +325,58 @@ class DockXApplet(Gtk.EventBox):
 
     def on_enter_notify_event(self, *args):
         pass
+
+    def debug(self, text):
+        logger.debug(text)
         
+    def destroy(self):
+        if self.__settings is not None:
+            self.__settings.disconnect(self.__sid)
+        super().destroy()
+
 
 class DockXAppletDialog(Gtk.Dialog):
     Title = "Applet Preferences"
-    def __init__(self, name, t=None, flags=0,
+    def __init__(self, applet_id, title=Title, flags=0,
                  buttons=(_("_Close"), Gtk.ResponseType.CLOSE)):
-        if not name:
-            logger.error("Error: DockXAppletDialog can't be initialized" \
-                         "without a name as it's first argument")
-        self.APPLET_NAME = name.lower().replace(" ", "")
-        if t is None:
-            t = self.Title
-        GObject.GObject.__init__(self, _(t), None, flags, buttons)
+        Gtk.Dialog.__init__(self, title=title, flags=flags, buttons=buttons)
+        GObject.GObject.__init__(self)
+        if applet_id:
+            self.__applet_id = applet_id
+            self.__settings = get_applet_gsetting(self.__applet_id)
+            # Set gsettings notifiers
+            self.__sid = self.__settings.connect("changed", self.__on_settings_changed)
+        else:
+            self.__settings = None
 
-    def get_setting(self, *args, **kwargs):
-        kwargs["applet_name"]=self.APPLET_NAME
-        return get_setting(*args, **kwargs)
+    def get_setting(self, key):
+        if self.__settings is None:
+            logger.error("Error: Cannot use plugin settings " \
+                         "without a id in the .applet file")
+            return
+        return get_applet_setting(self.__settings, key)
 
-    def set_setting(self, *args, **kwargs):
-        kwargs["applet_name"]=self.APPLET_NAME
-        return set_setting(*args, **kwargs)
+    def set_setting(self, key, value, empty_list_type=None):
+        if self.__settings is None:
+            logger.error("Error: Cannot use plugin settings " \
+                         "without a id in the .applet file")
+            return
+        set_applet_setting(self.__settings, key, value, empty_list_type)
+
+    def on_setting_changed(self, key, value):
+        # Method to be overridden by applet.
+        pass
+
+    def __on_settings_changed(self, gsettings, key):
+        value = get_applet_setting(gsettings, key)
+        key = key.replace("-", "_")
+        self.on_setting_changed(key, value)
+
+    def debug(self, text):
+        logger.debug(text)
+
+    def destroy(self):
+        if self.__settings is not None:
+            self.__settings.disconnect(self.__sid)
+        super().destroy()
+
