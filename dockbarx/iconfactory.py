@@ -954,7 +954,7 @@ class IconFactory():
     def __surface2pil(self, surface):
         w = surface.get_width()
         h = surface.get_height()
-        return Image.frombuffer("RGBA", (w, h), surface.get_data().obj,
+        return Image.frombuffer("RGBA", (w, h), surface.get_data().tobytes(),
                                 "raw", "BGRA", 0,1)
 
     def __pil2surface(self, im):
