@@ -494,7 +494,7 @@ class IconFactory():
             pbs = pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
             woffset = round((size - w) / 2.0)
             hoffset = round((size - h) / 2.0)
-            ctx.set_source_pixbuf(pb, woffset, hoffset)
+            Gdk.cairo_set_source_pixbuf(ctx, pb, woffset, hoffset)
             ctx.paint()
             del pb
             del pbs
@@ -954,7 +954,7 @@ class IconFactory():
     def __surface2pil(self, surface):
         w = surface.get_width()
         h = surface.get_height()
-        return Image.frombuffer("RGBA", (w, h), surface.get_data().obj,
+        return Image.frombuffer("RGBA", (w, h), surface.get_data().tobytes(),
                                 "raw", "BGRA", 0,1)
 
     def __pil2surface(self, im):
