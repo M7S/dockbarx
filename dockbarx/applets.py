@@ -279,7 +279,6 @@ class DockXApplet(Gtk.EventBox):
             rel_size = float(dockx.theme.get("rel_size", 100))
             size = dockx.globals.settings["dock/size"]
             return max(size, int(size * rel_size / 100))
-
     
     def get_size(self):
         if self.dockx_r:
@@ -310,18 +309,18 @@ class DockXApplet(Gtk.EventBox):
         self.expand = expand
 
     def on_button_release_event(self, widget, button_event):
-        if self.mousepressed:
+        if self.mouse_pressed:
             event = Gdk.Event();
             for p in [ "type", "window", "send_event", "time", "x", "y", "state", "button", "device", "x_root", "y_root" ]:
                 setattr(event.button, p, getattr(button_event, p))
             self.emit("clicked", event)
-        self.mousepressed=False
+        self.mouse_pressed=False
 
     def on_button_press_event(self, widget, event):
-        self.mousepressed = True
+        self.mouse_pressed = True
     
     def on_leave_notify_event(self, *args):
-        self.mousepressed = False
+        self.mouse_pressed = False
 
     def on_enter_notify_event(self, *args):
         pass
