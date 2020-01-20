@@ -115,7 +115,11 @@ class DockXApplets():
                 self.applets[name] = applet
 
     def read_applet_file(self, path):
-        f = open(path)
+        try:
+            f = open(path)
+        except:
+            text = "Cannot open applet"
+            return None, text
         try:
             lines = f.readlines()
         except:
@@ -123,7 +127,7 @@ class DockXApplets():
         finally:
             f.close()
         if not lines or not lines[0].lower().strip() == "@dbx applet":
-            text = "Applet at %s doesn't seem to be a dbx applet" % path
+            text = "Doesn't seem to be a dbx applet"
             return None, text
         description_nr = None
         settings = {}
