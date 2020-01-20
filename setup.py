@@ -134,7 +134,7 @@ data_files=[
             ("share/mate-panel/ui/", ["dockbarx-applet-menu.xml"]),
          ]
 
-setup(name="Dockbarx",
+s = setup(name="Dockbarx",
       version=VERSION,
       description="A dock-ish gnome-applet",
       author="Aleksey Shaferov and Matias Sars",
@@ -147,5 +147,7 @@ setup(name="Dockbarx",
 
 
 if len(sys.argv) == 2 and sys.argv[1] == "install":
-    os.system("glib-compile-schemas /usr/share/glib-2.0/schemas")
+    install_data_path = s.command_obj['install'].install_data
+    schema_path = os.path.join(install_data_path, "share/glib-2.0/schemas")
+    os.system("glib-compile-schemas %s" % schema_path)
 
