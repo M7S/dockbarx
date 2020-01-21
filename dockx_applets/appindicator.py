@@ -206,7 +206,8 @@ class AppIndicatorApplet(DockXApplet):
     def __init__(self, dbx_dict):
         DockXApplet.__init__(self, dbx_dict)
 
-        self.box = None
+        self.topbox = None
+        self.boxes = {}
         self.sids = {}
         self.dbus = {}
         for backend in INDICATOR_DBUS.keys():
@@ -229,31 +230,41 @@ class AppIndicatorApplet(DockXApplet):
         self.menu = None
 
     def update(self):
-        if self.box is None:
+        if self.topbox is None:
             return
-        for child in self.box.get_children():
-            child.update_icon(force=True)
+        self.repack(update_icon=True)
 
-    def repack(self):
-        children = []
-        if self.box is not None:
-            children = self.box.get_children()
-            for child in children:
-                self.box.remove(child)
-            self.remove(self.box)
-            self.box.destroy()
+    def repack(self, update_icon=False):
+        children = {}
+        if self.topbox is not None:
+            for backend in INDICATOR_DBUS.keys():
+                box = self.boxes[backend]
+                children[backend] = box.get_children()
+                for child in children[backend]:
+                    box.remove(child)
+                self.topbox.remove(box)
+                box.destroy()
+            self.remove(self.topbox)
+            self.topbox.destroy()
 
         if self.get_position() in ("left", "right"):
-            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 4)
+            orientation = Gtk.Orientation.VERTICAL
         else:
-            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 4)
+            orientation = Gtk.Orientation.HORIZONTAL
 
-        self.box.set_border_width(4)
-        self.add(self.box)
-        for child in children:
-            self.box.pack_start(child, True, True, 0)
-            child.repack()
-        self.box.show_all()
+        self.topbox = Gtk.Box.new(orientation, 4)
+        self.topbox.set_border_width(4)
+        for backend in INDICATOR_DBUS.keys():
+            self.boxes[backend] = Gtk.Box.new(orientation, 0)
+            self.topbox.pack_start(self.boxes[backend], False, False, 0)
+            if backend in children.keys():
+                for child in children[backend]:
+                    self.boxes[backend].pack_start(child, True, True, 0)
+                    child.repack()
+                    if update_icon:
+                        child.update_icon(force=True)
+        self.add(self.topbox)
+        self.topbox.show_all()
         
     def on_name_change_detected(self, name, previous_owner, current_owner):
         for backend in INDICATOR_DBUS.keys():
@@ -282,7 +293,7 @@ class AppIndicatorApplet(DockXApplet):
         for sid in sids[:]:
             sid.remove()
             sids.remove(sid)
-        indicators = self.box.get_children()
+        indicators = self.boxes[backend].get_children()
         for ind in indicators:
             ind.dbusmenu.destroy()
             if ind.menu is not None:
@@ -291,58 +302,63 @@ class AppIndicatorApplet(DockXApplet):
 
     def indicators_loaded(self, backend, indicators):
         for ind in indicators:
-            self.ind_added(*ind)
+            self.ind_added(backend, *ind)
         self.sids[backend] = []
         
-        connections = {"ApplicationAdded": self.ind_added,
-                       "ApplicationIconChanged": self.on_icon_changed,
+        connections = {"ApplicationAdded": 
+                                    lambda *args: self.ind_added(backend, *args),
+                       "ApplicationIconChanged":
+                                    lambda *args: self.on_icon_changed(backend, *args),
                        "ApplicationIconThemePathChanged":
-                                            self.on_icon_themepath_changed,
-                       "ApplicationLabelChanged": self.on_label_changed,
-                       "ApplicationRemoved": self.ind_removed,
-                       "ApplicationTitleChanged": self.on_title_changed}
+                                    lambda *args: self.on_icon_themepath_changed(backend, *args),
+                       "ApplicationLabelChanged":
+                                    lambda *args: self.on_label_changed(backend, *args),
+                       "ApplicationRemoved":
+                                    lambda *args: self.ind_removed(backend, *args),
+                       "ApplicationTitleChanged":
+                                    lambda *args: self.on_title_changed(backend, *args)}
         iface = dbus.Interface(self.dbus[backend],
                                dbus_interface=INDICATOR_DBUS[backend]["interface"])
         for sig, call_func in list(connections.items()):
             self.sids[backend].append(iface.connect_to_signal(sig, call_func))
 
-    def get_ind(self, position):
-        indicators = self.box.get_children()
+    def get_ind(self, backend, position):
+        indicators = self.boxes[backend].get_children()
         if position < len(indicators):
             return indicators[position]
         return None
 
-    def ind_added(self, *args):
+    def ind_added(self, backend, *args):
         position = args[1]
         ind = AppIndicator(self, *args)
-        self.box.pack_start(ind, True, True, 0)
-        self.box.reorder_child(ind, position)
+        self.boxes[backend].pack_start(ind, True, True, 0)
+        self.boxes[backend].reorder_child(ind, position)
 
-    def ind_removed(self, position):
-        ind = self.get_ind(position)
+    def ind_removed(self, backend, position):
+        ind = self.get_ind(backend, position)
         if ind is not None:
             ind.dbusmenu.destroy()
             if ind.menu is not None:
                 ind.menu.delete_menu()
             ind.destroy()
 
-    def on_icon_changed(self, position, icon_name, icon_desc):
-        ind = self.get_ind(position)
+    def on_icon_changed(self, backend, position, icon_name, icon_desc):
+        ind = self.get_ind(backend, position)
         if ind is not None:
             ind.on_icon_changed(icon_name, icon_desc)
 
-    def on_icon_themepath_changed(self, position, path):
-        ind = self.get_ind(position)
+    def on_icon_themepath_changed(self, backend, position, path):
+        ind = self.get_ind(backend, position)
         if ind is not None:
             ind.on_themepath_changed(path)
 
-    def on_label_changed(self, position, label, guide):
-        ind = self.get_ind(position)
+    def on_label_changed(self, backend, position, label, guide):
+        ind = self.get_ind(backend, position)
         if ind is not None:
             ind.on_label_changed(label, guide)
 
-    def on_title_changed(self, position, title):
-        ind = self.get_ind(position)
+    def on_title_changed(self, backend, position, title):
+        ind = self.get_ind(backend, position)
         if ind is not None:
             ind.on_title_changed(title)
     
