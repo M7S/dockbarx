@@ -88,6 +88,9 @@ class install_data(_install_data):
         # Scan folders for the right files
         self.scan_path("/usr/share/dockbarx/themes", "themes", ext=".tar.gz")
         self.scan_path("share/icons/", "icons", ext=".png")
+        self.scan_path("/usr/share/namebar/themes",
+                       "dockx_applets/namebar_themes",
+                       ext=".tar.gz")
         self.scan_path("/usr/share/dockbarx/applets/vc-themes",
                        "dockx_applets/vc-themes")
         _install_data.run(self)
@@ -114,6 +117,8 @@ cmdclass = {
 data_files=[
             ("share/dockbarx/applets", ["dockx_applets/clock.py",
                                              "dockx_applets/clock.applet",
+                                             "dockx_applets/namebar.py",
+                                             "dockx_applets/namebar.applet",
                                              "dockx_applets/appindicator.py",
                                              "dockx_applets/appindicator.applet",
                                              "dockx_applets/hello_world.py",
@@ -122,7 +127,11 @@ data_files=[
                                              "dockx_applets/battery_status.applet",
                                              "dockx_applets/volume-control.py",
                                              "dockx_applets/volume-control.applet",
-                                             "dockx_applets/volume-control.ui"]),
+                                             "dockx_applets/volume-control.ui",
+                                             "dockx_applets/namebar_window_buttons.applet",
+                                             "dockx_applets/namebar_window_buttons.py",
+                                             "dockx_applets/namebar_window_title.applet",
+                                             "dockx_applets/namebar_window_title.py"]),
             ("bin", ["dockbarx_mate_applet", "dbx_preference", "dockx"]),
             ("share/applications/", ["dbx_preference.desktop"]),
             ("share/applications/", ["DockX.desktop"]),

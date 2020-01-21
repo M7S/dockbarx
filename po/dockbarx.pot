@@ -61,6 +61,28 @@ msgstr ""
 msgid "bottom-up"
 msgstr ""
 
+#: dockx_applets/namebar_window_title.py:166 dockx_applets/namebar.py:206
+msgid "Alignment: "
+msgstr ""
+
+#: dockx_applets/namebar_window_title.py:169
+#: dockx_applets/namebar_window_title.py:239 dockx_applets/namebar.py:209
+#: dockx_applets/namebar.py:298 dbx_preference:1241
+msgid "left"
+msgstr ""
+
+#: dockx_applets/namebar_window_title.py:169
+#: dockx_applets/namebar_window_title.py:240 dockx_applets/namebar.py:209
+#: dockx_applets/namebar.py:299 dbx_preference:1225
+msgid "centered"
+msgstr ""
+
+#: dockx_applets/namebar_window_title.py:169
+#: dockx_applets/namebar_window_title.py:241 dockx_applets/namebar.py:209
+#: dockx_applets/namebar.py:300 dbx_preference:1241
+msgid "right"
+msgstr ""
+
 #: dockx_applets/volume-control.py:48
 msgid "Volume Control"
 msgstr ""

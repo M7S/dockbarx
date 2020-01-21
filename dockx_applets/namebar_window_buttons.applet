@@ -1,0 +1,6 @@
+@dbx applet
+name=Window Buttons
+exec=namebar_window_buttons.py
+
+@description
+Shows minimize/maximize/close buttons for the active or the topmost maximized window.
