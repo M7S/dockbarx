@@ -148,7 +148,7 @@ class AppIndicator(Gtk.EventBox):
         self.icon.set_from_pixbuf(pixbuf)
         
     def get_icon(self, icon_name):
-        icon_size = self.applet_r().get_size()
+        icon_size = self.applet_r().get_full_size()
         if icon_name.startswith("/") and os.path.exists(icon_name):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_name,
                                                           icon_size, 
@@ -182,7 +182,7 @@ class AppIndicator(Gtk.EventBox):
         a = self.get_allocation()
         requisition = menu.size_request()
         w, h = requisition.width, requisition.height
-        size = self.applet_r().get_size()
+        size = self.applet_r().get_full_size()
         if self.applet_r().get_position() == "left":
             x += size
             y += a.y
@@ -253,7 +253,6 @@ class AppIndicatorApplet(DockXApplet):
             orientation = Gtk.Orientation.HORIZONTAL
 
         self.topbox = Gtk.Box.new(orientation, 4)
-        self.topbox.set_border_width(4)
         for backend in INDICATOR_DBUS.keys():
             self.boxes[backend] = Gtk.Box.new(orientation, 0)
             self.topbox.pack_start(self.boxes[backend], False, False, 0)
