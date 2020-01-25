@@ -249,6 +249,7 @@ class DockXApplet(Gtk.EventBox):
     def __init__(self, dbx_dict):
         self.__dockx_r = weakref.ref(dbx_dict["dock"])
         self.__applet_id = dbx_dict["id"]
+        self.__inited = False
         GObject.GObject.__init__(self)
         self.set_visible_window(False)
         self.set_no_show_all(True)
@@ -339,8 +340,17 @@ class DockXApplet(Gtk.EventBox):
         else:
             return self.get_allocation().height
 
+    def finish_init(self):
+        self.__inited = True
+
     def set_expand(self, expand):
-        self.expand = expand
+        if self.__inited:
+            if self.__dockx_r:
+                GLib.idle_add(self.__dockx_r().reload_applets)
+            else:
+                self.expand = expand
+        else:
+            self.expand = expand
 
     def on_button_release_event(self, widget, button_event):
         if self.mouse_pressed:
