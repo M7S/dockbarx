@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<schemalist>
+  <schema id="org.dockbarx.applets.namebar" path="/org/dockbarx/applets/namebar/">
+
+    <key name='theme' type='s'>
+      <default>'Dust-ish'</default>
+      <summary>Theme</summary>
+      <description>
+        Theme to use
+      </description>
+    </key>
+
+
+    <key name='show-title' type='s'>
+      <choices>
+        <choice value='always'/>
+        <choice value='maximized'/>
+      </choices>
+      <default>'always'</default>
+      <summary>Show Title</summary>
+      <description>
+        Show maximized window title only or not
+      </description>
+    </key>
+
+    <key name='expand' type='b'>
+      <default>true</default>
+      <summary>Expand</summary>
+      <description>
+        Expand title
+      </description>
+    </key>
+
+    <key name='font-size' type='i'>
+      <default>10</default>
+      <range min="1"/>
+      <summary>Font Size</summary>
+      <description>
+        Fonr size of title
+      </description>
+    </key>
+
+    <key name='size' type='i'>
+      <default>500</default>
+      <range min="100" max="10000"/>
+      <summary>Size</summary>
+      <description>
+        Size
+      </description>
+    </key>
+    
+    <key name='active-color' type='s'>
+      <default>'#EEEEEE'</default>
+      <summary>Active Color</summary>
+      <description>
+        Color for active windows
+      </description>
+    </key>
+
+    <key name='passive-color' type='s'>
+      <default>'#AAAAAA'</default>
+      <summary>Passive Color</summary>
+      <description>
+        Color for passive windows
+      </description>
+    </key>
+
+    <key name='active-alpha' type='i'>
+      <default>255</default>
+      <range min="0" max="255"/>
+      <summary>Active Transparancy</summary>
+      <description>
+        Transparancy for active windows
+      </description>
+    </key>
+
+    <key name='passive-alpha' type='i'>
+      <default>255</default>
+      <range min="0" max="255"/>
+      <summary>Passive Transparancy</summary>
+      <description>
+        Transparancy for passive windows
+      </description>
+    </key>
+
+    <key name='active-bold' type='b'>
+      <default>false</default>
+      <summary>Active Bold</summary>
+      <description>
+        Blod text for active windows
+      </description>
+    </key>
+    
+    <key name='passive-bold' type='b'>
+      <default>false</default>
+      <summary>Passive Bold</summary>
+      <description>
+        Blod text for passive windows
+      </description>
+    </key>
+    
+    <key name='alignment' type='s'>
+      <choices>
+        <choice value='left / top'/>
+        <choice value='center'/>
+        <choice value='right / bottom'/>
+      </choices>
+      <default>'left / top'</default>
+      <summary>Text Alignment</summary>
+      <description>
+        Text alignment
+      </description>
+    </key>
+    
+    <key name='use-custom-layout' type='b'>
+      <default>false</default>
+      <summary>Use Custom Layout</summary>
+      <description>
+        Use custom layout for window buttons
+      </description>
+    </key>
+    
+    <key name='custom-layout' type='s'>
+      <default>'minimize,maximize,close'</default>
+      <summary>Custom Layout</summary>
+      <description>
+        Custom window buttons layout
+      </description>
+    </key>
+
+  </schema>
+
+</schemalist>
+

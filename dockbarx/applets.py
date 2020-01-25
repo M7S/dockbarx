@@ -45,7 +45,11 @@ def get_applet_gsetting(applet_id):
                                       "/org/dockbarx/applets/%s/" % applet_id)
 
 def set_applet_setting(gsettings, key, value, empty_list_type=str):
+    if type(key) != str:
+        logger.error("The key must be a string")
+        return
     key = key.replace("_", "-")
+
     if value is None:
         gsettings.reset(key)
         return
@@ -61,13 +65,16 @@ def set_applet_setting(gsettings, key, value, empty_list_type=str):
             if empty_list_type in basic_types:
                 vtype = basic_types[empty_list_type]
             else:
-                raise ValueError("Unsupported type: %s" % empty_list_type)
+                logger.error("Unsupported type: %s" % empty_list_type)
+                return
         else:
             if type(value[0]) not in basic_types:
-                raise ValueError("The values in list must be string, bool, int, or float")
+                logger.error("The values in list must be string, bool, int, or float")
+                return
             for v in value:
                 if type(v) != type(value[0]):
-                    raise ValueError("All values in the list must be of the same sort")
+                    logger.error("All values in the list must be of the same sort")
+                    return
             vtype = "a%s" % basic_types[type(value[0])]
     else:
         vtype = None
@@ -76,13 +83,23 @@ def set_applet_setting(gsettings, key, value, empty_list_type=str):
                 vtype = basic_types[t]
                 break
         if vtype is None:
-            raise ValueError("The value must be a string, bool, int, float, or list")
+            logger.error("The value must be a string, bool, int, float, or list")
+            return
     gsettings.set_value(key, GLib.Variant(vtype, value))
 
 def get_applet_setting(gsettings, key):
+    if type(key) != str:
+        logger.error("The key must be a string")
+        return
     key = key.replace("_", "-")
     return gsettings.get_value(key).unpack()
 
+def get_applet_default_setting(gsettings, key):
+    if type(key) != str:
+        logger.error("The key must be a string")
+        return
+    key = key.replace("_", "-")
+    return gsettings.get_default_value(key).unpack()
 
 class DockXApplets():
     def __init__(self):
@@ -244,6 +261,7 @@ class DockXApplet(Gtk.EventBox):
         if self.__applet_id:
             self.__settings = get_applet_gsetting(self.__applet_id)
             self.__sid = self.__settings.connect("changed", self.__on_settings_changed)
+            self.__setting_key = None
         else:
             self.__settings = None
 
@@ -257,21 +275,33 @@ class DockXApplet(Gtk.EventBox):
             return
         return get_applet_setting(self.__settings, key)
 
-    def set_setting(self, key, value, empty_list_type=None):
+    def get_default_setting(self, key):
         if self.__settings is None:
             logger.error("Error: Cannot use plugin settings " \
                          "without a id in the .applet file")
             return
-        return set_applet_setting(self.__settings, key, value, empty_list_type)
+        return get_applet_default_setting(self.__settings, key)
+
+    def set_setting(self, key, value, empty_list_type=None, ignore_changed_event=True):
+        if self.__settings is None:
+            logger.error("Error: Cannot use plugin settings " \
+                         "without a id in the .applet file")
+            return
+        if ignore_changed_event:
+            self.__setting_key = key
+        set_applet_setting(self.__settings, key, value, empty_list_type)
+        self.__setting_key = None
 
     def on_setting_changed(self, key, value):
         # Method to be overridden by applet.
         pass
 
     def __on_settings_changed(self, gsettings, key):
+        _key = key.replace("-", "_")
+        if _key == self.__setting_key:
+            return
         value = get_applet_setting(gsettings, key)
-        key = key.replace("-", "_")
-        self.on_setting_changed(key, value)
+        self.on_setting_changed(_key, value)
 
     def update(self):
         # Method to be overriden by applet.
@@ -349,6 +379,7 @@ class DockXAppletDialog(Gtk.Dialog):
             self.__settings = get_applet_gsetting(self.__applet_id)
             # Set gsettings notifiers
             self.__sid = self.__settings.connect("changed", self.__on_settings_changed)
+            self.__setting_key = None
         else:
             self.__settings = None
 
@@ -359,21 +390,33 @@ class DockXAppletDialog(Gtk.Dialog):
             return
         return get_applet_setting(self.__settings, key)
 
-    def set_setting(self, key, value, empty_list_type=None):
+    def get_default_setting(self, key):
         if self.__settings is None:
             logger.error("Error: Cannot use plugin settings " \
                          "without a id in the .applet file")
             return
+        return get_applet_default_setting(self.__settings, key)
+
+    def set_setting(self, key, value, empty_list_type=None, ignore_changed_event=True):
+        if self.__settings is None:
+            logger.error("Error: Cannot use plugin settings " \
+                         "without a id in the .applet file")
+            return
+        if ignore_changed_event:
+            self.__setting_key = key
         set_applet_setting(self.__settings, key, value, empty_list_type)
+        self.__setting_key = None
 
     def on_setting_changed(self, key, value):
         # Method to be overridden by applet.
         pass
 
     def __on_settings_changed(self, gsettings, key):
+        _key = key.replace("-", "_")
+        if _key == self.__setting_key:
+            return
         value = get_applet_setting(gsettings, key)
-        key = key.replace("-", "_")
-        self.on_setting_changed(key, value)
+        self.on_setting_changed(_key, value)
 
     def debug(self, text):
         logger.debug(text)

@@ -61,25 +61,34 @@ msgstr ""
 msgid "bottom-up"
 msgstr ""
 
-#: dockx_applets/namebar_window_title.py:166 dockx_applets/namebar.py:206
-msgid "Alignment: "
+#: dockx_applets/namebar_common.py:287
+msgid "Alignment"
 msgstr ""
 
-#: dockx_applets/namebar_window_title.py:169
-#: dockx_applets/namebar_window_title.py:239 dockx_applets/namebar.py:209
-#: dockx_applets/namebar.py:298 dbx_preference:1241
+#: dockx_applets/namebar_common.py:291
+#: dockx_applets/namebar_common.py:294
+msgid "Left / Top"
+msgstr ""
+
+#: dockx_applets/namebar_common.py:292
+#: dockx_applets/namebar_common.py:294
+msgid "Center"
+msgstr ""
+
+#: dockx_applets/namebar_common.py:293
+#: dockx_applets/namebar_common.py:294
+msgid "Right / Bottom"
+msgstr ""
+
+#: dbx_preference:1241
 msgid "left"
 msgstr ""
 
-#: dockx_applets/namebar_window_title.py:169
-#: dockx_applets/namebar_window_title.py:240 dockx_applets/namebar.py:209
-#: dockx_applets/namebar.py:299 dbx_preference:1225
+#: dbx_preference:1225
 msgid "centered"
 msgstr ""
 
-#: dockx_applets/namebar_window_title.py:169
-#: dockx_applets/namebar_window_title.py:241 dockx_applets/namebar.py:209
-#: dockx_applets/namebar.py:300 dbx_preference:1241
+#: dbx_preference:1241
 msgid "right"
 msgstr ""
 

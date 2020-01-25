@@ -1,6 +1,0 @@
-@dbx applet
-name=Namebar
-exec=namebar.py
-
-@description
-Shows the name and minimize/maximize/close buttons of the active or topmost maximized window.
