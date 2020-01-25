@@ -207,7 +207,7 @@ class ClockAppletPreferences(DockXAppletDialog):
 
     def __color_set(self, button):
         # Read the value from color (and alpha) and write
-        # it as 8-bit/channel hex string for GConf.
+        # it as 8-bit/channel hex string.
         # (Alpha is written like int (0-255).)
         color = button.get_color().to_string()
         # cs has 16-bit per color, we want 8.
@@ -246,4 +246,4 @@ def run_applet_dialog(applet_id):
     dialog = ClockAppletPreferences(applet_id)
     dialog.run()
     dialog.destroy()
-        
+

@@ -1388,7 +1388,7 @@ class DockBar():
                             process, path, new_path, identifier)
 
     def update_pinned_apps_list(self, arg=None):
-        # Saves pinned_apps_list to GConf.
+        # Saves pinned_apps_list
         gconf_pinned_apps = []
         for group in self.groups:
             if not group.pinned:

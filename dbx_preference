@@ -1985,7 +1985,7 @@ class PrefDialog():
 
     def __bp_color_set(self, button, c):
         # Read the value from color (and alpha) and write
-        # it as 8-bit/channel hex string for GConf.
+        # it as 8-bit/channel hex string.
         # (Alpha is written like int (0-255).)
         if not self.theme:
             return
@@ -2013,7 +2013,7 @@ class PrefDialog():
 
     def __color_set(self, button, c):
         # Read the value from color (and alpha) and write
-        # it as 8-bit/channel hex string for GConf.
+        # it as 8-bit/channel hex string.
         # (Alpha is written like int (0-255).)
         if not self.theme:
             return
@@ -2231,7 +2231,7 @@ class PrefDialog():
 
     def __dock_color_set(self, button, c):
         # Read the value from color (and alpha) and write
-        # it as 8-bit/channel hex string for GConf.
+        # it as 8-bit/channel hex string.
         # (Alpha is written like int (0-255).)
         colors = self.globals.dock_colors
         update_needed = False

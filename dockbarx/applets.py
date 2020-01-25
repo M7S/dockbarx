@@ -270,21 +270,21 @@ class DockXApplet(Gtk.EventBox):
 
     def get_setting(self, key):
         if self.__settings is None:
-            logger.error("Error: Cannot use plugin settings " \
+            logger.error("Error: Cannot use applet settings " \
                          "without a id in the .applet file")
             return
         return get_applet_setting(self.__settings, key)
 
     def get_default_setting(self, key):
         if self.__settings is None:
-            logger.error("Error: Cannot use plugin settings " \
+            logger.error("Error: Cannot use applet settings " \
                          "without a id in the .applet file")
             return
         return get_applet_default_setting(self.__settings, key)
 
     def set_setting(self, key, value, empty_list_type=None, ignore_changed_event=True):
         if self.__settings is None:
-            logger.error("Error: Cannot use plugin settings " \
+            logger.error("Error: Cannot use applet settings " \
                          "without a id in the .applet file")
             return
         if ignore_changed_event:
@@ -385,21 +385,21 @@ class DockXAppletDialog(Gtk.Dialog):
 
     def get_setting(self, key):
         if self.__settings is None:
-            logger.error("Error: Cannot use plugin settings " \
+            logger.error("Error: Cannot use applet settings " \
                          "without a id in the .applet file")
             return
         return get_applet_setting(self.__settings, key)
 
     def get_default_setting(self, key):
         if self.__settings is None:
-            logger.error("Error: Cannot use plugin settings " \
+            logger.error("Error: Cannot use applet settings " \
                          "without a id in the .applet file")
             return
         return get_applet_default_setting(self.__settings, key)
 
     def set_setting(self, key, value, empty_list_type=None, ignore_changed_event=True):
         if self.__settings is None:
-            logger.error("Error: Cannot use plugin settings " \
+            logger.error("Error: Cannot use applet settings " \
                          "without a id in the .applet file")
             return
         if ignore_changed_event:
