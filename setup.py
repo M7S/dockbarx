@@ -88,7 +88,7 @@ class install_data(_install_data):
         # Scan folders for the right files
         self.scan_path("/usr/share/dockbarx/themes", "themes", ext=".tar.gz")
         self.scan_path("share/icons/", "icons", ext=".png")
-        self.scan_path("/usr/share/namebar/themes",
+        self.scan_path("/usr/share/dockbarx/applets/namebar_themes",
                        "dockx_applets/namebar_themes",
                        ext=".tar.gz")
         self.scan_path("/usr/share/dockbarx/applets/vc-themes",
