@@ -1481,6 +1481,9 @@ class PrefDialog():
 
     def __update(self, arg=None):
         """Set widgets according to settings."""
+        if self.dialog is None:
+            # preference dialog was closed, but some applet dialogs still open
+            return
 
         # Attention notification
         settings_attention = self.globals.settings[
@@ -1843,6 +1846,7 @@ class PrefDialog():
 
     def dialog_close(self,par1,par2):
         self.dialog.destroy()
+        self.dialog = None
         Gtk.main_quit()
 
     def __rb_toggled(self,button,par1):
