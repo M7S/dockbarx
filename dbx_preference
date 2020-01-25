@@ -481,8 +481,8 @@ class PrefDialog():
         frame.set_label(_("Window item actions"))
         frame.set_border_width(5)
         table = Gtk.Grid()
-        table.set_column_homogeneous(True)
         table.set_border_width(5)
+        table.set_column_spacing(5)
 
         self.wb_labels_and_settings = ODict((
                     (_("Left mouse button"), "windowbutton_left_click_action"),
@@ -518,6 +518,7 @@ class PrefDialog():
             label.set_xalign(1)
             label.set_yalign(0.5)
             self.wb_combos[text] = Gtk.ComboBoxText()
+            self.wb_combos[text].set_hexpand(True)
             for action in list(self.wb_actions.values()):
                 self.wb_combos[text].append_text(action)
             self.wb_combos[text].connect("changed", self.__cb_changed)
@@ -591,7 +592,8 @@ class PrefDialog():
         self.theme_settings_frame = frame
         frame.set_border_width(5)
         table = Gtk.Grid()
-        table.set_column_homogeneous(True)
+        table.set_border_width(5)
+        table.set_column_spacing(5)
 
         hbox = Gtk.HBox()
         hbox.set_border_width(10)
@@ -641,6 +643,7 @@ class PrefDialog():
             self.color_labels[c].set_yalign(0.5)
             self.color_buttons[c] = Gtk.ColorButton()
             self.color_buttons[c].set_no_show_all(True)
+            self.color_buttons[c].set_hexpand(True)
             self.color_buttons[c].show()
             self.color_buttons[c].connect("color-set",  self.__color_set, c)
             self.clear_buttons[c] = Gtk.Button()
@@ -706,7 +709,8 @@ class PrefDialog():
         label = Gtk.Label(label=_("Custom colors"))
         vbox.pack_start(label, False, True, 0)
         table = Gtk.Grid()
-        table.set_column_homogeneous(True)
+        table.set_border_width(5)
+        table.set_column_spacing(5)
         self.custom_badge_color_cbs = []
         self.badge_color_buttons = []
         for i in (0, 1):
@@ -721,6 +725,7 @@ class PrefDialog():
                     _("Custom badge background color"))[i]
             s = ("badge_fg", "badge_bg")[i]
             self.badge_color_buttons[i].set_title(text)
+            self.badge_color_buttons[i].set_hexpand(True)
             if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
                 Gtk.ColorChooser.set_use_alpha(self.badge_color_buttons[i], True)
             else:
@@ -758,7 +763,8 @@ class PrefDialog():
         label = Gtk.Label(label=_("Custom colors"))
         vbox.pack_start(label, False, True, 0)
         table = Gtk.Grid()
-        table.set_column_homogeneous(True)
+        table.set_border_width(5)
+        table.set_column_spacing(5)
         self.custom_progress_color_cbs = []
         self.progress_color_buttons = []
         for i in (0, 1):
@@ -774,6 +780,7 @@ class PrefDialog():
                     _("Custom progress bar background color"))[i]
             s = ("progress_fg", "progress_bg")[i]
             self.progress_color_buttons[i].set_title(text)
+            self.progress_color_buttons[i].set_hexpand(True)
             if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
                 Gtk.ColorChooser.set_use_alpha(self.progress_color_buttons[i], True)
             else:
@@ -937,8 +944,8 @@ class PrefDialog():
         frame.set_label(_("Group button actions"))
         frame.set_border_width(5)
         table = Gtk.Grid()
-        table.set_column_homogeneous(True)
         table.set_border_width(5)
+        table.set_column_spacing(5)
 
         self.gb_labels_and_settings = ODict((
              (_("Left mouse button"), "groupbutton_left_click_action"),
@@ -978,6 +985,7 @@ class PrefDialog():
             label.set_xalign(1)
             label.set_yalign(0.5)
             self.gb_combos[text] = Gtk.ComboBoxText()
+            self.gb_combos[text].set_hexpand(True)
             for (action) in list(self.gb_actions.values()):
                 self.gb_combos[text].append_text(action)
             self.gb_combos[text].connect("changed", self.__cb_changed)
@@ -1011,8 +1019,8 @@ class PrefDialog():
         frame.set_label(_("\"Select\" action options"))
         frame.set_border_width(5)
         table = Gtk.Grid()
-        table.set_column_homogeneous(True)
         table.set_border_width(5)
+        table.set_column_spacing(5)
 
 
         label = Gtk.Label(label=_("One window open"))
@@ -1021,6 +1029,7 @@ class PrefDialog():
         self.select_one_cg = Gtk.ComboBoxText()
         self.select_one_cg.append_text(_("select window"))
         self.select_one_cg.append_text(_("select or minimize window"))
+        self.select_one_cg.set_hexpand(True)
         self.select_one_cg.connect("changed", self.__cb_changed)
         table.attach(label, 0, 0, 1, 1)
         table.attach(self.select_one_cg, 1, 0, 1, 1)
@@ -1034,6 +1043,7 @@ class PrefDialog():
         self.select_multiple_cg.append_text(_("compiz scale"))
         self.select_multiple_cg.append_text(_("cycle through windows"))
         self.select_multiple_cg.append_text(_("show window list"))
+        self.select_multiple_cg.set_hexpand(True)
         self.select_multiple_cg.connect("changed", self.__cb_changed)
         table.attach(label, 0, 1, 1, 1)
         table.attach(self.select_multiple_cg, 1, 1, 1, 1)
@@ -1180,7 +1190,8 @@ class PrefDialog():
         frame.set_label(_("Global Keyboard Shortcuts"))
         frame.set_border_width(5)
         table = Gtk.Grid()
-        table.set_column_homogeneous(True)
+        table.set_border_width(5)
+        table.set_column_spacing(5)
 
         self.gkeys = ODict((
                        ("gkeys_select_next_group", _("Select next group")),
@@ -1203,6 +1214,7 @@ class PrefDialog():
                                                self.__checkbutton_toggled, s)
 
             self.gkeys_entries[s] = Gtk.Entry()
+            self.gkeys_entries[s].set_hexpand(True)
 
             self.gkeys_apply_buttons[s] = Gtk.Button()
             image = Gtk.Image.new_from_icon_name("gtk-apply",
