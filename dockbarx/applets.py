@@ -247,7 +247,7 @@ class DockXApplet(Gtk.EventBox):
                                 None,(Gdk.Event, ))}
 
     def __init__(self, dbx_dict):
-        self.dockx_r = weakref.ref(dbx_dict["dock"])
+        self.__dockx_r = weakref.ref(dbx_dict["dock"])
         self.__applet_id = dbx_dict["id"]
         GObject.GObject.__init__(self)
         self.set_visible_window(False)
@@ -308,29 +308,29 @@ class DockXApplet(Gtk.EventBox):
         pass
 
     def get_full_size(self):
-        if self.dockx_r:
-            dockx = self.dockx_r()
+        if self.__dockx_r:
+            dockx = self.__dockx_r()
             rel_size = float(dockx.theme.get("rel_size", 100))
             size = dockx.globals.settings["dock/size"]
             return max(size, int(size * rel_size / 100))
     
     def get_size(self):
-        if self.dockx_r:
-            return self.dockx_r().globals.settings["dock/size"]
+        if self.__dockx_r:
+            return self.__dockx_r().globals.settings["dock/size"]
 
     def get_position(self):
-        if self.dockx_r:
-            return self.dockx_r().globals.settings["dock/position"]
+        if self.__dockx_r:
+            return self.__dockx_r().globals.settings["dock/position"]
 
     def get_monitor(self):
-        if self.dockx_r:
-            return self.dockx_r().monitor
+        if self.__dockx_r:
+            return self.__dockx_r().monitor
 
     def get_expand(self):
         return self.expand
         
     def get_applet_size(self):
-        if not self.dockx_r:
+        if not self.__dockx_r:
             return 0
         if not self.get_visible():
             return 0

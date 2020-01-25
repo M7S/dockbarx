@@ -124,40 +124,40 @@ class ClockAppletPreferences(DockXAppletDialog):
     
     def __init__(self, applet_name):
         DockXAppletDialog.__init__(self, applet_name)
-        table = Gtk.Table(2, 3)
+        table = Gtk.Grid()
+        table.set_column_spacing(5)
+        table.set_row_spacing(5)
         self.vbox.pack_start(table, True, True, 0)
-        
+
         self.font_button = Gtk.FontButton()
         self.font_button.set_use_font(True)
         self.font_button.set_use_size(True)
         self.font_button.set_show_style(True)
+        self.font_button.set_hexpand(True)
         label = Gtk.Label(label=_("Font:"))
-        table.attach(label, 0, 1, 0, 1)
+        table.attach(label, 0, 0, 1, 1)
         self.font_button.set_title(_("Clock font"))
         self.font_button.connect("font_set", self.__set_font)
-        table.attach(self.font_button, 1, 2, 0, 1)
+        table.attach(self.font_button, 1, 0, 1, 1)
         
         label = Gtk.Label(label=_("Color:"))
-        table.attach(label, 0, 1, 1, 2)
+        table.attach(label, 0, 1, 1, 1)
         self.color_button = Gtk.ColorButton()
+        self.color_button.set_hexpand(True)
         self.color_button.set_title(_("Font color"))
         self.color_button.connect("color-set",  self.__color_set)
-        table.attach(self.color_button, 1, 2, 1, 2)
+        table.attach(self.color_button, 1, 1, 1, 1)
 
         self.date_cb = Gtk.CheckButton(_("Show Date"))
         self.date_cb.connect("toggled", self.__cb_toggled, "show_date")
-        table.attach(self.date_cb, 1, 2, 2, 3)
+        table.attach(self.date_cb, 1, 2, 1, 1)
 
-        frame = Gtk.Frame()
-        self.vbox.pack_start(frame, True, True, 0)
-        vbox = Gtk.VBox()
-        frame.add(vbox)
         self.custom_clock_cb = Gtk.CheckButton(_("Use custom clock"))
         self.custom_clock_cb.connect("toggled",
                                      self.__cb_toggled, "use_custom_format")
-        vbox.pack_start(self.custom_clock_cb, True, True, 0)
+        table.attach(self.custom_clock_cb, 0, 3, 2, 1)
+
         hbox = Gtk.HBox()
-        vbox.pack_start(hbox, True, True, 0)
         self.cf_entry = Gtk.Entry()
         self.cf_entry.set_tooltip_text("The format is identical to gnome-panel clock's custom format. Google 'gnome-panel custom clock' for exampels.")
         hbox.pack_start(self.cf_entry, True, True, 0)
@@ -166,12 +166,12 @@ class ClockAppletPreferences(DockXAppletDialog):
                                          Gtk.IconSize.SMALL_TOOLBAR)
         self.cf_button.add(image)
         self.cf_button.connect("clicked", self.__set_custom_format)
-        hbox.pack_start(self.cf_button, True, True, 0)
+        hbox.pack_start(self.cf_button, False, False, 0)
+        table.attach(hbox, 0, 4, 2, 1)
 
         hbox = Gtk.HBox()
-        self.vbox.pack_start(hbox, True, True, 0)
         label = Gtk.Label(label=_("Text direction: "))
-        hbox.pack_start(label, True, True, 0)
+        hbox.pack_start(label, False, False, 0)
         self.td_cbt = Gtk.ComboBoxText()
         self.td_cbt.append_text(_("default"))
         self.td_cbt.append_text(_("left-right"))
@@ -179,6 +179,7 @@ class ClockAppletPreferences(DockXAppletDialog):
         self.td_cbt.append_text(_("bottom-up"))
         self.td_cbt.connect("changed",  self.__text_direction_changed)
         hbox.pack_start(self.td_cbt, True, True, 0)
+        table.attach(hbox, 0, 5, 2, 1)
         
         self.show_all()
 
