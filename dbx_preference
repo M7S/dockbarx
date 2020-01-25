@@ -729,8 +729,12 @@ class PrefDialog():
                                  self.__checkbutton_toggled, "old_menu")
         self.old_menu_cb.set_margin_top(5)
         self.old_menu_cb.set_margin_bottom(5)
-        self.old_menu_cb.set_margin_start(10)
-        self.old_menu_cb.set_margin_end(10)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            self.old_menu_cb.set_margin_start(10)
+            self.old_menu_cb.set_margin_end(10)
+        else:
+            self.old_menu_cb.set_margin_left(10)
+            self.old_menu_cb.set_margin_right(10)
         appearance_box.pack_start(self.old_menu_cb, False, True, 0)
 
         bpbox = Gtk.HBox()
