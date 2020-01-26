@@ -530,7 +530,7 @@ class Opacify():
 class Globals(GObject.GObject):
     """ Globals is a signletron containing all the "global" variables of dockbarx.
 
-    It also keeps track of gconf settings and signals changes in gconf to other programs"""
+    It also keeps track of settings and signals changes in settings to other programs"""
 
     __gsignals__ = {
         "color2-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
@@ -908,9 +908,6 @@ class Globals(GObject.GObject):
 
     def __get_settings(self, default):
         settings = default.copy()
-        #~ gconf_set = { str: GCONF_CLIENT.set_string,
-                      #~ bool: GCONF_CLIENT.set_bool,
-                      #~ int: GCONF_CLIENT.set_int }
         for name, value in list(settings.items()):
             gs_name = name.replace("_", "-")
             if name.startswith("dock/"):
@@ -1049,7 +1046,7 @@ class Globals(GObject.GObject):
             self.emit("preference-update")
 
 
-    def get_pinned_apps_from_gconf(self):
+    def get_pinned_apps_list(self):
         # Get list of pinned_apps
         pinned_apps = self.gsettings.get_value("launchers").unpack()
         return pinned_apps

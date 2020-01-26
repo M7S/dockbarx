@@ -1456,7 +1456,7 @@ class PrefDialog():
                 default_theme_path = path
         else:
             if default_theme_path:
-                # If the current theme according to gconf couldn't be found,
+                # If the current theme according to settings couldn't be found,
                 # the default theme is used.
                 self.theme = Theme(default_theme_path)
             else:
@@ -1888,7 +1888,7 @@ class PrefDialog():
         Gtk.main_quit()
 
     def __rb_toggled(self,button,par1):
-        # Read the value of the toggled radio button and write to gconf
+        # Read the value of the toggled radio button and write to settings
         rb1_toggled = False
 
         if par1 == "rb1_blink" and button.get_active():
@@ -1910,7 +1910,7 @@ class PrefDialog():
                    "groupbutton-attention-notification-type", value)
 
     def __checkbutton_toggled(self,button,name):
-        # Read the value of the toggled check button/box and write to gconf
+        # Read the value of the toggled check button/box and write to settings
         if name.startswith("dock/"):
             gsettings = self.dock_gsettings
             name1 = name.replace("dock/", '', 1)
@@ -1931,7 +1931,7 @@ class PrefDialog():
 
 
     def __cb_changed(self, combobox):
-        # Read the value of the combo box and write to gconf
+        # Read the value of the combo box and write to settings
         value = combobox.get_active_text()
         if value is None:
             return
@@ -2025,7 +2025,7 @@ class PrefDialog():
                     self.dock_gsettings.set_string("behavior", p)
 
     def __adjustment_changed(self, widget, setting):
-        # Read the value of the adjustment and write to gconf
+        # Read the value of the adjustment and write to settings
         value = int(widget.get_value())
         if value != self.globals.settings[setting]:
             if setting.startswith("dock/"):
@@ -2104,7 +2104,7 @@ class PrefDialog():
                 self.theme_gsettings.set_int(c+"-alpha", new_alpha)
 
     def __color_reset(self, button, c):
-        # Reset gconf color setting to default.
+        # Reset color setting to default.
         if not self.theme:
             return
         if c in self.theme_colors:
@@ -2317,7 +2317,7 @@ class PrefDialog():
             self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
 
     def __dock_color_reset(self, button, c):
-        # Reset gconf color setting to default.
+        # Reset color setting to default.
         colors = self.globals.dock_colors
         colors[c] = self.dock_theme.default_colors[c]
         a = c.replace("color", "alpha")

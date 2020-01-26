@@ -626,11 +626,11 @@ class DockBar():
         self.d_e_ids_by_wine_program = {}
         self.d_e_ids_by_chromium_cmd = {}
 
-        gconf_pinned_apps = self.globals.get_pinned_apps_from_gconf()
+        pinned_apps = self.globals.get_pinned_apps_list()
 
 
         # Initiate launcher group buttons
-        for launcher in gconf_pinned_apps:
+        for launcher in pinned_apps:
             identifier, path = launcher.split(";")
             # Fix for launchers made in previous version of dockbarx
             identifier = identifier.lower()
@@ -1389,7 +1389,7 @@ class DockBar():
 
     def update_pinned_apps_list(self, arg=None):
         # Saves pinned_apps_list
-        gconf_pinned_apps = []
+        pinned_apps = []
         for group in self.groups:
             if not group.pinned:
                 continue
@@ -1397,8 +1397,8 @@ class DockBar():
             if identifier is None:
                 identifier = ""
             path = group.desktop_entry.getFileName()
-            gconf_pinned_apps.append(identifier + ";" + path)
-        self.globals.set_pinned_apps_list(gconf_pinned_apps)
+            pinned_apps.append(identifier + ";" + path)
+        self.globals.set_pinned_apps_list(pinned_apps)
 
     def __add_launcher(self, identifier, path):
         if path[:4] == "gio:":
