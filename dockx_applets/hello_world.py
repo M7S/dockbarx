@@ -3,6 +3,7 @@
 #   Hello world dockbarx applet
 #
 #	Copyright 2011 Matias Sars
+#	Copyright 2020 Xu Zhen
 #
 #	DockbarX is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -21,7 +22,10 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import GLib
-from dockbarx.applets import DockXApplet, DockXAppletDialog 
+from gi.repository import Pango
+from dockbarx.applets import DockXApplet, DockXAppletDialog
+import random
+random.seed()
 
 class HelloWorldApplet(DockXApplet):
     """An example applet for DockbarX standalone dock"""
@@ -32,26 +36,53 @@ class HelloWorldApplet(DockXApplet):
         text = self.get_setting("text")
         self.label = Gtk.Label()
         self.update_text(text)
+        position = self.get_position()
+        if position in ("left", "right"):
+            self.label.set_angle(270)
+        else:
+            self.label.set_angle(0)
+        self.label.set_attributes(Pango.AttrList())
+        self.update_color()
+        self.update_size()
+        self.label.show()
         
         # DockXApplet base class is pretty much a Gtk.EventBox.
         # so all you have to do is adding your widget with self.add()
         self.add(self.label)
 
         self.connect("clicked", self.on_clicked)
-        self.label.show()
         self.show()
 
     def update_text(self, text):
-        text = GLib.markup_escape_text(text, -1)
-        self.label.set_markup('<span foreground="#FFFFFF" background="#000000">%s</span>' % text)
+        self.label.set_text(text)
 
+    def update_color(self):
+        color = [ random.randrange(0, 65536) for _ in range(3) ]
+        attrs = self.label.get_attributes()
+        attrs.change(Pango.attr_foreground_new(*color))
+        self.label.set_attributes(attrs)
+
+    def update_size(self):
+        attrs = self.label.get_attributes()
+        attrs.change(Pango.attr_size_new((self.get_size() * 0.5) * Pango.SCALE))
+        self.label.set_attributes(attrs)
+
+    def on_clicked(self, applet, event):
+        button = event.get_button().button
+        if button == 3:     # right click
+            run_applet_dialog(self.get_id())
+        elif button == 1:   # left click
+            self.update_color()
+
+    # dockbar size changed event handler
+    def update(self):
+        self.update_size()
+
+    # setting changed event handler
     def on_setting_changed(self, key, value):
         # self.debug((key, value))
         if key == "text":
             self.update_text(value)
-
-    def on_clicked(self, applet, event):
-        run_applet_dialog(self.get_id())
 
 class HelloWorldPreferences(DockXAppletDialog):
     Title = "Hello World Applet Preference"
@@ -82,28 +113,24 @@ class HelloWorldPreferences(DockXAppletDialog):
         self.vbox.pack_start(hbox, False, False, 0)
         self.vbox.show_all()
 
-    def run(self):
-        DockXAppletDialog.run(self)
-
     def save_text(self, entry):
         text = self.entry.get_text()
-        self.setting = True
         self.set_setting("text", text)
-        self.setting = False
         pass
 
+    def reset_to_default_text(self, button):
+        # set to None to reset
+        text = self.set_setting("text", None, ignore_changed_event=False)
+        # set ignore_changed_event to False, the text will be set in on_setting_changed
+        # otherwise you have to update self.entry manually 
+        # self.entry.set_text(self.get_default_setting("text"))
+
+    # settings changed event handler
     def on_setting_changed(self, key, value):
         # self.debug((key, value))
-        if self.setting:
-            return
+        # settings may also be changed from outside, dconf e.g.
         if key == "text":
             self.entry.set_text(value)
-
-    def reset_to_default_text(self, button):
-        self.setting = True
-        text = self.set_setting("text", None)
-        self.entry.set_text(self.get_setting("text"))
-        self.setting = False
 
 
 # All applets needs to have this function
@@ -113,9 +140,9 @@ def get_dbx_applet(dbx_dict):
     applet = HelloWorldApplet(dbx_dict)
     return applet
 
-
+# have this function for opening settings dialog from applet management tab
 def run_applet_dialog(applet_id):
     dialog = HelloWorldPreferences(applet_id)
     dialog.run()
     dialog.destroy()
-        
+

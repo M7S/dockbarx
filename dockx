@@ -649,11 +649,15 @@ class DockX(CairoDockX):
         # Clean up the old box
         for child in self.box.get_children():
             self.box.remove(child)
+            if isinstance(child, DockXApplet):
+                child.destroy()
         self.box.destroy()
         if self.position_boxes:
             for box in self.position_boxes:
                 for child in box.get_children():
                     box.remove(child)
+                    if isinstance(child, DockXApplet):
+                        child.destroy()
                 box.destroy()
 
     def __add_applets(self, alist, pos, panel):
@@ -703,6 +707,7 @@ class DockX(CairoDockX):
                 applet_id = self.applets.get_id(name)
                 applet = appletscr.get_dbx_applet({"name":name, "id":applet_id, "dock":self})
                 expand = applet.get_expand() and panel
+                applet.finish_init()
             if expand:
                 expanded = True
             box.pack_start(applet, expand, expand, 0)
@@ -1263,6 +1268,10 @@ class DockX(CairoDockX):
             return screen.get_display().get_primary_monitor().get_geometry();
         else:
             return screen.get_monitor_geometry(self.monitor)
+
+    def reload_applets(self):
+        #self.applets.find_applets()
+        self.__rebuild()
 
     def reload(self, *args):
         self.db_loaded = False

@@ -61,6 +61,37 @@ msgstr ""
 msgid "bottom-up"
 msgstr ""
 
+#: dockx_applets/namebar_common.py:287
+msgid "Alignment"
+msgstr ""
+
+#: dockx_applets/namebar_common.py:291
+#: dockx_applets/namebar_common.py:294
+msgid "Left / Top"
+msgstr ""
+
+#: dockx_applets/namebar_common.py:292
+#: dockx_applets/namebar_common.py:294
+msgid "Center"
+msgstr ""
+
+#: dockx_applets/namebar_common.py:293
+#: dockx_applets/namebar_common.py:294
+msgid "Right / Bottom"
+msgstr ""
+
+#: dbx_preference:1241
+msgid "left"
+msgstr ""
+
+#: dbx_preference:1225
+msgid "centered"
+msgstr ""
+
+#: dbx_preference:1241
+msgid "right"
+msgstr ""
+
 #: dockx_applets/volume-control.py:48
 msgid "Volume Control"
 msgstr ""

@@ -138,7 +138,7 @@ class Theme(GObject.GObject):
                 default_theme_path = path
         else:
             if default_theme_path:
-                # If the current theme according to gconf couldn't be found,
+                # If the current theme according to settings couldn't be found,
                 # the default theme is used.
                 self.theme_path = default_theme_path
             else:

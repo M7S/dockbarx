@@ -268,6 +268,7 @@
 
     <key name='badge-bg-alpha' type='i'>
       <default>255</default>
+      <range min="0" max="255"/>
       <summary>Custom background opacity for unity badges</summary>
       <description>
         Custom background opacity for unity badges.
@@ -293,6 +294,7 @@
 
     <key name='badge-fg-alpha' type='i'>
       <default>255</default>
+      <range min="0" max="255"/>
       <summary>Custom font opacity for unity badges</summary>
       <description>
         Custom font opacity for unity badges.
@@ -318,6 +320,7 @@
 
     <key name='progress-bg-alpha' type='i'>
       <default>64</default>
+      <range min="0" max="255"/>
       <summary>Custom background opacity for unity progress bars</summary>
       <description>
         Custom background opacity for progress bars.
@@ -343,6 +346,7 @@
 
     <key name='progress-fg-alpha' type='i'>
       <default>255</default>
+      <range min="0" max="255"/>
       <summary>Custom opacity for unity progress bars</summary>
       <description>
         Custom background opacity for unity progress bars.
@@ -378,6 +382,7 @@
 
     <key name='opacify-alpha' type='i'>
       <default>5</default>
+      <range min="0" max="255"/>
       <summary>Opacify opacity</summary>
       <description>
         Currently not working?

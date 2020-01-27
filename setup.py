@@ -88,6 +88,9 @@ class install_data(_install_data):
         # Scan folders for the right files
         self.scan_path("/usr/share/dockbarx/themes", "themes", ext=".tar.gz")
         self.scan_path("share/icons/", "icons", ext=".png")
+        self.scan_path("/usr/share/dockbarx/applets/namebar_themes",
+                       "dockx_applets/namebar_themes",
+                       ext=".tar.gz")
         self.scan_path("/usr/share/dockbarx/applets/vc-themes",
                        "dockx_applets/vc-themes")
         _install_data.run(self)
@@ -122,13 +125,19 @@ data_files=[
                                              "dockx_applets/battery_status.applet",
                                              "dockx_applets/volume-control.py",
                                              "dockx_applets/volume-control.applet",
-                                             "dockx_applets/volume-control.ui"]),
+                                             "dockx_applets/volume-control.ui",
+                                             "dockx_applets/namebar_common.py",
+                                             "dockx_applets/namebar_window_buttons.applet",
+                                             "dockx_applets/namebar_window_buttons.py",
+                                             "dockx_applets/namebar_window_title.applet",
+                                             "dockx_applets/namebar_window_title.py"]),
             ("bin", ["dockbarx_mate_applet", "dbx_preference", "dockx"]),
             ("share/applications/", ["dbx_preference.desktop"]),
             ("share/applications/", ["DockX.desktop"]),
             ("share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml",
                                          "dockx_applets/org.dockbar.applets.clock.gschema.xml",
-                                         "dockx_applets/org.dockbar.applets.hello-world.gschema.xml"]),
+                                         "dockx_applets/org.dockbar.applets.hello-world.gschema.xml",
+                                         "dockx_applets/org.dockbar.applets.namebar.gschema.xml"]),
             ("share/dbus-1/services/", ["org.mate.panel.applet.DockbarXAppletFactory.service"]),
             ("share/mate-panel/applets/", ["org.mate.panel.DockbarX.mate-panel-applet"]),
             ("share/mate-panel/ui/", ["dockbarx-applet-menu.xml"]),
