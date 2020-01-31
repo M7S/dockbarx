@@ -65,8 +65,6 @@ class CairoDockX(Gtk.Window):
             visual = gdk_screen.get_rgb_visual()
         self.set_visual(visual)
         self.set_app_paintable(1)
-        self.button_area = Gtk.Alignment.new(0,0,1,1)
-        Gtk.Window.add(self, self.button_area)
         self.compute_padding()
         self.globals.connect("dock-color-changed", self.__on_color_changed)
         self.connect("draw", self.on_draw)
@@ -447,6 +445,9 @@ class CairoDockX(Gtk.Window):
         return cairo.LinearGradient(start_x, start_y, stop_x, stop_y)
 
     def compute_padding(self):
+        child = self.get_child()
+        if child is None:
+            return
         pos = self.globals.settings["dock/position"]
         size = self.globals.settings["dock/size"]
         rel_size = float(self.theme.get("rel_size", 100))
@@ -469,13 +470,20 @@ class CairoDockX(Gtk.Window):
             padding = (b, p, 0, 0)
         else:
             padding = (p, b, 0, 0)
-        self.button_area.set_padding(*padding)
+        child.set_margin_top(padding[0])
+        child.set_margin_bottom(padding[1])
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            child.set_margin_start(padding[2])
+            child.set_margin_end(padding[3])
+        else:
+            child.set_margin_left(padding[2])
+            child.set_margin_right(padding[3])
 
     def add_box(self, widget):
-        self.button_area.add(widget)
+        self.add(widget)
 
-    def remove_box(self):
-        self.button_area.remove(widget)
+    def remove_box(self, widget):
+        self.remove(widget)
 
     def __on_color_changed(self, *args):
         self.queue_draw()

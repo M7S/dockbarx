@@ -2022,18 +2022,22 @@ class GroupPopup(CairoPopup):
         CairoPopup.destroy(self, *args, **kvargs)
 
     def set_child_(self, child):
-        old_child = self.alignment.get_child()
+        old_child = self.get_child_()
         if old_child == child:
             return
         if old_child:
-            self.alignment.remove(old_child)
-        self.alignment.add(child)
+            self.childbox.remove(old_child)
+        self.childbox.add(child)
         if self.popup_showing:
             child.show_all()
             self.resize(10, 10)
 
     def get_child_(self):
-        return self.alignment.get_child()
+        children = self.childbox.get_children()
+        if len(children) == 0:
+            return None
+        else:
+            return children[0]
 
     def on_size_allocate(self, widget, allocation):
         if allocation == self.last_allocation:
@@ -2287,9 +2291,9 @@ class LockedPopup(GroupPopup):
             self.point("down", 20)
         else:
             GroupPopup.__init__(self, group, type_="locked_list")
-        child = group.popup.alignment.get_child()
+        child = group.popup.get_child_()
         if child:
-            group.popup.alignment.remove(child)
+            group.popup.childbox.remove(child)
         self.set_child_(group.window_list)
         group.window_list.apply_mini_mode()
         self.show_all()
@@ -2429,7 +2433,7 @@ class LockedPopup(GroupPopup):
         group = self.group_r()
         group.locked_popup = None
         self.globals.disconnect(self.overlap_sid)
-        self.alignment.remove(group.window_list)
+        self.childbox.remove(group.window_list)
         group.popup.set_child_(group.window_list)
         group.window_list.apply_normal_mode()
         GroupPopup.destroy(self)
@@ -2450,7 +2454,6 @@ class WindowList(Gtk.Box):
         GObject.GObject.__init__(self)
         self.set_border_width(0)
         self.set_spacing(2)
-        self.alignment = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         self.title = Gtk.Label()
         # Title needs to be shown so that we can calculate the height of the window list.
         self.title.show()
@@ -2458,7 +2461,6 @@ class WindowList(Gtk.Box):
         self.update_title()
         self.update_title_tooltip()
         self.pack_start(self.title, False, False, 0)
-        self.pack_start(self.alignment, True, True, 0)
         self.set_show_previews(self.globals.settings["preview"])
 
         connect(self.globals, "color2-changed", self.update_title)
@@ -2598,10 +2600,10 @@ class WindowList(Gtk.Box):
         if self.size_overflow:
             self.scrolled_window = self.__create_scrolled_window()
             self.scrolled_window.add_with_viewport(self.window_box)
-            self.alignment.add(self.scrolled_window)
+            self.add(self.scrolled_window)
             self.scrolled_window.show_all()
         else:
-            self.alignment.add(self.window_box)
+            self.add(self.window_box)
             self.window_box.show_all()
 
     def __create_scrolled_window(self):
