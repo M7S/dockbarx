@@ -1421,6 +1421,7 @@ class GroupButton(CairoAppButton):
 
     def dockbar_moved(self, arg=None):
         self.set_icongeo()
+        self.__reset_locked_popup_position()
 
     def destroy(self, *args, **kwargs):
         # Remove group button.
@@ -1845,16 +1846,18 @@ class GroupButton(CairoAppButton):
         if not self.manual_size:
             # Let's update the size of the icons
             self.__set_size_from_allocation(allocation)
-        # If you have a locked popup on a horizontal dockbar it needs to be
-        # removed and re-added so that the arrow points to the right position.
-        group = self.group_r()
-        if group.locked_popup and self.dockbar_r().orient in ("down", "up"):
-            group.remove_locked_popup()
-            group.add_locked_popup()
+        self.__reset_locked_popup_position()
         self.old_alloc = allocation
         # Update icon geometry
         self.set_icongeo()
 
+    def __reset_locked_popup_position(self):
+        group = self.group_r()
+        # If there is a locked popup on a dockbar at bottom, it needs to be
+        # re-created for being at the right position.
+        if group.locked_popup and self.dockbar_r().orient == "down":
+            group.remove_locked_popup()
+            group.add_locked_popup()
 
     def __set_size_from_allocation(self, allocation):
         if self.dockbar_r().orient in ("left", "right") and \
@@ -2044,8 +2047,11 @@ class GroupPopup(CairoPopup):
             return
         group = self.group_r()
         # Move popup to it's right spot
+        window = group.button.get_window()
+        if not window:
+            return
         offset = int(self.popup_style.get("%s_distance" % self.popup_type, -7))
-        dummy, wx, wy = group.button.get_window().get_origin()
+        dummy, wx, wy = window.get_origin()
         b_alloc = group.button.get_allocation()
         width, height = self.get_size()
 
@@ -2287,7 +2293,7 @@ class LockedPopup(GroupPopup):
             wx, wy = (0, 0)
         if group.dockbar_r().orient in ("left", "right") or wy < mgeo.height // 2:
             # The popup should be placed at bottom of the screen and have no arrow.
-            GroupPopup.__init__(self, group, False, type_="locked_list")
+            GroupPopup.__init__(self, group, no_arrow=True, type_="locked_list")
             self.point("down", 20)
         else:
             GroupPopup.__init__(self, group, type_="locked_list")
@@ -2296,11 +2302,12 @@ class LockedPopup(GroupPopup):
             group.popup.childbox.remove(child)
         self.set_child_(group.window_list)
         group.window_list.apply_mini_mode()
-        self.show_all()
         if not group.get_windows():
             self.hide()
         else:
-            GLib.idle_add(self.__on_realized)
+            # not work
+            # GLib.idle_add(self.__on_realized)
+            pass
         self.overlap_sid = self.globals.connect("locked-list-overlap-changed", self.__set_own_strut)
         self.connect("size-allocate", self.on_size_allocate)
 
@@ -2408,8 +2415,11 @@ class LockedPopup(GroupPopup):
         strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
         strut = 0
         for w in windows:
-            prop1 = w.get_full_property(strut_partial_atom, 0)
-            prop2 = w.get_full_property(strut_atom, 0)
+            try:
+                prop1 = w.get_full_property(strut_partial_atom, 0)
+                prop2 = w.get_full_property(strut_atom, 0)
+            except Xlib.error.BadWindow:
+                continue
             if prop1 is not None:
                 cl = w.get_wm_class()
                 if cl and cl[0] == "dockx":

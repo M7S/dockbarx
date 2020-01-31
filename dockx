@@ -613,6 +613,7 @@ class DockX(CairoDockX):
             self.old_x = x
             self.old_y = y
         self.dockbar.set_size(db_size)
+        self.dockbar.dockbar_moved()
 
     def __rebuild(self):
         self.__destroy_old()
@@ -932,11 +933,13 @@ class DockX(CairoDockX):
             self.old_width, self.old_height = w, h
         if self.globals.settings["dock/mode"] != "panel":
             self.__set_dock_strut(x, y, w, h)
+        self.dockbar.dockbar_moved()
 
     def show_dock(self):
         self.show()
         if self.globals.settings["dock/mode"] != "centered":
             self.move(self.old_x, self.old_y)
+            self.dockbar.dockbar_moved()
         if self.autohide_sid is not None:
             GLib.source_remove(self.autohide_sid)
         if self.autounhide_sid is not None:
