@@ -506,6 +506,7 @@ class WindowItem(CairoButton):
                 geo = xwin.get_geometry()
                 pixmap = xwin.composite_name_window_pixmap()
                 image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
+                xwin.composite_unredirect_window(Xlib.ext.composite.RedirectAutomatic)
             except:
                 self.preview.set_from_pixbuf(window.wnck.get_icon())
                 return;
