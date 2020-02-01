@@ -924,7 +924,7 @@ class Globals(GObject.GObject):
                 gsettings = self.gsettings
             gs_value = gsettings.get_value(gs_name).unpack()
             if type(gs_value) != type(value):
-                # Todo: Remove this if unneccessary.
+                # Todo: Remove this if unnecessary.
                 logger.warning("Gsettings import. Wrong types for %s - New type: %s, Old type: %s" % (name, gs_value, value))
             settings[name] = gs_value
         return settings

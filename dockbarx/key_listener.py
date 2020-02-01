@@ -30,7 +30,7 @@ class KeyListener(GObject.GObject):
 
     def fail_safe(self):
         # Fail-safe. Checks if the key release check has stopped working
-        # (for exmple if query_keymap has freezed) by checking
+        # (for example if query_keymap has freezed) by checking
         # how long time that has passed since the last control.
         if time() - self.last_query_time > 1:
             # It's been more than a second since the last query.

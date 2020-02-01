@@ -227,7 +227,7 @@ class Window():
             win_x,win_y,win_w,win_h = self.wnck.get_geometry()
             self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),
                                       win_y-(win_y%self.screen.get_height()))
-            # Hide popup since mouse movment won't
+            # Hide popup since mouse movement won't
             # be tracked during compiz move effect
             # which means popup list can be left open.
             group = self.group_r()
@@ -389,7 +389,7 @@ class WindowItem(CairoButton):
             self.close_button.hide()
             self.label.queue_resize()
 
-    #### Apperance
+    #### Appearance
     def __update_label(self, arg=None):
         """Updates the style of the label according to window state."""
         window = self.window_r()

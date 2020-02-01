@@ -79,7 +79,7 @@ class IconFactory():
         self.class_group = class_group
 
         # Setting size to something other than zero to
-        # avoid crashes if surface_update() is runned
+        # avoid crashes if surface_update() is ran
         # before the size is set.
         if size is None or size <=0:
             self.size = 15
@@ -262,7 +262,7 @@ class IconFactory():
         else:
             try:
                 if len(color) != 7:
-                    raise ValueError("The string has the wrong lenght")
+                    raise ValueError("The string has the wrong length")
                 t = int(color[1:], 16)
             except:
                 logger.exception("Theme error: the color attribute " +
@@ -275,7 +275,7 @@ class IconFactory():
     def __get_alpha(self, alpha):
         # Transparency
         if alpha == "active_opacity":
-            # For backwards compability
+            # For backwards compatibility
             alpha = "color5"
 
         for i in range(1, 9):
@@ -423,7 +423,7 @@ class IconFactory():
     def __command_pixmap_from_self(self, surface, name, content=None):
         if not name:
             logger.warning("Theme Error: no name given for pixmap_from_self")
-            raise Exeption
+            raise Exception
         w = int(surface.get_width())
         h = int(surface.get_height())
         self.temp[name] = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
@@ -510,7 +510,7 @@ class IconFactory():
 
 
     def __find_icon_pixbuf(self, size):
-        # Returns the icon pixbuf for the program. Uses the following metods:
+        # Returns the icon pixbuf for the program. Uses the following methods:
 
         # 1) If it is a launcher, return the icon from the
         #    launcher's desktopfile
@@ -660,7 +660,7 @@ class IconFactory():
         # Combines left half of surface with right half of surface2.
         # The transition between the two halves are soft.
 
-        # Degrees keyword are kept of compability reasons.
+        # Degrees keyword are kept of compatibility reasons.
         w = surface.get_width()
         h = surface.get_height()
         if pix1=="self":
@@ -796,12 +796,12 @@ class IconFactory():
         percent = self.__get_from_set(percent)
         w = int(((100-int(percent)) * w0)/100)-int(pixels)
         h = int(((100-int(percent)) * h0)/100)-int(pixels)
-        shrinked = self.__resize_surface(surface, w, h)
+        shrunk = self.__resize_surface(surface, w, h)
         x = round((w0 - w) / 2.0)
         y = round((h0 - h) / 2.0)
-        ctx.set_source_surface(shrinked, x, y)
+        ctx.set_source_surface(shrunk, x, y)
         ctx.paint()
-        del shrinked
+        del shrunk
         return new
 
     def __command_rotate(self, surface, angle="0", resize="False"):
@@ -898,7 +898,7 @@ class IconFactory():
 
     def __command_bright(self, surface, strength = None, strenght = None):
         if strength is None and strenght is not None:
-            # For compability with older themes.
+            # For compatibility with older themes.
             strength = strenght
         alpha = self.__get_alpha(strength)
         w = surface.get_width()

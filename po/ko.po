@@ -657,7 +657,7 @@ msgstr "위치"
 
 #: dbx_preference:1276
 msgid ""
-"Use this if the dock isn't able to automatically aviod overlapping with "
+"Use this if the dock isn't able to automatically avoid overlapping with "
 "other panels"
 msgstr "독이 다른 자동으로 다른 패널 위에 겹쳐지는 것을 막지 못하면 이 것을 사용하십시오."
 
@@ -746,26 +746,26 @@ msgstr ""
 
 #: dbx_preference:2191
 msgid ""
-"Previews requires the compiz plugin KDE Compability to be activated. Should "
+"Previews requires the compiz plugin KDE Compatibility to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
-"미리 보기 기능을 사용하시려면 컴피즈 플러그인 중 KDE Compability을 사용해야 합니다. 지금부터 사용하시겠습니까?"
+"미리 보기 기능을 사용하시려면 컴피즈 플러그인 중 KDE Compatibility을 사용해야 합니다. 지금부터 사용하시겠습니까?"
 
 #: dbx_preference:2205
 msgid ""
-"The compiz plugin KDE Compability that is needed for previews doesn't seem "
+"The compiz plugin KDE Compatibility that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
-"미리 보기 기능에 필요한 KDE Compability 컴피즈 플러그인이 설치되어있지 않습니다. 우분투를 사용 중이시라면 compiz-"
+"미리 보기 기능에 필요한 KDE Compatibility 컴피즈 플러그인이 설치되어있지 않습니다. 우분투를 사용 중이시라면 compiz-"
 "fusion-plugins-main 패키지를 설치해 주십시오."
 
 #: dbx_preference:2223
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
-"Compability plugin. Should dockbarx activate it for you?"
+"Compatibility plugin. Should dockbarx activate it for you?"
 msgstr ""
-"미리 보기 기능은 KDE Compability 플러그인 기능 중 Support Plasma Thumnails 기능을 사용합니다. 지금부터 "
+"미리 보기 기능은 KDE Compatibility 플러그인 기능 중 Support Plasma Thumnails 기능을 사용합니다. 지금부터 "
 "사용하시겠습니까?"
 
 #: dbx_preference:2250

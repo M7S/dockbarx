@@ -139,7 +139,7 @@ class UnityWatcher():
         group.set_unity_properties(self.props_by_app[app_uri], sender)
 
     def __fix_long(self, count):
-        # Apparently python dbus doensn't handle all kinds of int/long 
+        # Apparently python dbus doesn't handle all kinds of int/long 
         # variables correctly. Try the UnityFox firefox addon for example.
         # This is a hack to fix that. There's perhaps a more correct way
         # to do this?
@@ -148,7 +148,7 @@ class UnityWatcher():
             # python-dbus has made a number of 64 bits instead. The first bits
             # then contains garbage.
             count = int(bin(count)[-36:], 2)
-            # The nuber will now start from 1<<35 and go downwards as the
+            # The number will now start from 1<<35 and go downwards as the
             # actual number increases (because count was negative before we
             # cut the first half). Let's fix that.
             count = (1<<35) - count

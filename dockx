@@ -686,7 +686,7 @@ class DockX(CairoDockX):
                     # Start putting applets in the right/bottom box.
                     box = self.position_boxes[2]
                 box.pack_start(spacer, True, True, 0)
-                # Define spacer posistion relative to dbx
+                # Define spacer position relative to dbx
                 # Needed for correct drag and drop behavior.
                 if i != 0 and alist[i - 1] == "DockbarX":
                     if not self.position_boxes:
@@ -740,7 +740,7 @@ class DockX(CairoDockX):
             self.box.pack_start(boxes[0], True, True, 0)
             self.box.pack_start(boxes[1], False, False, 0)
             self.box.pack_start(boxes[2], True, True, 0)
-            # Use hugh size requests so that the boxes get equaly large.
+            # Use hugh size requests so that the boxes get equally large.
             if pos in ("left", "right"):
                 boxes[0].set_size_request(-1, 3000)
                 boxes[2].set_size_request(-1, 3000)

@@ -5,7 +5,7 @@ A dockbarx theme resides in a tar.gz file. The extension is important since dock
 The .tar.gz file should consists of a config file, which informs dockbarx how the theme should look, and (optionally) a folder "/pixmap" consisting of the images (pixmaps) that the theme uses.
 
 
-*** Observe the changes done to <alpha_mask> in verion x.0.30! ***
+*** Observe the changes done to <alpha_mask> in version x.0.30! ***
 
 The config file
 ===============
@@ -69,7 +69,7 @@ Here is a <colors></colors> section containing all the default values used by do
 	<color8 name="Not used" default="#000000" opacity="no" />
 </colors>
 
-NOTE! For now color1 to color4 has uses decided by dockbarx, no matter what you call them. Color 1 is used for the background color of dockbarx's windows list, color2 is used for the text in that list, color3 for the text of the active window in that list and color4 for the the text of minimized windows in that list. Color5 to color8 are only used if the theme decides to use them. (color5 has default values anyways to for backward compability with old themes.) Please consider this when naming and deciding defaults for color1 to color4. (And DON'T set opacity to "no" for color1!)
+NOTE! For now color1 to color4 has uses decided by dockbarx, no matter what you call them. Color 1 is used for the background color of dockbarx's windows list, color2 is used for the text in that list, color3 for the text of the active window in that list and color4 for the the text of minimized windows in that list. Color5 to color8 are only used if the theme decides to use them. (color5 has default values anyways to for backward compatibility with old themes.) Please consider this when naming and deciding defaults for color1 to color4. (And DON'T set opacity to "no" for color1!)
 
 
 
@@ -158,7 +158,7 @@ BUTTON_PIXMAP COMMANDS
 	launched from dockbarx and the window hasn't shown yet. Use it to make a launching
 	effect. ;p
 
-If a "!" is set before the type it means all but that type. For exmaple the code within a <if type="!mouse_over"></if> will be executed if the mouse cursor is over the group button for which the icon is drawn.
+If a "!" is set before the type it means all but that type. For example the code within a <if type="!mouse_over"></if> will be executed if the mouse cursor is over the group button for which the icon is drawn.
 
 
 The windows argument tells the number of windows that the program should have for the code to be executed. It can either be just a number, e.g. <if windows="3"></if>. In this case the code will be executed only if the program has exactly three windows. You can also have code executed for a range of windows. Eg. if you want code executed when two to four windows are open, the command looks like this: <if windows="2:4"></if>. If you want code that are executed for two or more windows just leave out the later number (<if windows="2:"></if>) or the first number if you want code for two or less windows (<if windows=":2"></if>. You can also use a "!" before a number or range, which means "anything but", eg. "!2" means the code will be executed if the numbers of windows is anything but 2 and "!3:4" means the code will be executed if the numbers of windows are less than three or more than 4. Note! Remember to set the windows_cnt attribute of <button_pixmap> high enough. If you have a <if windows="3:"></if> and windows_cnt="2", the code within that block will never be executed, since three windows will be reported as being only two windows when windows_cnt is "2". In this case you need to set the windows_cnt to "3" or more.

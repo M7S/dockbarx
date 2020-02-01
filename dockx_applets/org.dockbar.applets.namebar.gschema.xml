@@ -69,18 +69,18 @@
     <key name='active-alpha' type='i'>
       <default>255</default>
       <range min="0" max="255"/>
-      <summary>Active Transparancy</summary>
+      <summary>Active Transparency</summary>
       <description>
-        Transparancy for active windows
+        Transparency for active windows
       </description>
     </key>
 
     <key name='passive-alpha' type='i'>
       <default>255</default>
       <range min="0" max="255"/>
-      <summary>Passive Transparancy</summary>
+      <summary>Passive Transparency</summary>
       <description>
-        Transparancy for passive windows
+        Transparency for passive windows
       </description>
     </key>
 

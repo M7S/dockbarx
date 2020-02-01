@@ -267,7 +267,7 @@ class CairoSmallButton(Gtk.Button):
 
     def do_draw(self, ctx):
         # This function does nothing and by doing that
-        # it stops gtk.Button.do_draw from being runned.
+        # it stops gtk.Button.do_draw from being ran.
         pass
 
     def draw_button(self, ctx, x, y, width, height): abstract

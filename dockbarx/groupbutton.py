@@ -897,7 +897,7 @@ class Group(ListOfWindows):
 
         # Check if there are any uminimized windows, unminimize
         # them (unless they are on another workspace and work-
-        # space behavior is somehting other than move) and
+        # space behavior is something other than move) and
         # return.
         if self.get_unminimized_count == 0:
             # Only unminimize if all windows are minimize
@@ -1009,7 +1009,7 @@ class Group(ListOfWindows):
                             new_workspace = workspace
                             grp_win_stacked = vp
                         elif nr == max:
-                            # Check wether this workspace or previous workspace
+                            # Check whether this workspace or previous workspace
                             # with the same amount of windows has been
                             # activated later.
                             for win in ignorelist:
@@ -1024,7 +1024,7 @@ class Group(ListOfWindows):
             if new_workspace != screen.get_active_workspace():
                 new_workspace.activate(event.time)
             screen.move_viewport(x, y)
-            # Hide popup since mouse movment won't
+            # Hide popup since mouse movement won't
             # be tracked during compiz move effect
             if not (x == 0 and y == 0):
                 self.popup.hide()
@@ -1039,7 +1039,7 @@ class Group(ListOfWindows):
             grp_win_stacked = [w for w in ignorelist if w in grp_win_stacked]
 
         # Minimize all windows if the top most window belongs to the
-        # application and no windows has been moved to a diffrent
+        # application and no windows has been moved to a different
         # workspace and minimizing is allowed.
         if grtop and not moved and minimize:
             for window in grp_win_stacked:
@@ -1257,7 +1257,7 @@ class Group(ListOfWindows):
         except:
             return
         # A new button enter signal is sent when compiz is called,
-        # a delay is therefor needed.
+        # a delay is therefore needed.
         GLib.timeout_add(self.globals.settings["popup_delay"] + 200,
                             self.popup.hide)
         #~ self.deopacify()
@@ -1286,7 +1286,7 @@ class Group(ListOfWindows):
         except:
             return
         # A new button enter signal is sent when compiz is called,
-        # a delay is therefor needed.
+        # a delay is therefore needed.
         GLib.timeout_add(self.globals.settings["popup_delay"]+ 200,
                             self.popup.hide)
         #~ self.deopacify()
@@ -1303,7 +1303,7 @@ class Group(ListOfWindows):
         except:
             return
         # A new button enter signal is sent when compiz is called,
-        # a delay is therefor needed.
+        # a delay is therefore needed.
         GLib.timeout_add(self.globals.settings["popup_delay"]+ 200,
                             self.popup.hide)
         self.popup.hide()
@@ -1379,7 +1379,7 @@ class GroupButton(CairoAppButton):
                 self.update_tooltip)
 
         #--- D'n'D
-        # Drag and drop should handel buttons that are moved,
+        # Drag and drop should handle buttons that are moved,
         # launchers that is dropped, and open popup window
         # to enable drag and drops to windows that has to be
         # raised.
@@ -1937,7 +1937,7 @@ class GroupButton(CairoAppButton):
         group = self.group_r()
         self.pressed = False
         self.update_state()
-        # If a drag and drop just finnished set self.draggin to false
+        # If a drag and drop just finished set self.draggin to false
         # so that left clicking works normally again
         if event.button == 1 and self.globals.dragging:
             self.globals.dragging = False
@@ -2092,7 +2092,7 @@ class GroupPopup(CairoPopup):
             # Set position in such a way that the arrow is splits the
             # height at golden ratio...
             y = b_alloc.y + wy + (b_alloc.height // 2) - int(height * 0.382)
-            # ..but don't allow the popup to be lower than the upper egde of
+            # ..but don't allow the popup to be lower than the upper edge of
             # the button.
             if y > b_alloc.y + wy:
                 y = b_alloc.y + wy

@@ -653,7 +653,7 @@ msgstr ""
 
 #: dbx_preference:1276
 msgid ""
-"Use this if the dock isn't able to automatically aviod overlapping with "
+"Use this if the dock isn't able to automatically avoid overlapping with "
 "other panels"
 msgstr ""
 
@@ -742,13 +742,13 @@ msgstr ""
 
 #: dbx_preference:2191
 msgid ""
-"Previews requires the compiz plugin KDE Compability to be activated. Should "
+"Previews requires the compiz plugin KDE Compatibility to be activated. Should "
 "dockbarx activate it for you?"
-msgstr "預覽功能需要啟動compiz外掛KDE Compabilit。您希望dockbarx啟動它嗎？"
+msgstr "預覽功能需要啟動compiz外掛KDE Compatibility。您希望dockbarx啟動它嗎？"
 
 #: dbx_preference:2205
 msgid ""
-"The compiz plugin KDE Compability that is needed for previews doesn't seem "
+"The compiz plugin KDE Compatibility that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
@@ -758,8 +758,8 @@ msgstr ""
 #: dbx_preference:2223
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
-"Compability plugin. Should dockbarx activate it for you?"
-msgstr "預覽功能需要啟動KDE Compability外掛中的Support Plasma Thumnails。您希望dockbarx啟動它嗎？"
+"Compatibility plugin. Should dockbarx activate it for you?"
+msgstr "預覽功能需要啟動KDE Compatibility外掛中的Support Plasma Thumnails。您希望dockbarx啟動它嗎？"
 
 #: dbx_preference:2250
 msgid ""

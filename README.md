@@ -6,7 +6,7 @@ The gtk3 version of DockbarX is a lightweight taskbar / panel replacement for Li
 
 ## Manual Installation
 
-1. Following dependecies needs to be installed (many of them might be installed already on your system):
+1. Following dependencies needs to be installed (many of them might be installed already on your system):
   - gir1.2-keybinder-3.0, python3-cairo, python3-dbus, python3-distutils, python3-gi, python3-gi-cairo, python3-pil, python3-polib, python3-xdg and python3-xlib.
   - (Optional) gir1.2-zeitgeist-2.0, to access latest and most used documents.
 2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install `$ sudo ./setup.py install`
@@ -16,7 +16,7 @@ To run DockbarX as a stand alone dock use the command `dockx`.
 
 The preference dialog is not yet usable with the gtk3 version. You have to change settings with the dconf-editor (DockbarX gsettings path is /org/dockbarx/dockbarx/ and /org/dockbarx/dockx/).
 
-**NOTE!** To use previews with Compiz you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". *You can **not** use previews with other window manager than Compiz and Kwin.*
+**NOTE!** To use previews with Compiz you need to activate KDE Compatibility in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails". *You can **not** use previews with other window manager than Compiz and Kwin.*
 
 ## Contribute
 DockbarX is a free and open source project I am developing in my free time. I will gladly accept any help I can get to improve DockbarX. Test out new code, **report bugs** to the issue tracker and make pull request with code you like to contribute.
@@ -55,7 +55,7 @@ A: Right click the handle (the dots or lines to the left of dockbarx) to get a m
 
 A: Make sure you enable the GLib extension in Compiz settings manager and that the compiz plugin dockbarx uses is activated as well. (eg. for group button action "compiz scale" to work you need the scale plugin activated)
 
-*Q: Opacify doen't work?*
+*Q: Opacify doesn't work?*
 
 A: A common misunderstanding is that opacify should have something to do with transparency of dockbarx itself, it doesn't. Opacify is a way to find localize a window with dockbar. When opacify is on and you roll over a name in the window list with the mouse, all other windows will become transparent so that you easy can spot the window.
 
