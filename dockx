@@ -906,6 +906,14 @@ class DockX(CairoDockX):
     def on_size_allocate(self, widget, allocation):
         w = allocation.width
         h = allocation.height
+        size = self.globals.settings["dock/size"]
+        if self.globals.settings["dock/position"] in ("left", "right"):
+            if w > size:
+                w = allocation.width = size
+        else:
+            if h > size:
+                h = allocation.height = size
+        self.set_allocation(allocation)
         if self.globals.settings["dock/mode"] == "centered":
             mr = self.get_monitor_geometry()
             mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
