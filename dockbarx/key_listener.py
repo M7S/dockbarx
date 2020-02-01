@@ -4,7 +4,7 @@
 # Adapted from http://stackoverflow.com/questions/22367358/
 # Requires python-xlib
 
-from Xlib.display import Display
+from .common import XDisplay
 from Xlib import X, XK
 from Xlib.ext import record
 from Xlib.protocol import rq
@@ -24,7 +24,6 @@ class KeyListener(GObject.GObject):
 
     def __init__(self):
         GObject.GObject.__init__(self)
-        self.disp = None
         self.abort_listen = False
         self.last_query_time = 0
         self.fail_safe_sid = None
@@ -55,7 +54,7 @@ class KeyListener(GObject.GObject):
             # Stop checking.
             return
         #Check if the key still is pressed
-        kmap = self.disp.query_keymap()
+        kmap = XDisplay.query_keymap()
         self.last_query_time = time()
         if kmap[key // 8] & (1 << (key % 8)):
             # Try again in 10 ms
@@ -76,9 +75,8 @@ class KeyListener(GObject.GObject):
 
     def listen_for_super_released(self):
         self.abort_listen = False
-        self.disp = Display()
         XK.load_keysym_group('xf86')
-        super_key = self.disp.keysym_to_keycode(XK.string_to_keysym("Super_L"))
+        super_key = XDisplay.keysym_to_keycode(XK.string_to_keysym("Super_L"))
         self.listen_for_key_released(super_key, delay=20)
         # Activate the fail-safe in case somethings
         if self.fail_safe_sid is not None:

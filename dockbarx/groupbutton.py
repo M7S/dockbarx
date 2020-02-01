@@ -46,7 +46,6 @@ from .log import logger
 from . import i18n
 _ = i18n.language.gettext
 
-display = None
 X = None
 
 ATOM_PREVIEWS = Gdk.atom_intern("_KDE_WINDOW_PREVIEW", False)
@@ -332,12 +331,11 @@ class Group(ListOfWindows):
                 global X
                 if X is None:
                     from Xlib import X
-                d = display.Display()
-                dw = d.create_resource_object('window', self.get_window().get_xid())
-                dw.change_property(d.intern_atom('_KDE_WINDOW_PREVIEW'),
-                             d.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
-                             [0,5,0,0,0,0,0],
-                             X.PropModeReplace)
+                dw = XDisplay.create_resource_object('window', self.get_window().get_xid())
+                dw.change_property(XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'),
+                                   XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
+                                   [0,5,0,0,0,0,0],
+                                   X.PropModeReplace)
         self.menu_is_shown = False
         #Launch program item
         if not self.launch_menu:
@@ -2127,17 +2125,13 @@ class GroupPopup(CairoPopup):
             previews = [0,5,0,0,0,0,0]
         if self.get_window():
             global X
-            global display
-            if display is None:
-                from Xlib import display
             if X is None:
                 from Xlib import X
-            d = display.Display()
-            dw = d.create_resource_object('window', self.get_window().get_xid())
-            dw.change_property(d.intern_atom('_KDE_WINDOW_PREVIEW'),
-                         d.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
-                         previews,
-                         X.PropModeReplace)
+            dw = XDisplay.create_resource_object('window', self.get_window().get_xid())
+            dw.change_property(XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'),
+                               XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
+                               previews,
+                               X.PropModeReplace)
 
     def on_leave_notify_event(self, widget, event):
         CairoPopup.on_leave_notify_event(self, widget, event)
@@ -2367,11 +2361,10 @@ class LockedPopup(GroupPopup):
         #~ win = self.get_window()
         #~ if win:
             #~ if self.globals.settings["locked_list_no_overlap"] is False:
-                #~ d = display.Display()
-                #~ topw = d.create_resource_object('window',
-                                                #~ win.get_toplevel().get_xid())
-                #~ topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
-                #~ topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
+                #~ topw = XDisplay.create_resource_object('window',
+                                                       #~ win.get_toplevel().get_xid())
+                #~ topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT"))
+                #~ topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT_PARTIAL"))
                 #~ return
             #~ if  X is None:
                 #~ from Xlib import X
@@ -2386,33 +2379,28 @@ class LockedPopup(GroupPopup):
             #~ x1 = mgeo.x + x
             #~ x2 = mgeo.x + x + a.width
             #~ strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
-            #~ d = display.Display()
-            #~ topw = d.create_resource_object('window',
-                                            #~ win.get_toplevel().get_xid())
-            #~ topw.change_property(d.intern_atom('_NET_WM_STRUT'),
-                                 #~ d.intern_atom('CARDINAL'), 32,
+            #~ topw = XDisplay.create_resource_object('window',
+                                                   #~ win.get_toplevel().get_xid())
+            #~ topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT'),
+                                 #~ XDisplay.intern_atom('CARDINAL'), 32,
                                  #~ strut[:4],
                                  #~ X.PropModeReplace)
 
-            #~ topw.change_property(d.intern_atom('_NET_WM_STRUT_PARTIAL'),
-                                 #~ d.intern_atom('CARDINAL'), 32,
+            #~ topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT_PARTIAL'),
+                                 #~ XDisplay.intern_atom('CARDINAL'), 32,
                                  #~ strut,
                                  #~ X.PropModeReplace)
 
     def __get_other_strut(self, x1, x2):
-        global display
-        if display is None:
-            from Xlib import display
         # if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
         #     monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
         # else:
         #     monitor = self.get_screen().get_monitor_geometry(0)
         # mx, my, mw, mh = monitor
-        d = display.Display()
-        root = d.screen().root
+        root = XDisplay.screen().root
         windows = root.query_tree()._data['children']
-        strut_atom = d.get_atom('_NET_WM_STRUT')
-        strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
+        strut_atom = XDisplay.get_atom('_NET_WM_STRUT')
+        strut_partial_atom = XDisplay.get_atom('_NET_WM_STRUT_PARTIAL')
         strut = 0
         for w in windows:
             try:

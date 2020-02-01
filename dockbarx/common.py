@@ -34,10 +34,14 @@ import locale
 from .log import logger
 import sys
 import struct
+from Xlib import display
 
 
 DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
+
+# workaround for an old version python-xlib bug, see Issue 113
+XDisplay = display.Display()
 
 def compiz_call_sync(obj_path, func_name, *args):
     # Returns a compiz function call.

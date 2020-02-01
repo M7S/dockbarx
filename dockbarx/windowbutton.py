@@ -30,11 +30,11 @@ import weakref
 import gc
 gc.enable()
 import Xlib
-from Xlib.display import Display
 from PIL import Image
 
 from .common import ODict, Globals, Opacify
 from .common import connect, disconnect, opacify, deopacify
+from .common import XDisplay
 from .cairowidgets import *
 from .log import logger
 
@@ -501,7 +501,7 @@ class WindowItem(CairoButton):
             self.preview.set_from_pixbuf(window.wnck.get_icon())
         else:
             try:
-                xwin = Display().create_resource_object('window', window.xid)
+                xwin = XDisplay.create_resource_object('window', window.xid)
                 xwin.composite_redirect_window(Xlib.ext.composite.RedirectAutomatic)
                 geo = xwin.get_geometry()
                 pixmap = xwin.composite_name_window_pixmap()

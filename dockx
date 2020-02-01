@@ -35,10 +35,10 @@ gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GObject
 from gi.repository import GLib
-from dockbarx.common import Globals
+from dockbarx.common import Globals, XDisplay
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
-from Xlib import display, X
+from Xlib import X
 from math import pi, sin, cos, tan, atan
 import weakref
 import time
@@ -797,11 +797,10 @@ class DockX(CairoDockX):
             return
         set_strut = self.globals.settings["dock/behavior"] == "panel"
         if not set_strut:
-            d = display.Display()
-            topw = d.create_resource_object('window',
+            topw = XDisplay.create_resource_object('window',
                                     self.get_toplevel().get_window().get_xid())
-            topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
-            topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
+            topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT"))
+            topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT_PARTIAL"))
             return
         mr = self.get_monitor_geometry()
         s = self.get_screen()
@@ -817,16 +816,15 @@ class DockX(CairoDockX):
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
         else:
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
-        d = display.Display()
-        topw = d.create_resource_object('window',
+        topw = XDisplay.create_resource_object('window',
                                 self.get_toplevel().get_window().get_xid())
-        topw.change_property(d.intern_atom('_NET_WM_STRUT'),
-                             d.intern_atom('CARDINAL'), 32,
+        topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT'),
+                             XDisplay.intern_atom('CARDINAL'), 32,
                              strut[:4],
                              X.PropModeReplace)
 
-        topw.change_property(d.intern_atom('_NET_WM_STRUT_PARTIAL'),
-                             d.intern_atom('CARDINAL'), 32,
+        topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT_PARTIAL'),
+                             XDisplay.intern_atom('CARDINAL'), 32,
                              strut,
                              X.PropModeReplace)
 
@@ -840,10 +838,9 @@ class DockX(CairoDockX):
         sw = sr.width
         sh = sr.height
         strut = [mx, sw - (mx + mw), my,  sh - (my + mh)]
-        d = display.Display()
-        strut_atom = d.get_atom('_NET_WM_STRUT')
-        strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
-        root = d.screen().root
+        strut_atom = XDisplay.get_atom('_NET_WM_STRUT')
+        strut_partial_atom = XDisplay.get_atom('_NET_WM_STRUT_PARTIAL')
+        root = XDisplay.screen().root
         windows = root.query_tree()._data['children']
         for w in windows:
             try:
