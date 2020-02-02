@@ -65,7 +65,7 @@ class ClockApplet(DockXApplet):
         
     def update(self, *args):
         if self.use_custom_format:
-            # Todo: User made markup errors needs to be catched but how?
+            # Todo: User made markup errors needs to be caught but how?
             text = time.strftime(self.custom_format)
             if text != self.label_text:
                 self.label.set_markup(text)

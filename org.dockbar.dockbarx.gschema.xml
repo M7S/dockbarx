@@ -144,9 +144,9 @@
 
     <key name='window-title-width' type='i'>
       <default>140</default>
-      <summary>Max lenght of the window title in pixels</summary>
+      <summary>Max length of the window title in pixels</summary>
       <description>
-        Max lenght of the window title in pixels.
+        Max length of the window title in pixels.
         This option is only used when thumbnails are disabled.
       </description>
     </key>

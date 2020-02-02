@@ -34,10 +34,14 @@ import locale
 from .log import logger
 import sys
 import struct
+from Xlib import display
 
 
 DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
+
+# workaround for an old version python-xlib bug, see Issue 113
+XDisplay = display.Display()
 
 def compiz_call_sync(obj_path, func_name, *args):
     # Returns a compiz function call.
@@ -920,7 +924,7 @@ class Globals(GObject.GObject):
                 gsettings = self.gsettings
             gs_value = gsettings.get_value(gs_name).unpack()
             if type(gs_value) != type(value):
-                # Todo: Remove this if unneccessary.
+                # Todo: Remove this if unnecessary.
                 logger.warning("Gsettings import. Wrong types for %s - New type: %s, Old type: %s" % (name, gs_value, value))
             settings[name] = gs_value
         return settings

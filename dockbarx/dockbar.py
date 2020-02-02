@@ -284,17 +284,15 @@ class GroupList(list):
             self.previous_button.destroy()
             self.arrow_box.destroy()
         if self.orient in ("down", "up"):
-            box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+            self.arrow_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
             self.next_button = cairowidgets.CairoArrowButton("right")
             self.previous_button = cairowidgets.CairoArrowButton("left")
         else:
-            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+            self.arrow_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
             self.next_button = cairowidgets.CairoArrowButton("down")
             self.previous_button = cairowidgets.CairoArrowButton("up")
-        self.arrow_box = Gtk.Alignment.new(0.5, 0.5, 0, 0)
-        self.arrow_box.add(box)
-        box.pack_start(self.next_button, True, True, 0)
-        box.pack_start(self.previous_button, True, True, 0)
+        self.arrow_box.pack_start(self.next_button, True, True, 0)
+        self.arrow_box.pack_start(self.previous_button, True, True, 0)
         self.box.pack_start(self.arrow_box, False, False, 0)
 
         #Connections
@@ -361,7 +359,7 @@ class GroupList(list):
             begin = max(0, end - max_buttons)
         for group in groups[begin:end]:
             group.button.show()
-        #TODO: Fix locked popup behavior when group disapears or move
+        #TODO: Fix locked popup behavior when group disappears or move
         self.box.queue_draw()
         self.box.queue_resize()
 
@@ -383,7 +381,7 @@ class GroupList(list):
             self.manage_size_overflow()
 
     def set_max_size(self, max_size):
-        # When runned in dock (and possibly other cases) the max
+        # When ran in dock (and possibly other cases) the max
         # size is set from outside this class using this funtction.
         self.max_size = max_size
         self.manage_size_overflow()
@@ -508,7 +506,7 @@ class DockBar():
         self.root_xid = int(Gdk.Screen.get_default().get_root_window().get_xid())
         self.screen.force_update()
 
-        # Keybord shortcut stuff
+        # Keyboard shortcut stuff
         self.gkeys = {"gkeys_select_next_group": None,
                       "gkeys_select_previous_group": None,
                       "gkeys_select_next_window": None,
@@ -528,7 +526,7 @@ class DockBar():
         self.globals.connect("unity-changed", self.__on_unity_changed)
 
         # Generate Gio apps so that windows and .desktop files
-        # can be matched correctly with eachother.
+        # can be matched correctly with each other.
         self.apps_by_id = {}
         self.app_ids_by_exec = {}
         self.app_ids_by_name = {}
@@ -730,7 +728,7 @@ class DockBar():
                 group.button.dockbar_moved()
 
     def set_size(self, size):
-        """Manualy set and update the size of group buttons"""
+        """Manually set and update the size of group buttons"""
         if size == self.size:
             return
         self.size = size
@@ -1113,7 +1111,7 @@ class DockBar():
         return app
 
     def __get_ooo_app_name(self, window):
-        # Separates the differnt openoffice applications from each other
+        # Separates the different openoffice applications from each other
         # The names are chosen to match the gio app ids.
         name = window.get_name().lower()
         resclass = window.get_class_group().get_res_class().lower()
@@ -1189,7 +1187,7 @@ class DockBar():
     def __set_group_identifier(self, group, identifier):
         group.set_identifier(identifier)
         for window in group:
-            self.windows[window.wnck] = indentifier
+            self.windows[window.wnck] = identifier
         self.update_pinned_apps_list()
         self.__media_player_check(identifier, group)
 
@@ -1502,8 +1500,8 @@ class DockBar():
                         return DesktopEntry(path)
                     except:
                         pass
-                # If the desktop file is in a subfolders, the id is formated
-                # "[subfoldername]-[basename]", but there can of cource be
+                # If the desktop file is in a subfolders, the id is formatted
+                # "[subfoldername]-[basename]", but there can of course be
                 # "-" in basenames or subfoldernames as well.
                 if "-" in basename:
                     parts = basename.split("-")
@@ -1644,13 +1642,13 @@ class DockBar():
                 # The global key is not in use
                 continue
             keystr = self.globals.settings["%s_keystr" % s]
-            # Fix for keyboard shortcut name since you cant have <> in gsettings schemas.
+            # Fix for keyboard shortcut name since you can't have <> in gsettings schemas.
             keystr = keystr.replace("[", "<")
             keystr = keystr.replace("]", ">")
 
             try:
                 if Keybinder.bind(keystr, f):
-                    # Key succesfully bound.
+                    # Key successfully bound.
                     self.gkeys[s]= keystr
                     error = False
                 else:

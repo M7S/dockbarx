@@ -42,7 +42,7 @@ class CairoAppButton(Gtk.EventBox):
     def __init__(self, surface=None):
         GObject.GObject.__init__(self)
         self.set_visible_window(False)
-        self.area = Gtk.Alignment.new(0, 0, 1, 1)
+        self.area = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.add(self.area)
         self.area.show()
         self.globals = Globals()
@@ -267,7 +267,7 @@ class CairoSmallButton(Gtk.Button):
 
     def do_draw(self, ctx):
         # This function does nothing and by doing that
-        # it stops gtk.Button.do_draw from being runned.
+        # it stops gtk.Button.do_draw from being ran.
         pass
 
     def draw_button(self, ctx, x, y, width, height): abstract
@@ -495,9 +495,9 @@ class CairoPopup(Gtk.Window):
         self.popup_type = type_
         self._pointer_is_inside = False
 
-        self.alignment = Gtk.Alignment.new(0, 0, 0, 0)
-        Gtk.Window.add(self, self.alignment)
-        self.alignment.show()
+        self.childbox = Gtk.Box()
+        Gtk.Window.add(self, self.childbox)
+        self.childbox.show()
         self.pointer = ""
         self.no_arrow = no_arrow
         if orient in ("down", "up"):
@@ -526,11 +526,21 @@ class CairoPopup(Gtk.Window):
         else:
             return int(self.popup_style.get("arrow_size", 9))
 
+    def set_padding(self, top, bottom, left, right):
+        self.childbox.set_margin_top(top)
+        self.childbox.set_margin_bottom(bottom)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            self.childbox.set_margin_start(left)
+            self.childbox.set_margin_end(right)
+        else:
+            self.childbox.set_margin_left(left)
+            self.childbox.set_margin_right(right)
+
     def add(self, child):
-        self.alignment.add(child)
+        self.childbox.add(child)
 
     def remove(self, child):
-        self.alignment.remove(child)
+        self.childbox.remove(child)
 
     def point(self, new_pointer, ap=0):
         self.ap = ap
@@ -542,7 +552,7 @@ class CairoPopup(Gtk.Window):
                        "down":(p, p+a, p, p),
                        "left":(p, p, p+a, p),
                        "right":(p, p, p, p+a)}[self.pointer]
-            self.alignment.set_padding(*padding)
+            self.set_padding(*padding)
 
     def on_draw(self, widget, ctx):
         #~ self.set_shape_mask()
@@ -758,13 +768,20 @@ class CairoPopup(Gtk.Window):
                    "down":(p, p+a, p, p),
                    "left":(p, p, p+a, p),
                    "right":(p, p, p, p+a)}[self.pointer]
-        self.alignment.set_padding(*padding)
+        self.set_padding(*padding)
         if self.popup_type == "locked_list":
             self.resize(10, 10)
 
     def pointer_is_inside(self):
-        a = self.alignment.get_allocation()
-        top, bottom, left, right = self.alignment.get_padding()
+        a = self.childbox.get_allocation()
+        top = self.childbox.get_margin_top()
+        bottom = self.childbox.get_margin_bottom()
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            left = self.childbox.get_margin_start()
+            right = self.childbox.get_margin_end()
+        else:
+            left = self.childbox.get_margin_left()
+            right = self.childbox.get_margin_right()
         x, y = self.get_pointer()
         if x >= left and x < a.width - right and \
            y >= top and y <= a.height - bottom:
@@ -786,7 +803,6 @@ class CairoButton(Gtk.EventBox):
         self.set_visible_window(False)
         self.set_above_child(False)
         self.area = CairoArea(label, button_type)
-        self.label = self.area.label
         Gtk.EventBox.add(self, self.area)
         self.area.show()
         self.mousedown = False
@@ -852,18 +868,18 @@ class CairoButton(Gtk.EventBox):
     def pointer_is_inside(self):
         return self.area.pointer_is_inside()
 
-class CairoArea(Gtk.Alignment):
+class CairoArea(Gtk.Bin):
     def __init__(self, text=None, area_type="window_item"):
         self.type = area_type
         self.text = text
+        Gtk.Bin.__init__(self)
         GObject.GObject.__init__(self)
-        self.set(0, 0, 1, 1)
         self.popup_style = PopupStyle()
         lrp = int(self.popup_style.get("%s_lr_padding" % self.type,
                                                 5))
         tdp = int(self.popup_style.get("%s_td_padding" % self.type,
                                                 5))
-        self.set_padding(lrp, lrp, tdp, tdp)
+        self.set_padding(tdp, tdp, lrp, lrp)
         self.set_app_paintable(1)
         self.globals = Globals()
         self.highlighted = False
@@ -891,9 +907,23 @@ class CairoArea(Gtk.Alignment):
         self.label.set_use_markup(True)
         self.label.set_use_underline(True)
 
+    def add(self, child):
+        Gtk.Bin.add(self, child)
+        self.set_padding(*self.padding)
+
     def set_padding(self, top, bottom, left, right):
-        self.pressed_down = False
-        Gtk.Alignment.set_padding(self, top, bottom, left, right)
+        self.padding = (top, bottom, left, right)
+        child = self.get_child()
+        if child is None:
+            return
+        child.set_margin_top(top)
+        child.set_margin_bottom(bottom)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            child.set_margin_start(left)
+            child.set_margin_end(right)
+        else:
+            child.set_margin_left(left)
+            child.set_margin_right(right)
 
     def set_label_color(self, color):
         label = "<span foreground=\"" + color + "\">" + escape(self.text) + \
@@ -985,11 +1015,11 @@ class CairoArea(Gtk.Alignment):
         ctx.stroke()
 
     def set_pressed_down(self, pressed):
-        p = self.get_padding()
+        p = self.padding
         if pressed and not self.pressed_down:
-            Gtk.Alignment.set_padding(self, p[0] + 1, p[1] - 1, p[2], p[3])
+            self.set_padding(p[0] + 1, p[1] - 1, p[2], p[3])
         elif self.pressed_down and not pressed:
-            Gtk.Alignment.set_padding(self, p[0] - 1, p[1] + 1, p[2], p[3])
+            self.set_padding(p[0] - 1, p[1] + 1, p[2], p[3])
         self.pressed_down = pressed
 
     def set_highlighted(self, highlighted):
@@ -1057,12 +1087,12 @@ class CairoCheckMenuItem(CairoMenuItem):
             self.indicator.set_margin_right(5)
         self.area.label = Gtk.Label()
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        hbox.pack_start(self.indicator, False, False, 2)
-        hbox.pack_start(self.area.label, False, False, 2)
-        alignment = Gtk.Alignment.new(0.5,0.5,0,0)
-        alignment.add(hbox)
-        alignment.show_all()
-        self.area.add(alignment)
+        self.indicator.set_halign(Gtk.Align.END)
+        self.area.label.set_halign(Gtk.Align.START)
+        hbox.pack_start(self.indicator, True, True, 2)
+        hbox.pack_start(self.area.label, True, True, 2)
+        hbox.show_all()
+        self.area.add(hbox)
         color = self.globals.colors["color2"]
         self.set_label(label, color)
 

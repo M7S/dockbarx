@@ -556,7 +556,7 @@ class PopupStyle(GObject.GObject):
                         if name:
                             styles[name] = f
         # The default style (if the theme doesn't set another one) is DBX,
-        # wheter or not the file actually exists.
+        # whether or not the file actually exists.
         if not "DBX" in styles:
             styles["DBX"] = "dbx.tar.gz"
         return styles
@@ -768,7 +768,7 @@ class DockTheme(GObject.GObject):
                         if name:
                             themes[name] = f
         # The default theme (if the theme doesn't set another one) is DBX,
-        # wheter or not the file actually exists.
+        # whether or not the file actually exists.
         if not "DBX" in themes:
             themes["DBX"] = "dbx.tar.gz"
         return themes

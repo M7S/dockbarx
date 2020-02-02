@@ -46,7 +46,6 @@ from .log import logger
 from . import i18n
 _ = i18n.language.gettext
 
-display = None
 X = None
 
 ATOM_PREVIEWS = Gdk.atom_intern("_KDE_WINDOW_PREVIEW", False)
@@ -332,12 +331,11 @@ class Group(ListOfWindows):
                 global X
                 if X is None:
                     from Xlib import X
-                d = display.Display()
-                dw = d.create_resource_object('window', self.get_window().get_xid())
-                dw.change_property(d.intern_atom('_KDE_WINDOW_PREVIEW'),
-                             d.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
-                             [0,5,0,0,0,0,0],
-                             X.PropModeReplace)
+                dw = XDisplay.create_resource_object('window', self.get_window().get_xid())
+                dw.change_property(XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'),
+                                   XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
+                                   [0,5,0,0,0,0,0],
+                                   X.PropModeReplace)
         self.menu_is_shown = False
         #Launch program item
         if not self.launch_menu:
@@ -899,7 +897,7 @@ class Group(ListOfWindows):
 
         # Check if there are any uminimized windows, unminimize
         # them (unless they are on another workspace and work-
-        # space behavior is somehting other than move) and
+        # space behavior is something other than move) and
         # return.
         if self.get_unminimized_count == 0:
             # Only unminimize if all windows are minimize
@@ -1011,7 +1009,7 @@ class Group(ListOfWindows):
                             new_workspace = workspace
                             grp_win_stacked = vp
                         elif nr == max:
-                            # Check wether this workspace or previous workspace
+                            # Check whether this workspace or previous workspace
                             # with the same amount of windows has been
                             # activated later.
                             for win in ignorelist:
@@ -1026,7 +1024,7 @@ class Group(ListOfWindows):
             if new_workspace != screen.get_active_workspace():
                 new_workspace.activate(event.time)
             screen.move_viewport(x, y)
-            # Hide popup since mouse movment won't
+            # Hide popup since mouse movement won't
             # be tracked during compiz move effect
             if not (x == 0 and y == 0):
                 self.popup.hide()
@@ -1041,7 +1039,7 @@ class Group(ListOfWindows):
             grp_win_stacked = [w for w in ignorelist if w in grp_win_stacked]
 
         # Minimize all windows if the top most window belongs to the
-        # application and no windows has been moved to a diffrent
+        # application and no windows has been moved to a different
         # workspace and minimizing is allowed.
         if grtop and not moved and minimize:
             for window in grp_win_stacked:
@@ -1259,7 +1257,7 @@ class Group(ListOfWindows):
         except:
             return
         # A new button enter signal is sent when compiz is called,
-        # a delay is therefor needed.
+        # a delay is therefore needed.
         GLib.timeout_add(self.globals.settings["popup_delay"] + 200,
                             self.popup.hide)
         #~ self.deopacify()
@@ -1288,7 +1286,7 @@ class Group(ListOfWindows):
         except:
             return
         # A new button enter signal is sent when compiz is called,
-        # a delay is therefor needed.
+        # a delay is therefore needed.
         GLib.timeout_add(self.globals.settings["popup_delay"]+ 200,
                             self.popup.hide)
         #~ self.deopacify()
@@ -1305,7 +1303,7 @@ class Group(ListOfWindows):
         except:
             return
         # A new button enter signal is sent when compiz is called,
-        # a delay is therefor needed.
+        # a delay is therefore needed.
         GLib.timeout_add(self.globals.settings["popup_delay"]+ 200,
                             self.popup.hide)
         self.popup.hide()
@@ -1381,7 +1379,7 @@ class GroupButton(CairoAppButton):
                 self.update_tooltip)
 
         #--- D'n'D
-        # Drag and drop should handel buttons that are moved,
+        # Drag and drop should handle buttons that are moved,
         # launchers that is dropped, and open popup window
         # to enable drag and drops to windows that has to be
         # raised.
@@ -1421,6 +1419,7 @@ class GroupButton(CairoAppButton):
 
     def dockbar_moved(self, arg=None):
         self.set_icongeo()
+        self.__reset_locked_popup_position()
 
     def destroy(self, *args, **kwargs):
         # Remove group button.
@@ -1845,16 +1844,18 @@ class GroupButton(CairoAppButton):
         if not self.manual_size:
             # Let's update the size of the icons
             self.__set_size_from_allocation(allocation)
-        # If you have a locked popup on a horizontal dockbar it needs to be
-        # removed and re-added so that the arrow points to the right position.
-        group = self.group_r()
-        if group.locked_popup and self.dockbar_r().orient in ("down", "up"):
-            group.remove_locked_popup()
-            group.add_locked_popup()
+        self.__reset_locked_popup_position()
         self.old_alloc = allocation
         # Update icon geometry
         self.set_icongeo()
 
+    def __reset_locked_popup_position(self):
+        group = self.group_r()
+        # If there is a locked popup on a dockbar at bottom, it needs to be
+        # re-created for being at the right position.
+        if group.locked_popup and self.dockbar_r().orient == "down":
+            group.remove_locked_popup()
+            group.add_locked_popup()
 
     def __set_size_from_allocation(self, allocation):
         if self.dockbar_r().orient in ("left", "right") and \
@@ -1936,7 +1937,7 @@ class GroupButton(CairoAppButton):
         group = self.group_r()
         self.pressed = False
         self.update_state()
-        # If a drag and drop just finnished set self.draggin to false
+        # If a drag and drop just finished set self.draggin to false
         # so that left clicking works normally again
         if event.button == 1 and self.globals.dragging:
             self.globals.dragging = False
@@ -2022,26 +2023,33 @@ class GroupPopup(CairoPopup):
         CairoPopup.destroy(self, *args, **kvargs)
 
     def set_child_(self, child):
-        old_child = self.alignment.get_child()
+        old_child = self.get_child_()
         if old_child == child:
             return
         if old_child:
-            self.alignment.remove(old_child)
-        self.alignment.add(child)
+            self.childbox.remove(old_child)
+        self.childbox.add(child)
         if self.popup_showing:
             child.show_all()
             self.resize(10, 10)
 
     def get_child_(self):
-        return self.alignment.get_child()
+        children = self.childbox.get_children()
+        if len(children) == 0:
+            return None
+        else:
+            return children[0]
 
     def on_size_allocate(self, widget, allocation):
         if allocation == self.last_allocation:
             return
         group = self.group_r()
         # Move popup to it's right spot
+        window = group.button.get_window()
+        if not window:
+            return
         offset = int(self.popup_style.get("%s_distance" % self.popup_type, -7))
-        dummy, wx, wy = group.button.get_window().get_origin()
+        dummy, wx, wy = window.get_origin()
         b_alloc = group.button.get_allocation()
         width, height = self.get_size()
 
@@ -2084,7 +2092,7 @@ class GroupPopup(CairoPopup):
             # Set position in such a way that the arrow is splits the
             # height at golden ratio...
             y = b_alloc.y + wy + (b_alloc.height // 2) - int(height * 0.382)
-            # ..but don't allow the popup to be lower than the upper egde of
+            # ..but don't allow the popup to be lower than the upper edge of
             # the button.
             if y > b_alloc.y + wy:
                 y = b_alloc.y + wy
@@ -2117,17 +2125,13 @@ class GroupPopup(CairoPopup):
             previews = [0,5,0,0,0,0,0]
         if self.get_window():
             global X
-            global display
-            if display is None:
-                from Xlib import display
             if X is None:
                 from Xlib import X
-            d = display.Display()
-            dw = d.create_resource_object('window', self.get_window().get_xid())
-            dw.change_property(d.intern_atom('_KDE_WINDOW_PREVIEW'),
-                         d.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
-                         previews,
-                         X.PropModeReplace)
+            dw = XDisplay.create_resource_object('window', self.get_window().get_xid())
+            dw.change_property(XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'),
+                               XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
+                               previews,
+                               X.PropModeReplace)
 
     def on_leave_notify_event(self, widget, event):
         CairoPopup.on_leave_notify_event(self, widget, event)
@@ -2283,20 +2287,21 @@ class LockedPopup(GroupPopup):
             wx, wy = (0, 0)
         if group.dockbar_r().orient in ("left", "right") or wy < mgeo.height // 2:
             # The popup should be placed at bottom of the screen and have no arrow.
-            GroupPopup.__init__(self, group, False, type_="locked_list")
+            GroupPopup.__init__(self, group, no_arrow=True, type_="locked_list")
             self.point("down", 20)
         else:
             GroupPopup.__init__(self, group, type_="locked_list")
-        child = group.popup.alignment.get_child()
+        child = group.popup.get_child_()
         if child:
-            group.popup.alignment.remove(child)
+            group.popup.childbox.remove(child)
         self.set_child_(group.window_list)
         group.window_list.apply_mini_mode()
-        self.show_all()
         if not group.get_windows():
             self.hide()
         else:
-            GLib.idle_add(self.__on_realized)
+            # not work
+            # GLib.idle_add(self.__on_realized)
+            pass
         self.overlap_sid = self.globals.connect("locked-list-overlap-changed", self.__set_own_strut)
         self.connect("size-allocate", self.on_size_allocate)
 
@@ -2356,11 +2361,10 @@ class LockedPopup(GroupPopup):
         #~ win = self.get_window()
         #~ if win:
             #~ if self.globals.settings["locked_list_no_overlap"] is False:
-                #~ d = display.Display()
-                #~ topw = d.create_resource_object('window',
-                                                #~ win.get_toplevel().get_xid())
-                #~ topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
-                #~ topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
+                #~ topw = XDisplay.create_resource_object('window',
+                                                       #~ win.get_toplevel().get_xid())
+                #~ topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT"))
+                #~ topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT_PARTIAL"))
                 #~ return
             #~ if  X is None:
                 #~ from Xlib import X
@@ -2375,37 +2379,35 @@ class LockedPopup(GroupPopup):
             #~ x1 = mgeo.x + x
             #~ x2 = mgeo.x + x + a.width
             #~ strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
-            #~ d = display.Display()
-            #~ topw = d.create_resource_object('window',
-                                            #~ win.get_toplevel().get_xid())
-            #~ topw.change_property(d.intern_atom('_NET_WM_STRUT'),
-                                 #~ d.intern_atom('CARDINAL'), 32,
+            #~ topw = XDisplay.create_resource_object('window',
+                                                   #~ win.get_toplevel().get_xid())
+            #~ topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT'),
+                                 #~ XDisplay.intern_atom('CARDINAL'), 32,
                                  #~ strut[:4],
                                  #~ X.PropModeReplace)
 
-            #~ topw.change_property(d.intern_atom('_NET_WM_STRUT_PARTIAL'),
-                                 #~ d.intern_atom('CARDINAL'), 32,
+            #~ topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT_PARTIAL'),
+                                 #~ XDisplay.intern_atom('CARDINAL'), 32,
                                  #~ strut,
                                  #~ X.PropModeReplace)
 
     def __get_other_strut(self, x1, x2):
-        global display
-        if display is None:
-            from Xlib import display
         # if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
         #     monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
         # else:
         #     monitor = self.get_screen().get_monitor_geometry(0)
         # mx, my, mw, mh = monitor
-        d = display.Display()
-        root = d.screen().root
+        root = XDisplay.screen().root
         windows = root.query_tree()._data['children']
-        strut_atom = d.get_atom('_NET_WM_STRUT')
-        strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
+        strut_atom = XDisplay.get_atom('_NET_WM_STRUT')
+        strut_partial_atom = XDisplay.get_atom('_NET_WM_STRUT_PARTIAL')
         strut = 0
         for w in windows:
-            prop1 = w.get_full_property(strut_partial_atom, 0)
-            prop2 = w.get_full_property(strut_atom, 0)
+            try:
+                prop1 = w.get_full_property(strut_partial_atom, 0)
+                prop2 = w.get_full_property(strut_atom, 0)
+            except Xlib.error.BadWindow:
+                continue
             if prop1 is not None:
                 cl = w.get_wm_class()
                 if cl and cl[0] == "dockx":
@@ -2429,7 +2431,7 @@ class LockedPopup(GroupPopup):
         group = self.group_r()
         group.locked_popup = None
         self.globals.disconnect(self.overlap_sid)
-        self.alignment.remove(group.window_list)
+        self.childbox.remove(group.window_list)
         group.popup.set_child_(group.window_list)
         group.window_list.apply_normal_mode()
         GroupPopup.destroy(self)
@@ -2450,7 +2452,6 @@ class WindowList(Gtk.Box):
         GObject.GObject.__init__(self)
         self.set_border_width(0)
         self.set_spacing(2)
-        self.alignment = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         self.title = Gtk.Label()
         # Title needs to be shown so that we can calculate the height of the window list.
         self.title.show()
@@ -2458,7 +2459,6 @@ class WindowList(Gtk.Box):
         self.update_title()
         self.update_title_tooltip()
         self.pack_start(self.title, False, False, 0)
-        self.pack_start(self.alignment, True, True, 0)
         self.set_show_previews(self.globals.settings["preview"])
 
         connect(self.globals, "color2-changed", self.update_title)
@@ -2598,10 +2598,10 @@ class WindowList(Gtk.Box):
         if self.size_overflow:
             self.scrolled_window = self.__create_scrolled_window()
             self.scrolled_window.add_with_viewport(self.window_box)
-            self.alignment.add(self.scrolled_window)
+            self.add(self.scrolled_window)
             self.scrolled_window.show_all()
         else:
-            self.alignment.add(self.window_box)
+            self.add(self.window_box)
             self.window_box.show_all()
 
     def __create_scrolled_window(self):

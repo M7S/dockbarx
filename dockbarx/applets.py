@@ -305,7 +305,7 @@ class DockXApplet(Gtk.EventBox):
         self.on_setting_changed(_key, value)
 
     def update(self):
-        # Method to be overriden by applet.
+        # Method to be overridden by applet.
         pass
 
     def get_full_size(self):

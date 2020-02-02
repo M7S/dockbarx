@@ -65,14 +65,14 @@ Translations are updated as well.
 Features:
 - The stand alone dock supports applets now. See list of applets below.
 - The selection of themes that comes with DockbarX is renewed. All themes should work both horizontal and vertical.
-- The appearence tab in dockbarx preferences has gotten a little face lift and all themes now comes with a info text that is shown when pushing the info button in appearence tab.
+- The appearance tab in dockbarx preferences has gotten a little face lift and all themes now comes with a info text that is shown when pushing the info button in appearance tab.
 - The width of window titles in window list can be specified now if no previews are used.
 
 Theme making:
 - Rotate command to rotate pixmaps and icons. The composite command can also rotate the foreground pixmap by using the option angle.
 - The if command has gotten a new option orient so that themes can look differently depending on the docks position (left, right, up or down).
-- To simplify things different values for different orientations can also be set by usining sets. More info on this will be added later. For now read theme config to see examples (DMD glass is a good choise).
-- Offsets and sizes can be set with in percent of the button size instead of only in absolut pixels. Combinations can also be used like "-3px-15%".
+- To simplify things different values for different orientations can also be set by usining sets. More info on this will be added later. For now read theme config to see examples (DMD glass is a good choice).
+- Offsets and sizes can be set with in percent of the button size instead of only in absolute pixels. Combinations can also be used like "-3px-15%".
 - Aspect ratios can be set separately when themes are used vertically by setting the option aspect_ratio_v in button_pixmap command.
 
 Applets:
@@ -81,7 +81,7 @@ Applets:
 - Clock: Show time and if you want the date. The looks is changeable by changing fonts or using custom gnome clock applet strings (google it). On clicks orage will be launched if installed. If you want to launch something else change the gconf key /apps/dockbarx/applets/clock/command.
 - Appindicator: Shows appindicators. Indicator-application needs to be installed for it to work.
 - Volume control: Controls volume. Ported from AWN.
-- Namebar/window titile/windowbuttons: Shows window title and/or close/maximize/minimize buttons on the panel to save screen space.
+- Namebar/window title/windowbuttons: Shows window title and/or close/maximize/minimize buttons on the panel to save screen space.
 
 And some bug fixes as well.
 
@@ -101,7 +101,7 @@ Bug fixes:
 0.47
 Features
 - Window list styles
-The window list (and the close button) is themeable now. You can select different styles for the window list from appearence tab. The styles are independent parts of the themes. They exist in .dockbarx/themes/popup_styles or /usr/share/dockbarx/themes/popup_styles. They are .tar.gz files and should contain one style file with all the settings  and optionally one background.png picture. Making styles should be very easy compared to making themes. Look inside any of the styles that comes with DockbarX, the style file is heavily commented. Themes can set which style they want to use as default and the default colors of the window list is still set from the theme.
+The window list (and the close button) is themeable now. You can select different styles for the window list from appearance tab. The styles are independent parts of the themes. They exist in .dockbarx/themes/popup_styles or /usr/share/dockbarx/themes/popup_styles. They are .tar.gz files and should contain one style file with all the settings  and optionally one background.png picture. Making styles should be very easy compared to making themes. Look inside any of the styles that comes with DockbarX, the style file is heavily commented. Themes can set which style they want to use as default and the default colors of the window list is still set from the theme.
 - Window list look has changed more besides the styles. Active and urgent windows are now highlighted with background colors instead of simply changing fonts.
 
 - Stand alone dock themes
@@ -158,10 +158,10 @@ Features:
 - DockbarX supports Unity's quicklists (the static ones).
 
 Bug Fixes:
-Large parts of the code has been rewritten since 0.43 so many bugs has been fixed unknowingly and some new has bugs has probaly appeared instead. Some important bug fixes are:
+Large parts of the code has been rewritten since 0.43 so many bugs has been fixed unknowingly and some new has bugs has probably appeared instead. Some important bug fixes are:
 - Bug #540950: The long lasting bug where DockbarX crashes on login is probably fixed now.
 - Bug #688442: Popup windows appearing on the wrong monitor in multi-monitor set-ups should be fixed as well.
-- Compiz scale and swith actions works compiz 0.9 thanks to a patch by BlackDex
+- Compiz scale and switch actions works compiz 0.9 thanks to a patch by BlackDex
 
 
 0.43
@@ -250,7 +250,7 @@ x.0.39.7
 End user features:
 - Multiple monitor support: Option to only show windows that is on the current monitor (see advanced tab in preference).
 - Popups for group buttons without open windows is not shown anymore, instead there is an option in preference dialog to show tooltips for group buttons without windows.
-- The group button menu pops up next to the group button instead of poping up at the mouse pointer.
+- The group button menu pops up next to the group button instead of popping up at the mouse pointer.
 - DockbarX might be slightly faster and use a little bit less memory in certain situations.
 
 Changes to dockbarx behavior - after ideas from a patch by Domen Tabernik (skokec):
@@ -309,7 +309,7 @@ Bug fixes:
 - Bug #600924: DockbarX crashed on upstart when used in AWN.
 - Bug #602960: Dockbarx doesn't save pinned applications. Patch by Tom Klaver.
 - Fixed a bug that stopped DockbarX from working with older distributions (Karmic).
-- If the compiz plugin KDE compability isn't installed, DockbarX will inform the user about this when trying to activate plugins, instead of asking if it should activate the plugin.
+- If the compiz plugin KDE compatibility isn't installed, DockbarX will inform the user about this when trying to activate plugins, instead of asking if it should activate the plugin.
 
 x.0.39.4
 End user features:
@@ -346,7 +346,7 @@ Bug fixes:
 
 x.0.39.1
 End user features:
-- New preview system (ported from vanilla dockbar) that has live previews instead of stills. It is also a lot faster and hopefully more stable. To use previews you need to activate KDE Compability in compiz settings manager and under KDE Compability check "Support Plasma Thumbnails" (or use KDE's window manager kwin, which also gives you previews for minimized windows).
+- New preview system (ported from vanilla dockbar) that has live previews instead of stills. It is also a lot faster and hopefully more stable. To use previews you need to activate KDE Compatibility in compiz settings manager and under KDE Compatibility check "Support Plasma Thumbnails" (or use KDE's window manager kwin, which also gives you previews for minimized windows).
 
 Bug fixes:
 - Bug #576068: DockbarX crashed on stratup when used with AWN 0.4
@@ -389,7 +389,7 @@ Theme makers:
 - A size attribute is added to the if command. It uses the same syntax as the windows_cnt attribute. See theming howto for more information.
 
 Bug fixes:
-- Bug #507692: Dockbarx background wasn't tranparent.
+- Bug #507692: Dockbarx background wasn't transparent.
 - Bug #510619: Clicking at pixels around the borders of dockbarx should now work.
 - Dockbarx works ok in vertical mode again.
 

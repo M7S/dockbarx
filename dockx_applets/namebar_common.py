@@ -441,7 +441,7 @@ class PrefDialog(DockXAppletDialog):
         self.set_setting("custom_layout", None, ignore_changed_event=False)
 
     def color_set(self, button, setting_base):
-        # Read the value from color (and aplha) and write
+        # Read the value from color (and alpha) and write
         # it as 8-bit/channel hex string.
         # (Alpha is written like int (0-255).)
         if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:

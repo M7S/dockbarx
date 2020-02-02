@@ -35,10 +35,10 @@ gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GObject
 from gi.repository import GLib
-from dockbarx.common import Globals
+from dockbarx.common import Globals, XDisplay
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
-from Xlib import display, X
+from Xlib import X
 from math import pi, sin, cos, tan, atan
 import weakref
 import time
@@ -65,8 +65,6 @@ class CairoDockX(Gtk.Window):
             visual = gdk_screen.get_rgb_visual()
         self.set_visual(visual)
         self.set_app_paintable(1)
-        self.button_area = Gtk.Alignment.new(0,0,1,1)
-        Gtk.Window.add(self, self.button_area)
         self.compute_padding()
         self.globals.connect("dock-color-changed", self.__on_color_changed)
         self.connect("draw", self.on_draw)
@@ -447,6 +445,9 @@ class CairoDockX(Gtk.Window):
         return cairo.LinearGradient(start_x, start_y, stop_x, stop_y)
 
     def compute_padding(self):
+        child = self.get_child()
+        if child is None:
+            return
         pos = self.globals.settings["dock/position"]
         size = self.globals.settings["dock/size"]
         rel_size = float(self.theme.get("rel_size", 100))
@@ -469,13 +470,20 @@ class CairoDockX(Gtk.Window):
             padding = (b, p, 0, 0)
         else:
             padding = (p, b, 0, 0)
-        self.button_area.set_padding(*padding)
+        child.set_margin_top(padding[0])
+        child.set_margin_bottom(padding[1])
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            child.set_margin_start(padding[2])
+            child.set_margin_end(padding[3])
+        else:
+            child.set_margin_left(padding[2])
+            child.set_margin_right(padding[3])
 
     def add_box(self, widget):
-        self.button_area.add(widget)
+        self.add(widget)
 
-    def remove_box(self):
-        self.button_area.remove(widget)
+    def remove_box(self, widget):
+        self.remove(widget)
 
     def __on_color_changed(self, *args):
         self.queue_draw()
@@ -605,6 +613,7 @@ class DockX(CairoDockX):
             self.old_x = x
             self.old_y = y
         self.dockbar.set_size(db_size)
+        self.dockbar.dockbar_moved()
 
     def __rebuild(self):
         self.__destroy_old()
@@ -677,7 +686,7 @@ class DockX(CairoDockX):
                     # Start putting applets in the right/bottom box.
                     box = self.position_boxes[2]
                 box.pack_start(spacer, True, True, 0)
-                # Define spacer posistion relative to dbx
+                # Define spacer position relative to dbx
                 # Needed for correct drag and drop behavior.
                 if i != 0 and alist[i - 1] == "DockbarX":
                     if not self.position_boxes:
@@ -731,7 +740,7 @@ class DockX(CairoDockX):
             self.box.pack_start(boxes[0], True, True, 0)
             self.box.pack_start(boxes[1], False, False, 0)
             self.box.pack_start(boxes[2], True, True, 0)
-            # Use hugh size requests so that the boxes get equaly large.
+            # Use hugh size requests so that the boxes get equally large.
             if pos in ("left", "right"):
                 boxes[0].set_size_request(-1, 3000)
                 boxes[2].set_size_request(-1, 3000)
@@ -788,11 +797,10 @@ class DockX(CairoDockX):
             return
         set_strut = self.globals.settings["dock/behavior"] == "panel"
         if not set_strut:
-            d = display.Display()
-            topw = d.create_resource_object('window',
+            topw = XDisplay.create_resource_object('window',
                                     self.get_toplevel().get_window().get_xid())
-            topw.delete_property(d.intern_atom("_NET_WM_STRUT"))
-            topw.delete_property(d.intern_atom("_NET_WM_STRUT_PARTIAL"))
+            topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT"))
+            topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT_PARTIAL"))
             return
         mr = self.get_monitor_geometry()
         s = self.get_screen()
@@ -808,16 +816,15 @@ class DockX(CairoDockX):
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
         else:
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
-        d = display.Display()
-        topw = d.create_resource_object('window',
+        topw = XDisplay.create_resource_object('window',
                                 self.get_toplevel().get_window().get_xid())
-        topw.change_property(d.intern_atom('_NET_WM_STRUT'),
-                             d.intern_atom('CARDINAL'), 32,
+        topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT'),
+                             XDisplay.intern_atom('CARDINAL'), 32,
                              strut[:4],
                              X.PropModeReplace)
 
-        topw.change_property(d.intern_atom('_NET_WM_STRUT_PARTIAL'),
-                             d.intern_atom('CARDINAL'), 32,
+        topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT_PARTIAL'),
+                             XDisplay.intern_atom('CARDINAL'), 32,
                              strut,
                              X.PropModeReplace)
 
@@ -831,10 +838,9 @@ class DockX(CairoDockX):
         sw = sr.width
         sh = sr.height
         strut = [mx, sw - (mx + mw), my,  sh - (my + mh)]
-        d = display.Display()
-        strut_atom = d.get_atom('_NET_WM_STRUT')
-        strut_partial_atom = d.get_atom('_NET_WM_STRUT_PARTIAL')
-        root = d.screen().root
+        strut_atom = XDisplay.get_atom('_NET_WM_STRUT')
+        strut_partial_atom = XDisplay.get_atom('_NET_WM_STRUT_PARTIAL')
+        root = XDisplay.screen().root
         windows = root.query_tree()._data['children']
         for w in windows:
             try:
@@ -900,6 +906,14 @@ class DockX(CairoDockX):
     def on_size_allocate(self, widget, allocation):
         w = allocation.width
         h = allocation.height
+        size = self.globals.settings["dock/size"]
+        if self.globals.settings["dock/position"] in ("left", "right"):
+            if w > size:
+                w = allocation.width = size
+        else:
+            if h > size:
+                h = allocation.height = size
+        self.set_allocation(allocation)
         if self.globals.settings["dock/mode"] == "centered":
             mr = self.get_monitor_geometry()
             mx, my, mw, mh = mr.x, mr.y, mr.width, mr.height
@@ -924,11 +938,13 @@ class DockX(CairoDockX):
             self.old_width, self.old_height = w, h
         if self.globals.settings["dock/mode"] != "panel":
             self.__set_dock_strut(x, y, w, h)
+        self.dockbar.dockbar_moved()
 
     def show_dock(self):
         self.show()
         if self.globals.settings["dock/mode"] != "centered":
             self.move(self.old_x, self.old_y)
+            self.dockbar.dockbar_moved()
         if self.autohide_sid is not None:
             GLib.source_remove(self.autohide_sid)
         if self.autounhide_sid is not None:

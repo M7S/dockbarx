@@ -17,7 +17,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-# This code was based on a python snipet.
+# This code was based on a python snippet.
 # SNIPPET_NAME: Recently used items
 # SNIPPET_CATEGORIES: Zeitgeist
 # SNIPPET_DESCRIPTION: Find recently used items from Zeitgeist (synchronously)

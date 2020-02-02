@@ -30,11 +30,11 @@ import weakref
 import gc
 gc.enable()
 import Xlib
-from Xlib.display import Display
 from PIL import Image
 
 from .common import ODict, Globals, Opacify
 from .common import connect, disconnect, opacify, deopacify
+from .common import XDisplay
 from .cairowidgets import *
 from .log import logger
 
@@ -227,7 +227,7 @@ class Window():
             win_x,win_y,win_w,win_h = self.wnck.get_geometry()
             self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),
                                       win_y-(win_y%self.screen.get_height()))
-            # Hide popup since mouse movment won't
+            # Hide popup since mouse movement won't
             # be tracked during compiz move effect
             # which means popup list can be left open.
             group = self.group_r()
@@ -313,7 +313,8 @@ class WindowItem(CairoButton):
             self.close_button.show()
         self.label = Gtk.Label()
         self.label.set_ellipsize(Pango.EllipsizeMode.END)
-        self.label.set_alignment(0, 0.5)
+        self.label.set_halign(Gtk.Align.START)
+        self.label.set_valign(Gtk.Align.CENTER)
         self.__update_label()
         self.area.set_needs_attention(window.wnck.needs_attention())
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
@@ -388,7 +389,7 @@ class WindowItem(CairoButton):
             self.close_button.hide()
             self.label.queue_resize()
 
-    #### Apperance
+    #### Appearance
     def __update_label(self, arg=None):
         """Updates the style of the label according to window state."""
         window = self.window_r()
@@ -500,11 +501,12 @@ class WindowItem(CairoButton):
             self.preview.set_from_pixbuf(window.wnck.get_icon())
         else:
             try:
-                xwin = Display().create_resource_object('window', window.xid)
+                xwin = XDisplay.create_resource_object('window', window.xid)
                 xwin.composite_redirect_window(Xlib.ext.composite.RedirectAutomatic)
                 geo = xwin.get_geometry()
                 pixmap = xwin.composite_name_window_pixmap()
                 image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
+                xwin.composite_unredirect_window(Xlib.ext.composite.RedirectAutomatic)
             except:
                 self.preview.set_from_pixbuf(window.wnck.get_icon())
                 return;

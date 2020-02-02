@@ -31,7 +31,7 @@ import weakref
 DBusGMainLoop(set_as_default=True)
 BUS = dbus.SessionBus()
 
-class MediaButtons(Gtk.Alignment):
+class MediaButtons(Gtk.Box):
     def __init__(self, name):
         self.sids = []
         self.player = BUS.get_object("org.mpris.MediaPlayer2.%s" % name,
@@ -43,20 +43,20 @@ class MediaButtons(Gtk.Alignment):
                                       self.__on_properties_changed,
                                       dbus_interface=\
                                       "org.freedesktop.DBus.Properties")
+        Gtk.Box.__init__(self, Gtk.Orientation.HORIZONTAL, 0)
         GObject.GObject.__init__(self)
-        self.set(0.5, 0.5, 0, 0)
-        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.previous_button = CairoNextButton(previous=True)
         self.playpause_button = CairoPlayPauseButton()
         self.next_button = CairoNextButton()
         connect(self.previous_button, "clicked", self.previous)
         connect(self.playpause_button,"clicked", self.playpause)
         connect(self.next_button, "clicked", self.next)
-        hbox.pack_start(self.previous_button, True, True, 0)
-        hbox.pack_start(self.playpause_button, True, True, 4)
-        hbox.pack_start(self.next_button, True, True, 0)
-        self.add(hbox)
-        hbox.show_all()
+        self.previous_button.set_halign(Gtk.Align.END)
+        self.next_button.set_halign(Gtk.Align.START)
+        self.pack_start(self.previous_button, True, True, 0)
+        self.pack_start(self.playpause_button, False, False, 4)
+        self.pack_start(self.next_button, True, True, 0)
+        self.show_all()
         self.update_plaback_status()
 
     def get_property(self, property):

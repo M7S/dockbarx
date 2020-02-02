@@ -674,7 +674,7 @@ msgstr "Desplazamiento"
 
 #: dbx_preference:1276
 msgid ""
-"Use this if the dock isn't able to automatically aviod overlapping with "
+"Use this if the dock isn't able to automatically avoid overlapping with "
 "other panels"
 msgstr ""
 
@@ -765,26 +765,26 @@ msgstr ""
 
 #: dbx_preference:2191
 msgid ""
-"Previews requires the compiz plugin KDE Compability to be activated. Should "
+"Previews requires the compiz plugin KDE Compatibility to be activated. Should "
 "dockbarx activate it for you?"
 msgstr ""
-"La vista previa requiere activar el plugin de Compiz \"KDE Compability\". "
+"La vista previa requiere activar el plugin de Compiz \"KDE Compatibility\". "
 "¿Quieres que DockBarX lo active?"
 
 #: dbx_preference:2205
 msgid ""
-"The compiz plugin KDE Compability that is needed for previews doesn't seem "
+"The compiz plugin KDE Compatibility that is needed for previews doesn't seem "
 "to be installed. If you use ubuntu, you need to install the package compiz-"
 "fusion-plugins-main."
 msgstr ""
-"El plugin para compiz \"KDE Compability\" se necesita para las vistas "
+"El plugin para compiz \"KDE Compatibility\" se necesita para las vistas "
 "previas no parece que esté instalado. Si usa Ubuntu, es necesario instalar "
 "el paquete compiz-fusion-plugins-main."
 
 #: dbx_preference:2223
 msgid ""
 "Previews requires that Support Plasma Thumnails should be activated in KDE "
-"Compability plugin. Should dockbarx activate it for you?"
+"Compatibility plugin. Should dockbarx activate it for you?"
 msgstr ""
 "Vista previa requiere el soporte miniaturas del plasma, puede ser activado "
 "dentro del plugin KDE Compatible. Quieres que Dockbarx lo active por ti?"
