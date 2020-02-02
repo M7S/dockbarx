@@ -33,6 +33,7 @@ import os
 from gi.repository import Pango
 from xml.sax.saxutils import escape
 import weakref
+import Xlib
 
 from .windowbutton import Window
 from .iconfactory import IconFactory
