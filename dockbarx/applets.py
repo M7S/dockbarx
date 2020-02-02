@@ -39,17 +39,31 @@ DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
 
 
-
 def get_applet_gsetting(applet_id):
-    return Gio.Settings.new_with_path("org.dockbarx.applets.%s" % applet_id,
-                                      "/org/dockbarx/applets/%s/" % applet_id)
+    schema_id = "org.dockbarx.applets.%s" % applet_id
+    path = "/org/dockbarx/applets/%s/" % applet_id
+    if GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 32:
+        source = Gio.SettingsSchemaSource.get_default()
+        schema = source.lookup(schema_id, True)
+        if not schema:
+            logger.error("No schema %s" % schema_id)
+            return (None, 1)
+        if schema.get_path() != path:
+            logger.error("No %s in schema %s" % (path, schema_id))
+            return (None, 1)
+    else:
+        schema = None
+    return (Gio.Settings.new_with_path(schema_id, path), schema)
 
-def set_applet_setting(gsettings, key, value, empty_list_type=str):
+def set_applet_setting(gsettings, gschema, key, value, empty_list_type=str):
     if type(key) != str:
         logger.error("The key must be a string")
         return
     key = key.replace("_", "-")
-
+    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+        if not gschema.has_key(key):
+            logger.error("No %s in schema %s" % (key, gschema.get_id()))
+            return
     if value is None:
         gsettings.reset(key)
         return
@@ -87,18 +101,26 @@ def set_applet_setting(gsettings, key, value, empty_list_type=str):
             return
     gsettings.set_value(key, GLib.Variant(vtype, value))
 
-def get_applet_setting(gsettings, key):
+def get_applet_setting(gsettings, gschema, key):
     if type(key) != str:
         logger.error("The key must be a string")
-        return
+        return None
     key = key.replace("_", "-")
+    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+        if not gschema.has_key(key):
+            logger.error("No %s in schema %s" % (key, gschema.get_id()))
+            return None
     return gsettings.get_value(key).unpack()
 
-def get_applet_default_setting(gsettings, key):
+def get_applet_default_setting(gsettings, gschema, key):
     if type(key) != str:
         logger.error("The key must be a string")
-        return
+        return None
     key = key.replace("_", "-")
+    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+        if not gschema.has_key(key):
+            logger.error("No %s in schema %s" % (key, gschema.get_id()))
+            return None
     return gsettings.get_default_value(key).unpack()
 
 class DockXApplets():
@@ -260,37 +282,44 @@ class DockXApplet(Gtk.EventBox):
         self.connect("button-release-event", self.on_button_release_event)
         self.connect("button-press-event", self.on_button_press_event)
         if self.__applet_id:
-            self.__settings = get_applet_gsetting(self.__applet_id)
-            self.__sid = self.__settings.connect("changed", self.__on_settings_changed)
-            self.__setting_key = None
+            self.__settings, self.__schema = get_applet_gsetting(self.__applet_id)
+            if self.__settings is not None:
+                self.__sid = self.__settings.connect("changed", self.__on_settings_changed)
+                self.__setting_key = None
         else:
             self.__settings = None
+            self.__schema = None
 
     def get_id(self):
         return self.__applet_id
 
-    def get_setting(self, key):
-        if self.__settings is None:
+    def __check_settings(self):
+        if self.__settings is not None:
+            return True
+        if self.__schema is not None:
             logger.error("Error: Cannot use applet settings " \
-                         "without a id in the .applet file")
+                         "with an invalid id in the .applet file")
+        else:
+            logger.error("Error: Cannot use applet settings " \
+                         "without an id in the .applet file")
+        return False
+
+    def get_setting(self, key):
+        if not self.__check_settings():
             return
-        return get_applet_setting(self.__settings, key)
+        return get_applet_setting(self.__settings, self.__schema, key)
 
     def get_default_setting(self, key):
-        if self.__settings is None:
-            logger.error("Error: Cannot use applet settings " \
-                         "without a id in the .applet file")
+        if not self.__check_settings():
             return
-        return get_applet_default_setting(self.__settings, key)
+        return get_applet_default_setting(self.__settings, self.__schema, key)
 
     def set_setting(self, key, value, empty_list_type=None, ignore_changed_event=True):
-        if self.__settings is None:
-            logger.error("Error: Cannot use applet settings " \
-                         "without a id in the .applet file")
+        if not self.__check_settings():
             return
         if ignore_changed_event:
             self.__setting_key = key
-        set_applet_setting(self.__settings, key, value, empty_list_type)
+        set_applet_setting(self.__settings, self.__schema, key, value, empty_list_type)
         self.__setting_key = None
 
     def on_setting_changed(self, key, value):
@@ -301,7 +330,7 @@ class DockXApplet(Gtk.EventBox):
         _key = key.replace("-", "_")
         if _key == self.__setting_key:
             return
-        value = get_applet_setting(gsettings, key)
+        value = get_applet_setting(gsettings, self.__schema, key)
         self.on_setting_changed(_key, value)
 
     def update(self):
@@ -386,35 +415,42 @@ class DockXAppletDialog(Gtk.Dialog):
         GObject.GObject.__init__(self)
         if applet_id:
             self.__applet_id = applet_id
-            self.__settings = get_applet_gsetting(self.__applet_id)
-            # Set gsettings notifiers
-            self.__sid = self.__settings.connect("changed", self.__on_settings_changed)
-            self.__setting_key = None
+            self.__settings, self.__schema = get_applet_gsetting(self.__applet_id)
+            if self.__settings is not None:
+                # Set gsettings notifiers
+                self.__sid = self.__settings.connect("changed", self.__on_settings_changed)
+                self.__setting_key = None
         else:
             self.__settings = None
+            self.__schema = None
+
+    def __check_settings(self):
+        if self.__settings is not None:
+            return True
+        if self.__schema is not None:
+            logger.error("Error: Cannot use applet settings " \
+                         "with an invalid id in the .applet file")
+        else:
+            logger.error("Error: Cannot use applet settings " \
+                         "without an id in the .applet file")
+        return False
 
     def get_setting(self, key):
-        if self.__settings is None:
-            logger.error("Error: Cannot use applet settings " \
-                         "without a id in the .applet file")
+        if not self.__check_settings():
             return
-        return get_applet_setting(self.__settings, key)
+        return get_applet_setting(self.__settings, self.__schema, key)
 
     def get_default_setting(self, key):
-        if self.__settings is None:
-            logger.error("Error: Cannot use applet settings " \
-                         "without a id in the .applet file")
+        if not self.__check_settings():
             return
-        return get_applet_default_setting(self.__settings, key)
+        return get_applet_default_setting(self.__settings, self.__schema, key)
 
     def set_setting(self, key, value, empty_list_type=None, ignore_changed_event=True):
-        if self.__settings is None:
-            logger.error("Error: Cannot use applet settings " \
-                         "without a id in the .applet file")
+        if not self.__check_settings():
             return
         if ignore_changed_event:
             self.__setting_key = key
-        set_applet_setting(self.__settings, key, value, empty_list_type)
+        set_applet_setting(self.__settings, self.__schema, key, value, empty_list_type)
         self.__setting_key = None
 
     def on_setting_changed(self, key, value):
@@ -425,7 +461,7 @@ class DockXAppletDialog(Gtk.Dialog):
         _key = key.replace("-", "_")
         if _key == self.__setting_key:
             return
-        value = get_applet_setting(gsettings, key)
+        value = get_applet_setting(gsettings, self.__schema, key)
         self.on_setting_changed(_key, value)
 
     def debug(self, text):
