@@ -526,7 +526,7 @@ class DockX(CairoDockX):
         self.old_y = 0
         self.old_width = 0
         self.old_height = 0
-        self.box = Gtk.HBox()
+        self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.position_boxes = None
         self.applet_sids = {}
         self.padding1 = EventPadding(self)
@@ -624,10 +624,9 @@ class DockX(CairoDockX):
         pos = self.globals.settings["dock/position"]
 
         if pos in ("left", "right"):
-            gtk_box = Gtk.VBox
+            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         else:
-            gtk_box = Gtk.HBox
-        self.box = gtk_box()
+            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.add_box(self.box)
         # Padding/End decorations before applets
         self.box.pack_start(self.padding1, False, False, 0)
@@ -733,10 +732,10 @@ class DockX(CairoDockX):
         if alist.count("Spacer") == 2 and panel:
             # Make three boxes and prepare them
             if pos in ("left", "right"):
-                gtk_box = Gtk.VBox
+                orient = Gtk.Orientation.VERTICAL
             else:
-                gtk_box = Gtk.HBox
-            boxes = [gtk_box(), gtk_box(),gtk_box()]
+                orient = Gtk.Orientation.HORIZONTAL
+            boxes = [Gtk.Box.new(orient, 0), Gtk.Box.new(orient, 0), Gtk.Box.new(orient, 0)]
             self.box.pack_start(boxes[0], True, True, 0)
             self.box.pack_start(boxes[1], False, False, 0)
             self.box.pack_start(boxes[2], True, True, 0)

@@ -157,7 +157,7 @@ class ClockAppletPreferences(DockXAppletDialog):
                                      self.__cb_toggled, "use_custom_format")
         table.attach(self.custom_clock_cb, 0, 3, 2, 1)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.cf_entry = Gtk.Entry()
         self.cf_entry.set_tooltip_text("The format is identical to gnome-panel clock's custom format. Google 'gnome-panel custom clock' for exampels.")
         hbox.pack_start(self.cf_entry, True, True, 0)
@@ -169,7 +169,7 @@ class ClockAppletPreferences(DockXAppletDialog):
         hbox.pack_start(self.cf_button, False, False, 0)
         table.attach(hbox, 0, 4, 2, 1)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         label = Gtk.Label(label=_("Text direction: "))
         hbox.pack_start(label, False, False, 0)
         self.td_cbt = Gtk.ComboBoxText()
