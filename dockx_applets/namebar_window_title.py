@@ -103,8 +103,8 @@ class WindowTitleApplet(DockXApplet):
             self.resize()
         elif key == "alignment":
             self.on_alignment_changed(value)
-        elif key == "active_color" or key == "active_bold" or \
-             key == "passive_color" or key == "passive_bold" or \
+        elif key == "active_color" or key == "active_font" or \
+             key == "passive_color" or key == "passive_font" or \
              key == "active_alpha" or key == "passive_alpha" or \
              key == "font_size":
             self.set_text_style()
@@ -143,16 +143,14 @@ class WindowTitleApplet(DockXApplet):
 
     def set_text_style(self):
         attr_list = Pango.AttrList()
-        if self.get_setting('%s_bold'%self.window_state):
-            attr_list.insert(Pango.attr_weight_new(Pango.Weight.BOLD))
+        font = self.get_setting('%s_font'%self.window_state)
+        attr_list.insert(Pango.attr_font_desc_new(Pango.FontDescription(font)))
         color = self.get_setting('%s_color'%self.window_state)
         r = int(color[1:3], 16)*257
         g = int(color[3:5], 16)*257
         b = int(color[5:7], 16)*257
         attr_list.insert(Pango.attr_foreground_new(r, g, b))
         attr_list.insert(Pango.attr_foreground_alpha_new(self.get_setting('%s_alpha'%self.window_state) * 257))
-        attr_list.insert(Pango.attr_foreground_alpha_new(self.get_setting('%s_alpha'%self.window_state) * 257))
-        attr_list.insert(Pango.attr_size_new(self.get_setting("font_size") * Pango.SCALE))
         self.label.set_attributes(attr_list)
 
     def show_none(self):
