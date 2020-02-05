@@ -64,7 +64,7 @@ class HelloWorldApplet(DockXApplet):
 
     def update_size(self):
         attrs = self.label.get_attributes()
-        attrs.change(Pango.attr_size_new((self.get_size() * 0.5) * Pango.SCALE))
+        attrs.change(Pango.attr_size_new_absolute((self.get_size() * 0.75) * Pango.SCALE))
         self.label.set_attributes(attrs)
 
     def on_clicked(self, applet, event):
