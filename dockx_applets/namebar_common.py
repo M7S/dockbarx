@@ -506,7 +506,8 @@ class PrefDialog(DockXAppletDialog):
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/dockbarx/applets/namebar_themes", "/usr/share/namebar/themes", os.path.join(get_namebar_homedir(), "themes")]
+        dirs = [os.path.join(os.path.dirname(__file__), "namebar_themes"),
+                os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):
@@ -520,10 +521,10 @@ class PrefDialog(DockXAppletDialog):
             md = Gtk.MessageDialog(None,
                 Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                 Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
-                'No working themes found in "/usr/share/dockbarx/applets/namebar_themes", "/usr/share/namebar/themes" or "~/.namebar/themes"')
+                'No working themes found in ' + ' or '.join(dirs))
             md.run()
             md.destroy()
-            print('Preference dialog error: No working themes found in "/usr/share/dockbarx/applets/namebar_themes", "/usr/share/namebar/themes" or "~/.local/share/namebar/themes"')
+            print('Preference dialog error: No working themes found in ' + ' or '.join(dirs))
         return themes
 
 
