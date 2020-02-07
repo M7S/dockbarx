@@ -26,6 +26,7 @@ from distutils.command.build import build as _build
 import polib
 import os
 import sys
+import stat
 
 VERSION = "1.0-beta"
 
@@ -123,6 +124,7 @@ data_files=[
                                              "dockx_applets/hello_world.applet",
                                              "dockx_applets/battery_status.py",
                                              "dockx_applets/battery_status.applet",
+                                             "dockx_applets/battery_status_helper.sh",
                                              "dockx_applets/volume-control.py",
                                              "dockx_applets/volume-control.applet",
                                              "dockx_applets/volume-control.ui",
@@ -137,6 +139,7 @@ data_files=[
             ("share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml",
                                          "dockx_applets/org.dockbar.applets.clock.gschema.xml",
                                          "dockx_applets/org.dockbar.applets.hello-world.gschema.xml",
+                                         "dockx_applets/org.dockbar.applets.batterystatus.gschema.xml",
                                          "dockx_applets/org.dockbar.applets.namebar.gschema.xml"]),
             ("share/dbus-1/services/", ["org.mate.panel.applet.DockbarXAppletFactory.service"]),
             ("share/mate-panel/applets/", ["org.mate.panel.DockbarX.mate-panel-applet"]),
@@ -159,4 +162,14 @@ if len(sys.argv) == 2 and sys.argv[1] == "install":
     install_data_path = s.command_obj['install'].install_data
     schema_path = os.path.join(install_data_path, "share/glib-2.0/schemas")
     os.system("glib-compile-schemas %s" % schema_path)
+    # create sudo policy file for battery_status_helper.sh
+    helper_file = os.path.join(install_data_path, 'share/dockbarx/applets/battery_status_helper.sh')
+    sudo_policy_file = '/etc/sudoers.d/dockbarx-applet-battery-status-helper'
+    try:
+        f = open(sudo_policy_file, 'w')
+        f.write('ALL ALL=(root) NOPASSWD:%s\n' % helper_file)
+        f.close()
+        os.chmod(sudo_policy_file, stat.S_IRUSR | stat.S_IRGRP)
+    except:
+        pass
 

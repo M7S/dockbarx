@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<schemalist>
+  <schema id="org.dockbarx.applets.batterystatus" path="/org/dockbarx/applets/batterystatus/">
+
+    <key name='icon-visibility' type='s'>
+      <choices>
+        <choice value='always'/>
+        <choice value='low'/>
+        <choice value='charging'/>
+        <choice value='never'/>
+      </choices>
+      <default>'always'</default>
+      <summary>Icon Visibility</summary>
+    </key>
+
+    <key name='label-visibility' type='s'>
+      <choices>
+        <choice value='time'/>
+        <choice value='percent'/>
+        <choice value='never'/>
+      </choices>
+      <default>'never'</default>
+      <summary>Label Visibility</summary>
+    </key>
+
+    <key name='font' type='s'>
+      <default>'Sans 11'</default>
+      <summary>Label Font</summary>
+    </key>
+
+    <key name='color' type='ad'>
+      <default>[1.0, 1.0, 1.0, 1.0]</default>
+      <summary>Label Text Color</summary>
+      </key>
+
+    <key name='rotation' type='s'>
+      <choices>
+        <choice value='clockwise'/>
+        <choice value='anticlockwise'/>
+        <choice value='no'/>
+      </choices>
+      <default>'no'</default>
+      <summary>Rotate Label on Left/Right Side</summary>
+    </key>
+
+    <key name='use-symbolic-icon' type='b'>
+      <default>false</default>
+      <summary>Use Symbolic Icon</summary>
+    </key>
+
+    <key name='show-cpu-modes' type='b'>
+      <default>true</default>
+      <summary>Show CPU Modes</summary>
+    </key>
+
+    <key name='show-sleep-actions' type='b'>
+      <default>false</default>
+      <summary>Show Sleep Actions</summary>
+      <description>
+        Show sleep actions (Suspend/Hibernate) in main menu
+      </description>
+    </key>
+
+    <key name='show-session-actions' type='b'>
+      <default>false</default>
+      <summary>Show Session Actions</summary>
+      <description>
+        Show session actions (Logout/Shutdown/Reboot) in main menu
+      </description>
+    </key>
+
+    <key name='low-power-action' type='s'>
+      <choices>
+        <choice value='warning'/>
+        <choice value='sleep'/>
+        <choice value='nothing'/>
+      </choices>
+      <default>'warning'</default>
+      <summary>Low Power Action</summary>
+    </key>
+
+    <key name='low-capacity' type='i'>
+      <default>10</default>
+      <range min="1" max="99"/>
+      <summary>Remaining Capacity</summary>
+    </key>
+
+    <key name='low-time' type='i'>
+      <default>10</default>
+      <range min="1" max="60"/>
+      <summary>Remaining Minutes</summary>
+    </key>
+
+    <key name='restore-cpu-mode' type='b'>
+      <default>false</default>
+      <summary>Restore Last CPU Mode On Startup</summary>
+    </key>
+
+    <key name='last-cpu-mode' type='s'>
+      <default>''</default>
+      <summary>Last CPU Mode</summary>
+    </key>
+
+    <key name='confirm-sleep' type='b'>
+      <default>true</default>
+      <summary>Confirm Before Sleep Actions</summary>
+    </key>
+
+    <key name='confirm-session' type='b'>
+      <default>true</default>
+      <summary>Confirm Before Session Actions</summary>
+    </key>
+
+  </schema>
+
+</schemalist>
+

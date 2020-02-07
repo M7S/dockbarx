@@ -20,553 +20,1264 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 """
 
-
 name = "battery-status"
-comment = "Battery Status applet for the GNOME desktop ported to DockX"
-homepage = "http://live.gnome.org/BatteryStatus"
-copyright = "Copyright © 2010 Ivan Zorin, 2014 Matias Sars"
-authors = ["Ivan Zorin <ivan.a.zorin@gmail.com>", ]
-version = "0.1.1"
+comment = "Battery Status applet for DockbarX"
+copyright = "Copyright © 2010 Ivan Zorin, 2014 Matias Sars, 2020 Xu Zhen"
+authors = ["Ivan Zorin <ivan.a.zorin@gmail.com>", "Matias Sars https://github.com/M7S", "Xu Zhen https://github.com/xuzhen" ]
+version = "0.2.0"
 
 
 import os
 import sys
-import platform
 import time
+import subprocess
+import re
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import GObject
 from gi.repository import Gtk
-from gi.repository import GConf
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import GObject
+from gi.repository import GLib
+gi.require_version("Pango", "1.0")
+from gi.repository import Pango
 import dbus
-from dockbarx.applets import DockXApplet
-from dbus.mainloop.glib import DBusGMainLoop
+import pyudev   # >= 0.15
+from dockbarx.applets import DockXApplet, DockXAppletDialog
+import dockbarx.i18n
+_ = dockbarx.i18n.language.gettext
+
+def _run(program, *args, nowait=False):
+    try:
+
+        if not nowait:
+            if sys.version_info.minor >= 5:
+                return subprocess.run([program, *args],
+                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL).returncode
+            else:   # 3.3+
+                return subprocess.call([program, *args],
+                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
+        else:
+            subprocess.Popen([program, *args], shell=False,
+                    stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL, close_fds=True)
+            return 0
+    except:
+        return -1
+
+def _set_margin(widget, top=-1, bottom=-1, left=-1, right=-1):
+    if top >= 0:
+        widget.set_margin_top(top)
+    if bottom >= 0:
+        widget.set_margin_bottom(bottom)
+    if left >= 0:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            widget.set_margin_start(left)
+        else:
+            widget.set_margin_left(left)
+    if right >= 0:
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            widget.set_margin_end(right)
+        else:
+            widget.set_margin_right(right)
+
+def _split_time(time, nosec=True):
+    seconds = time % 60
+    time = time // 60
+    minutes = time % 60
+    if nosec:
+        return (time, minutes)
+    else:
+        return (time, minutes, seconds)
 
 
+class CpufreqUtils():
+    HELPER_SCRIPT=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               "battery_status_helper.sh")
+    def get_cpus(self):
+        try:
+            cpus = []
+            pattern = re.compile("^cpu[0-9]+$")
+            files = os.listdir(path="/sys/devices/system/cpu")
+            for f in files:
+                if os.path.isdir("/sys/devices/system/cpu/%s" % f) and pattern.match(f):
+                    cpus.append(int(f.replace("cpu", "")))
+            cpus.sort()
+            return cpus
+        except:
+            return []
 
-class BatteryApplet():
-    """GNOME Battery Status applet - shows battery status and battery life/charge time in GNOME panel"""
+    def get_governor(sel, cpu = 0):
+        try:
+            f = open('/sys/devices/system/cpu/cpu%d/cpufreq/scaling_governor' % cpu, 'r')
+            governor = f.read().rstrip('\n')
+            f.close()
+            return governor
+        except:
+            return None
+
+    def set_governor(self, governor):
+        if not governor:
+            return False
+        if _run("sudo", "-n", self.HELPER_SCRIPT, governor) == 0:
+            return True
+        return False
+
+    def get_all_governors(self):
+        try:
+            f = open('/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors', 'r')
+            governors = f.read().rstrip('\n').split(' ')
+            f.close()
+            if governors[-1] == "":
+                return governors[:-1]
+            return governors
+        except:
+            return []
+
+    def can_write(self):
+        if _run("sudo", "-n", self.HELPER_SCRIPT) == 0:
+            return True
+        return False
+
+
+class PowerSupplyUtils(GObject.GObject):
+    SYSFS_MAP = {
+        "type": {"": _("N/A"), "Mains": _("Line Power"), "Battery": _("Battery"), "UPS": _("UPS")},
+        "tech": {"": _("N/A"), "Unknown": _("Unknown"), "Li-ion": _("Lithium Ion"), "Li-poly": _("Lithium Polymer"), "LiFe": _("Lithium Iron Phosphate"), "NiCd": _("Nickel Cadmium"), "NiMH": _("Nickel Metal Hydride")},
+        "status": {"": _("N/A"), "Unknown": _("Unknown"), "Charging": _("Charging"), "Discharging": _("Discharging"), "Not charging": _("Not Charging"), "Full": _("Fully Charged") },
+        "health": {"": None, "Unknown": _("Unknown"), "Good": _("Good"), "Overheat": _("Overheat"), "Dead": _("Dead"), "Over voltage": _("Over Voltage"), "Unspecified failure": _("Unspecified Failure"), "Cold": _("Cold"), "Watchdog timer expire": _("Watchdog Timer Expire"), "Safety timer expire": _("Safety Timer Expire") },
+        "level": {"": None, "Unknown": _("Unknown"), "Critical": _("Critical"), "Low": _("Low"), "Normal": _("Normal"), "High": _("High"), "Full": _("Full") }
+    }
+    __gsignals__ = {
+        "changed": (GObject.SignalFlags.RUN_FIRST, None, ())
+    }
+
+    def __init__(self):
+        GObject.GObject.__init__(self)
+        self.__details = None
+        self.__summary = None
+        self.__poll_sid = None
+        self.__update_supplay_devices(False)
+
+        # get device changed notifications from udev
+        context = pyudev.Context()
+        monitor = pyudev.Monitor.from_netlink(context)
+        monitor.filter_by(subsystem='power_supply')
+        observer = pyudev.MonitorObserver(monitor, callback=self.__on_device_changed, name='monitor-observer')
+        observer.start()
+
+    def get_summary(self, refresh=False):
+        if refresh:
+            self.__update_supplay_devices()
+        return self.__summary
+
+    def get_details(self, refresh=False):
+        if refresh:
+            self.__update_supplay_devices()
+        return self.__details
+
+    def __update_supplay_devices(self, emit_signal=True):
+        if self.__poll_sid is not None:
+            GLib.source_remove(self.__poll_sid)
+            self.__poll_sid = None
+
+        devices_info = []
+        for device_path in os.listdir(path="/sys/class/power_supply"):
+            devtype = self.__read_sysfs(device_path, "type")
+            if devtype != "Mains" and devtype != "Battery":
+                # Only Power line and Battery. No UPS to test, ignore too
+                # Note: may also be deprecated USB_DCP, USB_CDP, USB_ACA, ...
+                continue
+            info = {
+                "name": device_path,
+                "vendor": self.__read_sysfs(device_path, "manufacturer"),
+                "model": self.__read_sysfs(device_path, "model_name"),
+                "serial": self.__read_sysfs(device_path, "serial_number"),
+                "type": self.__map_value(devtype, self.SYSFS_MAP["type"])
+            }
+            if devtype == "Mains": # Line Power
+                info["online"] = self.__str_to_bool(self.__read_sysfs(device_path, "online"))
+                info["icon"] = "ac-adapter-symbolic"
+            elif devtype == "Battery": # Battery
+                status = self.__read_sysfs(device_path, "status")
+                info.update({
+                    "present": self.__str_to_bool(self.__read_sysfs(device_path, "present")),
+                    "technology": self.__map_value(self.__read_sysfs(device_path, "technology"), self.SYSFS_MAP["tech"]),
+                    "health": self.__map_value(self.__read_sysfs(device_path, "health"), self.SYSFS_MAP["health"]),
+                    "temperature": self.__str_to_float(self.__read_sysfs(device_path, "temp")), # 1/10 Degrees Celsius
+                    "cycle": self.__str_to_int(self.__read_sysfs(device_path, "cycle_count")),
+                    "status": {
+                        "charging": status == "Charging",
+                        "discharging": status == "Discharging",
+                        "text": self.__map_value(status, self.SYSFS_MAP["status"])
+                    },
+                    "capacity": {
+                        "value": self.__str_to_int(self.__read_sysfs(device_path, "capacity")), # percent
+                        "level": self.__map_value(self.__read_sysfs(device_path, "capacity_level"), self.SYSFS_MAP["level"])
+                    },
+                    "energy": { # uWh
+                        "now": self.__str_to_int(self.__read_sysfs(device_path, "energy_now")),
+                        "avg": self.__str_to_int(self.__read_sysfs(device_path, "energy_avg")),
+                        "full": self.__str_to_int(self.__read_sysfs(device_path, "energy_full")),
+                        "empty": self.__str_to_int(self.__read_sysfs(device_path, "energy_empty")),
+                        "full_design": self.__str_to_int(self.__read_sysfs(device_path, "energy_full_design")),
+                        "empty_design": self.__str_to_int(self.__read_sysfs(device_path, "energy_empty_design"))
+                    },
+                    "power": {  # uW
+                        "now": self.__str_to_int(self.__read_sysfs(device_path, "power_now", "current_now")),
+                        "avg": self.__str_to_int(self.__read_sysfs(device_path, "power_avg"))
+                    },
+                    "charge": { # percent
+                        "now": self.__str_to_int(self.__read_sysfs(device_path, "charge_now")),
+                        "avg": self.__str_to_int(self.__read_sysfs(device_path, "charge_avg")),
+                        "full": self.__str_to_int(self.__read_sysfs(device_path, "charge_full")),
+                        "empty": self.__str_to_int(self.__read_sysfs(device_path, "charge_empty")),
+                        "full_design": self.__str_to_int(self.__read_sysfs(device_path, "charge_full_design")),
+                        "empty_design": self.__str_to_int(self.__read_sysfs(device_path, "charge_empty_design"))
+                    },
+                    "voltage": { # uV
+                        "now": self.__str_to_float(self.__read_sysfs(device_path, "voltage_now")),
+                        "min": self.__str_to_float(self.__read_sysfs(device_path, "voltage_min_design")),
+                    },
+                    "time": { # second
+                        "to_empty": self.__str_to_int(self.__read_sysfs(device_path, "time_to_empty_now", "time_to_empty_avg")),
+                        "to_full": self.__str_to_int(self.__read_sysfs(device_path, "time_to_full_now", "time_to_full_avg"))
+                    }
+                })
+
+                # convert to standard unit
+                if info["temperature"] is not None:
+                    info["temperature"] /= 10
+                energy = info["energy"]
+                for t in energy:
+                    if energy[t] is not None:
+                        energy[t] /= 1e6
+                power = info["power"]
+                for t in power:
+                    if power[t] is not None:
+                        power[t] /= 1e6
+                voltage = info["voltage"]
+                for t in voltage:
+                    if voltage[t] is not None:
+                        voltage[t] /= 1e6
+                capacity = info["capacity"]
+
+                # try to fix invalid values
+                if capacity["value"] is None:
+                    if energy["now"] is not None:
+                        empty = energy["empty"] or energy["energy_empty_design"] or 0
+                        full = energy["full"] or energy["energy_full_design"] or 0
+                        try:
+                            capacity["value"] = round(float(energy["now"]-empty)/(full-empty)*100)
+                        except (TypeError, ZeroDivisionError):
+                            pass
+                    else:
+                        capacity["value"] = charge["now"]
+                    if capacity["value"] is None:
+                        capacity["value"] = 0
+                if energy["now"] is not None and power["now"] is not None:
+                    if (info["status"]["discharging"] and info["time"]["to_empty"] is None) or (info["status"]["charging"] and info["time"]["to_full"] is None):
+                        try:
+                            time = round(energy["now"] / power["now"] * 3600)
+                            if info["status"]["discharging"]:
+                                info["time"]["to_empty"] = time
+                            else:
+                                info["time"]["to_full"] = time
+                        except ZeroDivisionError:
+                            pass
+            devices_info.append(info)
+        self.__details = sorted(devices_info, key=lambda x:x["name"])
+
+        if len(self.__details) == 0:
+            summary = { "ac": True, "name": None, "on": True, "icon": "ac-adapter-symbolic" }
+            poll_time = 0
+        else:
+            summary = []
+            poll_time = None
+            for dev in self.__details:
+                if "online" in dev:
+                    if dev["online"]:
+                        poll_time = 120
+                    summary.append({ "ac": True, "name": dev["name"], "on": dev["online"], "icon": "ac-adapter-symbolic" })
+                else:
+                    status = dev["status"]
+                    if status["charging"]:
+                        time = dev["time"]["to_full"]
+                    elif status["discharging"]:
+                        time = dev["time"]["to_empty"]
+                    else:
+                        time = None
+                    if poll_time is None:
+                        if dev["capacity"]["value"] < 10:
+                            poll_time = 10
+                        else:
+                            poll_time = 30
+                    summary.append({ "ac": False, "name": dev["name"], "on": dev["present"], "icon": self.__get_battery_icon(dev),
+                                     "capacity": dev["capacity"]["value"], "time": time, "before_empty": dev["time"]["to_empty"],
+                                     "charging": dev["status"]["charging"], "status":dev["status"]["text"] })
+
+        if poll_time > 0:
+            self.__poll_sid = GLib.timeout_add_seconds(poll_time, self.__poll)
+
+        if self.__summary != summary:
+            self.__summary = summary
+            if emit_signal:
+                self.emit("changed")
+
+    def __on_device_changed(self, device):
+        self.__update_supplay_devices()
+
+    def __poll(self):
+        self.__poll_sid = None
+        self.__update_supplay_devices()
+        return False
+
+    def __get_battery_icon(self, info):
+        if not info["present"]:
+            return "battery-missing-symbolic"
+        status = info["status"]
+        if status == "Full":
+            return "battery-full-charged-symbolic"
+        energy = info["energy"]
+        if energy["now"] is not None and energy["now"] <= (energy["empty"] or energy["empty_design"] or 0):
+            return "battery-empty-symbolic"
+        capacity = info["capacity"]
+        if capacity["value"] == 0:
+            return "battery-empty-symbolic"
+
+        if status == "Charging":
+            icon_charging_text = "-charging"
+        else:
+            icon_charging_text = ""
+        if capacity["value"] < 10:
+            icon_status_text = "caution"
+        elif capacity["value"] < 30:
+            icon_status_text = "low"
+        elif capacity["value"] < 60:
+            icon_status_text = "good"
+        else:
+            icon_status_text = "full"
+        return "battery-%s%s-symbolic" % (icon_status_text, icon_charging_text)
+
+
+    def __read_sysfs(self, devname, filename, fallback_filename="", fallback_value=""):
+        try:
+            f = open('/sys/class/power_supply/%s/%s' % (devname, filename), 'r')
+            data = f.read().rstrip('\n')
+            f.close()
+            return data
+        except:
+            pass
+        if fallback_filename == "":
+            return fallback_value
+        try:
+            f = open('/sys/class/power_supply/%s/%s' % (devname, fallback_filename), 'r')
+            data = f.read().rstrip('\n')
+            f.close()
+            return data
+        except:
+            return fallback_value
+
+    def __str_to_bool(self, data):
+        return self.__str_to_int(data) != 0
+
+    def __str_to_int(self, data, fallback = None):
+        try:
+            return int(data)
+        except ValueError:
+            return fallback
     
-    
-    # bool var. for default status of apport package
-    package_apport = False
-    # bool var. for default status of gnome-screensaver package
-    package_screensaver = True
-    # bool var. for default status of gnome-session-bin package
-    package_session = True
-    # bool var. for default status of gnome-power-manager package
-    package_power = True
-    # bool var. for default status of gnome-applets (with cpufreq-selector as backend for switching CPU frequency) package
-    package_cpufreq = True
-    # bool var. for detect D-Bus UPower/DeviceKit-Power error
-    power_error = False
-    # bool var. for detect CPU frequency scaling error
-    cpufreq_error = False
-    # bool var. for battery available status
-    no_battery = False
-    # bool var. for set up correct background when adding applet on panel
-    option_panel_bgstate = 0
-    # bool var. for low battery state trigger
-    on_low_battery = False
-    # bool var. for lock main menu item when battery information dialog opens
-    lock_battery_status = False
-    # power source device
-    power_dev = ""
-    # current power mode (in indicator)
-    powermode = ""
-    # default set of CPU items for scaling
-    cpu_items = ""
-    
-    
-    def __init__(self, event_box):
+    def __str_to_float(self, data, fallback = None):
+        try:
+            return float(data)
+        except ValueError:
+            return fallback
+
+    def __map_value(self, key, mapping, fallback_key=""):
+        try:
+            return mapping[key]
+        except KeyError:
+            return mapping[fallback_key]
+
+
+class SystemdUtils(GObject.GObject):
+    BUS_NAME = "org.freedesktop.login1"
+    LOGIN_PATH = "/org/freedesktop/login1"
+    LOGIN_IFNAME = "org.freedesktop.login1.Manager"
+    SESSION_PATH = "/org/freedesktop/login1/session/self"
+    SESSION_IFNAME = "org.freedesktop.login1.Session"
+
+    __gsignals__ = {
+        "error": (GObject.SignalFlags.RUN_FIRST, None, (str,))
+    }
+
+    def __init__(self):
+        GObject.GObject.__init__(self)
+
+        self.__login_iface = None
+        try:
+            self.__bus = dbus.SystemBus()
+            login_object = self.__bus.get_object(self.BUS_NAME, self.LOGIN_PATH)
+            self.__login_iface = dbus.Interface(login_object, self.LOGIN_IFNAME)
+        except dbus.exceptions.DBusException as exception:
+            self.emit("error", exception.__str__())
+
+        self.__session_iface = None
+        try:
+            if self.__bus is not None:
+                session_object = self.__bus.get_object(self.BUS_NAME, self.SESSION_PATH)
+                self.__session_iface = dbus.Interface(session_object, self.SESSION_IFNAME)
+        except dbus.exceptions.DBusException as exception:
+            self.emit("error", exception.__str__())
+
+
+    def logout(self):
+        if self.can_logout():
+            try:
+                self.__session_iface.Terminate()
+                return True
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def reboot(self, interactive = True):
+        if self.can_reboot():
+            try:
+                self.__login_iface.Reboot(interactive)
+                return True
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def poweroff(self, interactive = True):
+        if self.can_poweroff():
+            try:
+                self.__login_iface.PowerOff(interactive)
+                return True
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def hybrid_sleep(self, interactive = True):
+        if self.can_hybrid_sleep():
+            try:
+                self.__login_iface.HybridSleep(interactive)
+                return True
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def hibernate(self, interactive = True):
+        if self.can_hibernate():
+            try:
+                self.__login_iface.Hibernate(interactive)
+                return True
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def suspend(self, interactive = True):
+        if self.can_suspend():
+            try:
+                self.__login_iface.Suspend(interactive)
+                return True
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def can_logout(self):
+        return self.__session_iface is not None
+
+    def can_reboot(self):
+        if self.__login_iface is not None:
+            try:
+                return self.__login_iface.CanReboot() == "yes"
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def can_poweroff(self):
+        if self.__login_iface is not None:
+            try:
+                return self.__login_iface.CanPowerOff() == "yes"
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def can_hybrid_sleep(self):
+        if self.__login_iface is not None:
+            try:
+                return self.__login_iface.CanHybridSleep() == "yes"
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def can_hibernate(self):
+        if self.__login_iface is not None:
+            try:
+                return self.__login_iface.CanHibernate() == "yes"
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+    def can_suspend(self):
+        if self.__login_iface is not None:
+            try:
+                return self.__login_iface.CanSuspend() == "yes"
+            except dbus.exceptions.DBusException as exception:
+                self.emit("error", exception.__str__())
+        return False
+
+
+class PowerDevicesDialog(Gtk.Dialog):
+    def __init__(self, details):
+        Gtk.Dialog.__init__(self)
+        self.set_title(_("Power Supply Devices"))
+        self.notebook = Gtk.Notebook()
+        self.notebook.set_tab_pos(Gtk.PositionType.LEFT)
+        box = self.get_child()
+        box.add(self.notebook)
+        self.__setup_pages(details)
+
+    def __setup_pages(self, details):
+        for dev in details:
+            label = Gtk.Label.new(dev["name"])
+            table = Gtk.Grid()
+            table.set_column_spacing(5)
+            table.set_row_spacing(5)
+            table.set_vexpand(True)
+            _set_margin(table, left=5, right=5, bottom=5)
+            self.notebook.append_page(table, label)
+            row = 0
+            
+            row += self.__add_row(table,     row, _("Type:"),                 dev["type"])
+            if "online" in dev:
+                row += self.__add_row(table, row, _("Status:"),               self.__b2s(dev["online"], _("Online"), _("Offline")))
+                continue
+            present = dev["present"]
+            row += self.__add_row(table,     row, _("Present:"),              self.__b2s(present, _("Yes"), _("No")))
+            row += self.__add_row(table,     row, _("Vendor:"),               dev["vendor"], skip_invalid=False)
+            row += self.__add_row(table,     row, _("Model:"),                dev["model"], skip_invalid=False)
+            row += self.__add_row(table,     row, _("Serial:"),               dev["serial"], skip_invalid=False)
+
+            row += self.__add_row(table,     row, _("Technology:"),           dev["technology"], skip_invalid=False)
+            if not present:
+                continue
+            row += self.__add_row(table,     row, _("Health:"),               dev["health"])
+            status = dev["status"]
+            row += self.__add_row(table,     row, _("Status:"),               status["text"])
+            row += self.__add_row(table,     row, _("Temperature:"),          dev["temperature"], unit="℃")
+            row += self.__add_row(table,     row, _("Cycle Count:"),          dev["cycle"])
+            row += self.__add_row(table,     row, _("Capacity:"),             dev["capacity"]["value"], unit="%")
+            row += self.__add_row(table,     row, _("Capacity Level:"),       dev["capacity"]["level"]) 
+            if status["charging"] and dev["time"]["to_full"] is not None:
+                row += self.__add_row(table, row, _("Time to Fully Charge:"), self.__t2s(dev["time"]["to_full"]))
+            elif status["discharging"] and dev["time"]["to_empty"] is not None:
+                row += self.__add_row(table, row, _("Time to run out:"),      self.__t2s(dev["time"]["to_empty"]))
+            energy = dev["energy"]
+            if energy["now"] is not None:
+                row += self.__add_row(table, row, _("Energy:"),               "", group=True)
+                row += self.__add_row(table, row, _("Now:"),                  energy["now"], unit=" Wh", margin=20)
+                row += self.__add_row(table, row, _("Average:"),              energy["avg"], unit=" Wh", margin=20)
+                row += self.__add_row(table, row, _("Full:"),                 energy["full"], unit=" Wh", margin=20)
+                row += self.__add_row(table, row, _("Empty:"),                energy["empty"], unit=" Wh", margin=20)
+                row += self.__add_row(table, row, _("Design Full:"),          energy["full_design"], unit=" Wh", margin=20)
+                row += self.__add_row(table, row, _("Design Empty:"),         energy["empty_design"], unit=" Wh", margin=20)
+            charge = dev["charge"]
+            if charge["now"] is not None:
+                row += self.__add_row(table, row, _("Charge:"),               "", group=True)
+                row += self.__add_row(table, row, _("Now:"),                  charge["now"], unit="%", margin=20)
+                row += self.__add_row(table, row, _("Average:"),              charge["avg"], unit="%", margin=20)
+                row += self.__add_row(table, row, _("Full:"),                 charge["full"], unit="%", margin=20)
+                row += self.__add_row(table, row, _("Empty:"),                charge["empty"], unit="%", margin=20)
+                row += self.__add_row(table, row, _("Design Full:"),          charge["full_design"], unit="%", margin=20)
+                row += self.__add_row(table, row, _("Design Empty:"),         charge["empty_design"], unit="%", margin=20)
+            power = dev["power"]
+            if power["now"] is not None:
+                row += self.__add_row(table, row, _("Power:"),                "", group=True)
+                row += self.__add_row(table, row, _("Current:"),              power["now"], unit=" W", margin=20)
+                row += self.__add_row(table, row, _("Average:"),              power["avg"], unit=" W", margin=20)
+            voltage = dev["voltage"]
+            if voltage["now"] is not None:
+                row += self.__add_row(table, row, _("Voltage:"),              "", group=True)
+                row += self.__add_row(table, row, _("Current:"),              voltage["now"], unit=" V", margin=20)
+                row += self.__add_row(table, row, _("Design Minimum:"),       voltage["min"], unit=" V", margin=20)
+        self.show_all()
+
+    def set_page(self, pos):
+        if type(pos) == int:
+            self.notebook.set_current_page(pos)
+        elif type(pos) == str:
+            n = self.notebook.get_n_pages()
+            for i in range(n):
+                page = self.notebook.get_nth_page(i)
+                if self.notebook.get_tab_label_text(page) == pos:
+                    self.notebook.set_current_page(i)
+                    return
+
+    def update(self, details):
+        n = self.notebook.get_n_pages()
+        pos = self.notebook.get_current_page()
+        page = self.notebook.get_nth_page(pos)
+        name = self.notebook.get_tab_label_text(page);
+        for i in range(n):
+            self.notebook.remove_page(-1)
+        self.__setup_pages(details)
+        self.set_page(name)
+
+    def __add_row(self, table, row, name, value, prec=2, unit = "", skip_invalid=True, group=False, margin=0):
+        if type(value) == str:
+            if group == False and value == "":
+                if skip_invalid:
+                    return 0
+        elif type(value) == float:
+            if value < 0 and skip_invalid:
+                return 0
+            value = str(round(value, prec))
+            if unit != "":
+                value = value + unit
+        elif type(value) == int:
+            if value < 0 and skip_invalid:
+                return 0
+            value = str(value)
+            if unit != "":
+                value = value + unit
+        elif value is None:
+            if skip_invalid:
+                return 0
+            value = _("N/A")
+        label = Gtk.Label.new(name)
+        label.set_halign(Gtk.Align.START)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            label.set_margin_start(margin)
+        else:
+            label.set_margin_left(margin)
+        table.attach(label, 0, row, 1, 1)
+        if not group:
+            label = Gtk.Label.new(value)
+            label.set_halign(Gtk.Align.END)
+            label.set_hexpand(True)
+            label.set_selectable(True)
+            table.attach(label, 1, row, 1, 1)
+        return 1
+                
+    def __b2s(self, value, str_true, str_false):
+        if value:
+            return str_true
+        else:
+            return str_false
+
+    def __t2s(self, value):
+        v = _split_time(value)
+        t = ""
+        if (v[0] == 1):
+            t = _("%d Hour ") % v[0]
+        elif v[0] > 1:
+            t = _("%d Hours ") % v[0]
+        if (v[1] <= 1):
+            t += _("%d Minute") % v[1]
+        elif v[1] > 1:
+            t += _("%d Minutes") % v[1]
+        return t
+
+class WarningDialog(Gtk.MessageDialog):
+    def __init__(self, countdown = 0):
+        Gtk.MessageDialog.__init__(self, None, 0, Gtk.MessageType.WARNING, Gtk.ButtonsType.NONE,
+                _("Please connect your computer to AC power.\nOtherwise all unsaved data will be lost."))
+
+        self.__countdown = countdown
+        self.set_keep_above(True)
+        self.connect("response", self.__on_response)
+        self.__update_countdown()
+        self.add_button(_("_Ignore"), 0)
+        self.add_button(_("_Sleep Now"), 1)
+        self.set_default_response(0)
+
+        GLib.timeout_add_seconds(countdown, self.response, 0)
+        GLib.timeout_add_seconds(1, self.__count)
+
+    def __count(self):
+        if self.__countdown > 1:
+            self.__countdown -= 1
+            self.__update_countdown()
+            return True
+        elif self.__countdown == 0:
+            self.response(0)
+        return False
+
+    def __update_countdown(self):
+        if self.__countdown > 1:
+            self.format_secondary_text("Battery will run out in %d seconds." % self.__countdown)
+        else:
+            self.format_secondary_text("Battery will run out in %d second." % self.__countdown)
+
+    def __on_response(self, *args):
+        self.__countdown = -1
+        GLib.idle_add(self.destroy)
+
+    def recount(self, count):
+        self.__countdown = count
+        self.__update_countdown()
+
+class DockXBatteryApplet(DockXApplet):
+    """Battery Status applet - shows battery status and battery life/charge time"""
+
+    def __init__(self, dbx_dict):
+        DockXApplet.__init__(self, dbx_dict)
         """Create applet"""
-        self.init_widgets(event_box)
-        self.init_gconf_settings()
-        self.init_packages()
-        self.init_pp_menu()
-        self.init_first_run()
-        self.init_cpufreq()
-        self.init_power_dbus()
-    
-    
-    def init_widgets(self, event_box):
+        self.init_settings()
+        self.init_utils()
+        self.init_widgets()
+        self.init_main_menu()
+        self.init_extra_menu()
+        self.show()
+        if self.get_setting("restore_cpu_mode"):
+            self.__cpufreq.set_governor(self.get_setting("last_cpu_mode"))
+        GLib.idle_add(self.update_status)
+
+    def init_settings(self):
+        self.__options = {}
+        self.__status_options = [ "label_visibility", "icon_visibility", "use_symbolic_icon", "low_power_action", "low_capacity", "low_time" ]
+        self.__font_options = [ "font", "color" ]
+        for opt in self.__status_options:
+            self.__options[opt] = self.get_setting(opt)
+        for opt in self.__font_options:
+            self.__options[opt] = self.get_setting(opt)
+
+    def init_utils(self):
+        self.__cpufreq = CpufreqUtils()
+        self.__powersupply = PowerSupplyUtils()
+        self.__powersupply.connect("changed", self.__on_power_supply_changed)
+        self.__system = SystemdUtils()
+        self.__system.connect("error", self.__on_systemd_error)
+
+    def init_widgets(self):
         """Create widgets for applet"""
-        ### core widgets of applet
-        # get current icon theme for icons
         self.icon_theme = Gtk.IconTheme.get_default()
-        self.icon_theme.append_search_path('/usr/share/gnome-power-manager/icons')
-        self.icon_theme.connect("changed", self.update_status)
-        # icon of gnome-power-manager
-        self.pixbuf_gpm_32 = self.icon_theme.load_icon("gnome-power-manager", 32, Gtk.IconLookupFlags.FORCE_SVG)
-        # icon of battery status
-        self.icon_name = "gpm-ac-adapter"
-        pixbuf_battery_24 = self.icon_theme.load_icon(self.icon_name, 24, Gtk.IconLookupFlags.FORCE_SVG)
+        self.icon_theme.connect("changed", self.__on_icon_theme_changed)
+        self.icon_pixbufs = {}
+        self.menu_icon_pixbufs = {}
         self.icon = Gtk.Image()
-        self.icon.set_from_pixbuf(pixbuf_battery_24)
-        # label with text of battery status
         self.label = Gtk.Label(label="")
         self.label.set_use_markup(True)
-        if event_box.get_position() in ("left", "right"):
-            # HBox widget - container for icon and label
-            self.box = Gtk.VBox()
+        self.margin = 3
+        if self.get_position() in ("left", "right"):
+            self.set_label_rotation(self.get_setting("rotation"))
+            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 3)
+            _set_margin(self.icon, left=self.margin, right=self.margin)
         else:
-            self.box = Gtk.HBox()
-        # add icon and label in hbox/vbox
-        self.box.add(self.icon)
-        self.box.add(self.label)
-        # EventBox for events and main container
-        self.event_box = event_box
-        # add box in event_box
-        self.event_box.add(self.box)
-        # set up callback for button press
-        self.event_box.connect("button-press-event", self.event_on_press)
-        # call related method on mouse button press:
-        self.button_actions = {
-            1: self.main_menu_show,
-            2: lambda: None,
-            3: self.pp_menu_show,
-        }
-        ### widgets for main menu
-        # menu item and icon with battery status
-        pixbuf_battery_16 = self.icon_theme.load_icon("gpm-ac-adapter", 16, Gtk.IconLookupFlags.FORCE_SVG)
-        self.icon_status = Gtk.Image()
-        self.icon_status.set_from_pixbuf(pixbuf_battery_16)
-        self.item_status = Gtk.ImageMenuItem()
-        self.item_status.set_image(self.icon_status)
-        # menu item and icon with battery status when item locked
-        self.icon_status_lock = Gtk.Image()
-        self.icon_status_lock.set_from_pixbuf(pixbuf_battery_16)
-        self.item_status_lock = Gtk.ImageMenuItem()
-        self.item_status_lock.set_image(self.icon_status_lock)
-        # menu item with power source information
-        self.item_power = Gtk.ImageMenuItem("Po_wer Source:")
-        # menu item with power source information when item locked
-        self.item_power_lock = Gtk.ImageMenuItem("Po_wer Source:")
-        ### widgets for battery status dialog
-        # label for battery capacity information
-        self.label_capacity_data = Gtk.Label()
-        self.label_capacity_data.set_justify(Gtk.Justification.CENTER)
-        # label for battery charge information
-        self.label_charge_data = Gtk.Label()
-        self.label_charge_data.set_justify(Gtk.Justification.RIGHT)
-        # label for battery technical information
-        self.label_info_data = Gtk.Label()
-        self.label_info_data.set_justify(Gtk.Justification.CENTER)
-        # label for battery information text
-        self.label_info = Gtk.Label()
-        self.label_info.set_justify(Gtk.Justification.LEFT)
-        # progress bar of battery capacity
-        self.progress_capacity = Gtk.ProgressBar()
-        self.progress_capacity.set_size_request(200, 24)
-        # progress bar of battery charge
-        self.progress_charge = Gtk.ProgressBar()
-        self.progress_charge.set_size_request(200, 24)
-        
-        # Don't know where to put this.
+            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 3)
+            _set_margin(self.icon, top=self.margin, bottom=self.margin)
+        self.box.pack_start(self.icon, True, True, 0)
+        self.box.pack_start(self.label, False, False, 0)
+        self.add(self.box)
+        self.connect("clicked", self.__on_self_clicked)
+        self.__details_dialog = None
+        self.__warning_dialog = None
+        self.__warning_ignored = False
+        self.update_font()
         self.box.show_all()
-    
-    
-    def event_on_press(self, widget, event):
-        """Action on pressing button in applet"""
-        if event.type == Gdk.EventType.BUTTON_PRESS:
-            # detect pressing mouse button and calls related method
-            self.button_actions[event.button](event)
-    
-    
-    def pp_menu_show(self, event):
-        """Show popup menu"""
-        return
-        self.applet.setup_menu(self.pp_menu_xml, self.pp_menu_verbs, None)
-    
-    
-    def main_menu_show(self, event):
+
+    def init_main_menu(self):
         """Create main menu"""
-        # update power state, if available
-        if not self.power_error:
-            self.update_status()
-        # update cpu frequency information
-        self.init_cpufreq()
-        ### init main menu with items
-        menu = Gtk.Menu()
-        ### menu item: ----
-        # separator
-        settings_separator = Gtk.SeparatorMenuItem()
-        settings_separator.show()
-        power_separator = Gtk.SeparatorMenuItem()
-        power_separator.show()
-        actions_separator = Gtk.SeparatorMenuItem()
-        actions_separator.show()
-        ### menu item: Power Mode >
-        # icon for Power Mode menu item
-        pixbuf_power = self.icon_theme.load_icon("gnome-power-statistics", 16, Gtk.IconLookupFlags.FORCE_SVG)
-        icon_power = Gtk.Image()
-        icon_power.set_from_pixbuf(pixbuf_power)
-        # Power Mode submenu
-        submenu_power = Gtk.Menu()
-        # Powersave item for Power Mode submenu
-        submenu_power_ritem_powersave = Gtk.RadioMenuItem(None, "Powe_rsave")
-        submenu_power_ritem_powersave.connect("activate", self.power_management, "menu", self.powermode, self.cpu_items)
-        submenu_power_ritem_powersave.show()
-        # Ondemand item for Power Mode submenu
-        submenu_power_ritem_ondemand = Gtk.RadioMenuItem(None, "On_demand")
-        submenu_power_ritem_ondemand.connect("activate", self.power_management, "menu", self.powermode, self.cpu_items)
-        submenu_power_ritem_ondemand.show()
-        # Conservative item for Power Mode submenu
-        submenu_power_ritem_conservative = Gtk.RadioMenuItem(None, "N_ormal")
-        submenu_power_ritem_conservative.connect("activate", self.power_management, "menu", self.powermode, self.cpu_items)
-        submenu_power_ritem_conservative.show()
-        # Performance item for Power Mode submenu
-        submenu_power_ritem_performance = Gtk.RadioMenuItem(None, "P_erformance")
-        submenu_power_ritem_performance.connect("activate", self.power_management, "menu", self.powermode, self.cpu_items)
-        submenu_power_ritem_performance.show()
-        # detect current option for Power Mode submenu
-        power_modes = {0: "P_ower Mode: Powersave", 1: "P_ower Mode: Ondemand", 2: "P_ower Mode: Normal", 3: "P_ower Mode: Performance"}
-        powermode_text = ""
-        if self.powermode == "powersave":
-            submenu_power_ritem_powersave.set_property("active", True)
-            submenu_power_ritem_ondemand.set_property("active", False)
-            submenu_power_ritem_conservative.set_property("active", False)
-            submenu_power_ritem_performance.set_property("active", False)
-            powermode_text = power_modes[0]
-        elif self.powermode == "ondemand":
-            submenu_power_ritem_powersave.set_property("active", False)
-            submenu_power_ritem_ondemand.set_property("active", True)
-            submenu_power_ritem_conservative.set_property("active", False)
-            submenu_power_ritem_performance.set_property("active", False)
-            powermode_text = power_modes[1]
-        elif self.powermode == "conservative":
-            submenu_power_ritem_powersave.set_property("active", False)
-            submenu_power_ritem_ondemand.set_property("active", False)
-            submenu_power_ritem_conservative.set_property("active", True)
-            submenu_power_ritem_performance.set_property("active", False)
-            powermode_text = power_modes[2]
-        elif self.powermode == "performance":
-            submenu_power_ritem_powersave.set_property("active", False)
-            submenu_power_ritem_ondemand.set_property("active", False)
-            submenu_power_ritem_conservative.set_property("active", False)
-            submenu_power_ritem_performance.set_property("active", True)
-            powermode_text = power_modes[3]
-        # set up Power Mode submenu
-        if self.option_powermenu:
-            # add created items in Power Mode submenu
-            submenu_power.add(submenu_power_ritem_powersave)
-            submenu_power.add(submenu_power_ritem_ondemand)
-            submenu_power.add(submenu_power_ritem_conservative)
-            submenu_power.add(submenu_power_ritem_performance)
-            # create Power Mode menu item and set up submenu for it
-            menu_power = Gtk.ImageMenuItem(powermode_text)
-            menu_power.set_submenu(submenu_power)
-            menu_power.set_image(icon_power)
-            menu_power.show()
-        ### menu item: Show >
-        # icon for Show menu item
-        pixbuf_show = self.icon_theme.load_icon("gtk-properties", 16, Gtk.IconLookupFlags.FORCE_SVG)
-        icon_show = Gtk.Image()
-        icon_show.set_from_pixbuf(pixbuf_show)
-        # Show submenu
-        submenu_show = Gtk.Menu()
-        # Icon Only item for Show submenu
-        submenu_show_ritem_icon = Gtk.RadioMenuItem(None, "_Icon Only")
-        submenu_show_ritem_icon.connect("activate", self.main_menu_action)
-        submenu_show_ritem_icon.show()
-        # Time item for Show submenu
-        submenu_show_ritem_time = Gtk.RadioMenuItem(None, "_Time")
-        submenu_show_ritem_time.connect("activate", self.main_menu_action)
-        submenu_show_ritem_time.show()
-        # Percentage item for Show submenu
-        submenu_show_ritem_percent = Gtk.RadioMenuItem(None, "_Percentage")
-        submenu_show_ritem_percent.connect("activate", self.main_menu_action)
-        submenu_show_ritem_percent.show()
-        # detect current option for Show submenu
-        if self.option_show == "time":
-            submenu_show_ritem_icon.set_property("active", False)
-            submenu_show_ritem_time.set_property("active", True)
-            submenu_show_ritem_percent.set_property("active", False)
-        elif self.option_show == "percent":
-            submenu_show_ritem_icon.set_property("active", False)
-            submenu_show_ritem_time.set_property("active", False)
-            submenu_show_ritem_percent.set_property("active", True)
-        else:
-            submenu_show_ritem_icon.set_property("active", True)
-            submenu_show_ritem_time.set_property("active", False)
-            submenu_show_ritem_percent.set_property("active", False)
-        if self.option_icon != "always":
-            submenu_show_ritem_icon.set_sensitive(False)
-        else:
-            submenu_show_ritem_icon.set_sensitive(True)
-        # separator for Show submenu
-        submenu_show_separator = Gtk.SeparatorMenuItem()
-        submenu_show_separator.show()
-        # Sleep Actions item for Show submenu
-        submenu_show_citem_sleep = Gtk.CheckMenuItem("S_leep Actions", True)
-        submenu_show_citem_sleep.set_active(self.option_sleep)
-        submenu_show_citem_sleep.connect("toggled", self.main_menu_action)
-        submenu_show_citem_sleep.show()
-        # Session Actions item for Show submenu
-        submenu_show_citem_session = Gtk.CheckMenuItem("S_ession Actions", True)
-        submenu_show_citem_session.set_active(self.option_session)
-        submenu_show_citem_session.set_sensitive(self.package_session)
-        submenu_show_citem_session.connect("toggled", self.main_menu_action)
-        submenu_show_citem_session.show()
-        # another separator for Show submenu
-        submenu_show_settings_separator = Gtk.SeparatorMenuItem()
-        submenu_show_settings_separator.show()
-        # Text Size item for Show submenu
-        submenu_show_citem_textsize = Gtk.CheckMenuItem("Te_xt Size", True)
-        submenu_show_citem_textsize.set_active(self.option_showtext)
-        submenu_show_citem_textsize.connect("toggled", self.main_menu_action)
-        submenu_show_citem_textsize.show()
-        # Power Mode item for Show submenu
-        submenu_show_citem_powermode = Gtk.CheckMenuItem("Po_wer Modes", True)
-        submenu_show_citem_powermode.set_active(self.option_cpufreq)
-        submenu_show_citem_powermode.set_sensitive(self.package_cpufreq and not self.cpufreq_error)
-        submenu_show_citem_powermode.connect("toggled", self.main_menu_action)
-        submenu_show_citem_powermode.show()
-        # add created items in Show submenu
-        submenu_show.add(submenu_show_ritem_icon)
-        submenu_show.add(submenu_show_ritem_time)
-        submenu_show.add(submenu_show_ritem_percent)
-        submenu_show.add(submenu_show_separator)
-        submenu_show.add(submenu_show_citem_sleep)
-        submenu_show.add(submenu_show_citem_session)
-        submenu_show.add(submenu_show_settings_separator)
-        submenu_show.add(submenu_show_citem_textsize)
-        submenu_show.add(submenu_show_citem_powermode)
-        # create Show menu item and set up submenu for it
-        menu_show = Gtk.ImageMenuItem("S_how", True)
-        menu_show.set_submenu(submenu_show)
-        menu_show.set_image(icon_show)
-        menu_show.show()
-        ### menu item: Text Size >
-        # icon for Text Size menu item
-        pixbuf_text = self.icon_theme.load_icon("text-editor", 16, Gtk.IconLookupFlags.FORCE_SVG)
-        icon_text = Gtk.Image()
-        icon_text.set_from_pixbuf(pixbuf_text)
-        # Text Size submenu
-        submenu_text = Gtk.Menu()
-        # Small item for Text Size submenu
-        submenu_text_ritem_small = Gtk.RadioMenuItem(None, "_Small")
-        submenu_text_ritem_small.connect("activate", self.main_menu_action)
-        submenu_text_ritem_small.show()
-        # Normal item for Text Size submenu
-        submenu_text_ritem_normal = Gtk.RadioMenuItem(None, "_Normal")
-        submenu_text_ritem_normal.connect("activate", self.main_menu_action)
-        submenu_text_ritem_normal.show()
-        # detect current option for Text Size submenu
-        if self.option_text == "medium":
-            submenu_text_ritem_small.set_property("active", False)
-            submenu_text_ritem_normal.set_property("active", True)
-        else:
-            submenu_text_ritem_small.set_property("active", True)
-            submenu_text_ritem_normal.set_property("active", False)
-        # add created items in Text Size submenu
-        submenu_text.add(submenu_text_ritem_small)
-        submenu_text.add(submenu_text_ritem_normal)
-        # create Text Size menu item and set up submenu for it
-        menu_text = Gtk.ImageMenuItem("_Text Size", True)
-        menu_text.set_submenu(submenu_text)
-        menu_text.set_image(icon_text)
-        # make Text Size inactive, if Show > Icon Only
-        if self.option_show == "icon":
-            menu_text.set_sensitive(False)
-        else:
-            menu_text.set_sensitive(True)
-        menu_text.show()
-        ### menu item: Power Management...
-        # icon for gnome-power-management item
-        pixbuf_gpm = self.icon_theme.load_icon("gnome-power-manager", 16, Gtk.IconLookupFlags.FORCE_SVG)
-        icon_gpm = Gtk.Image()
-        icon_gpm.set_from_pixbuf(pixbuf_gpm)
-        # create item itself
-        item_pmsettings = Gtk.ImageMenuItem("_Power Management...", True)
-        item_pmsettings.set_image(icon_gpm)
-        item_pmsettings.connect("activate", self.main_menu_action)
-        item_pmsettings.show()
-        # icon for power statistics
-        icon_power_history = Gtk.Image()
-        if self.option_power and self.package_power:
-            pixbuf_power_history = self.icon_theme.load_icon("gnome-power-statistics", 16, Gtk.IconLookupFlags.FORCE_SVG)
-            icon_power_history.set_from_pixbuf(pixbuf_power_history)
-        else:
-            icon_power_history.set_from_pixbuf(None)
-        # battery status and power source menu items
-        if self.lock_battery_status:
-            # if battery status dialog already open, use inactive locked item status
-            self.item_status_lock.set_label(self.status_text)
-            self.item_status_lock.set_sensitive(False)
-            self.item_status_lock.show()
-            # and locked item power
-            self.item_power_lock.set_image(icon_power_history)
-            self.item_power_lock.set_label(self.power_source_text)
-            self.item_power_lock.connect("activate", self.main_menu_action)
-            if self.option_power and self.package_power:
-                self.item_power_lock.set_sensitive(True)
+        self.main_menu = Gtk.Menu()
+
+        ### menu items: Device Brief Info
+        self.main_menu_item_devices = []
+
+        ### menu item: CPU Modes >
+        self.main_menu_item_cpumodes_sep = Gtk.SeparatorMenuItem()
+        self.main_menu_item_cpumodes = Gtk.MenuItem.new_with_mnemonic(_("_CPU Modes"))
+        submenu = Gtk.Menu()
+        self.main_menu_item_cpumodes.set_submenu(submenu)
+        self.main_menu.append(self.main_menu_item_cpumodes_sep)
+        self.main_menu.append(self.main_menu_item_cpumodes)
+
+        ### menu item: Sleep Actions
+        self.main_menu_item_sleep_sep = Gtk.SeparatorMenuItem()
+        self.main_menu_item_sleep_suspend = self.__create_text_menuitem(_("_Suspend"), self.__on_main_menuitem_system_action, "suspend")
+        self.main_menu_item_sleep_hybrid = self.__create_text_menuitem(_("Hy_brid Sleep"), self.__on_main_menuitem_system_action, "hybrid_sleep")
+        self.main_menu_item_sleep_hibernate = self.__create_text_menuitem(_("_Hibernate"), self.__on_main_menuitem_system_action, "hibernate")
+        self.main_menu.append(self.main_menu_item_sleep_sep)
+        self.main_menu.append(self.main_menu_item_sleep_suspend)
+        self.main_menu.append(self.main_menu_item_sleep_hybrid)
+        self.main_menu.append(self.main_menu_item_sleep_hibernate)
+
+        ### menu item: Session Actions
+        self.main_menu_item_session_sep = Gtk.SeparatorMenuItem()
+        self.main_menu_item_session_logout = self.__create_text_menuitem(_("_Log Out"), self.__on_main_menuitem_system_action, "logout")
+        self.main_menu_item_session_poweroff = self.__create_text_menuitem(_("Shut _Down"), self.__on_main_menuitem_system_action, "poweroff")
+        self.main_menu_item_session_reboot = self.__create_text_menuitem(_("_Reboot"), self.__on_main_menuitem_system_action, "reboot")
+        self.main_menu.append(self.main_menu_item_session_sep)
+        self.main_menu.append(self.main_menu_item_session_logout)
+        self.main_menu.append(self.main_menu_item_session_poweroff)
+        self.main_menu.append(self.main_menu_item_session_reboot)
+
+        self.main_menu.show_all()
+
+
+    def init_extra_menu(self):
+        """Create right click menu"""
+        self.extra_menu = Gtk.Menu()
+        extra_menuitem_prefs = Gtk.MenuItem.new_with_mnemonic(_("_Preferences"))
+        extra_menuitem_prefs.connect("activate", self.__on_extra_menuitem_prefs)
+        self.extra_menu.append(extra_menuitem_prefs)
+        extra_menuitem_about = Gtk.MenuItem.new_with_mnemonic(_("_About"))
+        extra_menuitem_about.connect("activate", self.__on_extra_menuitem_about)
+        self.extra_menu.append(extra_menuitem_about)
+        self.extra_menu.show_all()
+
+    def show_main_menu(self, event):
+        """Create main menu"""
+        summary = self.__powersupply.get_summary()
+        self.update_status(summary)
+
+        # Device Info
+        self.__create_device_menuitems(summary)
+
+        # CPU Modes
+        if self.get_setting("show_cpu_modes"):
+            power_mode = self.__cpufreq.get_governor()
+            governors = self.__cpufreq.get_all_governors()
+            writeable = self.__cpufreq.can_write()
+            submenu = self.main_menu_item_cpumodes.get_submenu()
+            for menuitem in submenu.get_children():
+                menuitem.destroy()
+            group = None
+            for g in governors:
+                menuitem = self.__create_raido_menuitem(group, g[0].upper() + g[1:], self.__on_main_menuitem_cpu_mode, g)
+                menuitem.show()
+                if power_mode == menuitem.tag:
+                    menuitem.set_active(True)
+                if group is None:
+                    group = menuitem
+                menuitem.set_sensitive(writeable)
+                submenu.append(menuitem)
+            if len(governors) > 0:
+                self.main_menu_item_cpumodes_sep.show()
+                self.main_menu_item_cpumodes.show()
             else:
-                self.item_power_lock.set_sensitive(False)
-            self.item_power_lock.show()
-            # add items in menu
-            menu.append(self.item_status_lock)
-            if self.option_settings:
-                menu.append(settings_separator)
-                menu.append(menu_show)
-                if self.option_showtext:
-                    menu.append(menu_text)
-            menu.append(power_separator)
-            menu.append(self.item_power_lock)
+                self.main_menu_item_cpumodes_sep.hide()
+                self.main_menu_item_cpumodes.hide()
         else:
-            # else use existing global items for status item
-            self.item_status.set_label(self.status_text)
-            if self.power_error or self.no_battery:
-                self.item_status.set_sensitive(False)
+            self.main_menu_item_cpumodes_sep.hide()
+            self.main_menu_item_cpumodes.hide()
+
+        # Sleep Actions
+        if self.get_setting("show_sleep_actions"):
+            self.main_menu_item_sleep_sep.show()
+            self.main_menu_item_sleep_suspend.show()
+            self.main_menu_item_sleep_hybrid.show()
+            self.main_menu_item_sleep_hibernate.show()
+            self.main_menu_item_sleep_suspend.set_sensitive(self.__system.can_suspend())
+            self.main_menu_item_sleep_hybrid.set_visible(self.__system.can_hibernate())
+            self.main_menu_item_sleep_hibernate.set_sensitive(self.__system.can_hibernate())
+        else:
+            self.main_menu_item_sleep_sep.hide()
+            self.main_menu_item_sleep_suspend.hide()
+            self.main_menu_item_sleep_hybrid.hide()
+            self.main_menu_item_sleep_hibernate.hide()
+
+        # Session Actions
+        if self.get_setting("show_session_actions"):
+            self.main_menu_item_session_sep.show()
+            self.main_menu_item_session_logout.show()
+            self.main_menu_item_session_reboot.show()
+            self.main_menu_item_session_poweroff.show()
+            self.main_menu_item_session_logout.set_sensitive(self.__system.can_logout())
+            self.main_menu_item_session_reboot.set_sensitive(self.__system.can_reboot())
+            self.main_menu_item_session_poweroff.set_sensitive(self.__system.can_poweroff())
+        else:
+            self.main_menu_item_session_sep.hide()
+            self.main_menu_item_session_logout.hide()
+            self.main_menu_item_session_reboot.hide()
+            self.main_menu_item_session_poweroff.hide()
+
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
+            self.main_menu.popup_at_pointer(event)
+        else:
+            self.main_menu.popup(None, None, self.calc_menu_position, None, event.button, event.time)
+        return
+
+    def show_extra_menu(self, event):
+        """Show popup menu"""
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
+            self.extra_menu.popup_at_pointer(event)
+        else:
+            self.extra_menu.popup(None, None, self.__calc_menu_position, None, event.button, event.time)
+
+    def set_label_rotation(self, rotation):
+        angle = { "no": 0, "clockwise": 270, "anticlockwise": 90 }
+        self.label.set_angle(angle[rotation])
+
+    def update_font(self):
+        color = self.__options["color"]
+        font = Pango.FontDescription(self.__options["font"])
+        #font.set_absolute_size(self.get_size() * Pango.SCALE)
+        attrs = Pango.AttrList()
+        attrs.insert(Pango.attr_font_desc_new(font))
+        attrs.insert(Pango.attr_foreground_new(color[0]*65535, color[1]*65535, color[2]*65535))
+        attrs.insert(Pango.attr_foreground_alpha_new(color[3]*65535))
+        #attrs.insert(Pango.attr_background_new(0, 0, 0))
+        self.label.set_attributes(attrs)
+
+    def update_status(self, devices = None):
+        if devices is None:
+            devices = self.__powersupply.get_summary()
+
+        not_available = _("N/A")
+
+        if type(devices) == dict:
+            icon = devices["icon"]
+            tooltip = self.__generate_device_text(devices)
+            time = not_available
+            charging = False
+            capacity = not_available
+            self.power_line = True
+        else:
+            tooltip = ""
+            charging = False
+            ac_icon = None
+            battery_icon = None
+            no_battery_icon = None
+            time = None
+            capacity = -1
+            for dev in devices:
+                tooltip += self.__generate_device_text(dev) + '\n'
+                if dev["ac"]:
+                    if dev["on"]:
+                        ac_icon = dev["icon"]
+                else:
+                    if dev["on"]:
+                        if dev["capacity"] > capacity:
+                            battery_icon = dev["icon"]
+                            time = dev["before_empty"]
+                            capacity = dev["capacity"]
+                        if dev["charging"]:
+                            charging = True
+                    else:
+                        no_battery_icon = dev["icon"]
+            if not charging and ac_icon is not None:
+                icon = ac_icon
+                if battery_icon is None:
+                    time = not_available
+                    capacity = not_available
             else:
-                self.item_status.set_sensitive(True)
-                self.item_status.connect("activate", self.main_menu_battery_dialog)
-            self.item_status.show()
-            # and for power item
-            self.item_power.set_image(icon_power_history)
-            self.item_power.set_label(self.power_source_text)
-            self.item_power.connect("activate", self.main_menu_action)
-            if self.option_power and self.package_power:
-                self.item_power.set_sensitive(True)
+                if battery_icon is None:
+                    icon = no_battery_icon
+                    time = not_available
+                    capacity = not_available
+                else:
+                    icon = battery_icon
+            self.power_line = charging or ac_icon is not None
+        tooltip = tooltip.rstrip('\n')
+
+        # set icon
+        if self.__options["icon_visibility"] == "always" or \
+               (self.__options["icon_visibility"] == "low" and (time != not_available or capacity != not_available) and (capacity == not_available or capacity <= self.__options["low_capacity"]) and (time == not_available or time <= self.__options["low_time"] * 60)) or \
+               (self.__options["icon_visibility"] == "charging" and charging):
+            if icon not in self.icon_pixbufs:
+                self.icon_pixbufs[icon] = self.__load_theme_icon(icon, self.get_size() - self.margin * 2)
+            self.icon.set_from_pixbuf(self.icon_pixbufs[icon])
+            self.icon.show()
+            self.icon.set_tooltip_text(tooltip)
+        else:
+            self.icon.hide()
+        # set label
+        if self.__options["label_visibility"] != "never":
+            if self.__options["label_visibility"] == "time":
+                if time is None:
+                    label = _("N/A")
+                elif type(time) == str:
+                    label = time
+                else:
+                    label = "%02d:%02d" % _split_time(time)
             else:
-                self.item_power.set_sensitive(False)
-            self.item_power.show()
-            # add items in menu
-            menu.append(self.item_status)
-            if self.option_settings:
-                menu.append(settings_separator)
-                menu.append(menu_show)
-                if self.option_showtext:
-                    menu.append(menu_text)
-            menu.append(power_separator)
-            menu.append(self.item_power)
-        # add Power Mode menu item(s) in menu
-        if self.option_cpufreq and self.package_cpufreq and not self.cpufreq_error:
-            if self.option_powermenu:
-                menu.append(menu_power)
+                if type(capacity) == str:
+                    label = capacity
+                else:
+                    label = "%d%%" % capacity
+            self.label.set_text(label)
+            self.label.show()
+            self.label.set_tooltip_text(tooltip)
+        else:
+            self.label.hide()
+
+        if self.power_line:
+            if self.__warning_dialog is not None:
+                self.__warning_dialog.response(0)
+            self.__warning_ignored = False
+        elif self.__options["low_power_action"] != "nothing" and \
+                not self.power_line and  \
+                ((time is not None and time != not_available) or capacity != not_available) and \
+                (time is None or time == not_available or time <= self.__options["low_time"] * 60) and \
+                (capacity == not_available or capacity <= self.__options["low_capacity"]):
+            if self.__options["low_power_action"] == "sleep":
+                self.sleep()
             else:
-                menu.append(submenu_power_ritem_powersave)
-                menu.append(submenu_power_ritem_ondemand)
-                menu.append(submenu_power_ritem_conservative)
-                menu.append(submenu_power_ritem_performance)
-        if self.option_power and self.package_power:
-            if not self.option_sleep and not self.option_session and self.option_cpufreq and self.package_cpufreq:
-                menu.append(actions_separator)
-            # if g-p-m package installed and integration available, add g-p-m settings in menu
-            menu.append(item_pmsettings)
-        if self.option_sleep and not self.power_error:
-            ### show sleep actions in menu, if available
-            if self.power_properties_interface.Get(self.power_address, "can-suspend") or self.power_properties_interface.Get(self.power_address, "can-hibernate"):
-                ### menu item: ----
-                # separator
-                item_sleep_separator = Gtk.SeparatorMenuItem()
-                item_sleep_separator.show()
-                menu.append(item_sleep_separator)
-            if self.power_properties_interface.Get(self.power_address, "can-suspend"):
-                ### menu item: Suspend
-                # icon for suspend
-                try:
-                    pixbuf_suspend = self.icon_theme.load_icon("gnome-session-hibernate", 16, Gtk.IconLookupFlags.FORCE_SVG)
-                except:
-                    pixbuf_suspend = self.icon_theme.load_icon("gpm-hibernate", 16, Gtk.IconLookupFlags.FORCE_SVG)
-                icon_suspend = Gtk.Image()
-                icon_suspend.set_from_pixbuf(pixbuf_suspend)
-                # suspend item
-                item_suspend = Gtk.ImageMenuItem("S_uspend", True)
-                item_suspend.set_image(icon_suspend)
-                item_suspend.connect("activate", self.suspend)
-                item_suspend.show()
-                # add suspend item in menu
-                menu.append(item_suspend)
-            if self.power_properties_interface.Get(self.power_address, "can-hibernate"):
-                ### menu item: Hibernate
-                # icon for hibernate
-                try:
-                    pixbuf_hibernate = self.icon_theme.load_icon("drive-harddisk-root", 16, Gtk.IconLookupFlags.FORCE_SVG)
-                except:
-                    pixbuf_hibernate = self.icon_theme.load_icon("drive-harddisk", 16, Gtk.IconLookupFlags.FORCE_SVG)
-                icon_hibernate = Gtk.Image()
-                icon_hibernate.set_from_pixbuf(pixbuf_hibernate)
-                # hibernate item
-                item_hibernate = Gtk.ImageMenuItem("Hiber_nate", True)
-                item_hibernate.set_image(icon_hibernate)
-                item_hibernate.connect("activate", self.hibernate)
-                item_hibernate.show()
-                # add hibernate item in menu
-                menu.append(item_hibernate)
-        if self.option_session and self.package_session:
-            ### show session actions in menu
-            ### menu item: ----
-            # separator
-            item_session_separator = Gtk.SeparatorMenuItem()
-            item_session_separator.show()
-            ### menu item: Log Out...
-            # icon for logout
-            try:
-                pixbuf_logout = self.icon_theme.load_icon("gnome-session", 16, Gtk.IconLookupFlags.FORCE_SVG)
-            except:
-                pixbuf_logout = self.icon_theme.load_icon("session-properties", 16, Gtk.IconLookupFlags.FORCE_SVG)
-            icon_logout = Gtk.Image()
-            icon_logout.set_from_pixbuf(pixbuf_logout)
-            # logout item
-            item_logout = Gtk.ImageMenuItem("_Log Out...", True)
-            item_logout.set_image(icon_logout)
-            item_logout.connect("activate", self.main_menu_action)
-            item_logout.show()
-            ### menu item: Shut Down...
-            # icon for shutdown
-            try:
-                pixbuf_shutdown = self.icon_theme.load_icon("system-shutdown-panel", 16, Gtk.IconLookupFlags.FORCE_SVG)
-            except:
-                pixbuf_shutdown = self.icon_theme.load_icon("system-shutdown", 16, Gtk.IconLookupFlags.FORCE_SVG)
-            icon_shutdown = Gtk.Image()
-            icon_shutdown.set_from_pixbuf(pixbuf_shutdown)
-            # shutdown item
-            item_shutdown = Gtk.ImageMenuItem("_Shut Down...", True)
-            item_shutdown.set_image(icon_shutdown)
-            item_shutdown.connect("activate", self.main_menu_action)
-            item_shutdown.show()
-            # add items in menu
-            menu.append(item_session_separator)
-            menu.append(item_logout)
-            menu.append(item_shutdown)
-        # shows main menu
-        menu.popup(None, None, self.menu_position, event.button, event.time)
-    
-    
-    def menu_position(self, menu):
+                if time == not_available:
+                    time = 0
+                if not self.__warning_ignored:
+                    GLib.idle_add(self.show_low_power_warning_dialog, time)
+        elif self.__warning_dialog is not None:
+            self.__warning_dialog.response(0)
+
+
+    def show_device_details(self, menuitem, index, name):
+        """Device information dialog"""
+        details = self.__powersupply.get_details()
+        if self.__details_dialog is None:
+            self.__details_dialog = PowerDevicesDialog(details)
+            self.__details_dialog.connect("response", self.__on_dialog_close)
+            self.__details_dialog.set_page(index)
+            self.__details_dialog.show()
+        else:
+            self.__details_dialog.update(details)
+            self.__details_dialog.set_page(name)
+        return
+
+    def sleep(self):
+        if self.__system.hybrid_sleep():
+            return
+        if self.__system.hibernate():
+            return
+        if self.__system.suspend():
+            return
+        dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR,
+                                   Gtk.ButtonsType.OK, _("Failed to sleep"))
+        dialog.connect("response", lambda dlg, resp: dlg.destroy());
+        dialog.run()
+
+    def show_low_power_warning_dialog(self, time):
+        if self.__warning_dialog is not None:
+            self.__warning_dialog.recount(time)
+            return
+        self.__warning_dialog = WarningDialog(time)
+        ret = self.__warning_dialog.run()
+        if ret == 1:
+            GLib.idle_add(self.sleep)
+        else:
+            self.__warning_ignored = True
+        self.__warning_dialog = None
+
+    def __on_power_supply_changed(self, source):
+        details = self.__powersupply.get_details()
+        summary = self.__powersupply.get_summary()
+        self.update_status(summary)
+        if self.__details_dialog is not None:
+            if len(details) == 0:
+                self.__details_dialog.response(0)
+                self.__details_dialog.destroy()
+                self.__details_dialog = None
+            else:
+                GLib.idle_add(self.__details_dialog.update, details)
+
+    def __on_systemd_error(self, error):
+        self.debug(error)
+
+    def __on_dialog_close(self, *args):
+        self.__details_dialog.destroy()
+        self.__details_dialog = None
+
+    def __on_icon_theme_changed(self, *args):
+        self.icon_pixbufs = {}
+        self.menu_icon_pixbufs = {}
+        self.update_status()
+
+    def __on_self_clicked(self, applet, event):
+        button = event.get_button().button
+        if button == 1:
+            self.show_main_menu(event)
+        elif button == 3:
+            self.show_extra_menu(event)
+
+    def __on_main_menuitem_cpu_mode(self, item, mode):
+        if item.get_active() == False:
+            return
+        self.set_setting("last_cpu_mode", mode)
+        old_mode = self.__cpufreq.get_governor()
+        if mode == old_mode:
+            return
+        if self.__cpufreq.set_governor(mode):
+            return
+        for menuitem in self.main_menu_item_cpumodes.get_submenu().get_children():
+            if old_mode == menuitem.tag:
+                menuitem.set_active(True)
+                break;
+
+    def __on_main_menuitem_system_action(self, menuitem, action):
+        confirm = False
+        sleep_actions = ("suspend", "hybrid_sleep", "hibernate")
+        if action in sleep_actions:
+            if self.get_setting("confirm_sleep"):
+                confirm = True
+        else:
+            if self.get_setting("confirm_session"):
+                confirm = True
+        if confirm:
+            dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
+                                           Gtk.ButtonsType.YES_NO,
+                                           _("Ready to %s?") % menuitem.get_label().replace("_", ""))
+            response = dialog.run()
+            dialog.destroy()
+            if response == Gtk.ResponseType.NO:
+                return
+        getattr(self.__system, action)()
+
+    def __on_extra_menuitem_about(self, event):
+        """Show information about applet on choosing 'About' in popup menu"""
+        About = Gtk.AboutDialog()
+        About.set_version(version)
+        About.set_name(name)
+        About.set_license(license)
+        About.set_authors(authors)
+        About.set_comments(comment)
+        About.set_copyright(copyright)
+        About.set_logo_icon_name("dockbarx")
+        About.run()
+        About.destroy()
+
+    def __on_extra_menuitem_prefs(self, event):
+        """Show preferences dialog on choosing 'Preferences' in popup menu"""
+        dialog = DockXBatteryPreferences(self.get_id())
+        dialog.run()
+        dialog.destroy()
+
+
+    def __load_theme_icon(self, name, size, flags = Gtk.IconLookupFlags.FORCE_SIZE, fallback = "error"):
+        if self.__options["use_symbolic_icon"]:
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
+                flags = flags | Gtk.IconLookupFlags.FORCE_SYMBOLIC
+                flags = flags & (~Gtk.IconLookupFlags.FORCE_REGULAR)
+            elif name.find("-symbolic") < 0:
+                name = name + "-symbolic"
+        else:
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
+                flags = flags | Gtk.IconLookupFlags.FORCE_REGULAR
+                flags = flags & (~Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+            else:
+                name = name.replace("-symbolic", "")
+        try:
+            pixbuf = self.icon_theme.load_icon(name, size, Gtk.IconLookupFlags(flags))
+        except:
+            pixbuf = self.icon_theme.load_icon(fallback, size, Gtk.IconLookupFlags(flags))
+        if flags & Gtk.IconLookupFlags.FORCE_SIZE:
+            pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
+        return pixbuf
+
+    def __create_raido_menuitem(self, group, text, func, data):
+        menuitem = Gtk.RadioMenuItem.new_with_label_from_widget(group, text)
+        menuitem.set_use_underline(True)
+        menuitem.connect("toggled", func, data)
+        menuitem.tag = data
+        return menuitem
+
+    def __create_text_menuitem(self, text, func, *args):
+        menuitem = Gtk.MenuItem.new_with_mnemonic(text)
+        menuitem.connect("activate", func, *args)
+        return menuitem
+
+    def __create_device_menuitem(self, device_info, index = 0):
+        text = self.__generate_device_text(device_info)
+        icon = device_info["icon"]
+        if icon not in self.menu_icon_pixbufs:
+            self.menu_icon_pixbufs[icon] = self.__load_theme_icon(icon, 24)
+        menuitem = Gtk.MenuItem()
+        hbox = Gtk.HBox()
+        if index >= 0:
+            image = Gtk.Image()
+            image.set_from_pixbuf(self.menu_icon_pixbufs[icon])
+            hbox.pack_start(image, False, False, 0)
+        label = Gtk.Label.new(text)
+        label.set_xalign(0)
+        _set_margin(label, left=3)
+        label.set_hexpand(True)
+        hbox.pack_start(label, True, True, 0)
+        if index >= 0:
+            menuitem.connect("activate", self.show_device_details, index, device_info["name"])
+        menuitem.add(hbox)
+        return menuitem
+
+    def __create_device_menuitems(self, devices_summary):
+        while len(self.main_menu_item_devices) > 0:
+            self.main_menu_item_devices.pop().destroy()
+
+        if type(devices_summary) == dict:
+            menuitem = self.__create_device_menuitem(devices_summary, -1)
+            menuitem.set_sensitive(False)
+            menuitem.show_all()
+            self.main_menu.prepend(menuitem)
+            self.main_menu_item_devices.append(menuitem)
+        else:
+            pos = 0
+            for device in devices_summary:
+                menuitem = self.__create_device_menuitem(device, pos)
+                menuitem.show_all()
+                self.main_menu.insert(menuitem, pos)
+                self.main_menu_item_devices.append(menuitem)
+                pos += 1
+
+    def __generate_device_text(self, device):
+        if device["name"] is None:
+            return "No Power Supply Devices"
+        else:
+            if device["ac"]:
+                if device["on"]:
+                    online_status = "Online"
+                else:
+                    online_status = "Offline"
+                text = "%s: %s" % (device["name"], online_status)
+            else:
+                if device["on"]:
+                    if device["time"] is not None:
+                        time = _split_time(device["time"])
+                        if device["charging"]:
+                            text = _("%s: %s (%d%%, %02d:%02d to full)") % (device["name"], device["status"], device["capacity"], time[0], time[1])
+                        else:
+                            text = _("%s: %s (%d%%, %02d:%02d to empty)") % (device["name"], device["status"], device["capacity"], time[0], time[1])
+                    else:
+                        text = _("%s: %s (%d%%)") % (device["name"], device["status"], device["capacity"])
+                else:
+                    text = _("%s: Not Available") % device["name"]
+            return text
+
+    def __calc_menu_position(self, menu, x, y, push_in):
         """Detect main menu popup position"""
-        x, y = self.event_box.get_window().get_origin()
-        a = self.event_box.get_allocation()
-        w, h = menu.size_request()
-        size = self.event_box.get_size()
-        if self.event_box.get_position() == "left":
+        _, x, y = self.get_window().get_origin()
+        a = self.get_allocation()
+        size_req = menu.size_request()
+        w = size_req.width
+        h = size_req.height
+        size = self.get_size()
+        if self.get_position() == "left":
             x += size
             y += a.y
-        if self.event_box.get_position() == "right":
+        if self.get_position() == "right":
             x -= w
             y += a.y
-        if self.event_box.get_position() == "top":
+        if self.get_position() == "top":
             x += a.x
             y += size
-        if self.event_box.get_position() == "bottom":
+        if self.get_position() == "bottom":
             x += a.x
             y -= h
-        screen = self.event_box.get_window().get_screen()
+        screen = self.get_window().get_screen()
         if y + h > screen.get_height():
                 y = screen.get_height() - h
         if x + w >= screen.get_width():
                 x = screen.get_width() - w
         return x, y, True
-        
+
         #~ # detect screen with applet
-        #~ screen = self.event_box.get_screen()
+        #~ screen = self.get_screen()
         #~ # detect monitor with screen
-        #~ monitor = screen.get_monitor_geometry(screen.get_monitor_at_window(self.event_box.window))
+        #~ monitor = screen.get_monitor_geometry(screen.get_monitor_at_window(self.window))
         #~ # detect applet size
-        #~ x_size, y_size = self.event_box.size_request()
+        #~ x_size, y_size = self.size_request()
         #~ # detect coordinates of window with applet
-        #~ x_origin, y_origin = self.event_box.window.get_origin()
+        #~ x_origin, y_origin = self.window.get_origin()
         #~ # detect menu size
         #~ x_menu, y_menu = menu.size_request()
         #~ # detect y position (popup direction) for main menu according to its size and applet location
@@ -578,1225 +1289,394 @@ class BatteryApplet():
         #~ x = x_origin - 1
         #~ # return coordinates with menu position
         #~ return x, y, True
-    
-    
-    def init_gconf_settings(self):
-        """Getting applet settings from GConf"""
-        # set up connection to GConf
-        self.g_conf = GConf.Client.get_default()
-        # check settings
-        settings = self.g_conf.dir_exists("/apps/battery_status")
-        # if GConf settings not available from schema file, set up defaults
-        if not settings:
-            # Show > submenu option
-            self.g_conf.set_string("/apps/battery_status/show", "icon")
-            # Text Size > submenu option
-            self.g_conf.set_string("/apps/battery_status/text", "small")
-            # option for icon behavior
-            self.g_conf.set_string("/apps/battery_status/icon_policy", "always")
-            # option for lock screen on suspend/hibernate
-            self.g_conf.set_bool("/apps/battery_status/lock_screen", True)
-            # option for show additional info in battery status dialog window
-            self.g_conf.set_bool("/apps/battery_status/show_info", False)
-            # option for show tooltip
-            self.g_conf.set_bool("/apps/battery_status/show_tooltip", True)
-            # option for show status of battery when charge time/lifetime not available
-            self.g_conf.set_bool("/apps/battery_status/show_status", True)
-            # option for show sleep actions (Suspend/Hibernate) in main menu
-            self.g_conf.set_bool("/apps/battery_status/show_sleep", False)
-            # option for show session actions (Logout/Shutdown) in main menu
-            self.g_conf.set_bool("/apps/battery_status/show_session", False)
-            # option for show gnome-power-manager related items in main menu
-            self.g_conf.set_bool("/apps/battery_status/show_power", True)
-            # option for low charge, when shows critical battery message window
-            self.g_conf.set_int("/apps/battery_status/percentage_low", 8)
-            # option for time of showing critical battery message window
-            self.g_conf.set_int("/apps/battery_status/timer", 60)
-            # first run - for show advice to remove gnome-power-managment tray icon, if in use.
-            self.g_conf.set_bool("/apps/battery_status/first_run", True)
-            # option for show power modes
-            self.g_conf.set_bool("/apps/battery_status/show_powermode", True)
-            # option for show Text Size settings
-            self.g_conf.set_bool("/apps/battery_status/show_textsize", False)
-            # option for show Show > and Text Size > settings
-            self.g_conf.set_bool("/apps/battery_status/show_settings", True)
-            # option for show power device in "Power Statistics" dialog according to current power source
-            self.g_conf.set_bool("/apps/battery_status/power_source_sensitive", False)
-            # option for reduce label with "hour" digit
-            self.g_conf.set_bool("/apps/battery_status/reduce_hours", False)
-            # option for Power Mode menu
-            self.g_conf.set_bool("/apps/battery_status/powermode_as_submenu", False)
-            # option for allow power management
-            self.g_conf.set_bool("/apps/battery_status/power_manager", False)
-        # get settings for applet
-        self.option_show = self.g_conf.get_string("/apps/battery_status/show")
-        self.option_text = self.g_conf.get_string("/apps/battery_status/text")
-        self.option_icon = self.g_conf.get_string("/apps/battery_status/icon_policy")
-        self.option_lock = self.g_conf.get_bool("/apps/battery_status/lock_screen")
-        self.option_info = self.g_conf.get_bool("/apps/battery_status/show_info")
-        self.option_tooltip = self.g_conf.get_bool("/apps/battery_status/show_tooltip")
-        self.option_status = self.g_conf.get_bool("/apps/battery_status/show_status")
-        self.option_sleep = self.g_conf.get_bool("/apps/battery_status/show_sleep")
-        self.option_session = self.g_conf.get_bool("/apps/battery_status/show_session")
-        self.option_power = self.g_conf.get_bool("/apps/battery_status/show_power")
-        self.option_percentage_low = self.g_conf.get_int("/apps/battery_status/percentage_low")
-        self.option_timer = self.g_conf.get_int("/apps/battery_status/timer")
-        self.option_firstrun = self.g_conf.get_bool("/apps/battery_status/first_run")
-        self.option_cpufreq = self.g_conf.get_bool("/apps/battery_status/show_powermode")
-        self.option_showtext = self.g_conf.get_bool("/apps/battery_status/show_textsize")
-        self.option_settings = self.g_conf.get_bool("/apps/battery_status/show_settings")
-        self.option_sensitive = self.g_conf.get_bool("/apps/battery_status/power_source_sensitive")
-        self.option_reduce = self.g_conf.get_bool("/apps/battery_status/reduce_hours")
-        self.option_powermenu = self.g_conf.get_bool("/apps/battery_status/powermode_as_submenu")
-        self.option_gpm = self.g_conf.get_bool("/apps/battery_status/power_manager")
-        # validate settings
-        if not self.option_show:
-            self.g_conf.set_string("/apps/battery_status/show", "icon")
-            self.option_show = self.g_conf.get_string("/apps/battery_status/show")
-        if not self.option_text:
-            self.g_conf.set_string("/apps/battery_status/text", "small")
-            self.option_text = self.g_conf.get_string("/apps/battery_status/text")
-        if not self.option_icon:
-            self.g_conf.set_string("/apps/battery_status/icon_policy", "always")
-            self.option_icon = self.g_conf.get_string("/apps/battery_status/icon_policy")
-        if self.option_percentage_low is None:
-            self.g_conf.set_int("/apps/battery_status/percentage_low", 8)
-            self.option_percentage_low = self.g_conf.get_int("/apps/battery_status/percentage_low")
-        if self.option_timer is None:
-            self.g_conf.set_int("/apps/battery_status/timer", 60)
-            self.option_timer = self.g_conf.get_int("/apps/battery_status/timer")
-        # get g-p-m icon policy setting for advice to remove tray icon, if in use.
-        self.option_gpm_icon_policy = self.g_conf.get_string("/apps/gnome-power-manager/ui/icon_policy")
-        # add GConf settings of applet for detecting changes
-        self.g_conf.add_dir("/apps/battery_status", GConf.ClientPreloadType.PRELOAD_NONE)
-        # set up related callbacks for changes of GConf settings
-        self.g_conf.notify_add("/apps/battery_status/show", self.init_gconf_changes, "show")
-        self.g_conf.notify_add("/apps/battery_status/text", self.init_gconf_changes, "text")
-        self.g_conf.notify_add("/apps/battery_status/icon_policy", self.init_gconf_changes, "icon")
-        self.g_conf.notify_add("/apps/battery_status/lock_screen", self.init_gconf_changes, "lock")
-        self.g_conf.notify_add("/apps/battery_status/show_info", self.init_gconf_changes, "info")
-        self.g_conf.notify_add("/apps/battery_status/show_tooltip", self.init_gconf_changes, "tooltip")
-        self.g_conf.notify_add("/apps/battery_status/show_status", self.init_gconf_changes, "status")
-        self.g_conf.notify_add("/apps/battery_status/show_sleep", self.init_gconf_changes, "sleep")
-        self.g_conf.notify_add("/apps/battery_status/show_session", self.init_gconf_changes, "session")
-        self.g_conf.notify_add("/apps/battery_status/show_power", self.init_gconf_changes, "power")
-        self.g_conf.notify_add("/apps/battery_status/percentage_low", self.init_gconf_changes, "low")
-        self.g_conf.notify_add("/apps/battery_status/timer", self.init_gconf_changes, "timer")
-        self.g_conf.notify_add("/apps/battery_status/first_run", self.init_gconf_changes, "run")
-        self.g_conf.notify_add("/apps/battery_status/show_powermode", self.init_gconf_changes, "cpufreq")
-        self.g_conf.notify_add("/apps/battery_status/show_textsize", self.init_gconf_changes, "showtext")
-        self.g_conf.notify_add("/apps/battery_status/show_settings", self.init_gconf_changes, "settings")
-        self.g_conf.notify_add("/apps/battery_status/power_source_sensitive", self.init_gconf_changes, "sensitive")
-        self.g_conf.notify_add("/apps/battery_status/reduce_hours", self.init_gconf_changes, "reduce")
-        self.g_conf.notify_add("/apps/battery_status/powermode_as_submenu", self.init_gconf_changes, "powermenu")
-        self.g_conf.notify_add("/apps/battery_status/power_manager", self.init_gconf_changes, "powermanager")
-        self.g_conf.notify_add("/apps/gnome-power-manager/ui/icon_policy", self.init_gconf_changes, "gpm_icon")
-            
-        # Fix to make battery app icon centered when only the icon is shown.
-        if self.option_show == "icon":
-            self.label.hide()
-        else:
-            self.label.show()
-    
-    
-    def init_gconf_changes(self, client, connection_id, entry, option):
-        """Callback function for GConf changes"""
-        ### update GConf settings on the fly, if it's changing within applet works
-        # update Show submenu setting
-        if option == "show" and entry.get_value().type == GConf.ValueType.STRING:
-            if entry.get_value().get_string() == "time" or entry.get_value().get_string() == "percent":
-                self.option_show = entry.get_value().get_string()
-            else:
-                self.option_show = "icon"
-                # make icon visible, if shows icon only
-                self.g_conf.set_string("/apps/battery_status/icon_policy", "always")
-        # update Text size submenu setting
-        elif option == "text" and entry.get_value().type == GConf.ValueType.STRING:
-            if entry.get_value().get_string() == "medium":
-                self.option_text = entry.get_value().get_string()
-            else:
-                self.option_text = "small"
-        # update icon policy option
-        elif option == "icon" and entry.get_value().type == GConf.ValueType.STRING:
-            if entry.get_value().get_string() == "low" or entry.get_value().get_string() == "never" or entry.get_value().get_string() == "charge":
-                self.option_icon = entry.get_value().get_string()
-            else:
-                self.option_icon = "always"
-            if self.option_icon == "never" and self.option_show == "icon":
-                # prevent to hide icon
-                self.g_conf.set_string("/apps/battery_status/icon_policy", "always")
-        # update lock screen option
-        elif option == "lock" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_lock = entry.get_value().get_bool()
-        # update info option
-        elif option == "info" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_info = entry.get_value().get_bool()
-        # update tooltip option
-        elif option == "tooltip" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_tooltip = entry.get_value().get_bool()
-        # update status option
-        elif option == "status" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_status = entry.get_value().get_bool()
-        # update option for show sleep actions in main menu
-        elif option == "sleep" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_sleep = entry.get_value().get_bool()
-        # update option for show session actions in main menu
-        elif option == "session" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_session = entry.get_value().get_bool()
-        # update option for show session actions in main menu
-        elif option == "power" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_power = entry.get_value().get_bool()
-        # update low percentage option
-        elif option == "low" and entry.get_value().type == GConf.ValueType.INT:
-            self.option_percentage_low = entry.get_value().get_int()
-        # update timer option
-        elif option == "timer" and entry.get_value().type == GConf.ValueType.INT:
-            self.option_timer = entry.get_value().get_int()
-        # update first run option
-        elif option == "run" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_firstrun = entry.get_value().get_bool()
-        # update show powermode option
-        elif option == "cpufreq" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_cpufreq = entry.get_value().get_bool()
-        # update show text size option
-        elif option == "showtext" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_showtext = entry.get_value().get_bool()
-        # update show settings option
-        elif option == "settings" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_settings = entry.get_value().get_bool()
-        # update power source sensitive option
-        elif option == "sensitive" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_sensitive = entry.get_value().get_bool()
-        # update reduce option
-        elif option == "reduce" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_reduce = entry.get_value().get_bool()
-        # update Power Mode option
-        elif option == "powermenu" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_powermenu = entry.get_value().get_bool()
-        # update gpm option
-        elif option == "powermanager" and entry.get_value().type == GConf.ValueType.BOOL:
-            self.option_gpm = entry.get_value().get_bool()
-        # update gnome-power-manager's icon policy option
-        elif option == "icon_policy" and entry.get_value().type == GConf.ValueType.STRING:
-            self.option_gpm_icon_policy = entry.get_value().get_string()
-        # update battery info for applying changes
-        if not self.power_error:
-            try:
-                # to handle error, if it's occurs before detecting self.power_error state
-                self.update_status()
-            except:
-                pass
-        else:
-            self.power_dbus_signal_error("dbus")
-            
-        # Fix to make battery app icon centered when only the icon is shown.
-        if self.option_show == "icon":
-            self.label.hide()
-        else:
-            self.label.show()
-    
-    
-    def init_packages(self):
-        """Detect packages"""
-        dist = ""
-        # detect current distribution
-        try:
-            # to get distroname in a python 2.6 way
-            dist = platform.linux_distribution()[0]
-        except:
-            # get distroname in a deprecated way
-            dist = platform.dist()[0]
-        if dist == "Ubuntu" or dist == "debian":
-            try:
-                import apt
-                cache = apt.Cache()
-                package = cache["gnome-screensaver"]
-                self.package_screensaver = package.isInstalled
-                package = cache["gnome-session-bin"]
-                self.package_session = package.isInstalled
-                package = cache["gnome-power-manager"]
-                self.package_power = package.isInstalled
-                package = cache["gnome-applets"]
-                self.package_cpufreq = package.isInstalled
-                package = cache["apport-gtk"]
-                self.package_apport = package.isInstalled
-            except:
-                pass
-        elif dist == "Fedora":
-            try:
-                import rpm
-                transaction = rpm.TransactionSet()
-                matches = transaction.dbMatch()
-                matches.pattern('name', rpm.RPMMIRE_GLOB, "gnome-screensaver")
-                self.package_screensaver = False
-                for match in matches:
-                    self.package_screensaver = True
-                matches = transaction.dbMatch()
-                matches.pattern('name', rpm.RPMMIRE_GLOB, "gnome-session")
-                self.package_session = False
-                for match in matches:
-                    self.package_session = True
-                matches = transaction.dbMatch()
-                matches.pattern('name', rpm.RPMMIRE_GLOB, "gnome-power-manager-extra")
-                self.package_power = False
-                for match in matches:
-                    self.package_power = True
-                matches = transaction.dbMatch()
-                matches.pattern('name', rpm.RPMMIRE_GLOB, "gnome-applets")
-                self.package_cpufreq = False
-                for match in matches:
-                    self.package_cpufreq = True
-            except:
-                pass
-        else:
-            pass
-    
-    
-    def init_pp_menu(self):
-        """Create popup menu"""
-        # xml menu for right-mouse button
-        self.pp_menu_xml = """<popup name="button3">"""
-        # list with verbs "item - action" for popup menu
-        self.pp_menu_verbs = []
-        if self.package_apport:
-            self.pp_menu_xml += """<menuitem name="Report"
-                verb="Report"
-                label="Report a Problem"
-                pixtype="filename"
-                pixname="/usr/share/icons/hicolor/scalable/apps/apport.svg"/>"""
-            self.pp_menu_verbs.append(("Report", self.pp_menu_item_report))
-        if self.package_power:
-            self.pp_menu_xml += """<menuitem name="Help"
-                verb="Help"
-                label="_Help"
-                pixtype="stock"
-                pixname="gtk-help"/>"""
-            self.pp_menu_verbs.append(("Help", self.pp_menu_item_help))
-        self.pp_menu_xml += """<menuitem name="About"
-            verb="About"
-            label="_About"
-            pixtype="stock"
-            pixname="gtk-about"/>
-        </popup>
-        """
-        self.pp_menu_verbs.append(("About", self.pp_menu_item_about))
-    
-    
-    def pp_menu_item_report(self, event, data = None):
-        """Generate bug report on choosing 'Report a Problem' in popup menu"""
-        os.system("/usr/share/apport/apport-gtk -f -p battery-status &")
-    
-    
-    def pp_menu_item_help(self, event, data = None):
-        """Show gnome-power-manager help on choosing 'Help' in popup menu"""
-        os.system("yelp ghelp:gnome-power-manager &")
-    
-    
-    def pp_menu_item_about(self, event, data = None):
-        """Show information about applet on choosing 'About' in popup menu"""
-        About = Gtk.AboutDialog()
-        About.set_version(version)
-        About.set_name(name)
-        About.set_license(license)
-        About.set_authors(authors)
-        About.set_comments(comment)
-        About.set_website(homepage)
-        About.set_copyright(copyright)
-        About.set_icon(self.pixbuf_gpm_32)
-        About.set_logo_icon_name("gnome-power-manager")
-        About.set_website_label("GNOME Battery Status applet Website")
-        About.run()
-        About.destroy()
-    
-    
-    def main_menu_battery_dialog(self, item = False):
-        """Battery device information dialog"""
-        # local callback for expander of battery technical info frame
-        def expander_info_cb(expander, gparam_bool, widget):
-            if expander.get_expanded():
-                widget.show()
-            else:
-                widget.hide()
-            # update GConf setting
-            self.g_conf.set_bool("/apps/battery_status/show_info", expander.get_expanded())
-        # lock main menu for prevent duplicating battery information dialog
-        self.lock_battery_status = True
-        # update power information
-        self.update_status()
-        # text column for capacity data
-        text_capacity = "State:\nPercentage:\nCapacity:\nLifetime:\nCharge time:\n"
-        # text column for charge data
-        text_charge = "Voltage:\nRate:\nCurrent:\nLast full:\nMaximum:\n"
-        # label for capacity text
-        label_capacity = Gtk.Label()
-        label_capacity.set_markup(text_capacity)
-        label_capacity.set_justify(Gtk.Justification.LEFT)
-        label_capacity.show()
-        # show label with capacity data
-        self.label_capacity_data.show()
-        # hbox for capacity labels
-        hbox_capacity = Gtk.HBox()
-        hbox_capacity.add(label_capacity)
-        hbox_capacity.add(self.label_capacity_data)
-        hbox_capacity.show()
-        # show progress bar of current battery capacity
-        self.progress_capacity.show()
-        # vbox for hbox with capacity labels and capacity progress bar
-        vbox_capacity = Gtk.VBox()
-        vbox_capacity.add(hbox_capacity)
-        vbox_capacity.add(self.progress_capacity)
-        vbox_capacity.show()
-        # alignment for vbox with capacity data
-        align_capacity = Gtk.Alignment.new()
-        align_capacity.set_property("left-padding", 12)
-        align_capacity.set_property("right-padding", 12)
-        align_capacity.set_property("top-padding", 12)
-        align_capacity.set_property("bottom-padding", 12)
-        align_capacity.add(vbox_capacity)
-        align_capacity.show()
-        # frame for alignment
-        frame_capacity = Gtk.Frame("  Battery Capacity  ")
-        frame_capacity.set_border_width(8)
-        frame_capacity.add(align_capacity)
-        frame_capacity.show()
-        # label for charge text
-        label_charge = Gtk.Label()
-        label_charge.set_markup(text_charge)
-        label_charge.set_justify(Gtk.Justification.LEFT)
-        label_charge.show()
-        # show label with charge data
-        self.label_charge_data.show()
-        # hbox for charge labels
-        hbox_charge = Gtk.HBox()
-        hbox_charge.add(label_charge)
-        hbox_charge.add(self.label_charge_data)
-        hbox_charge.show()
-        # show progress bar of current battery charge
-        self.progress_charge.show()
-        # vbox for hbox with charge labels and charge progress bar
-        vbox_charge = Gtk.VBox()
-        vbox_charge.add(hbox_charge)
-        vbox_charge.add(self.progress_charge)
-        vbox_charge.show()
-        # alignment for vbox with charge data
-        align_charge = Gtk.Alignment.new()
-        align_charge.set_property("left-padding", 12)
-        align_charge.set_property("right-padding", 12)
-        align_charge.set_property("top-padding", 12)
-        align_charge.set_property("bottom-padding", 12)
-        align_charge.add(vbox_charge)
-        align_charge.show()
-        # frame for alignment
-        frame_charge = Gtk.Frame("  Battery Charge  ")
-        frame_charge.set_border_width(8)
-        frame_charge.add(align_charge)
-        frame_charge.show()
-        # show label with battery info text
-        self.label_info.show()
-        # show label with battery info data
-        self.label_info_data.show()
-        # hbox for battery info labels
-        hbox_info = Gtk.HBox()
-        hbox_info.add(self.label_info)
-        hbox_info.add(self.label_info_data)
-        hbox_info.show()
-        # alignment for hbox with battery info
-        align_info = Gtk.Alignment.new()
-        align_info.set_property("left-padding", 24)
-        align_info.set_property("right-padding", 0)
-        align_info.set_property("top-padding", 12)
-        align_info.set_property("bottom-padding", 12)
-        align_info.add(hbox_info)
-        align_info.show()
-        # frame for alignment
-        frame_info = Gtk.Frame()
-        frame_info.set_border_width(8)
-        frame_info.add(align_info)
-        # expander for frame with battery info
-        expander_info = Gtk.Expander()
-        if self.option_info:
-            frame_info.show()
-        else:
-            frame_info.hide()
-        expander_info.set_expanded(self.option_info)
-        expander_info.set_label("Battery Information")
-        expander_info.connect("notify::expanded", expander_info_cb, frame_info)
-        expander_info.show()
-        # generate dialog window with provided battery information
-        message_battery_status = Gtk.Dialog(title = "", parent = None, buttons = None)
-        message_battery_status.set_title("Battery Status")
-        message_battery_status.set_property("gravity", Gdk.GRAVITY_NORTH)
-        message_battery_status.set_property("skip-taskbar-hint", False)
-        message_battery_status.set_property("skip-pager-hint", True)
-        message_battery_status.set_property("resizable", False)
-        message_battery_status.set_property("deletable", False)
-        message_battery_status.set_has_separator(False)
-        message_battery_status.set_icon(self.pixbuf_battery_info)
-        message_battery_status.vbox.add(frame_capacity)
-        message_battery_status.vbox.add(frame_charge)
-        message_battery_status.vbox.add(expander_info)
-        message_battery_status.vbox.add(frame_info)
-        # copy dialog for destroy it, if user remove applet when dialog open
-        self.lock_battery_status = message_battery_status
-        message_battery_status.run()
-        message_battery_status.destroy()
-        # unlock menu
-        self.lock_battery_status = False
-        # make battery item active, only if battery available
-        if self.no_battery or self.power_error:
-            self.item_status.set_sensitive(False)
-            self.item_status_lock.set_sensitive(False)
-        else:
-            self.item_status.set_sensitive(True)
-            self.item_status_lock.set_sensitive(True)
-    
-    
-    def main_menu_action(self, item, data = None, args = None):
-        """Main menu items/actions handler"""
-        action = item.get_label()
-        ### Power Source item
-        if action.find("Po_wer Source:") != -1:
-            if self.option_sensitive:
-                # if power_source_sensitive, then set statistics for current power source device
-                if action.find("Battery") != -1:
-                    self.g_conf.set_string("/apps/gnome-power-manager/info/last_device", self.power_address + "/devices/" + self.power_battery_name)
-                else:
-                    self.g_conf.set_string("/apps/gnome-power-manager/info/last_device", self.power_address + "/devices/" + self.power_ac_name)
-            # show power statistics
-            os.system("gnome-power-statistics &")
-        ### Power Management item
-        elif action == "_Power Management...":
-            # show power preferences
-            os.system("gnome-control-center power &")
-        ### Session items
-        elif action == "_Log Out...":
-            # show logout dialog
-            os.system("gnome-session-save --logout-dialog &")
-        elif action == "_Shut Down...":
-            # show shutdown dialog
-            os.system("gnome-session-save --shutdown-dialog &")
-        ### Show submenu item action and update GConf setting on changing it
-        elif action == "_Percentage":
-            self.g_conf.set_string("/apps/battery_status/show", "percent")
-        elif action == "_Time":
-            self.g_conf.set_string("/apps/battery_status/show", "time")
-        elif action == "_Icon Only":
-            self.g_conf.set_string("/apps/battery_status/show", "icon")
-        ### Text Size submenu item action and update GConf setting on changing it
-        elif action == "_Normal":
-            self.g_conf.set_string("/apps/battery_status/text", "medium")
-        elif action == "_Small":
-            self.g_conf.set_string("/apps/battery_status/text", "small")
-        ### Show submenu check items and update GConf setting on changing it
-        elif action == "S_leep Actions":
-            self.g_conf.set_bool("/apps/battery_status/show_sleep", not self.option_sleep)
-        elif action == "S_ession Actions":
-            self.g_conf.set_bool("/apps/battery_status/show_session", not self.option_session)
-        elif action == "Te_xt Size":
-            self.g_conf.set_bool("/apps/battery_status/show_textsize", not self.option_showtext)
-        elif action == "Po_wer Modes":
-            self.g_conf.set_bool("/apps/battery_status/show_powermode", not self.option_cpufreq)
-        else:
-            pass
-    
-    
-    
-    def init_first_run(self):
-        """After-init hook"""
-        # if user add applet at first time and use gnome-power-manager icon in indicator/notification area
-        if self.option_firstrun and self.option_gpm_icon_policy != "never":
-            # then show advice to remove icon from notification area
-            message_icon_tray = Gtk.MessageDialog(parent = None, type = Gtk.MessageType.QUESTION, buttons = Gtk.ButtonsType.NONE, message_format = None)
-            title_text = "Battery Status applet has been added on the GNOME panel."
-            message_text = 'Battery Status applet shows state/percentage/lifetime of battery in your laptop, but you also use Power Manager\'s battery icon for the same purpose - would you like to remove it?\n\nYou can always change Power Manager\'s battery icon settings and its behavior in "Power Management" Preferences'
-            message_icon_tray.set_markup('<span weight="bold" size="medium">' + title_text + '</span>' + '\n\n' + message_text)
-            message_icon_tray.set_icon(self.pixbuf_gpm_32)
-            message_icon_tray.set_property("window-position", "center")
-            message_icon_tray.set_keep_above(True)
-            message_icon_tray.add_button("_Remove", 1)
-            message_icon_tray.add_button("Ign_ore", 0)
-            message_icon_tray.set_default_response(0)
-            if message_icon_tray.run() == 1:
-                self.g_conf.set_string("/apps/gnome-power-manager/ui/icon_policy", "never")
-            message_icon_tray.destroy()
-        self.g_conf.set_bool("/apps/battery_status/first_run", False)
-    
-    
-    def init_cpufreq(self):
-        """Init detecting CPU frequency mode"""
-        if self.package_cpufreq and self.option_cpufreq:
-            try:
-                ### to get CPU frequency scaling information
-                # get current governor
-                powermode_file = open('/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor', 'r')
-                self.powermode = powermode_file.read().rstrip('\n')
-                powermode_file.close()
-                # get list of CPUs
-                cpu_data = os.popen("ls /sys/devices/system/cpu | grep '^cpu[0-9]*$' | sed 's,^cpu,,'")
-                self.cpu_items = cpu_data.readlines()
-                cpu_data.close()
-                self.cpufreq_error = False
-            except:
-                self.cpufreq_error = True
-        else:
-            pass
-    
-    
-    def init_power_dbus(self):
-        """Init D-Bus UPower/DeviceKit-Power environment"""
-        # set up default values for global D-Bus UPower/DeviceKit-Power related variables
-        self.power_ac_address = None
-        self.power_battery_address = None
-        self.power_ac_name = "line_power"
-        self.power_battery_name = "battery"
-        self.properties_bus = "org.freedesktop.DBus.Properties"
-        # set up power info dictionaries
-        self.power_device_types = {0: "Unknown", 1: "Line Power", 2: "Battery", 3: "UPS", 4: "Monitor", 5: "Mouse", 6: "Keyboard", 7: "PDA", 8: "Phone"}
-        self.power_battery_techs = {0: "Unknown", 1: "Lithium Ion", 2: "Lithium Polymer", 3: "Lithium Iron Phosphate", 4: "Lead Acid", 5: "Nickel Cadmium", 6: "Nickel Metal Hydride"}
-        self.power_battery_state = {0: "unknown", 1: "charging", 2: "discharging", 3: "discharged", 4: "charged"}
-        self.power_battery_tooltip = {0: "", 1: "until charged", 2: "remaining", 3: "", 4: "is fully charged"}
-        self.power_source = {0: "Po_wer Source: AC Line", 1: "Po_wer Source: Battery"}
-        self.battery_full = 4
-        try:
-            # to create connection for system bus
-            self.bus = dbus.SystemBus()
-            try:
-                # to get power object using new UPower D-Bus address
-                self.power_address = "/org/freedesktop/UPower"
-                self.power_bus = "org.freedesktop.UPower"
-                power_object = self.bus.get_object(self.power_bus, self.power_address)
-            except:
-                # try to get power object using old DeviceKit-Power D-Bus address
-                self.power_address = "/org/freedesktop/DeviceKit/Power"
-                self.power_bus = "org.freedesktop.DeviceKit.Power"
-                power_object = self.bus.get_object(self.power_bus, self.power_address)
-            # setting up power interfaces
-            self.power_interface = dbus.Interface(power_object, self.power_bus)
-            self.power_properties_interface = dbus.Interface(power_object, self.properties_bus)
-            # update power information
-            self.power_dbus_signal()
-            # connect to signals
-            # "DeviceChanged" is not used in UPower >=0.99, PropertiesChanged will be used instead
-            #~ self.power_interface.connect_to_signal("DeviceChanged", self.power_dbus_signal) 
-            self.power_interface.connect_to_signal("DeviceAdded", self.power_dbus_signal)
-            self.power_interface.connect_to_signal("DeviceRemoved", self.power_dbus_signal)
-            # if everything good
-            self.power_error = False
-        except dbus.exceptions.DBusException as exception:
-            # else show error message
-            self.dbus_error(exception.__str__())
-        if self.power_error:
-            self.power_dbus_signal_error("dbus")
-    
-    
-    def dbus_error(self, exception_text):
-        """Critical message with technical details, when something goes wrong"""
-        # text buffer with details
-        text_buffer = Gtk.TextBuffer()
-        text_buffer.set_text("DBus exception:\n" + exception_text)
-        # container for text buffer
-        text_field = Gtk.TextView()
-        text_field.set_editable(False)
-        text_field.set_wrap_mode(Gtk.WrapMode.WORD)
-        text_field.set_buffer(text_buffer)
-        text_field.show()
-        # container for details
-        message_details = Gtk.Expander()
-        message_details.set_expanded(False)
-        message_details.set_label("View technical details")
-        message_details.add(text_field)
-        message_details.show()
-        # generate error message dialog
-        message_error = Gtk.MessageDialog(parent = None, type = Gtk.MessageType.WARNING, buttons = Gtk.ButtonsType.NONE, message_format = None)
-        title_text = "Battery Status applet error."
-        message_text = "Applet can't get power state of computer.\nD-Bus system or UPower/DeviceKit-Power information unavailable now.\n"
-        question_text = "Would you like still to keep applet?"
-        message_error.set_markup('<span weight="bold" size="medium">' + title_text + '</span>' + '\n\n' + message_text + '\n' + question_text)
-        message_error.set_icon(self.pixbuf_gpm_32)
-        message_error.set_property("window-position", "center")
-        message_error.add_button("_Remove", 1)
-        message_error.add_button("_Keep", 0)
-        message_error.set_default_response(0)
-        message_error.set_keep_above(True)
-        message_error.vbox.add(message_details)
-        # show error dialog
-        if message_error.run():
-            # destroy applet
-            self.destroy(self.event)
-            # and quit with error status
-            sys.exit(1)
-        message_error.destroy()
-        self.power_error = True
-    
-    
-    def power_dbus_signal_error(self, error_type):
-        """Handle power errors"""
-        ### Keep applet working, even if some power information not available
-        if type(self.lock_battery_status).__name__ == "Dialog":
-            # destroy battery status dialog, if active
-            self.lock_battery_status.destroy()
-        # set up text for label on error
-        label_text = ""
-        if self.option_show != "icon":
-            label_text = '<span size="' + self.option_text + '">' + '('
-            if self.option_show == "time":
-                if self.option_status:
-                    label_text += "missing"
-                else:
-                    label_text += "-:--"
-            elif self.option_show == "percent":
-                if self.option_status:
-                    label_text += "missing"
-                else:
-                    label_text += "--" + '%'
-            label_text += ')' + '</span>'
-        self.label.set_markup(label_text)
-        # set up icons
-        self.icon.set_from_pixbuf(self.icon_theme.load_icon("gpm-ac-adapter", 24, Gtk.IconLookupFlags.FORCE_SVG))
-        self.icon_status.set_from_pixbuf(None)
-        self.icon_status_lock.set_from_pixbuf(None)
-        # generate text in main menu items and in tooltip according to current error
-        if error_type == "dbus":
-            self.status_text = "No Information"
-            self.power_source_text = "Po_wer Source: No Information"
-            tooltip_text = "Power information not available"
-        elif error_type == "no_battery":
-            self.status_text = "No Battery"
-            self.power_source_text = "Po_wer Source: AC Line"
-            tooltip_text = "Laptop battery not available"
-        # set up locked status and power items
-        self.item_status_lock.set_label(self.status_text)
-        self.item_power_lock.set_label(self.power_source_text)
-        self.item_status_lock.set_sensitive(False)
-        self.item_status_lock.set_image(self.icon_status_lock)
-        # set up unlocked status and power items
-        self.item_status.set_label(self.status_text)
-        self.item_power.set_label(self.power_source_text)
-        self.item_status.set_sensitive(False)
-        self.item_status.set_image(self.icon_status)
-        # set up tooltip
-        if self.option_tooltip:
-            self.event_box.set_tooltip_text(tooltip_text)
-        else:
-            self.event_box.set_tooltip_text(None)
-        
-    def power_dbus_signal(self, device = None, signal = None):
-        """Get battery power information on update"""
-        # get list of available power devices
-        power_devices = self.power_interface.EnumerateDevices()
-        # list for AC devices
-        power_ac_devices = []
-        # list for battery devices
-        power_battery_devices = []
-        # detect ACs and batteries
-        for power_device in power_devices:
-            if power_device.find(self.power_battery_name) != -1:
-                power_battery_devices.append(power_device)
-            if power_device.find(self.power_ac_name) != -1:
-                power_ac_devices.append(power_device)
-        # detect primary AC address from available AC devices
-        if len(power_ac_devices) == 0:
-            self.power_ac_address = ""
-        elif len(power_ac_devices) == 1:
-            # get info for available AC
-            power_ac_object = self.bus.get_object(self.power_bus, power_ac_devices[0])
-            power_ac_interface = dbus.Interface(power_ac_object, self.properties_bus)
-            power_ac = power_ac_interface.GetAll("")
-            # check type of available AC
-            if self.power_device_types[power_ac['Type']] == self.power_device_types[1] and power_ac['PowerSupply']:
-                self.power_ac_address = power_ac_devices[0]
-            else:
-                self.power_ac_address = ""
-        else:
-            # multiple AC power lines - is it possible?
-            pass
-        # detect battery address from available battery devices
-        if len(power_battery_devices) == 0:
-            self.power_battery_address = ""
-        elif len(power_battery_devices) == 1:
-            # get info for available battery
-            power_battery_object = self.bus.get_object(self.power_bus, power_battery_devices[0])
-            self.power_battery_interface = dbus.Interface(power_battery_object, self.properties_bus)
-            power_battery = self.power_battery_interface.GetAll("")
-            # check type of available battery
-            if self.power_device_types[power_battery['Type']] == self.power_device_types[2] and power_battery['PowerSupply']:
-                self.power_battery_address = power_battery_devices[0]
-            else:
-                self.power_battery_address = ""
-        else:
-            # FIXME: code for processing multiple batteries goes here
-            # it hasn't been tested on real multiple batteries, so any bug reports and logs are welcome
-            for battery_address in power_battery_devices:
-                power_battery_object = self.bus.get_object(self.power_bus, battery_address)
-                self.power_battery_interface = dbus.Interface(power_battery_object, self.properties_bus)
-                power_battery = self.power_battery_interface.GetAll("")
-                # finding laptop battery address
-                if self.power_device_types[power_battery['Type']] == self.power_device_types[2] and power_battery['PowerSupply']:
-                    self.power_battery_address = battery_address
-                    break
-        # check availability of battery
-        if self.power_battery_address:
-            # get battery information, if available
-            power_battery_object = self.bus.get_object(self.power_bus, self.power_battery_address)
-            self.power_battery_interface = dbus.Interface(power_battery_object, self.properties_bus)
-            self.power_battery_interface.connect_to_signal("PropertiesChanged", self.update_status)
-            self.no_battery = False
-        else:
-            # keep working without battery information
-            self.no_battery = True
-            self.power_dbus_signal_error("no_battery")
-            return False
-        self.update_status()
-        
-    
-    def update_status(self, *args):
-        ### keep working with battery information
-        if self.lock_battery_status or self.power_error or self.no_battery:
-            self.item_status.set_sensitive(False)
-            self.item_status_lock.set_sensitive(False)
-        else:
-            self.item_status.set_sensitive(True)
-            self.item_status_lock.set_sensitive(True)
-        # update battery information
-        power_battery = self.power_battery_interface.GetAll("")
-        # update power properties
-        power_properties = self.power_properties_interface.GetAll("")
-        # get battery state
-        self.battery_state = self.power_battery_state[power_battery['State']]
-        # get battery percentage
-        self.battery_percent = int(round(power_battery['Percentage'], 1))
-        # detect power source
-        self.power_on_battery = power_properties['OnBattery']
-        # detect critical charge
-        if not self.on_low_battery and self.power_on_battery and self.battery_percent < self.option_percentage_low and self.option_timer > 0:
-            self.on_low_battery = True
-            self.critical_low()
-        elif self.battery_percent >= self.option_percentage_low:
-            self.on_low_battery = False
-        # generate icon name according to current percentage
-        if self.battery_percent >= 0 and self.battery_percent < 10:
-            self.icon_name = "gpm-battery-000"
-        elif self.battery_percent >= 10 and self.battery_percent < 20:
-            self.icon_name = "gpm-battery-020"
-        elif self.battery_percent >= 20 and self.battery_percent < 48:
-            self.icon_name = "gpm-battery-040"
-        elif self.battery_percent >= 48 and self.battery_percent < 75:
-            self.icon_name = "gpm-battery-060"
-        elif self.battery_percent >= 75 and self.battery_percent < 89:
-            self.icon_name = "gpm-battery-080"
-        elif self.battery_percent >= 89 and self.battery_percent <= 100:
-            self.icon_name = "gpm-battery-100"
-        if self.battery_state == self.power_battery_state[self.battery_full]:
-            self.icon_name = "gpm-battery-charged"
-        elif self.battery_state == "charging":
-            self.icon_name += "-charging"
-        ### set up battery icons
-        # set up battery icon for main icon widget
-        if self.option_icon == "always" or (self.option_icon == "low" and self.on_low_battery) or (self.option_icon == "charge" and self.battery_state != self.power_battery_state[self.battery_full]):
-            self.icon.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 24, Gtk.IconLookupFlags.FORCE_SVG))
-        else:
-            self.icon.set_from_pixbuf(None)
-        # set up global battery icon status for item status in main menu
-        self.icon_status.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, Gtk.IconLookupFlags.FORCE_SVG))
-        # set up local battery icon status for item status in main menu
-        icon_status = Gtk.Image()
-        icon_status.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, Gtk.IconLookupFlags.FORCE_SVG))
-        self.item_status.set_image(icon_status)
-        # set up local battery icon status for locked item status in main menu
-        icon_status_lock = Gtk.Image()
-        icon_status_lock.set_from_pixbuf(self.icon_theme.load_icon(self.icon_name, 16, Gtk.IconLookupFlags.FORCE_SVG))
-        self.item_status_lock.set_image(icon_status_lock)
-        # set up battery icon for battery status dialog
-        self.pixbuf_battery_info = self.icon_theme.load_icon(self.icon_name, 128, Gtk.IconLookupFlags.FORCE_SVG)
-        # init local variable for tooltip
-        battery_time = "-:--"
-        # get battery lifetime
-        self.battery_lifetime = power_battery['TimeToEmpty']
-        # convert battery lifetime from seconds to human-readable format (if available)
-        if self.battery_lifetime:
-            self.battery_lifetime = time.strftime('%H:%M', time.gmtime(self.battery_lifetime))[1:5]
-            battery_time = self.battery_lifetime
-        else:
-            self.battery_lifetime = "-:--"
-            h_time = 0
-            m_time = 0
-        # get battery charge time
-        self.battery_chargetime = power_battery['TimeToFull']
-        # convert battery charge time from seconds to human-readable format (if available)
-        if self.battery_chargetime:
-            self.battery_chargetime = time.strftime('%H:%M', time.gmtime(self.battery_chargetime))[1:5]
-            battery_time = self.battery_chargetime
-        else:
-            self.battery_chargetime = "-:--"
-        # detect color text
-        if self.battery_percent < 15 and self.power_on_battery:
-            color_begin = '<span color="#F00000">'
-            color_end = '</span>'
-        else:
-            color_begin = ''
-            color_end = ''
-        # convert battery percentage from integer to string
-        self.battery_percent = str(self.battery_percent)
-        # generate text for main label widget based on applet settings and current power status
-        label_text = ""
-        if self.option_show != "icon":
-            label_text = '<span size="' + self.option_text + '">' + '(' + color_begin
-            if self.option_show == "time":
-                if self.power_on_battery:
-                    if self.battery_lifetime == "-:--" and self.option_status:
-                        label_text += "discharging"
-                    elif self.battery_lifetime != "-:--" and not int(self.battery_lifetime[0]) and self.option_reduce:
-                        label_text += self.battery_lifetime[1:4]
-                    else:
-                        label_text += self.battery_lifetime
-                elif self.battery_state == self.power_battery_state[self.battery_full]:
-                    label_text += "charged"
-                else:
-                    if self.battery_chargetime == "-:--" and self.option_status:
-                        label_text += "charging"
-                    elif self.battery_chargetime != "-:--" and not int(self.battery_chargetime[0]) and self.option_reduce:
-                        label_text += self.battery_chargetime[1:4]
-                    else:
-                        label_text += self.battery_chargetime
-            elif self.option_show == "percent":
-                label_text += self.battery_percent + '%'
-            label_text += color_end + ')' + '</span>'
-        # update label text
-        self.label.set_markup(label_text)
-        # generate text for battery status item in main menu
-        self.status_text = ""
-        if battery_time != "-:--" and self.battery_state != self.power_battery_state[self.battery_full] and self.option_show != "time":
-            # show battery lifetime/chargetime only if it available and this actual
-            self.status_text += battery_time
-            if self.power_on_battery:
-                self.status_text += " remaining"
-            else:
-                self.status_text += " until full"
-        else:
-            # in other case, show battery status
-            self.status_text += "Battery is " + self.power_battery_state[power_battery['State']]
-        if self.option_show != "percent":
-            # show percentage, if its not showing in applet
-            self.status_text += ": " + self.battery_percent + '%'
-        # update battery status text in main menu
-        self.item_status.set_label(self.status_text)
-        # update battery status text in main menu for reserve locked menu item
-        self.item_status_lock.set_label(self.status_text)
-        # generate text for power source item in main menu
-        self.power_source_text = self.power_source[self.power_on_battery]
-        # update power source text in main menu
-        self.item_power.set_label(self.power_source_text)
-        # update power source text in main menu for reserve locked menu item
-        self.item_power_lock.set_label(self.power_source_text)
-        ### generate tooltip for applet
-        # generic tooltip text
-        tooltip_text = "Laptop battery"
-        # init default values
-        h_tooltip = ''
-        m_tooltip = ''
-        percent_tooltip = ''
-        # get information for tooltip
-        battery_tooltip = self.power_battery_tooltip[power_battery['State']]
-        if self.battery_state != self.power_battery_state[self.battery_full]:
-            percent_tooltip = ' (' + str(round(power_battery['Percentage'], 1)) + '%)'
-        if battery_time != "-:--":
-            h_time = int(battery_time[0:1])
-            m_time = int(battery_time[2:4])
-            if h_time > 1:
-                h_tooltip = ' ' + str(h_time) + " hours"
-            elif h_time == 1:
-                h_tooltip = ' ' + str(h_time) + " hour"
-            if m_time > 1:
-                m_tooltip = ' ' + str(m_time) + " minutes"
-            elif m_time == 1:
-                m_tooltip = ' ' + str(m_time) + " minute"
-        else:
-            battery_tooltip = self.battery_state
-        # set up tooltip
-        tooltip_text += h_tooltip + m_tooltip + ' ' + battery_tooltip + percent_tooltip
-        self.event_box.set_tooltip_text(None)
-        if self.option_tooltip:
-            self.event_box.set_tooltip_text(tooltip_text)
-        ### get information for battery status dialog, if it's open
-        if self.lock_battery_status:
-            # generate text about battery capacity
-            text_capacity_data = self.power_battery_state[power_battery['State']] + '\n'
-            text_capacity_data += str(round(power_battery['Percentage'], 1)) + '%\n'
-            text_capacity_data += str(round(power_battery['Capacity'], 1)) + '%\n'
-            text_capacity_data += self.battery_lifetime + '\n'
-            text_capacity_data += self.battery_chargetime + '\n'
-            # generate text about battery charge
-            text_charge_data = str(round(power_battery['Voltage'], 1)) + ' V   \n'
-            text_charge_data += str(round(power_battery['EnergyRate'], 1)) + ' W  \n'
-            text_charge_data += str(round(power_battery['Energy'], 1)) + ' Wh\n'
-            text_charge_data += str(round(power_battery['EnergyFull'], 1)) + ' Wh\n'
-            text_charge_data += str(round(power_battery['EnergyFullDesign'], 1)) + ' Wh\n'
-            # update battery status in information dialog window
-            self.label_capacity_data.set_markup(text_capacity_data)
-            self.label_charge_data.set_markup(text_charge_data)
-            # update progress bar with battery capacity information
-            self.progress_capacity.set_fraction(power_battery['Percentage']/100)
-            self.progress_capacity.set_text(str(int(round(power_battery['Percentage'], 1))) + '%')
-            # update progress bar with battery charge information
-            progress_charge_data = 100 * power_battery['Energy'] / power_battery['EnergyFullDesign']
-            self.progress_charge.set_fraction(progress_charge_data/100)
-            self.progress_charge.set_text(str(int(round(progress_charge_data, 1))) + '%')
-            if self.option_info:
-                # text column for battery info
-                text_info = "Technology:\nVendor:\nModel:"
-                # generate text about battery information
-                text_info_data = '\t' + self.power_battery_techs[power_battery['Technology']] + '\n'
-                text_info_data += '\t' + power_battery['Vendor'] + '\n'
-                text_info_data += '\t' + power_battery['Model']
-                # display serial number only if available
-                if power_battery['Serial'] != "":
-                    text_info += "\nSerial:"
-                    text_info_data += '\n' + '\t' + power_battery['Serial']
-                self.label_info.set_markup(text_info)
-                self.label_info_data.set_markup(text_info_data)
-        # update power management state and its current settings
-        self.power_management(None, "signal", self.powermode, None)
-    
-    
-    def critical_low(self):
-        """Message dialog about low battery percentage"""
-        # local function for timer management
-        def count(widget, timeout):
-            # update power information
+
+
+    def on_setting_changed(self, key, value):
+        if key in self.__status_options or key in self.__font_options:
+            self.__options[key] = value
+
+        if key == "use_symbolic_icon":
+            self.icon_pixbufs = {}
+            self.menu_icon_pixbufs = {}
+        elif key == "rotation":
+            if self.get_position() in ("left", "right"):
+                self.set_label_rotation(value)
+        elif key in ("low_power_action", "low_capacity", "low_time"):
+            self.__warning_ignored = False
+
+        if key in self.__status_options:
             self.update_status()
-            # if timer enabled, then handle it
-            if timeout:
-                self.timer -= 1
-                self.opacity -= self.opacity_step
-                if self.timer > 1:
-                    second = " seconds."
-                else:
-                    second = " second."
-                if self.timer > 0 and self.power_on_battery:
-                    # show critical low message only if timer ticking and AC not available
-                    message_warning_label.set_markup("This message will automatically disappear in " + str(self.timer) + second)
-                    widget.set_property("opacity", self.opacity)
-                    return True
-                else:
-                    # in other case close message and stop timer
-                    message_battery_low.destroy()
-                    return False
-            # if timer not enabled
-            else:
-                # but AC become available
-                if not self.power_on_battery:
-                    # close message
-                    message_battery_low.destroy()
-                    return False
-                # in other case keep message showing and updating power information
-                else:
-                    return True
-        # setting up default timer
-        self.timer = self.option_timer
-        # setting up opacity variables for fade out effect
-        self.opacity = 1
-        self.opacity_step = float(self.opacity)/self.timer
-        # create icon for message
-        battery_low_pixbuf = self.icon_theme.load_icon("gpm-battery-000", 64, Gtk.IconLookupFlags.FORCE_SVG)
-        battery_low_icon = Gtk.Image()
-        battery_low_icon.set_from_pixbuf(battery_low_pixbuf)
-        battery_low_icon.show()
-        # generate message about low battery percentage
-        message_battery_low = Gtk.MessageDialog(parent = None, buttons = Gtk.ButtonsType.NONE, message_format = None)
-        title_text = "You are now running on reserve battery power."
-        message_text = "Please connect your computer to AC power. If you do not,\nyour computer will go to sleep in a few minutes to preserve\nthe contents of memory."
-        message_battery_low.set_markup('<span weight="bold" size="medium">' + title_text + '</span>' + '\n\n' + message_text)
-        message_battery_low.set_icon(self.pixbuf_gpm_32)
-        message_battery_low.set_property("gravity", Gdk.GRAVITY_NORTH)
-        message_battery_low.set_keep_above(True)
-        message_battery_low.set_image(battery_low_icon)
-        # add Hibernate Now button, if such feature available
-        if self.power_properties_interface.Get(self.power_address, "can-hibernate"):
-            message_battery_low.add_button("Hiber_nate Now", 2)
-        # add Ignore button and set up it by default
-        message_battery_low.add_button("Ign_ore", 1)
-        message_battery_low.set_default_response(1)
-        # add timer and label for destroy dialog
-        if self.timer > 1:
-            message_battery_low.set_property("opacity", self.opacity)
-            message_warning_label = Gtk.Label()
-            message_warning_label.set_markup("This message will automatically disappear in " + str(self.timer) + " seconds.")
-            message_warning_label.show()
-            message_battery_low.vbox.add(message_warning_label)
-            GObject.timeout_add_seconds(self.timer, message_battery_low.destroy)
-            timeout = True
-        elif self.timer == 1:
-            message_battery_low.set_property("opacity", 0.8)
-            timeout = False
-        GObject.timeout_add_seconds(1, count, message_battery_low, timeout)
-        if message_battery_low.run() == 2:
-            self.hibernate()
-        message_battery_low.destroy()
-    
-    
-    def hibernate(self, data = None):
-        """Hibernate call for UPower/DeviceKit-Power D-Bus"""
-        try:
-            if self.package_screensaver and self.option_lock:
-                # to lock screen and
-                os.system("gnome-screensaver-command --lock &")
-            # to hibernate
-            self.power_interface.Hibernate()
-        except dbus.exceptions.DBusException as exception:
-            # if hibernate fail, then do nothing
-            pass
-    
-    
-    def suspend(self, data = None):
-        """Suspend call for UPower/DeviceKit-Power D-Bus"""
-        try:
-            if self.package_screensaver and self.option_lock:
-                # to lock screen and
-                os.system("gnome-screensaver-command --lock &")
-            # to suspend
-            self.power_interface.Suspend()
-        except dbus.exceptions.DBusException as exception:
-            # if suspend fail, then do nothing
-            pass
-    
-    
-    def power_management(self, item, sender, mode, cpus):
-        """Power settings management"""
-        cpu_mode = ""
-        if sender == "menu":
-            # change CPU frequency scaling mode
-            action = item.get_label()
-            power_switch = False
-            cpu_switch = True
-            if action == "Powe_rsave":
-                if mode != "powersave":
-                    for cpu in cpus:
-                        os.system("cpufreq-selector -g powersave -c " + cpu.rstrip('\n'))
-                    cpu_mode = "powersave"
-            elif action == "On_demand":
-                if mode != "ondemand":
-                    for cpu in cpus:
-                        os.system("cpufreq-selector -g ondemand -c " + cpu.rstrip('\n'))
-                    cpu_mode = "ondemand"
-            elif action == "N_ormal":
-                if mode != "conservative":
-                    for cpu in cpus:
-                        os.system("cpufreq-selector -g conservative -c " + cpu.rstrip('\n'))
-                    cpu_mode = "conservative"
-            elif action == "P_erformance":
-                if mode != "performance":
-                    for cpu in cpus:
-                        os.system("cpufreq-selector -g performance -c " + cpu.rstrip('\n'))
-                    cpu_mode = "performance"
-            else:
-                cpu_mode = ""
-                cpu_switch = False
-        elif sender == "signal":
-            # change power source mode
-            cpu_mode = mode
-            power_switch = True
-            cpu_switch = False
-            if self.power_on_battery and self.power_dev != "battery":
-                self.power_dev = "battery"
-            elif not self.power_on_battery and self.power_dev != "ac":
-                self.power_dev = "ac"
-            else:
-                power_switch = False
-        else:
-            power_switch = False
-            cpu_switch = False
-        # update cpu frequency information
-        self.init_cpufreq()
-        # if power state has changed, then switch settings, if available
-        if (power_switch or cpu_switch) and cpu_mode == self.powermode and self.package_power and self.option_gpm:
-            self.power_settings(self.power_dev, cpu_mode)
-    
-    
-    def power_settings(self, power_source, cpu_mode):
-        """Switch power settings according to current power source/cpu frequency"""
-        if power_source == "ac":
-            if cpu_mode == "powersave":
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/idle_dim_ac", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/brightness_ac", 70)
-                self.g_conf.set_bool("/apps/gnome-power-manager/disk/spindown_enable_ac", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_computer_ac", 1800)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_display_ac", 300)
-            elif cpu_mode == "ondemand":
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/idle_dim_ac", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/brightness_ac", 80)
-                self.g_conf.set_bool("/apps/gnome-power-manager/disk/spindown_enable_ac", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_computer_ac", 3600)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_display_ac", 600)
-            elif cpu_mode == "conservative":
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/idle_dim_ac", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/brightness_ac", 90)
-                self.g_conf.set_bool("/apps/gnome-power-manager/disk/spindown_enable_ac", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_computer_ac", 7200)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_display_ac", 1800)
-            elif cpu_mode == "performance":
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/idle_dim_ac", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/brightness_ac", 100)
-                self.g_conf.set_bool("/apps/gnome-power-manager/disk/spindown_enable_ac", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_computer_ac", 0)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_display_ac", 3600)
-            else:
-                pass
-        elif power_source == "battery":
-            if cpu_mode == "powersave":
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/battery_reduce", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/brightness_dim_battery", 60)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/idle_brightness", 20)
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/idle_dim_battery", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/idle_dim_time", 10)
-                self.g_conf.set_bool("/apps/gnome-power-manager/disk/spindown_enable_battery", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_computer_battery", 600)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_display_battery", 60)
-            elif cpu_mode == "ondemand":
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/battery_reduce", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/brightness_dim_battery", 40)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/idle_brightness", 40)
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/idle_dim_battery", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/idle_dim_time", 30)
-                self.g_conf.set_bool("/apps/gnome-power-manager/disk/spindown_enable_battery", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_computer_battery", 1800)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_display_battery", 300)
-            elif cpu_mode == "conservative":
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/battery_reduce", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/brightness_dim_battery", 20)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/idle_brightness", 60)
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/idle_dim_battery", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/idle_dim_time", 60)
-                self.g_conf.set_bool("/apps/gnome-power-manager/disk/spindown_enable_battery", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_computer_battery", 3600)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_display_battery", 600)
-            elif cpu_mode == "performance":
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/battery_reduce", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/brightness_dim_battery", 0)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/idle_brightness", 80)
-                self.g_conf.set_bool("/apps/gnome-power-manager/backlight/idle_dim_battery", True)
-                self.g_conf.set_int("/apps/gnome-power-manager/backlight/idle_dim_time", 90)
-                self.g_conf.set_bool("/apps/gnome-power-manager/disk/spindown_enable_battery", False)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_computer_battery", 7200)
-                self.g_conf.set_int("/apps/gnome-power-manager/timeout/sleep_display_battery", 1800)
-            else:
-                pass
-        else:
-            pass
+        elif key in self.__font_options:
+            self.update_font()
 
-
-class DockXBatteryApplet(DockXApplet):
-    """An example applet for DockbarX standalone dock"""
-
-    def __init__(self, dbx_dict):
-        DockXApplet.__init__(self, dbx_dict)
-        # DockXApplet base class is pretty much a Gtk.EventBox.
-        # so all you have to do is adding your widget with self.add()
-        self.battery_applet = BatteryApplet(self)
-        self.show()
-        
     def update(self):
-        self.battery_applet.update_status()
+        self.update_font()
+        self.__on_icon_theme_changed()
 
+
+class DockXBatteryPreferences(DockXAppletDialog):
+    Title = "Battery Status Applet Preference"
+    
+    def __init__(self, applet_id):
+        DockXAppletDialog.__init__(self, applet_id, title=self.Title)
+
+        frame = Gtk.Frame.new(_("Appearance"))
+        frame.set_valign(Gtk.Align.START)
+        frame.set_vexpand(False)
+        _set_margin(frame, left=5, right=5)
+        self.vbox.pack_start(frame, False, False, 5)
+
+        table = Gtk.Grid()
+        table.set_column_spacing(5)
+        table.set_row_spacing(5)
+        _set_margin(table, left=5, right=5, bottom=5)
+        frame.add(table)
+        row = 0
+
+        icon_visibility = self.get_setting("icon_visibility")
+
+        label = Gtk.Label(_("Show Icon"))
+        label.set_halign(Gtk.Align.START)
+        table.attach(label, 0, row, 1, 1)
+        self.icon_combox = Gtk.ComboBoxText()
+        self.icon_combox.append("always", _("Always"))
+        self.icon_combox.append("low", _("When Low Power"))
+        self.icon_combox.append("charging", _("While Charging"))
+        self.icon_combox.append("never", _("Never"))
+        self.icon_combox.set_hexpand(True)
+        self.icon_combox.set_size_request(220, -1)
+        self.icon_combox.set_active_id(icon_visibility)
+        self.icon_combox.connect("changed", self.__on_combox_item_changed, "icon_visibility")
+        table.attach(self.icon_combox, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Icon Style"))
+        label.set_halign(Gtk.Align.START)
+        table.attach(label, 0, row, 1, 1)
+        self.icon_style_combox = Gtk.ComboBoxText()
+        self.icon_style_combox.append("True", _("Symbolic"))
+        self.icon_style_combox.append("False", _("Normal"))
+        self.icon_style_combox.set_hexpand(True)
+        self.icon_style_combox.set_size_request(220, -1)
+        self.icon_style_combox.set_active_id(str(self.get_setting("use_symbolic_icon")))
+        self.icon_style_combox.set_sensitive(icon_visibility != "never")
+        self.icon_style_combox.connect("changed", self.__on_combox_item_changed, "use_symbolic_icon")
+        table.attach(self.icon_style_combox, 1, row, 1, 1)
+        row += 1
+
+        
+        label_visibility = self.get_setting("label_visibility")
+        
+        label = Gtk.Label(_("Show Label"))
+        label.set_halign(Gtk.Align.START)
+        table.attach(label, 0, row, 1, 1)
+        self.label_combox = Gtk.ComboBoxText()
+        self.label_combox.append("never", _("Never"))
+        self.label_combox.append("time", _("Time to run out"))
+        self.label_combox.append("percent", _("Capacity Percentage"))
+        self.label_combox.set_hexpand(True)
+        self.label_combox.set_size_request(220, -1)
+        self.label_combox.set_active_id(label_visibility)
+        self.label_combox.connect("changed", self.__on_combox_item_changed, "label_visibility")
+        table.attach(self.label_combox, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Font"))
+        label.set_halign(Gtk.Align.START)
+        table.attach(label, 0, row, 1, 1)
+        self.font_button = Gtk.FontButton()
+        self.font_button.set_use_font(True)
+        self.font_button.set_use_size(False)
+        self.font_button.set_show_size(True)
+        self.font_button.set_show_style(True)
+        self.font_button.set_hexpand(True)
+        self.font_button.set_size_request(220, -1)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
+            Gtk.FontChooser.set_font(self.font_button, self.get_setting("font"))
+        else:
+            self.font_button.set_font_name(self.get_setting("font"))
+        self.font_button.set_sensitive(label_visibility != "never")
+        self.font_button.connect("font-set", self.__on_font_changed, "font")
+        table.attach(self.font_button, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Text Color"))
+        label.set_halign(Gtk.Align.START)
+        table.attach(label, 0, row, 1, 1)
+        self.color_button = Gtk.ColorButton()
+        self.color_button.set_hexpand(True)
+        self.color_button.set_size_request(220, -1)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
+            Gtk.ColorChooser.set_use_alpha(self.color_button, True)
+            Gtk.ColorChooser.set_rgba(self.color_button, self.__rgba_convert(self.get_setting("color")))
+        else:
+            self.color_button.set_use_alpha(True)
+            self.color_button.set_rgba(self.__rgba_convert(self.get_setting("color")))
+        self.color_button.set_sensitive(label_visibility != "never")
+        self.color_button.connect("color-set", self.__on_color_changed, "color")
+        table.attach(self.color_button, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Text Direction"))
+        label.set_halign(Gtk.Align.START)
+        table.attach(label, 0, row, 1, 1)
+        self.rotation_combox = Gtk.ComboBoxText()
+        self.rotation_combox.append("no", _("always left-right"))
+        self.rotation_combox.append("anticlockwise", _("top-down on left/right side"))
+        self.rotation_combox.append("clockwise", _("bottom-up on left/right side"))
+        self.rotation_combox.set_hexpand(True)
+        self.rotation_combox.set_size_request(220, -1)
+        self.rotation_combox.set_active_id(self.get_setting("rotation"))
+        self.rotation_combox.set_sensitive(label_visibility != "never")
+        self.rotation_combox.connect("changed", self.__on_combox_item_changed, "rotation")
+        table.attach(self.rotation_combox, 1, row, 1, 1)
+        row += 1
+
+        frame = Gtk.Frame.new(_("Left Click Popup Menu"))
+        frame.set_valign(Gtk.Align.START)
+        frame.set_vexpand(False)
+        _set_margin(frame, left=5, right=5)
+        self.vbox.pack_start(frame, False, False, 5)
+
+        table = Gtk.Grid()
+        table.set_column_spacing(5)
+        table.set_row_spacing(5)
+        _set_margin(table, left=5, right=5, bottom=5)
+        frame.add(table)
+        row = 0
+
+        label = Gtk.Label(_("Show CPU Modes"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.cpumodes_swt = Gtk.Switch()
+        self.cpumodes_swt.set_active(self.get_setting("show_cpu_modes"))
+        self.cpumodes_swt.set_halign(Gtk.Align.END)
+        self.cpumodes_swt.set_hexpand(True)
+        self.cpumodes_swt.connect("state-set", self.__on_switch_changed, "show_cpu_modes")
+        table.attach(self.cpumodes_swt, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Show Sleep Actions"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.sleep_swt = Gtk.Switch()
+        self.sleep_swt.set_active(self.get_setting("show_sleep_actions"))
+        self.sleep_swt.set_halign(Gtk.Align.END)
+        self.sleep_swt.set_hexpand(True)
+        self.sleep_swt.connect("state-set", self.__on_switch_changed, "show_sleep_actions")
+        table.attach(self.sleep_swt, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Show Session Actions"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.session_swt = Gtk.Switch()
+        self.session_swt.set_active(self.get_setting("show_session_actions"))
+        self.session_swt.set_halign(Gtk.Align.END)
+        self.session_swt.set_hexpand(True)
+        self.session_swt.connect("state-set", self.__on_switch_changed, "show_session_actions")
+        table.attach(self.session_swt, 1, row, 1, 1)
+        row += 1
+
+        frame = Gtk.Frame.new(_("Low Power Protection"))
+        frame.set_valign(Gtk.Align.START)
+        frame.set_vexpand(False)
+        _set_margin(frame, left=5, right=5)
+        self.vbox.pack_start(frame, False, False, 5)
+
+        table = Gtk.Grid()
+        table.set_column_spacing(5)
+        table.set_row_spacing(5)
+        _set_margin(table, left=5, right=5, bottom=5)
+        frame.add(table)
+        row = 0
+
+        label = Gtk.Label(_("When Low Power"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.action_combox = Gtk.ComboBoxText()
+        self.action_combox.append("warning", _("Show Warning"))
+        self.action_combox.append("sleep", _("Sleep"))
+        self.action_combox.append("nothing", _("Do Nothing"))
+        self.action_combox.set_hexpand(True)
+        self.action_combox.set_size_request(260, -1)
+        self.action_combox.set_active_id(self.get_setting("low_power_action"))
+        self.action_combox.connect("changed", self.__on_combox_item_changed, "low_power_action")
+        table.attach(self.action_combox, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Remaining Percentage"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.capacity_spin = Gtk.SpinButton()
+        self.capacity_spin.set_range(1, 99)
+        self.capacity_spin.set_digits(0)
+        self.capacity_spin.set_increments(1, 5)
+        self.capacity_spin.set_numeric(True)
+        self.capacity_spin.set_hexpand(True)
+        self.capacity_spin.set_size_request(260, -1)
+        self.capacity_spin.set_value(self.get_setting("low_capacity"))
+        self.capacity_spin.connect("value-changed", self.__on_spin_changed, "low_capacity")
+        table.attach(self.capacity_spin, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Remaining Minutes"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.time_spin = Gtk.SpinButton()
+        self.time_spin.set_range(1, 60)
+        self.time_spin.set_digits(0)
+        self.time_spin.set_increments(5, 10)
+        self.time_spin.set_numeric(True)
+        self.time_spin.set_hexpand(True)
+        self.time_spin.set_size_request(260, -1)
+        self.time_spin.set_value(self.get_setting("low_time"))
+        self.time_spin.connect("value-changed", self.__on_spin_changed, "low_time")
+        table.attach(self.time_spin, 1, row, 1, 1)
+        row += 1
+
+        frame = Gtk.Frame.new(_("Misc"))
+        frame.set_valign(Gtk.Align.START)
+        frame.set_vexpand(False)
+        _set_margin(frame, left=5, right=5)
+        self.vbox.pack_start(frame, False, False, 5)
+
+        table = Gtk.Grid()
+        table.set_column_spacing(5)
+        table.set_row_spacing(5)
+        _set_margin(table, left=5, right=5, bottom=5)
+        frame.add(table)
+        row = 0
+
+        label = Gtk.Label(_("Restore Last CPU Mode On Startup"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.restore_swt = Gtk.Switch()
+        self.restore_swt.set_active(self.get_setting("restore_cpu_mode"))
+        self.restore_swt.set_halign(Gtk.Align.END)
+        self.restore_swt.set_hexpand(True)
+        self.restore_swt.set_sensitive(CpufreqUtils().can_write())
+        self.restore_swt.connect("state-set", self.__on_switch_changed, "restore_cpu_mode")
+        table.attach(self.restore_swt, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Confirm Before Sleep Actions"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.sleepconfirm_swt = Gtk.Switch()
+        self.sleepconfirm_swt.set_active(self.get_setting("confirm_sleep"))
+        self.sleepconfirm_swt.set_halign(Gtk.Align.END)
+        self.sleepconfirm_swt.set_hexpand(True)
+        self.sleepconfirm_swt.connect("state-set", self.__on_switch_changed, "confirm_sleep")
+        table.attach(self.sleepconfirm_swt, 1, row, 1, 1)
+        row += 1
+
+        label = Gtk.Label(_("Confirm Before Session Actions"))
+        label.set_halign(Gtk.Align.START)
+        _set_margin(label, left=5)
+        table.attach(label, 0, row, 1, 1)
+        self.sessionconfirm_swt = Gtk.Switch()
+        self.sessionconfirm_swt.set_active(self.get_setting("confirm_session"))
+        self.sessionconfirm_swt.set_halign(Gtk.Align.END)
+        self.sessionconfirm_swt.set_hexpand(True)
+        self.sessionconfirm_swt.connect("state-set", self.__on_switch_changed, "confirm_session")
+        table.attach(self.sessionconfirm_swt, 1, row, 1, 1)
+        row += 1
+
+        self.vbox.show_all()
+        return
+
+    def __on_combox_item_changed(self, combox, key):
+        value = combox.get_active_id()
+        if key == "icon_visibility":
+            self.icon_style_combox.set_sensitive(value != "never")
+        elif key == "label_visibility":
+            self.font_button.set_sensitive(value != "never")
+            self.color_button.set_sensitive(value != "never")
+            self.rotation_combox.set_sensitive(value != "never")
+        elif key == "use_symbolic_icon":
+            value = value == "True"
+            self.icon_pixbufs = {}
+        self.set_setting(key, value)
+
+    def __on_switch_changed(self, switch, state, option):
+        self.set_setting(option, state)
+
+    def __on_font_changed(self, button, option):
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
+            font = Gtk.FontChooser.get_font(button);
+        else:
+            font = button.get_font_name()
+        self.set_setting(option, font)
+
+    def __on_color_changed(self, button, option):
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
+            rgba = Gtk.ColorChooser.get_rgba(button);
+        else:
+            rgba = button.get_rgba()
+        self.set_setting(option, self.__rgba_convert(rgba))
+
+    def __on_spin_changed(self, spin, option):
+        self.set_setting(option, spin.get_value_as_int())
+
+    def __rgba_convert(self, data):
+        if type(data) == list:
+            while len(data) < 4:
+                data.append(1.0)
+            rgba = Gdk.RGBA()
+            rgba.red = data[0]
+            rgba.green = data[1]
+            rgba.blue = data[2]
+            rgba.alpha = data[3]
+            return rgba
+        else:
+            return [ data.red, data.green, data.blue, data.alpha ]
+
+    def on_setting_changed(self, key, value):
+        if key == "label_visibility":
+            self.label_combox.set_active_id(value)
+        elif key == "icon_visibility":
+            self.icon_combox.set_active_id(value)
+        elif key == "use_symbolic_icon":
+            self.icon_style_combox.set_active_id(str(value))
+        elif key == "font":
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
+                Gtk.FontChooser.set_font(self.font_button, value);
+            else:
+                self.font_button.set_font_name(value)
+        elif key == "color":
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
+                Gtk.ColorChooser.set_rgba(self.color_button, self.__rgba_convert(value))
+            else:
+                self.color_button.set_rgba(self.__rgba_convert(value))
+        elif key == "rotation":
+            self.rotation_combox.set_active_id(value)
+        elif key == "show_cpu_modes":
+            self.cpumodes_swt.set_active(value)
+        elif key == "show_sleep_actions":
+            self.sleep_swt.set_active(value)
+        elif key == "show_session_actions":
+            self.session_swt.set_active(value)
+        elif key == "low_power_action":
+            self.action_combox.set_active_id(value)
+        elif key == "low_capacity":
+            self.capacity_spin.set_value(value)
+        elif key == "low_time":
+            self.time_spin.set_value(value)
+        elif key == "restore_cpu_mode":
+            self.restore_swt.set_active(value)
+        elif key == "confirm_sleep":
+            self.sleepconfirm_swt.set_active(value)
+        elif key == "confirm_session":
+            self.sessionconfirm_swt.set_active(value)
 
 dockx_battery_applet = None
 
@@ -1807,3 +1687,9 @@ def get_dbx_applet(dbx_dict):
     else: 
         dockx_battery_applet.update()
     return dockx_battery_applet
+
+def run_applet_dialog(applet_id):
+    dialog = DockXBatteryPreferences(applet_id)
+    dialog.run()
+    dialog.destroy()
+
