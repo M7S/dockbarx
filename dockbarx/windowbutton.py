@@ -33,7 +33,7 @@ import Xlib
 from PIL import Image
 
 from .common import ODict, Globals, Opacify
-from .common import connect, disconnect, opacify, deopacify
+from .common import opacify, deopacify
 from .common import XDisplay
 from .cairowidgets import *
 from .log import logger
@@ -59,8 +59,6 @@ class Window():
         self.group_r = weakref.ref(group)
         self.globals = Globals()
         self.opacify_obj = Opacify()
-        connect(self.globals, "show-only-current-monitor-changed",
-                             self.__on_show_only_current_monitor_changed)
         self.screen = Wnck.Screen.get_default()
         self.wnck = wnck_window
         self.deopacify_sid = None
@@ -71,6 +69,8 @@ class Window():
         self.on_current_desktop = self.is_on_current_desktop()
         self.monitor = self.get_monitor()
 
+        self.globals_event = self.globals.connect("show-only-current-monitor-changed",
+                                                self.__on_show_only_current_monitor_changed)
         self.state_changed_event = self.wnck.connect("state-changed",
                                                 self.__on_window_state_changed)
         self.icon_changed_event = self.wnck.connect("icon-changed",
@@ -130,6 +130,7 @@ class Window():
 
         self.item.clean_up()
         self.item.destroy()
+        self.globals.disconnect(self.globals_event)
         self.wnck.disconnect(self.state_changed_event)
         self.wnck.disconnect(self.icon_changed_event)
         self.wnck.disconnect(self.name_changed_event)
@@ -359,12 +360,16 @@ class WindowItem(CairoButton):
         self.close_button.connect("clicked", self.__on_close_button_clicked)
         self.close_button.connect("leave-notify-event",
                                   self.__on_close_button_leave)
-        connect(self.globals, "show-close-button-changed",
-                              self.__on_show_close_button_changed)
-        connect(self.globals, "color-changed", self.__update_label)
-        connect(self.globals, "preview-size-changed", self.update_preview)
-        connect(self.globals, "window-title-width-changed",
-                              self.__update_label)
+
+        self.globals_events = []
+        self.globals_events.append(self.globals.connect("show-close-button-changed",
+                                    self.__on_show_close_button_changed))
+        self.globals_events.append(self.globals.connect("color-changed",
+                                    self.__update_label))
+        self.globals_events.append(self.globals.connect("preview-size-changed",
+                                    self.update_preview))
+        self.globals_events.append(self.globals.connect("window-title-width-changed",
+                                    self.__update_label))
 
     def clean_up(self):
         window = self.window_r()
@@ -375,6 +380,8 @@ class WindowItem(CairoButton):
             GLib.source_remove(self.opacify_sid)
         if self.press_sid:
             GLib.source_remove(self.press_sid)
+        while self.globals_events:
+            self.globals.disconnect(self.globals_events.pop())
         self.close_button.destroy()
 
     def show(self):
