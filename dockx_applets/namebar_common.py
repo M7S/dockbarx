@@ -250,18 +250,49 @@ class PrefDialog(DockXAppletDialog):
             self.show_title_cbt.append_text(op)
         self.show_title_cbt.connect("changed", self.show_title_changed)
         table.attach(label, 0, row, 1, 1)
-        table.attach(self.show_title_cbt, 1, row, 3, 1)
+        table.attach(self.show_title_cbt, 1, row, 2, 1)
 
         # A directory of combobox names and the name of corresponding setting
-        color_settings_and_labels = { "active": _('Active'),
-                                      "passive": _('Passive')}
+        color_settings_and_labels = { "active": _('Active Color'),
+                                      "passive": _('Passive Color')}
+        font_settings_and_labels = { "active": _('Active Font'),
+                                      "passive": _('Passive Font')}
         # A list to ensure that the order is kept correct
-        color_labels = ['active', 'passive']
+        color_font_labels = ['active', 'passive']
         self.color_buttons = {}
-        self.clear_buttons = {}
-        self.bold_cb = {}
-        for name in color_labels:
-            row = row + 1
+        self.color_clear_buttons = {}
+        self.font_buttons = {}
+        self.font_clear_buttons = {}
+        for name in color_font_labels:
+            row += 1
+            text = font_settings_and_labels[name]
+            label = Gtk.Label.new(text)
+            self.font_button = Gtk.FontButton()
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+                label.set_margin_start(5)
+            else:
+                label.set_margin_left(5)
+            label.set_halign(Gtk.Align.END)
+            self.font_buttons[name] = Gtk.FontButton()
+            self.font_buttons[name].set_use_font(True)
+            self.font_buttons[name].set_use_size(False)
+            self.font_buttons[name].set_show_size(True)
+            self.font_buttons[name].set_show_style(True)
+            self.font_buttons[name].set_hexpand(True)
+            self.font_buttons[name].connect("font-set", self.font_set, name)
+            self.font_clear_buttons[name] = Gtk.Button()
+            image = Gtk.Image.new_from_icon_name("edit-clear", Gtk.IconSize.SMALL_TOOLBAR)
+            self.font_clear_buttons[name].add(image)
+            self.font_clear_buttons[name].connect("clicked", self.font_reset, name)
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+                self.font_clear_buttons[name].set_margin_end(5)
+            else:
+                self.font_clear_buttons[name].set_margin_right(5)
+            table.attach(label, 0, row, 1, 1)
+            table.attach(self.font_buttons[name], 1, row, 1, 1)
+            table.attach(self.font_clear_buttons[name], 2, row, 1, 1)
+
+            row += 1
             text = color_settings_and_labels[name]
             label = Gtk.Label.new(text)
             if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
@@ -270,10 +301,6 @@ class PrefDialog(DockXAppletDialog):
                 label.set_margin_left(5)
             label.set_halign(Gtk.Align.END)
             self.color_buttons[name] = Gtk.ColorButton()
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-                self.color_buttons[name].set_margin_start(5)
-            else:
-                self.color_buttons[name].set_margin_left(5)
             self.color_buttons[name].set_title(text)
             if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
                 Gtk.ColorChooser.set_use_alpha(self.color_buttons[name], True)
@@ -281,24 +308,19 @@ class PrefDialog(DockXAppletDialog):
                 self.color_buttons[name].set_use_alpha(True)
             self.color_buttons[name].set_hexpand(True)
             self.color_buttons[name].connect("color-set", self.color_set, name)
-            self.clear_buttons[name] = Gtk.Button()
+            self.color_clear_buttons[name] = Gtk.Button()
             image = Gtk.Image.new_from_icon_name("edit-clear", Gtk.IconSize.SMALL_TOOLBAR)
-            self.clear_buttons[name].add(image)
-            self.clear_buttons[name].connect("clicked", self.color_reset, name)
-
-            self.bold_cb[name] = Gtk.CheckButton('Bold')
+            self.color_clear_buttons[name].add(image)
+            self.color_clear_buttons[name].connect("clicked", self.color_reset, name)
             if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-                self.bold_cb[name].set_margin_end(5)
+                self.color_clear_buttons[name].set_margin_end(5)
             else:
-                self.bold_cb[name].set_margin_right(5)
-            self.bold_cb[name].connect('toggled', self.checkbutton_toggled,
-                                       ('%s_bold'%name, True))
+                self.color_clear_buttons[name].set_margin_right(5)
             table.attach(label, 0, row, 1, 1)
             table.attach(self.color_buttons[name], 1, row, 1, 1)
-            table.attach(self.clear_buttons[name], 2, row, 1, 1)
-            table.attach(self.bold_cb[name], 3, row, 1, 1)
+            table.attach(self.color_clear_buttons[name], 2, row, 1, 1)
 
-        row = row + 1
+        row += 1
         label = Gtk.Label.new(_("Alignment"))
         label.set_halign(Gtk.Align.END)
         self.al_cbt = Gtk.ComboBoxText()
@@ -316,14 +338,14 @@ class PrefDialog(DockXAppletDialog):
             self.al_cbt.append_text(op)
         self.al_cbt.connect("changed",  self.al_cbt_changed)
         table.attach(label, 0, row, 1, 1)
-        table.attach(self.al_cbt, 1, row, 3, 1)
+        table.attach(self.al_cbt, 1, row, 2, 1)
 
-        row = row + 1
+        row += 1
         self.expand_cb = Gtk.CheckButton(_('Expand in panel mode'))
         self.expand_cb.connect('toggled', self.checkbutton_toggled, ('expand', False))
-        table.attach(self.expand_cb, 0, row, 4, 1)
+        table.attach(self.expand_cb, 0, row, 3, 1)
 
-        row = row + 1
+        row += 1
         label = Gtk.Label.new(_("Size"))
         if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
             label.set_margin_end(5)
@@ -339,7 +361,7 @@ class PrefDialog(DockXAppletDialog):
         else:
             self.size_spin.set_margin_right(5)
         adj.connect("value_changed", self.spin_changed, self.size_spin)
-        table.attach(self.size_spin, 1, row, 3, 1)
+        table.attach(self.size_spin, 1, row, 2, 1)
 
         frame.add(table)
 
@@ -375,12 +397,15 @@ class PrefDialog(DockXAppletDialog):
         elif key == 'active_color' or key == "passive_color":
             state = key.split("_")[0]
             self.set_button_color(self.color_buttons[state], state, color=value)
+        elif key == 'active_font' or key == "passive_font":
+            state = key.split("_")[0]
+            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
+                Gtk.FontChooser.set_font(self.font_buttons[state], value)
+            else:
+                self.font_buttons[state].set_font_name(value)
         elif key == 'active_alpha' or key == "passive_alpha":
             state = key.split("_")[0]
             self.set_button_color(self.color_buttons[state], state, alpha=value)
-        elif key == 'active_bold' or key == "passive_bold":
-            state = key.split("_")[0]
-            self.bold_cb[state].set_active(value)
         elif key == "alignment":
             alignments = [ "left / top", "center", "right / bottom" ]
             self.al_cbt.set_active(alignments.index(value))
@@ -402,7 +427,7 @@ class PrefDialog(DockXAppletDialog):
     def update(self):
         prefs = ("show_title", "use_custom_layout", "custom_layout",
                  "expand", "size", "theme", "active_color",
-                 "passive_color", "active_bold", "passive_bold",
+                 "passive_color", "active_font", "passive_font",
                  "alignment")
         for pref in prefs:
             self.on_setting_changed(pref, self.get_setting(pref))
@@ -440,6 +465,17 @@ class PrefDialog(DockXAppletDialog):
     def reset_custom_layout(self, *args):
         self.set_setting("custom_layout", None, ignore_changed_event=False)
 
+    def font_set(self, button, setting_base):
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
+            font = Gtk.FontChooser.get_font(button)
+        else:
+            font = button.get_font_name()
+        self.set_setting(setting_base+"_font", font)
+
+    def font_reset(self, button, setting_base):
+        # Reset font setting to default.
+        self.set_setting("%s_font" % setting_base, None, ignore_changed_event=False)
+
     def color_set(self, button, setting_base):
         # Read the value from color (and alpha) and write
         # it as 8-bit/channel hex string.
@@ -470,7 +506,8 @@ class PrefDialog(DockXAppletDialog):
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/dockbarx/applets/namebar_themes", "/usr/share/namebar/themes", os.path.join(get_namebar_homedir(), "themes")]
+        dirs = [os.path.join(os.path.dirname(__file__), "namebar_themes"),
+                os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):
@@ -484,10 +521,10 @@ class PrefDialog(DockXAppletDialog):
             md = Gtk.MessageDialog(None,
                 Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                 Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
-                'No working themes found in "/usr/share/dockbarx/applets/namebar_themes", "/usr/share/namebar/themes" or "~/.namebar/themes"')
+                'No working themes found in ' + ' or '.join(dirs))
             md.run()
             md.destroy()
-            print('Preference dialog error: No working themes found in "/usr/share/dockbarx/applets/namebar_themes", "/usr/share/namebar/themes" or "~/.local/share/namebar/themes"')
+            print('Preference dialog error: No working themes found in ' + ' or '.join(dirs))
         return themes
 
 

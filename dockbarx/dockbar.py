@@ -584,7 +584,6 @@ class DockBar():
             del self.groups
         del self.skip_tasklist_windows
         del self.windows
-        disconnect(self.globals)
         if self.theme:
             self.theme.remove()
 

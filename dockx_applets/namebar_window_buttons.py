@@ -149,7 +149,8 @@ class WindowButtonApplet(DockXApplet):
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = ["/usr/share/dockbarx/applets/namebar_themes", "/usr/share/namebar/themes", os.path.join(get_namebar_homedir(), "themes")]
+        dirs = [os.path.join(os.path.dirname(__file__), "namebar_themes"),
+                os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):
                 for f in os.listdir(dir):

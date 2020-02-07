@@ -33,7 +33,7 @@ from math import pi, cos, sin
 from PIL import Image
 
 from .theme import Theme
-from .common import Globals, connect, disconnect
+from .common import Globals
 from .log import logger
 
 from . import i18n
@@ -73,7 +73,7 @@ class IconFactory():
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.theme = Theme()
         self.globals = Globals()
-        connect(self.globals, "color-changed", self.reset_surfaces)
+        self.globals_event = self.globals.connect("color-changed", self.reset_surfaces)
         self.desktop_entry = desktop_entry
         self.identifier = identifier
         self.class_group = class_group
@@ -99,6 +99,7 @@ class IconFactory():
             self.types_in_theme = self.types_in_theme | self.TYPE_DICT[type_]
 
     def remove(self):
+        self.globals.disconnect(self.globals_event)
         del self.desktop_entry
         del self.class_group
         del self.icon

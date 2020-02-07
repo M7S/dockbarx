@@ -229,10 +229,9 @@ class AppletsFrame():
         applet_list = self.applets.get_list()
         unused_list = self.applets.get_unused_list()
 
-        self.box = Gtk.VBox()
-        self.box.set_spacing(7)
-        hbox = Gtk.HBox()
-        vbox = Gtk.VBox()
+        self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 7)
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.applet_view = self.create_treeview(applet_list, "Applets", True)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
@@ -244,7 +243,7 @@ class AppletsFrame():
         hbox.pack_start(vbox, True, True, 0)
 
 
-        bbox = Gtk.VBox()
+        bbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
 
         self.add_button = self.create_image_button("go-previous",
                                               self.on_add_button_clicked,
@@ -272,7 +271,7 @@ class AppletsFrame():
                                                  bbox)
         hbox.pack_start(bbox, False, False, 0)
 
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.av_applet_view = self.create_treeview(unused_list,
                                                    "Available applets",
                                                    False, True)
@@ -503,18 +502,18 @@ class PrefDialog():
             ca = self.dialog.vbox
         notebook = Gtk.Notebook()
         notebook.set_tab_pos(Gtk.PositionType.LEFT)
-        appearance_box = Gtk.VBox()
-        windowbutton_box = Gtk.VBox()
-        groupbutton_box = Gtk.VBox()
-        plugins_box = Gtk.VBox()
-        advanced_box = Gtk.VBox()
-        popup_box = Gtk.VBox()
-        dock_box = Gtk.VBox()
+        appearance_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        windowbutton_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        groupbutton_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        plugins_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        advanced_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        popup_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        dock_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.applets_frame = AppletsFrame()
         dock_applets_box = self.applets_frame.get_box()
 
         #--- Window item page
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         frame = Gtk.Frame()
         frame.set_label(_("Window item actions"))
         frame.set_border_width(5)
@@ -600,7 +599,7 @@ class PrefDialog():
 
 
         #--- Appearance page
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         label = Gtk.Label(label=_("Theme:"))
         label.set_xalign(1)
         label.set_yalign(0.5)
@@ -633,7 +632,7 @@ class PrefDialog():
         table.set_border_width(5)
         table.set_column_spacing(5)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         hbox.set_border_width(10)
         label = Gtk.Label(label=_("Window list style:"))
         label.set_xalign(1)
@@ -705,11 +704,11 @@ class PrefDialog():
 
 
         # Needs attention effect frame
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         frame = Gtk.Frame()
         frame.set_label(_("Needs attention effect"))
         frame.set_border_width(5)
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         vbox.set_border_width(10)
         self.rb1_1 = Gtk.RadioButton.new_with_label_from_widget(None, _("Compiz water"))
         self.rb1_1.connect("toggled", self.__rb_toggled, "rb1_compwater")
@@ -741,12 +740,12 @@ class PrefDialog():
             self.old_menu_cb.set_margin_right(10)
         appearance_box.pack_start(self.old_menu_cb, False, True, 0)
 
-        bpbox = Gtk.HBox()
+        bpbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         # Badge frame
         frame = Gtk.Frame()
         frame.set_label(_("Badge"))
         frame.set_border_width(5)
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         vbox.set_border_width(10)
         label = Gtk.Label(label=_("Custom colors"))
         vbox.pack_start(label, False, True, 0)
@@ -778,7 +777,7 @@ class PrefDialog():
             table.attach(self.badge_color_buttons[i], 1, i, 1, 1)
         vbox.pack_start(table, False, True, 0)
 
-        bfbox = Gtk.HBox()
+        bfbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.custom_badge_cb = Gtk.CheckButton.new_with_label(_("Custom font and size"))
         self.custom_badge_cb.connect("toggled", self.__checkbutton_toggled,
                                      "badge_use_custom_font")
@@ -800,7 +799,7 @@ class PrefDialog():
         frame = Gtk.Frame()
         frame.set_label(_("Progress bar"))
         frame.set_border_width(5)
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         vbox.set_border_width(10)
         label = Gtk.Label(label=_("Custom colors"))
         vbox.pack_start(label, False, True, 0)
@@ -856,7 +855,7 @@ class PrefDialog():
                                  "groupbutton_show_tooltip")
         popup_box.pack_start(self.show_tooltip_cb, False, True, 5)
 
-        self.preview_size_spinbox = Gtk.HBox()
+        self.preview_size_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.preview_size_spinbox.set_border_width(5)
         spinlabel = Gtk.Label(label=_("Preview size"))
         spinlabel.set_xalign(0)
@@ -871,7 +870,7 @@ class PrefDialog():
         self.preview_size_spinbox.set_no_show_all(True)
         popup_box.pack_start(self.preview_size_spinbox, False, True, 5)
 
-        self.window_title_width_spinbox = Gtk.HBox()
+        self.window_title_width_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.window_title_width_spinbox.set_border_width(5)
         spinlabel = Gtk.Label(label=_("Window title width"))
         spinlabel.set_xalign(0)
@@ -888,13 +887,13 @@ class PrefDialog():
         popup_box.pack_start(self.window_title_width_spinbox, False, True, 5)
 
         # Delay
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         label1 = Gtk.Label(label="<b><big>%s</big></b>"%_("Delay"))
         label1.set_xalign(0)
         label1.set_yalign(0.5)
         label1.set_use_markup(True)
         vbox.pack_start(label1,False, True, 0)
-        spinbox = Gtk.HBox()
+        spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         spinlabel = Gtk.Label(label=_("Delay"))
         spinlabel.set_xalign(0)
         spinlabel.set_yalign(0.5)
@@ -905,7 +904,7 @@ class PrefDialog():
         spinbox.pack_start(self.delay_spin, False, True, 5)
         vbox.pack_start(spinbox, False, True, 0)
 
-        spinbox = Gtk.HBox()
+        spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         spinlabel = Gtk.Label(label=_("Delay for switching between window lists"))
         spinlabel.set_xalign(0)
         spinlabel.set_yalign(0.5)
@@ -919,7 +918,7 @@ class PrefDialog():
         popup_box.pack_start(vbox, False, True, 5)
 
         # Previews
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         label1 = Gtk.Label(label="<b><big>%s</big></b>"%_("Previews"))
         label1.set_xalign(0)
         label1.set_yalign(0.5)
@@ -938,7 +937,7 @@ class PrefDialog():
         popup_box.pack_start(vbox, False, True, 5)
 
         # Locked list
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         label1 = Gtk.Label(label="<b><big>%s</big></b>"%_("Locked list"))
         label1.set_xalign(0)
         label1.set_yalign(0.5)
@@ -959,7 +958,7 @@ class PrefDialog():
         popup_box.pack_start(vbox, False, True, 5)
 
         # "Select" action options frame
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         label1 = Gtk.Label.new("<b><big>%s</big></b>"%_("\"Select next\" behavior"))
         label1.set_xalign(0)
         label1.set_yalign(0.5)
@@ -1056,7 +1055,7 @@ class PrefDialog():
         groupbutton_box.pack_start(frame, False, True, 5)
 
         # "Select" action options frame
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         frame = Gtk.Frame()
         frame.set_label(_("\"Select\" action options"))
         frame.set_border_width(5)
@@ -1173,7 +1172,7 @@ class PrefDialog():
         frame = Gtk.Frame()
         frame.set_label(_("Opacify"))
         frame.set_border_width(5)
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         vbox.set_border_width(10)
         self.opacify_cb = Gtk.CheckButton.new_with_label(_("Opacify"))
         self.opacify_cb.set_tooltip_text(_("Opacify will make all other windows transparent when hovering a name or preview of a window in the window list."))
@@ -1189,7 +1188,7 @@ class PrefDialog():
                                      self.__checkbutton_toggled, "opacify_fade")
         vbox.pack_start(self.opacify_fade_cb, False, True, 0)
 
-        scalebox = Gtk.HBox()
+        scalebox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         scalelabel = Gtk.Label(label=_("Opacity"))
         scalelabel.set_xalign(0)
         scalelabel.set_yalign(0.5)
@@ -1202,7 +1201,7 @@ class PrefDialog():
         scalebox.pack_start(self.opacify_scale, True, True, 0)
         vbox.pack_start(scalebox, False, True, 0)
 
-        scalebox = Gtk.HBox()
+        scalebox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         scalelabel = Gtk.Label(label=_("Smoothness"))
         scalelabel.set_xalign(0)
         scalelabel.set_yalign(0.5)
@@ -1291,9 +1290,8 @@ class PrefDialog():
         advanced_box.pack_start(frame, False, False, 5)
 
         #--- Dock page
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         hbox.set_border_width(5)
-        hbox.set_spacing(5)
         label = Gtk.Label(label=_("Type"))
         hbox.pack_start(label, False, False, 0)
         self.dock_mode_box = Gtk.ComboBoxText()
@@ -1307,9 +1305,8 @@ class PrefDialog():
         hbox.pack_start(self.end_decoration_cb, False, True, 5)
         dock_box.pack_start(hbox, False, True, 0)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         hbox.set_border_width(5)
-        hbox.set_spacing(5)
         label = Gtk.Label(label=_("Position"))
         hbox.pack_start(label, False, False, 0)
         self.dock_position_box = Gtk.ComboBoxText()
@@ -1319,9 +1316,8 @@ class PrefDialog():
         hbox.pack_start(self.dock_position_box, False, True, 0)
         dock_box.pack_start(hbox, False, True, 0)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         hbox.set_border_width(5)
-        hbox.set_spacing(5)
         label = Gtk.Label(label=_("Behavior"))
         hbox.pack_start(label, False, False, 0)
         self.dock_behavior_box = Gtk.ComboBoxText()
@@ -1332,9 +1328,8 @@ class PrefDialog():
         hbox.pack_start(self.dock_behavior_box, False, True, 0)
         dock_box.pack_start(hbox, False, True, 0)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         hbox.set_border_width(5)
-        hbox.set_spacing(5)
         label = Gtk.Label(label=_("Size"))
         hbox.pack_start(label, False, True, 0)
         adj = Gtk.Adjustment.new(self.globals.settings["dock/size"],
@@ -1344,9 +1339,8 @@ class PrefDialog():
         hbox.pack_start(self.dock_size_spin, False, True, 0)
         dock_box.pack_start(hbox, False, True, 0)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         hbox.set_border_width(5)
-        hbox.set_spacing(5)
         label = Gtk.Label(label=_("Offset"))
         label.set_tooltip_text(_("Use this if the dock isn't able to automatically avoid overlapping with other panels"))
         hbox.pack_start(label, False, True, 0)
@@ -1357,7 +1351,7 @@ class PrefDialog():
         hbox.pack_start(self.dock_offset_spin, False, True, 0)
         dock_box.pack_start(hbox, False, True, 0)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         label = Gtk.Label(label=_("Dock theme:"))
         label.set_xalign(1)
         label.set_yalign(0.5)
@@ -1380,9 +1374,8 @@ class PrefDialog():
         frame = Gtk.Frame()
         frame.set_label(_("Colors"))
         frame.set_border_width(5)
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         hbox.set_border_width(5)
-        hbox.set_spacing(5)
         label = Gtk.Label(label=_("Background color"))
         self.dock_bg_color_button = Gtk.ColorButton()
         if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
@@ -1401,8 +1394,7 @@ class PrefDialog():
         hbox.pack_start(label, False, True, 0)
         hbox.pack_start(self.dock_bg_color_button, False, True, 0)
         hbox.pack_start(self.dock_bg_color_clear, False, True, 0)
-        self.dock_bar2_box = Gtk.HBox()
-        self.dock_bar2_box.set_spacing(5)
+        self.dock_bar2_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         label = Gtk.Label(label=_("Second background color"))
         label.set_xalign(1)
         label.set_yalign(0.5)

@@ -33,6 +33,7 @@ import os
 from gi.repository import Pango
 from xml.sax.saxutils import escape
 import weakref
+import Xlib
 
 from .windowbutton import Window
 from .iconfactory import IconFactory
@@ -132,9 +133,8 @@ class Group(ListOfWindows):
         ListOfWindows.__init__(self)
         self.dockbar_r = weakref.ref(dockbar)
         self.globals = Globals()
-        # Todo: Make globals connections disconnectable!
-        connect(self.globals, "show-only-current-desktop-changed",
-                self.__on_show_only_current_desktop_changed)
+        self.globals_event = self.globals.connect("show-only-current-desktop-changed",
+                                                  self.__on_show_only_current_desktop_changed)
         self.opacify_obj = Opacify()
         self.pinned = pinned
         self.desktop_entry = desktop_entry
@@ -223,6 +223,7 @@ class Group(ListOfWindows):
             disconnect(self.menu)
         if self.window_list:
             self.window_list.destroy()
+        self.globals.disconnect(self.globals_event)
 
     def get_monitor(self):
         window = self.dockbar_r().groups.box.get_window()
@@ -899,7 +900,7 @@ class Group(ListOfWindows):
         # them (unless they are on another workspace and work-
         # space behavior is something other than move) and
         # return.
-        if self.get_unminimized_count == 0:
+        if self.get_unminimized_count() == 0:
             # Only unminimize if all windows are minimize
             unminimized = False
             for window in minimized_windows:
@@ -1028,6 +1029,7 @@ class Group(ListOfWindows):
             # be tracked during compiz move effect
             if not (x == 0 and y == 0):
                 self.popup.hide()
+            unminimized = False
             for window in grp_win_stacked:
                 if window.wnck.is_minimized():
                     window.wnck.unminimize(event.time)
@@ -1375,7 +1377,7 @@ class GroupButton(CairoAppButton):
         self.deopacify_sid = None
 
 
-        connect(self.globals, "show-tooltip-changed",
+        self.globals_event = self.globals.connect("show-tooltip-changed",
                 self.update_tooltip)
 
         #--- D'n'D
@@ -1433,6 +1435,7 @@ class GroupButton(CairoAppButton):
         if self.icon_factory:
             self.icon_factory.remove()
             self.icon_factory = None
+        self.globals.disconnect(self.globals_event)
         CairoAppButton.destroy(self, *args, **kwargs)
 
     #### State
@@ -2461,11 +2464,14 @@ class WindowList(Gtk.Box):
         self.pack_start(self.title, False, False, 0)
         self.set_show_previews(self.globals.settings["preview"])
 
-        connect(self.globals, "color2-changed", self.update_title)
-        connect(self.globals, "show-previews-changed",
-                self.__on_show_previews_changed)
+        self.globals_events = []
+        self.globals_events.append(self.globals.connect("color2-changed", self.update_title))
+        self.globals_events.append(self.globals.connect("show-previews-changed",
+                self.__on_show_previews_changed))
 
     def destroy(self, *args, **kvargs):
+        while self.globals_events:
+            self.globals.disconnect(self.globals_events.pop())
         Gtk.Box.destroy(self, *args, **kvargs)
 
     def show_all(self):
