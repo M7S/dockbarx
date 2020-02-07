@@ -900,7 +900,7 @@ class Group(ListOfWindows):
         # them (unless they are on another workspace and work-
         # space behavior is something other than move) and
         # return.
-        if self.get_unminimized_count == 0:
+        if self.get_unminimized_count() == 0:
             # Only unminimize if all windows are minimize
             unminimized = False
             for window in minimized_windows:
@@ -1029,6 +1029,7 @@ class Group(ListOfWindows):
             # be tracked during compiz move effect
             if not (x == 0 and y == 0):
                 self.popup.hide()
+            unminimized = False
             for window in grp_win_stacked:
                 if window.wnck.is_minimized():
                     window.wnck.unminimize(event.time)
