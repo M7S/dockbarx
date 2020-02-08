@@ -365,10 +365,4 @@ class AppIndicatorApplet(DockXApplet):
         logger.error(err)
 
 def get_dbx_applet(dbx_dict):
-    global aiapplet
-    try:
-        aiapplet.repack()
-    except:
-        # First run, make a new instance
-        aiapplet = AppIndicatorApplet(dbx_dict)
-    return aiapplet
+    return AppIndicatorApplet(dbx_dict)
