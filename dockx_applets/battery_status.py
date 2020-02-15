@@ -1678,15 +1678,8 @@ class DockXBatteryPreferences(DockXAppletDialog):
         elif key == "confirm_session":
             self.sessionconfirm_swt.set_active(value)
 
-dockx_battery_applet = None
-
 def get_dbx_applet(dbx_dict):
-    global dockx_battery_applet
-    if dockx_battery_applet is None:
-        dockx_battery_applet = DockXBatteryApplet(dbx_dict)
-    else: 
-        dockx_battery_applet.update()
-    return dockx_battery_applet
+    return DockXBatteryApplet(dbx_dict)
 
 def run_applet_dialog(applet_id):
     dialog = DockXBatteryPreferences(applet_id)

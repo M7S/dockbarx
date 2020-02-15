@@ -92,8 +92,6 @@ class install_data(_install_data):
         self.scan_path("share/dockbarx/applets/namebar_themes",
                        "dockx_applets/namebar_themes",
                        ext=".tar.gz")
-        self.scan_path("share/dockbarx/applets/vc-themes",
-                       "dockx_applets/vc-themes")
         _install_data.run(self)
 
     def scan_path(self, install_path, base_path, path="", ext=""):
@@ -125,9 +123,6 @@ data_files=[
                                              "dockx_applets/battery_status.py",
                                              "dockx_applets/battery_status.applet",
                                              "dockx_applets/battery_status_helper.sh",
-                                             "dockx_applets/volume-control.py",
-                                             "dockx_applets/volume-control.applet",
-                                             "dockx_applets/volume-control.ui",
                                              "dockx_applets/namebar_common.py",
                                              "dockx_applets/namebar_window_buttons.applet",
                                              "dockx_applets/namebar_window_buttons.py",

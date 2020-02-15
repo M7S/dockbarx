@@ -773,15 +773,15 @@ class CairoPopup(Gtk.Window):
             self.resize(10, 10)
 
     def pointer_is_inside(self):
-        a = self.childbox.get_allocation()
-        top = self.childbox.get_margin_top()
-        bottom = self.childbox.get_margin_bottom()
+        a = self.get_allocation()
+        top = self.get_margin_top()
+        bottom = self.get_margin_bottom()
         if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            left = self.childbox.get_margin_start()
-            right = self.childbox.get_margin_end()
+            left = self.get_margin_start()
+            right = self.get_margin_end()
         else:
-            left = self.childbox.get_margin_left()
-            right = self.childbox.get_margin_right()
+            left = self.get_margin_left()
+            right = self.get_margin_right()
         x, y = self.get_pointer()
         if x >= left and x < a.width - right and \
            y >= top and y <= a.height - bottom:

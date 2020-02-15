@@ -2068,7 +2068,7 @@ class GroupPopup(CairoPopup):
             except AttributeError:
                 pass
             else:
-                child_func()
+                child_func(isinstance(widget, LockedPopup))
             GLib.idle_add(self.resize, 10, 10)
             return
         if self.dockbar_r().orient in ("down", "up"):
@@ -2517,7 +2517,7 @@ class WindowList(Gtk.Box):
     def reorder_item(self, index, item):
         self.window_box.reorder_child(item, index)
 
-    def shrink_size(self):
+    def shrink_size(self, locked_popup=False):
         """This function is called if the window list is too big."""
         if self.show_previews:
             # Turn of the previews as a first meassure
@@ -2525,7 +2525,7 @@ class WindowList(Gtk.Box):
         else:
             # make the list scrollable
             self.size_overflow = True
-            self.__rebuild_list()
+            self.__rebuild_list(locked_popup)
 
     def get_previews_list(self):
         group = self.group_r()
@@ -2583,7 +2583,7 @@ class WindowList(Gtk.Box):
     def __on_show_previews_changed(self, arg=None):
         self.set_show_previews(self.globals.settings["preview"])
 
-    def __rebuild_list(self):
+    def __rebuild_list(self, locked_popup_list=False):
         oldbox = self.window_box
         if self.mini_mode:
             self.window_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 2)
@@ -2602,7 +2602,7 @@ class WindowList(Gtk.Box):
             self.scrolled_window.destroy()
             self.scrolled_window = None
         if self.size_overflow:
-            self.scrolled_window = self.__create_scrolled_window()
+            self.scrolled_window = self.__create_scrolled_window(locked_popup_list)
             self.scrolled_window.add_with_viewport(self.window_box)
             self.add(self.scrolled_window)
             self.scrolled_window.show_all()
@@ -2610,31 +2610,38 @@ class WindowList(Gtk.Box):
             self.add(self.window_box)
             self.window_box.show_all()
 
-    def __create_scrolled_window(self):
+    def __create_scrolled_window(self, horizontal):
         group = self.group_r()
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_shadow_type(Gtk.ShadowType.NONE)
-        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self.adjustment = scrolled_window.get_vadjustment()
+        if horizontal:
+            scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
+            self.adjustment = scrolled_window.get_hadjustment()
+        else:
+            scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+            self.adjustment = scrolled_window.get_vadjustment()
         self.scroll_changed_sid = self.adjustment.connect("changed",
-                                            self.__on_scroll_changed)
+                                            self.__on_scroll_changed, horizontal)
         if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             mgeo = group.get_monitor().get_geometry();
         else:
             mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
-        # Todo: Size is hardcoded to monitor height - 100.
+        # Todo: Size is hardcoded to monitor height/width - 100.
         #       Does this need to be more gracefully calculated?
-        scrolled_window.set_size_request(-1, mgeo.height - 100)
+        if horizontal:
+            scrolled_window.set_size_request(mgeo.width - 100, -1)
+        else:
+            scrolled_window.set_size_request(-1, mgeo.height - 100)
         return scrolled_window
 
-    def __on_scroll_changed(self, adjustment):
+    def __on_scroll_changed(self, adjustment, horizontal):
         if adjustment.get_upper() < 1:
             # Not yet realised.
             return
         if adjustment.get_upper() <= adjustment.get_page_size():
             # The scrolled window is no longer needed.
             self.size_overflow = False
-            GLib.idle_add(self.__rebuild_list)
+            GLib.idle_add(self.__rebuild_list, horizontal)
 
 
     def on_popup_reallocate(self, popup):
@@ -2662,7 +2669,7 @@ class WindowList(Gtk.Box):
         for window in group:
             window.item.set_show_preview(False)
         self.mini_mode = True
-        self.__rebuild_list()
+        self.__rebuild_list(True)
 
     def apply_normal_mode(self):
         self.set_spacing(2)
@@ -2670,7 +2677,7 @@ class WindowList(Gtk.Box):
         self.title.show()
         self.mini_mode = False
         self.set_show_previews(self.globals.settings["preview"])
-        self.__rebuild_list()
+        self.__rebuild_list(False)
 
 
 class GroupMenu(GObject.GObject):
