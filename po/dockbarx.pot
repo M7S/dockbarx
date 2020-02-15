@@ -92,49 +92,6 @@ msgstr ""
 msgid "right"
 msgstr ""
 
-#: dockx_applets/volume-control.py:48
-msgid "Volume Control"
-msgstr ""
-
-#: dockx_applets/volume-control.py:49
-msgid "Applet to control your computer's volume"
-msgstr ""
-
-#: dockx_applets/volume-control.py:54
-msgid "System theme"
-msgstr ""
-
-#: dockx_applets/volume-control.py:72
-#, python-format
-msgid ""
-"Install the appropriate plug-ins for one or more of the following GStreamer "
-"elements: %s."
-msgstr ""
-
-#: dockx_applets/volume-control.py:73
-msgid "Could not find any devices."
-msgstr ""
-
-#: dockx_applets/volume-control.py:333
-msgid "Open Volume Control"
-msgstr ""
-
-#: dockx_applets/volume-control.py:342
-msgid "Preference"
-msgstr ""
-
-#: dockx_applets/volume-control.py:347
-msgid "volume control"
-msgstr ""
-
-#: dockx_applets/volume-control.py:565
-msgid "No GStreamer mixer found"
-msgstr ""
-
-#: dockx_applets/volume-control.py:571
-msgid "No devices found"
-msgstr ""
-
 #: dockbarx/dockbar.py:1451 dockbarx/groupbutton.py:2415
 msgid "Identifier"
 msgstr ""
