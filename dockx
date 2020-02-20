@@ -35,7 +35,7 @@ gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GObject
 from gi.repository import GLib
-from dockbarx.common import Globals, XDisplay
+from dockbarx.common import Globals, XDisplay, check_x11
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
 from Xlib import X
@@ -1526,6 +1526,8 @@ if "--monitor" in argv:
         print("Warning: Invalid monitor index: " + sys.argv[i + 1], file=sys.stderr)
     argv = argv[:i] + argv[i + 2:]
 Gtk.init(argv)
+if not check_x11():
+    sys.exit(1)
 dockx = DockX(monitor)
 del monitor
 del argv
