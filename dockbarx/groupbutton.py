@@ -49,8 +49,6 @@ _ = i18n.language.gettext
 
 X = None
 
-ATOM_PREVIEWS = Gdk.atom_intern("_KDE_WINDOW_PREVIEW", False)
-
 try:
     WNCK_WINDOW_ACTION_MAXIMIZE = Wnck.WindowType.ACTION_MAXIMIZE
 except:
@@ -325,18 +323,6 @@ class Group(ListOfWindows):
 
 
     def show_launch_popup(self):
-        if self.popup.get_window():
-            if display is not None:
-                # If display is None no preview is in use
-                # and there's no need to remove it.
-                global X
-                if X is None:
-                    from Xlib import X
-                dw = XDisplay.create_resource_object('window', self.get_window().get_xid())
-                dw.change_property(XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'),
-                                   XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
-                                   [0,5,0,0,0,0,0],
-                                   X.PropModeReplace)
         self.menu_is_shown = False
         #Launch program item
         if not self.launch_menu:
@@ -2122,20 +2108,6 @@ class GroupPopup(CairoPopup):
             child_func(self)
 
 
-    def set_previews(self, previews=None):
-        # Tell the compiz/kwin where to put the previews.
-        if previews is None:
-            previews = [0,5,0,0,0,0,0]
-        if self.get_window():
-            global X
-            if X is None:
-                from Xlib import X
-            dw = XDisplay.create_resource_object('window', self.get_window().get_xid())
-            dw.change_property(XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'),
-                               XDisplay.intern_atom('_KDE_WINDOW_PREVIEW'), 32,
-                               previews,
-                               X.PropModeReplace)
-
     def on_leave_notify_event(self, widget, event):
         CairoPopup.on_leave_notify_event(self, widget, event)
         self.hide_if_not_hovered()
@@ -2201,8 +2173,6 @@ class GroupPopup(CairoPopup):
         if self.globals.gtkmenu:
             return
         group = self.group_r()
-        if self.get_window():
-            self.set_previews(None)
         CairoPopup.hide(self)
         self.popup_showing = False
         if self.show_sid is not None:
@@ -2527,30 +2497,6 @@ class WindowList(Gtk.Box):
             self.size_overflow = True
             self.__rebuild_list(locked_popup)
 
-    def get_previews_list(self):
-        group = self.group_r()
-        if self.show_previews and not group.menu_is_shown and \
-           group.get_windows():
-            previews = []
-            previews.append(group.get_count())
-            for window in group.get_windows():
-                previews.append(5)
-                previews.append(window.wnck.get_xid())
-                #x, y, w, h = window.item.get_preview_allocation()
-                r = window.item.get_preview_allocation()
-                if self.globals.get_compiz_version() > "0.9":
-                    # Compensate for a bug in compiz.
-                    # The size is wrong with twice the size of the
-                    # window decorations.
-                    ww, wh = window.wnck.get_geometry()[2:4]
-                    cw, ch = window.wnck.get_client_window_geometry()[2:4]
-                    #~ r.w = int(r.w - 2 * (float(r.w) / ww) * (ww - cw))
-                    r.height = int(r.height - 2 * (float(r.height) / wh) * (wh - ch))
-                previews.extend([r.x, r.y, r.width, r.height])
-        else:
-            previews = [0,5,0,0,0,0,0]
-        return previews
-
     def set_show_previews(self, show_previews):
         group = self.group_r()
         if self.mini_mode:
@@ -2645,7 +2591,6 @@ class WindowList(Gtk.Box):
 
 
     def on_popup_reallocate(self, popup):
-        popup.set_previews(self.get_previews_list())
         if not self.window_box:
             return
         for windowitem in self.window_box.get_children():
@@ -2698,7 +2643,6 @@ class GroupMenu(GObject.GObject):
         else:
             self.menu = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
             self.menu.can_be_shown = lambda: True
-            self.menu.on_popup_reallocate = lambda p: p.set_previews(None)
         self.menu.show()
 
     def build_group_menu(self, desktop_entry, quicklist, \
