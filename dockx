@@ -798,8 +798,8 @@ class DockX(CairoDockX):
         if not set_strut:
             topw = XDisplay.create_resource_object('window',
                                     self.get_toplevel().get_window().get_xid())
-            topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT"))
-            topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT_PARTIAL"))
+            topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT"))
+            topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT_PARTIAL"))
             return
         mr = self.get_monitor_geometry()
         s = self.get_screen()
@@ -817,13 +817,13 @@ class DockX(CairoDockX):
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
         topw = XDisplay.create_resource_object('window',
                                 self.get_toplevel().get_window().get_xid())
-        topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT'),
-                             XDisplay.intern_atom('CARDINAL'), 32,
+        topw.change_property(XDisplay.get_atom('_NET_WM_STRUT'),
+                             XDisplay.get_atom('CARDINAL'), 32,
                              strut[:4],
                              X.PropModeReplace)
 
-        topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT_PARTIAL'),
-                             XDisplay.intern_atom('CARDINAL'), 32,
+        topw.change_property(XDisplay.get_atom('_NET_WM_STRUT_PARTIAL'),
+                             XDisplay.get_atom('CARDINAL'), 32,
                              strut,
                              X.PropModeReplace)
 

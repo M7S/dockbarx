@@ -2336,8 +2336,8 @@ class LockedPopup(GroupPopup):
             #~ if self.globals.settings["locked_list_no_overlap"] is False:
                 #~ topw = XDisplay.create_resource_object('window',
                                                        #~ win.get_toplevel().get_xid())
-                #~ topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT"))
-                #~ topw.delete_property(XDisplay.intern_atom("_NET_WM_STRUT_PARTIAL"))
+                #~ topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT"))
+                #~ topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT_PARTIAL"))
                 #~ return
             #~ if  X is None:
                 #~ from Xlib import X
@@ -2354,13 +2354,13 @@ class LockedPopup(GroupPopup):
             #~ strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
             #~ topw = XDisplay.create_resource_object('window',
                                                    #~ win.get_toplevel().get_xid())
-            #~ topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT'),
-                                 #~ XDisplay.intern_atom('CARDINAL'), 32,
+            #~ topw.change_property(XDisplay.get_atom('_NET_WM_STRUT'),
+                                 #~ XDisplay.get_atom('CARDINAL'), 32,
                                  #~ strut[:4],
                                  #~ X.PropModeReplace)
 
-            #~ topw.change_property(XDisplay.intern_atom('_NET_WM_STRUT_PARTIAL'),
-                                 #~ XDisplay.intern_atom('CARDINAL'), 32,
+            #~ topw.change_property(XDisplay.get_atom('_NET_WM_STRUT_PARTIAL'),
+                                 #~ XDisplay.get_atom('CARDINAL'), 32,
                                  #~ strut,
                                  #~ X.PropModeReplace)
 
