@@ -44,8 +44,6 @@ _ = i18n.language.gettext
 VERSION = "1.0-beta"
 
 
-ATOM_WM_CLASS = Gdk.atom_intern("WM_CLASS", False)
-
 SPECIAL_RES_CLASSES = {
                         "thunderbird-bin": "thunderbird",
                         "amarokapp": "amarok",
