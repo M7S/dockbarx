@@ -24,6 +24,8 @@ sys.stderr = StdErrWrapper()
 sys.stdout = StdOutWrapper()
 import signal
 
+import os
+os.environ['GDK_BACKEND'] = "x11"
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
