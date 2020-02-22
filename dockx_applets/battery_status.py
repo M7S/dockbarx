@@ -914,14 +914,21 @@ class DockXBatteryApplet(DockXApplet):
 
     def update_font(self):
         color = self.__options["color"]
-        font = Pango.FontDescription(self.__options["font"])
-        #font.set_absolute_size(self.get_size() * Pango.SCALE)
-        attrs = Pango.AttrList()
-        attrs.insert(Pango.attr_font_desc_new(font))
-        attrs.insert(Pango.attr_foreground_new(color[0]*65535, color[1]*65535, color[2]*65535))
-        attrs.insert(Pango.attr_foreground_alpha_new(color[3]*65535))
-        #attrs.insert(Pango.attr_background_new(0, 0, 0))
-        self.label.set_attributes(attrs)
+        font = self.__options["font"]
+        if hasattr(Pango, "attr_font_desc_new") and hasattr(Pango, "attr_foreground_new"):
+            font_desc = Pango.FontDescription(font)
+            #font_desc.set_absolute_size(self.get_size() * Pango.SCALE)
+            attrs = Pango.AttrList()
+            attrs.insert(Pango.attr_font_desc_new(font_desc))
+            attrs.insert(Pango.attr_foreground_new(color[0]*65535, color[1]*65535, color[2]*65535))
+            attrs.insert(Pango.attr_foreground_alpha_new(color[3]*65535))
+            #attrs.insert(Pango.attr_background_new(0, 0, 0))
+            self.label.set_attributes(attrs)
+        else:
+            hex_color = "#%02x%02x%02x" % (int(color[0]*255), int(color[1]*255), int(color[2]*255))
+            text = GLib.markup_escape_text(self.label.get_text(), -1)
+            markup = '<span foreground="%s" font_desc="%s">%s</span>' % (hex_color, font, text)
+            self.label.set_markup(markup)
 
     def update_status(self, devices = None):
         if devices is None:
@@ -1407,10 +1414,10 @@ class DockXBatteryPreferences(DockXAppletDialog):
         self.color_button.set_hexpand(True)
         self.color_button.set_size_request(220, -1)
         if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            Gtk.ColorChooser.set_use_alpha(self.color_button, True)
+            Gtk.ColorChooser.set_use_alpha(self.color_button, hasattr(Pango, "attr_foreground_alpha_new"))
             Gtk.ColorChooser.set_rgba(self.color_button, self.__rgba_convert(self.get_setting("color")))
         else:
-            self.color_button.set_use_alpha(True)
+            self.color_button.set_use_alpha(hasattr(Pango, "attr_foreground_alpha_new"))
             self.color_button.set_rgba(self.__rgba_convert(self.get_setting("color")))
         self.color_button.set_sensitive(label_visibility != "never")
         self.color_button.connect("color-set", self.__on_color_changed, "color")
