@@ -233,6 +233,7 @@ class AppletsFrame():
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.applet_view = self.create_treeview(applet_list, "Applets", True)
+        self.applet_view.connect("drag-end", self.on_applet_drag_end)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         sw.add(self.applet_view)
@@ -384,6 +385,9 @@ class AppletsFrame():
         # Unselect selection in the other treeview.
         if other_selection.get_selected()[1] is not None:
             other_selection.unselect_all()
+
+    def on_applet_drag_end(self, *args):
+        self.save_applet_list()
 
     def on_add_button_clicked(self, *args):
         s = self.av_applet_view.get_selection()
