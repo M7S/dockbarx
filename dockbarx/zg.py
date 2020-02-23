@@ -28,6 +28,7 @@ from datetime import date
 from time import time
         
 import gi
+from gi.repository import GLib
 try:
     gi.require_version('Zeitgeist', '2.0')
     from gi.repository import Zeitgeist

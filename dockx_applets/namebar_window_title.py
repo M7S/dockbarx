@@ -142,16 +142,22 @@ class WindowTitleApplet(DockXApplet):
         self.set_text_style()
 
     def set_text_style(self):
-        attr_list = Pango.AttrList()
         font = self.get_setting('%s_font'%self.window_state)
-        attr_list.insert(Pango.attr_font_desc_new(Pango.FontDescription(font)))
         color = self.get_setting('%s_color'%self.window_state)
-        r = int(color[1:3], 16)*257
-        g = int(color[3:5], 16)*257
-        b = int(color[5:7], 16)*257
-        attr_list.insert(Pango.attr_foreground_new(r, g, b))
-        attr_list.insert(Pango.attr_foreground_alpha_new(self.get_setting('%s_alpha'%self.window_state) * 257))
-        self.label.set_attributes(attr_list)
+        r = int(color[1:3], 16)
+        g = int(color[3:5], 16)
+        b = int(color[5:7], 16)
+        if hasattr(Pango, "attr_font_desc_new") and hasattr(Pango, "attr_foreground_new"):
+            attr_list = Pango.AttrList()
+            attr_list.insert(Pango.attr_font_desc_new(Pango.FontDescription(font)))
+            attr_list.insert(Pango.attr_foreground_new(r * 257, g * 257, b * 257))
+            attr_list.insert(Pango.attr_foreground_alpha_new(self.get_setting('%s_alpha'%self.window_state) * 257))
+            self.label.set_attributes(attr_list)
+        else:
+            hex_color = "#%02x%02x%02x" % (r, g, b)
+            text = GLib.markup_escape_text(self.label.get_text(), -1)
+            markup = '<span foreground="%s" font_desc="%s">%s</span>' % (hex_color, font, text)
+            self.label.set_markup(markup)
 
     def show_none(self):
         if self.shown_window == None:

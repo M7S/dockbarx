@@ -23,6 +23,8 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
+gi.require_version('Pango', '1.0')
+from gi.repository import Pango
 from tarfile import open as taropen
 from dockbarx.applets import DockXAppletDialog
 import dockbarx.i18n
@@ -303,9 +305,9 @@ class PrefDialog(DockXAppletDialog):
             self.color_buttons[name] = Gtk.ColorButton()
             self.color_buttons[name].set_title(text)
             if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                Gtk.ColorChooser.set_use_alpha(self.color_buttons[name], True)
+                Gtk.ColorChooser.set_use_alpha(self.color_buttons[name], hasattr(Pango, "attr_foreground_alpha_new"))
             else:
-                self.color_buttons[name].set_use_alpha(True)
+                self.color_buttons[name].set_use_alpha(hasattr(Pango, "attr_foreground_alpha_new"))
             self.color_buttons[name].set_hexpand(True)
             self.color_buttons[name].connect("color-set", self.color_set, name)
             self.color_clear_buttons[name] = Gtk.Button()

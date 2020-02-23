@@ -23,6 +23,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import Gio
 from gi.repository import GLib
@@ -41,7 +42,19 @@ DBusGMainLoop(set_as_default=True) # for async calls
 BUS = dbus.SessionBus()
 
 # workaround for an old version python-xlib bug, see Issue 113
-XDisplay = display.Display()
+try:
+    XDisplay = display.Display()
+except Xlib.error.DisplayNameError:
+    XDisplay = None
+
+def check_x11():
+    if XDisplay is None:
+        logger.error("Error: Can't find a valid X11 Display")
+        return False
+    if not hasattr(Gdk.Screen.get_default().get_root_window(), "get_xid"):
+        logger.error("Error: Can't run on wayland without setting environment variable GDK_BACKEND=x11")
+        return False
+    return True
 
 def compiz_call_sync(obj_path, func_name, *args):
     # Returns a compiz function call.

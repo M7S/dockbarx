@@ -57,12 +57,15 @@ class HelloWorldApplet(DockXApplet):
         self.label.set_text(text)
 
     def update_color(self):
-        color = [ random.randrange(0, 65536) for _ in range(3) ]
-        attrs = self.label.get_attributes()
-        attrs.change(Pango.attr_foreground_new(*color))
-        self.label.set_attributes(attrs)
+        color = [ random.randrange(0, 256) for _ in range(3) ]
+        hex_color = "#%02x%02x%02x" % (color[0], color[1], color[2])
+        text = GLib.markup_escape_text(self.label.get_text(), -1)
+        markup = '<span foreground="%s">%s</span>' % (hex_color, text)
+        self.label.set_markup(markup)
 
     def update_size(self):
+        if not hasattr(Pango, "attr_size_new_absolute"):
+            return
         attrs = self.label.get_attributes()
         attrs.change(Pango.attr_size_new_absolute((self.get_size() * 0.75) * Pango.SCALE))
         self.label.set_attributes(attrs)
