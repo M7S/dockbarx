@@ -52,7 +52,7 @@ def check_x11():
         logger.error("Error: Can't find a valid X11 Display")
         return False
     if not hasattr(Gdk.Screen.get_default().get_root_window(), "get_xid"):
-        logger.error("Error: Can't run under wayland without setting environment variable GDK_BACKEND=x11")
+        logger.error("Error: Can't run on wayland without setting environment variable GDK_BACKEND=x11")
         return False
     return True
 
