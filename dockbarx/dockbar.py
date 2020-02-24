@@ -1728,13 +1728,14 @@ class DockBar():
     def __select_next_group(self, previous=False):
         if len(self.groups) == 0:
             return
+        allow_pinned = not self.globals.settings["gkeys_select_next_group_skip_launchers"]
         if self.next_group is None or not (self.next_group in self.groups):
             for group in self.groups:
-                if group.has_active_window:
+                if group.get_count() > 0 or (allow_pinned and group.pinned):
                     self.next_group = group
                     break
             else:
-                self.next_group = self.groups[0]
+                return
             old_next_group = None
         else:
             old_next_group = self.next_group
@@ -1742,15 +1743,12 @@ class DockBar():
             groups = self.groups[i+1:] + self.groups[:i]
             if previous:
                 groups.reverse()
-            if self.globals.settings["gkeys_select_next_group_skip_launchers"]:
-                for group in groups:
-                    if group.get_count() != 0:
-                        self.next_group = group
-                        break
-                else:
-                    return
+            for group in groups:
+                if group.get_count() > 0 or (allow_pinned and group.pinned):
+                    self.next_group = group
+                    break
             else:
-                self.next_group = groups[0]
+                return
         group = self.next_group
         if group.get_count() > 0:
             group.action_select_next(keyboard_select=True)
@@ -1770,6 +1768,8 @@ class DockBar():
                 if group.has_active_window:
                     self.next_group = group
                     break
+            else:
+                return
         self.next_group.action_select_next(previous=previous,
                                            keyboard_select=True)
 
@@ -1817,10 +1817,17 @@ class DockBar():
         # Pick the group that corresponds to the number pressed.
         if n == 0:
             n = 10
-        n -= 1
-        try:
-            group = self.groups[n]
-        except IndexError:
+        if n > len(self.groups):
+            return
+        i = 0
+        group = None
+        for g in self.groups:
+            if g.get_count() > 0 or g.pinned:
+                i += 1
+                if i == n:
+                    group = g
+                    break
+        if group is None:
             return
         # Get the windows of the group.
         windows = group.get_windows()
