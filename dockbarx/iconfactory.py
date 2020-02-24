@@ -584,24 +584,24 @@ class IconFactory():
         return None
 
     def __icon_search_in_data_path(self, icon_name, icon_size):
-        data_folders = None
-
-        if "XDG_DATA_DIRS" in os.environ:
-            data_folders = os.environ["XDG_DATA_DIRS"]
-
-        if not data_folders:
-            data_folders = "/usr/local/share/:/usr/share/"
+        data_folders = os.environ.get("XDG_DATA_HOME",
+                                      os.path.join(os.path.expanduser("~"),
+                                                   ".local/share"))
+        data_folders += ":" + os.environ.get("XDG_DATA_DIRS",
+                                             "/usr/local/share/:/usr/share/")
 
         for data_folder in data_folders.split(":"):
-            #The line below line used datafolders instead of datafolder.
-            #I changed it because I suspect it was a bug.
+            if data_folder == "":
+                continue
             paths = (os.path.join(data_folder, "pixmaps", icon_name),
                      os.path.join(data_folder, "icons", icon_name))
             for path in paths:
-                if os.path.isfile(path):
-                    icon = self.__icon_from_file_name(path, icon_size)
-                    if icon:
-                        return icon
+                icon = self.__icon_from_file_name(path, icon_size) or \
+                       self.__icon_from_file_name(path + ".svg", icon_size) or \
+                       self.__icon_from_file_name(path + ".png", icon_size) or \
+                       self.__icon_from_file_name(path + ".xpm", icon_size)
+                if icon:
+                    return icon
         return None
 
 
