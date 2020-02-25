@@ -1081,17 +1081,8 @@ class DockBar():
                 app_id = self.app_ids_by_name[rc]
             elif rc in self.app_ids_by_exec:
                 app_id = self.app_ids_by_exec[rc]
-            else:
-                for lname in self.app_ids_by_longname:
-                    pos = lname.find(rc)
-                    if pos>-1: # Check that it is not part of word
-                        if rc == lname \
-                        or (pos==0 and lname[len(rc)] == " ") \
-                        or (pos+len(rc) == len(lname) \
-                        and lname[pos-1] == " ") \
-                        or (lname[pos-1] == " " and lname[pos+len(rc)] == " "):
-                            app_id = self.app_ids_by_longname[lname]
-                            break
+            elif rc in self.app_ids_by_longname:
+                app_id = self.app_ids_by_longname[rc]
             if not app_id:
                 if rc.find(" ")>-1:
                     rc = rc.partition(" ")[0]
