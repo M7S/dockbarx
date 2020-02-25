@@ -554,9 +554,9 @@ class DockBar():
                     self.app_ids_by_longname[name] = id
                 else:
                     self.app_ids_by_name[name] = id
-                if exe not in ("sudo","gksudo",
-                                "java","mono",
-                                "ruby","python"):
+                if exe not in ("sudo", "gksudo", "env", "java",
+                               "mono", "ruby", "perl", "php",
+                               "python", "python2", "python3"):
                     if exe[0] == "/":
                         exe = exe[exe.rfind("/")+1:]
                         self.app_ids_by_exec[exe] = id
