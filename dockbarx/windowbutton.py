@@ -375,11 +375,14 @@ class WindowItem(CairoButton):
         window = self.window_r()
         if self.deopacify_sid:
             GLib.source_remove(self.deopacify_sid)
+            self.deopacify_sid = None
             window.deopacify()
         if self.opacify_sid:
             GLib.source_remove(self.opacify_sid)
+            self.opacify_sid = None
         if self.press_sid:
             GLib.source_remove(self.press_sid)
+            self.press_sid = None
         while self.globals_events:
             self.globals.disconnect(self.globals_events.pop())
         self.close_button.destroy()
@@ -626,6 +629,7 @@ class WindowItem(CairoButton):
 
     #### Opacify
     def __opacify(self):
+        self.opacify_sid = None
         window = self.window_r()
         if window.wnck.is_minimized():
             return False
@@ -644,6 +648,7 @@ class WindowItem(CairoButton):
         return False
 
     def __deopacify(self):
+        self.deopacify_sid = None
         window = self.window_r()
         # Make sure that mouse cursor really has left the window button.
         b_m_x,b_m_y = self.get_pointer()
