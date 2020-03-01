@@ -1,3 +1,3 @@
 [D-BUS Service]
 Name=org.mate.panel.applet.DockbarXAppletFactory
-Exec=/usr/bin/dockbarx_mate_applet
+Exec=/usr/lib/mate-panel/dockbarx_mate_applet

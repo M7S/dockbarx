@@ -1361,6 +1361,7 @@ class GroupButton(CairoAppButton):
 
         self.opacify_sid = None
         self.deopacify_sid = None
+        self.launch_effect_sid = None
 
 
         self.globals_event = self.globals.connect("show-tooltip-changed",
@@ -1422,6 +1423,7 @@ class GroupButton(CairoAppButton):
             self.icon_factory.remove()
             self.icon_factory = None
         self.globals.disconnect(self.globals_event)
+        self.remove_launch_effect()
         CairoAppButton.destroy(self, *args, **kwargs)
 
     #### State
@@ -1600,14 +1602,14 @@ class GroupButton(CairoAppButton):
         self.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         if group.popup.get_window() is not None:
             group.popup.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
-        self.launch_effect_timeout = GLib.timeout_add(length,
-                                                self.remove_launch_effect)
+        self.launch_effect_sid = GLib.timeout_add(length,
+                                            self.remove_launch_effect)
 
     def remove_launch_effect(self):
         group = self.group_r()
-        if self.launch_effect_timeout:
-            GLib.source_remove(self.launch_effect_timeout)
-            self.launch_effect_timeout = None
+        if self.launch_effect_sid:
+            GLib.source_remove(self.launch_effect_sid)
+            self.launch_effect_sid = None
         self.get_window().set_cursor(None)
         if group.popup.get_window() is not None:
             group.popup.get_window().set_cursor(None)
