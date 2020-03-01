@@ -631,7 +631,7 @@ class WindowItem(CairoButton):
     def __opacify(self):
         self.opacify_sid = None
         window = self.window_r()
-        if window.wnck.is_minimized():
+        if window is None or window.wnck.is_minimized():
             return False
         # if self.pressed is true, opacity_request is called by an
         # wrongly sent out enter_notification_event sent after a
@@ -650,6 +650,8 @@ class WindowItem(CairoButton):
     def __deopacify(self):
         self.deopacify_sid = None
         window = self.window_r()
+        if window is None:
+            return False
         # Make sure that mouse cursor really has left the window button.
         b_m_x,b_m_y = self.get_pointer()
         b_r = self.get_allocation()
