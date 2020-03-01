@@ -21,7 +21,7 @@
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version('MatePanelApplet', '4.0')
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GLib
 from gi.repository import MatePanelApplet
 
 try:
@@ -58,14 +58,12 @@ class DockbarMateApplet(object):
         self.applet_origin_x = -1000
         self.applet_origin_y = -1000
         #~ applet.connect("delete-event", self.__cleanup)
-        # Background bug workaround
-        applet.set_background_widget(applet)
         applet.show_all()
 
         # Most of initializion must happen after dockbarx is
         # realized since python mateapplets crash if it
         # takes too long to realize.
-        GObject.idle_add(self.__load_on_realized)
+        GLib.idle_add(self.__load_on_realized)
 
     def __load_on_realized(self):
         # Wait while gtk events are pending.
@@ -78,7 +76,7 @@ class DockbarMateApplet(object):
         self.applet.show_all()
         # Connect events.
         self.applet.connect("size-allocate", self.__on_applet_size_alloc)
-        self.applet.connect("change_background", self.__on_change_background)
+        #self.applet.connect("change_background", self.__on_change_background)
         self.applet.connect("change-orient", self.__on_change_orient)
 
     def __on_applet_size_alloc(self, widget, allocation):
