@@ -1,7 +1,7 @@
 [Applet Factory]
 Id=DockbarXAppletFactory
 InProcess=false
-Location=/usr/bin/dockbarx_mate_applet
+Location=/usr/lib/mate-panel/dockbarx_mate_applet
 Name=DockBarX Applet
 Description=DockBarX Applet
      

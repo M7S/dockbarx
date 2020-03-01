@@ -128,7 +128,8 @@ data_files=[
                                              "dockx_applets/namebar_window_buttons.py",
                                              "dockx_applets/namebar_window_title.applet",
                                              "dockx_applets/namebar_window_title.py"]),
-            ("bin", ["dockbarx_mate_applet", "dbx_preference", "dockx"]),
+            ("bin", ["dbx_preference", "dockx"]),
+            ("lib/mate-panel/", ["mate_panel_applet/dockbarx_mate_applet"]),
             ("share/applications/", ["dbx_preference.desktop"]),
             ("share/applications/", ["DockX.desktop"]),
             ("share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml",
@@ -136,9 +137,9 @@ data_files=[
                                          "dockx_applets/org.dockbar.applets.hello-world.gschema.xml",
                                          "dockx_applets/org.dockbar.applets.batterystatus.gschema.xml",
                                          "dockx_applets/org.dockbar.applets.namebar.gschema.xml"]),
-            ("share/dbus-1/services/", ["org.mate.panel.applet.DockbarXAppletFactory.service"]),
-            ("share/mate-panel/applets/", ["org.mate.panel.DockbarX.mate-panel-applet"]),
-            ("share/mate-panel/ui/", ["dockbarx-applet-menu.xml"]),
+            ("share/dbus-1/services/", ["mate_panel_applet/org.mate.panel.applet.DockbarXAppletFactory.service"]),
+            ("share/mate-panel/applets/", ["mate_panel_applet/org.mate.panel.DockbarX.mate-panel-applet"]),
+            ("share/mate-panel/ui/", ["mate_panel_applet/dockbarx-applet-menu.xml"]),
          ]
 
 s = setup(name="Dockbarx",
