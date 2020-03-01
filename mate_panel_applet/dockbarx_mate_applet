@@ -116,9 +116,9 @@ class DockbarMateApplet(object):
         applet.set_style(None)
         rc_style = Gtk.RcStyle()
         applet.modify_style(rc_style)
-        if type == mateapplet.COLOR_BACKGROUND:
+        if type == MatePanelApplet.AppletBackgroundType.COLOR_BACKGROUND:
             applet.modify_bg(Gtk.StateType.NORMAL, color)
-        elif type == mateapplet.PIXMAP_BACKGROUND:
+        elif type == MatePanelApplet.AppletBackgroundType.PIXMAP_BACKGROUND:
             style = applet.style
             style.bg_pixmap[Gtk.StateType.NORMAL] = pixmap
             applet.set_style(style)
