@@ -1610,11 +1610,13 @@ class GroupButton(CairoAppButton):
                                             self.remove_launch_effect)
 
     def remove_launch_effect(self):
-        group = self.group_r()
         if self.launch_effect_sid:
             GLib.source_remove(self.launch_effect_sid)
             self.launch_effect_sid = None
+        if not self.launch_effect:
+            return False
         self.get_window().set_cursor(None)
+        group = self.group_r()
         if group.popup.get_window() is not None:
             group.popup.get_window().set_cursor(None)
         self.launch_effect = False
