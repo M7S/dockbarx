@@ -21,6 +21,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('Pango', '1.0')
 from gi.repository import Pango
+from gi.repository import GLib
 import sys
 import os
 gi.require_version('Wnck', '3.0')
