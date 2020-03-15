@@ -1362,6 +1362,7 @@ class GroupButton(CairoAppButton):
         self.opacify_sid = None
         self.deopacify_sid = None
         self.launch_effect_sid = None
+        self.leave_notify_sid = None
 
 
         self.globals_event = self.globals.connect("show-tooltip-changed",
@@ -1419,6 +1420,9 @@ class GroupButton(CairoAppButton):
         if self.opacify_sid is not None:
             GLib.source_remove(self.opacify_sid)
             self.opacify_sid = None
+        if self.leave_notify_sid is not None:
+            GLib.source_remove(self.leave_notify_sid)
+            self.leave_notify_sid = None
         if self.icon_factory:
             self.icon_factory.remove()
             self.icon_factory = None
@@ -1606,11 +1610,13 @@ class GroupButton(CairoAppButton):
                                             self.remove_launch_effect)
 
     def remove_launch_effect(self):
-        group = self.group_r()
         if self.launch_effect_sid:
             GLib.source_remove(self.launch_effect_sid)
             self.launch_effect_sid = None
+        if not self.launch_effect:
+            return False
         self.get_window().set_cursor(None)
+        group = self.group_r()
         if group.popup.get_window() is not None:
             group.popup.get_window().set_cursor(None)
         self.launch_effect = False
@@ -1894,12 +1900,13 @@ class GroupButton(CairoAppButton):
             self.opacify(delay)
 
     def on_leave_notify_event(self, widget, event):
+        self.leave_notify_sid = None
         group = self.group_r()
         if self.pointer_is_inside():
             # False mouse_leave event, the cursor might be on a screen edge
             # or the mouse has been clicked (compiz bug).
             # A timeout is set so that the real mouse leave won't be missed.
-            GLib.timeout_add(50, self.on_leave_notify_event, self, event)
+            self.leave_notify_sid = GLib.timeout_add(50, self.on_leave_notify_event, self, event)
             return
         self.mouse_over = False
         self.pressed = False
@@ -2198,6 +2205,7 @@ class GroupPopup(CairoPopup):
         group.menu_is_shown = False
 
     def __hide_if_not_hovered(self):
+        self.hide_if_not_hovered_sid = None
         group = self.group_r()
         if self.get_window() is None:
             # Popup isn't shown.
@@ -2210,7 +2218,7 @@ class GroupPopup(CairoPopup):
         if not pos[3] & button_list and time() - self.hide_time < 0.6:
             # No mouse button is pressed and less than 600 ms has passed.
             # Check again in 10 ms.
-            GLib.timeout_add(10, self.__hide_if_not_hovered)
+            self.hide_if_not_hovered_sid = GLib.timeout_add(10, self.__hide_if_not_hovered)
             return
         if self.pointer_is_inside() or group.button.pointer_is_inside():
             return
@@ -2224,7 +2232,6 @@ class GroupPopup(CairoPopup):
             self.hide_if_not_hovered_sid = GLib.timeout_add(timer,
                                                     self.hide_if_not_hovered)
         else:
-            self.hide_if_not_hovered_sid = None
             self.__hide_if_not_hovered()
 
     def cancel_hide_request(self):

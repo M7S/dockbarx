@@ -1883,6 +1883,8 @@ class PrefDialog():
             self.dock_bar2_box.hide()
 
     def dialog_close(self,par1,par2):
+        if self.dialog is None:
+            return
         self.dialog.destroy()
         self.dialog = None
         Gtk.main_quit()
