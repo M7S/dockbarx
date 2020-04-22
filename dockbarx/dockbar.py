@@ -32,6 +32,7 @@ from . import cairowidgets
 import weakref
 from time import time
 from xdg.DesktopEntry import ParsingError
+import urllib.parse
 
 
 from .common import *
@@ -124,13 +125,14 @@ class Spacer(Gtk.EventBox):
                 # .desktop file! This is a potential launcher.
                 #remove "file://" and "/n" from the URI
                 path = selection.get_data()
+                path = path.replace('\000', '')     # for spacefm
                 if path.startswith("file://"):
                     path = path[7:]
                 else:
                     # No support for other kind of uris.
                     return
                 path = path.rstrip()
-                path = path.replace("%20"," ")
+                path = urllib.parse.unquote(path)
                 self.dockbar_r().launcher_dropped(path, "after")
 
     def on_drag_motion(self, widget, drag_context, x, y, t):
@@ -219,7 +221,7 @@ class GroupList(list):
     def insert(self, index, group):
         list.insert(self, index, group)
         self.container.pack_start(group.button, False, False, 0)
-        self.container.reorder_child(button, index)
+        self.container.reorder_child(group.button, index)
         self.manage_size_overflow()
 
     def remove(self, group):
