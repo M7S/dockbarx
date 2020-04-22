@@ -523,46 +523,6 @@ class DockBar():
             self.unity_watcher.start()
         self.globals.connect("unity-changed", self.__on_unity_changed)
 
-        # Generate Gio apps so that windows and .desktop files
-        # can be matched correctly with each other.
-        self.apps_by_id = {}
-        self.app_ids_by_exec = {}
-        self.app_ids_by_name = {}
-        self.app_ids_by_longname = {}
-        self.app_ids_by_cmd = {}
-        self.wine_app_ids_by_program = {}
-        for app in Gio.app_info_get_all():
-            id = app.get_id()
-            id = id[:id.rfind(".")].lower()
-            name = app.get_name().lower()
-            exe = app.get_executable()
-            if exe:
-                self.apps_by_id[id] = app
-                try:
-                    cmd = app.get_commandline().lower()
-                except AttributeError:
-                    # Older versions of gio doesn't have get_comandline.
-                    cmd = ""
-                if id[:5] == "wine-":
-                    if cmd.find(".exe") > 0:
-                        program = cmd[:cmd.rfind(".exe")+4]
-                        program = program[program.rfind("\\")+1:]
-                        self.wine_app_ids_by_program[program] = id
-                if cmd:
-                    self.app_ids_by_cmd[cmd] = id
-                if name.find(" ")>-1:
-                    self.app_ids_by_longname[name] = id
-                else:
-                    self.app_ids_by_name[name] = id
-                if exe not in ("sudo", "gksudo", "env", "java",
-                               "mono", "ruby", "perl", "php",
-                               "python", "python2", "python3"):
-                    if exe[0] == "/":
-                        exe = exe[exe.rfind("/")+1:]
-                        self.app_ids_by_exec[exe] = id
-                    else:
-                        self.app_ids_by_exec[exe] = id
-
         self.reload(tell_parent=False)
 
     def reload(self, event=None, data=None, tell_parent=True):
@@ -612,6 +572,46 @@ class DockBar():
         self.groups.set_spacing(self.theme.get_gap())
         self.groups.set_aspect_ratio(self.theme.get_aspect_ratio())
         self.groups.show()
+
+        # Generate Gio apps so that windows and .desktop files
+        # can be matched correctly with each other.
+        self.apps_by_id = {}
+        self.app_ids_by_exec = {}
+        self.app_ids_by_name = {}
+        self.app_ids_by_longname = {}
+        self.app_ids_by_cmd = {}
+        self.wine_app_ids_by_program = {}
+        for app in Gio.app_info_get_all():
+            id = app.get_id()
+            id = id[:id.rfind(".")].lower()
+            name = app.get_name().lower()
+            exe = app.get_executable()
+            if exe:
+                self.apps_by_id[id] = app
+                try:
+                    cmd = app.get_commandline().lower()
+                except AttributeError:
+                    # Older versions of gio doesn't have get_comandline.
+                    cmd = ""
+                if id[:5] == "wine-":
+                    if cmd.find(".exe") > 0:
+                        program = cmd[:cmd.rfind(".exe")+4]
+                        program = program[program.rfind("\\")+1:]
+                        self.wine_app_ids_by_program[program] = id
+                if cmd:
+                    self.app_ids_by_cmd[cmd] = id
+                if name.find(" ")>-1:
+                    self.app_ids_by_longname[name] = id
+                else:
+                    self.app_ids_by_name[name] = id
+                if exe not in ("sudo", "gksudo", "env", "java",
+                               "mono", "ruby", "perl", "php",
+                               "python", "python2", "python3"):
+                    if exe[0] == "/":
+                        exe = exe[exe.rfind("/")+1:]
+                        self.app_ids_by_exec[exe] = id
+                    else:
+                        self.app_ids_by_exec[exe] = id
 
         #--- Initiate launchers
         self.desktop_entry_by_id = {}
