@@ -1904,6 +1904,8 @@ class GroupButton(CairoAppButton):
     def on_leave_notify_event(self, widget, event):
         self.leave_notify_sid = None
         group = self.group_r()
+        if group is None:
+            return
         if self.pointer_is_inside():
             # False mouse_leave event, the cursor might be on a screen edge
             # or the mouse has been clicked (compiz bug).
