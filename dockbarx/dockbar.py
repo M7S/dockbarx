@@ -448,6 +448,7 @@ class DockBar():
         self.key_listener = None
         self.listen_for_super_sid = None
 
+        self.apps_up_to_date = False
         self.parent_window_reporting = False
         self.parent_handles_menu = False
         self.keyboard_show_dock = False
@@ -525,6 +526,11 @@ class DockBar():
             self.unity_watcher.start()
         self.globals.connect("unity-changed", self.__on_unity_changed)
 
+        # scan gio apps
+        self.app_monitor = Gio.AppInfoMonitor.get()
+        self.app_monitor.connect("changed", self.__rescan_apps)
+        self.scan_apps()
+
         self.reload(tell_parent=False)
 
     def reload(self, event=None, data=None, tell_parent=True):
@@ -574,46 +580,6 @@ class DockBar():
         self.groups.set_spacing(self.theme.get_gap())
         self.groups.set_aspect_ratio(self.theme.get_aspect_ratio())
         self.groups.show()
-
-        # Generate Gio apps so that windows and .desktop files
-        # can be matched correctly with each other.
-        self.apps_by_id = {}
-        self.app_ids_by_exec = {}
-        self.app_ids_by_name = {}
-        self.app_ids_by_longname = {}
-        self.app_ids_by_cmd = {}
-        self.wine_app_ids_by_program = {}
-        for app in Gio.app_info_get_all():
-            id = app.get_id()
-            id = id[:id.rfind(".")].lower()
-            name = app.get_name().lower()
-            exe = app.get_executable()
-            if exe:
-                self.apps_by_id[id] = app
-                try:
-                    cmd = app.get_commandline().lower()
-                except AttributeError:
-                    # Older versions of gio doesn't have get_comandline.
-                    cmd = ""
-                if id[:5] == "wine-":
-                    if cmd.find(".exe") > 0:
-                        program = cmd[:cmd.rfind(".exe")+4]
-                        program = program[program.rfind("\\")+1:]
-                        self.wine_app_ids_by_program[program] = id
-                if cmd:
-                    self.app_ids_by_cmd[cmd] = id
-                if name.find(" ")>-1:
-                    self.app_ids_by_longname[name] = id
-                else:
-                    self.app_ids_by_name[name] = id
-                if exe not in ("sudo", "gksudo", "env", "java",
-                               "mono", "ruby", "perl", "php",
-                               "python", "python2", "python3"):
-                    if exe[0] == "/":
-                        exe = exe[exe.rfind("/")+1:]
-                        self.app_ids_by_exec[exe] = id
-                    else:
-                        self.app_ids_by_exec[exe] = id
 
         #--- Initiate launchers
         self.desktop_entry_by_id = {}
@@ -776,6 +742,51 @@ class DockBar():
         # Starts the preference dialog
         os.spawnlp(os.P_NOWAIT,"dbx_preference",
                    "dbx_preference")
+
+    def __rescan_apps(self, monitor):
+        self.apps_up_to_date = False
+
+    def scan_apps(self):
+        # Generate Gio apps so that windows and .desktop files
+        # can be matched correctly with each other.
+        self.apps_up_to_date = True
+        self.apps_by_id = {}
+        self.app_ids_by_exec = {}
+        self.app_ids_by_name = {}
+        self.app_ids_by_longname = {}
+        self.app_ids_by_cmd = {}
+        self.wine_app_ids_by_program = {}
+        for app in Gio.app_info_get_all():
+            id = app.get_id()
+            id = id[:id.rfind(".")].lower()
+            name = app.get_name().lower()
+            exe = app.get_executable()
+            if exe:
+                self.apps_by_id[id] = app
+                try:
+                    cmd = app.get_commandline().lower()
+                except AttributeError:
+                    # Older versions of gio doesn't have get_comandline.
+                    cmd = ""
+                if id[:5] == "wine-":
+                    if cmd.find(".exe") > 0:
+                        program = cmd[:cmd.rfind(".exe")+4]
+                        program = program[program.rfind("\\")+1:]
+                        self.wine_app_ids_by_program[program] = id
+                if cmd:
+                    self.app_ids_by_cmd[cmd] = id
+                if name.find(" ")>-1:
+                    self.app_ids_by_longname[name] = id
+                else:
+                    self.app_ids_by_name[name] = id
+                if exe not in ("sudo", "gksudo", "env", "java",
+                               "mono", "ruby", "perl", "php",
+                               "python", "python2", "python3"):
+                    if exe[0] == "/":
+                        exe = exe[exe.rfind("/")+1:]
+                        self.app_ids_by_exec[exe] = id
+                    else:
+                        self.app_ids_by_exec[exe] = id
 
     #### Menu
     def create_popup_menu(self, event):
@@ -1073,6 +1084,8 @@ class DockBar():
         return id
 
     def __find_gio_app(self, identifier):
+        if self.apps_up_to_date == False:
+            self.scan_apps()
         app = None
         app_id = None
         rc = identifier.lower()
