@@ -34,6 +34,7 @@ from gi.repository import Pango
 from xml.sax.saxutils import escape
 import weakref
 import Xlib
+import urllib.parse
 
 from .windowbutton import Window
 from .iconfactory import IconFactory
@@ -1722,12 +1723,13 @@ class GroupButton(CairoAppButton):
                 #remove "file://" and "/n" from the URI
                 path = self.dd_uri
                 if path.startswith("file://"):
+                    path = path.replace('\000', '')     # for spacefm
                     path = path[7:]
                 else:
                     # No support for other kind of uris.
                     return
                 path = path.rstrip()
-                path = path.replace("%20"," ")
+                path = urllib.parse.unquote(path)
                 self.dockbar_r().launcher_dropped(path, group,
                                                   self.dnd_position)
             else:
@@ -1902,6 +1904,8 @@ class GroupButton(CairoAppButton):
     def on_leave_notify_event(self, widget, event):
         self.leave_notify_sid = None
         group = self.group_r()
+        if group is None:
+            return
         if self.pointer_is_inside():
             # False mouse_leave event, the cursor might be on a screen edge
             # or the mouse has been clicked (compiz bug).
