@@ -251,6 +251,12 @@ class Group(ListOfWindows):
         for window in self:
             window.desktop_changed()
 
+        # hide after the possible enter-notify-event
+        GLib.timeout_add(10, self.popup.hide)
+        if self.button.is_visible():
+            GLib.timeout_add(self.globals.settings["popup_delay"] + 20,
+                    lambda: self.button.pointer_is_inside() and self.popup.show())
+
         if self.locked_popup:
             self.locked_popup.get_child_().show_all()
             self.locked_popup.resize(10, 10)
