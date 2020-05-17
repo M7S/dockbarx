@@ -279,13 +279,16 @@ class PowerSupplyUtils(GObject.GObject):
                     if capacity["value"] is None:
                         capacity["value"] = 0
                 if energy["now"] is not None and power["now"] is not None:
-                    if (info["status"]["discharging"] and info["time"]["to_empty"] is None) or (info["status"]["charging"] and info["time"]["to_full"] is None):
+                    if info["status"]["discharging"] and info["time"]["to_empty"] is None:
                         try:
                             time = round(energy["now"] / power["now"] * 3600)
-                            if info["status"]["discharging"]:
-                                info["time"]["to_empty"] = time
-                            else:
-                                info["time"]["to_full"] = time
+                            info["time"]["to_empty"] = time
+                        except ZeroDivisionError:
+                            pass
+                    elif info["status"]["charging"] and info["time"]["to_full"] is None and energy["full"] is not None:
+                        try:
+                            time = round((energy["full"] - energy["now"]) / power["now"] * 3600)
+                            info["time"]["to_full"] = time
                         except ZeroDivisionError:
                             pass
             devices_info.append(info)
@@ -574,9 +577,9 @@ class PowerDevicesDialog(Gtk.Dialog):
             row += self.__add_row(table,     row, _("Capacity:"),             dev["capacity"]["value"], unit="%")
             row += self.__add_row(table,     row, _("Capacity Level:"),       dev["capacity"]["level"]) 
             if status["charging"] and dev["time"]["to_full"] is not None:
-                row += self.__add_row(table, row, _("Time to Fully Charge:"), self.__t2s(dev["time"]["to_full"]))
+                row += self.__add_row(table, row, _("Time to Fully Charged:"), self.__t2s(dev["time"]["to_full"]))
             elif status["discharging"] and dev["time"]["to_empty"] is not None:
-                row += self.__add_row(table, row, _("Time to run out:"),      self.__t2s(dev["time"]["to_empty"]))
+                row += self.__add_row(table, row, _("Time To Run Out:"),      self.__t2s(dev["time"]["to_empty"]))
             energy = dev["energy"]
             if energy["now"] is not None:
                 row += self.__add_row(table, row, _("Energy:"),               "", group=True)
@@ -673,12 +676,15 @@ class PowerDevicesDialog(Gtk.Dialog):
     def __t2s(self, value):
         v = _split_time(value)
         t = ""
-        if (v[0] == 1):
-            t = _("%d Hour ") % v[0]
+        if v[0] == 1:
+            t = _("1 Hour ")
         elif v[0] > 1:
             t = _("%d Hours ") % v[0]
-        if (v[1] <= 1):
-            t += _("%d Minute") % v[1]
+        if v[1] == 0:
+            if v[0] == 0:
+                t = _("Less Than 1 Minute")
+        elif v[1] == 1:
+            t += _("1 Minute")
         elif v[1] > 1:
             t += _("%d Minutes") % v[1]
         return t
@@ -1380,7 +1386,7 @@ class DockXBatteryPreferences(DockXAppletDialog):
         table.attach(label, 0, row, 1, 1)
         self.label_combox = Gtk.ComboBoxText()
         self.label_combox.append("never", _("Never"))
-        self.label_combox.append("time", _("Time to run out"))
+        self.label_combox.append("time", _("Time To Run Out"))
         self.label_combox.append("percent", _("Capacity Percentage"))
         self.label_combox.set_hexpand(True)
         self.label_combox.set_size_request(220, -1)
