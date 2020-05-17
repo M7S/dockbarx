@@ -87,10 +87,11 @@ def _split_time(time, nosec=True):
     seconds = time % 60
     time = time // 60
     minutes = time % 60
+    hours = time // 60
     if nosec:
-        return (time, minutes)
+        return (hours, minutes)
     else:
-        return (time, minutes, seconds)
+        return (hours, minutes, seconds)
 
 
 class CpufreqUtils():
