@@ -251,6 +251,12 @@ class Group(ListOfWindows):
         for window in self:
             window.desktop_changed()
 
+        # hide after the possible enter-notify-event
+        GLib.timeout_add(10, self.popup.hide)
+        if self.button.is_visible():
+            GLib.timeout_add(self.globals.settings["popup_delay"] + 20,
+                    lambda: self.button.pointer_is_inside() and self.popup.show())
+
         if self.locked_popup:
             self.locked_popup.get_child_().show_all()
             self.locked_popup.resize(10, 10)
@@ -2015,13 +2021,9 @@ class GroupPopup(CairoPopup):
         self.connect("drag-leave", self.on_drag_leave)
 
     def destroy(self, *args, **kvargs):
+        self.cancel_show_request()
+        self.cancel_hide_request()
         self.hide()
-        if self.show_sid is not None:
-            GLib.source_remove(self.show_sid)
-            self.show_sid = None
-        if self.hide_if_not_hovered_sid is not None:
-            GLib.source_remove(self.hide_if_not_hovered_sid)
-            self.hide_if_not_hovered_sid = None
         CairoPopup.destroy(self, *args, **kvargs)
 
     def set_child_(self, child):
@@ -2135,9 +2137,7 @@ class GroupPopup(CairoPopup):
             # No delay, show it now.
             self.__show(force)
             return
-        if self.show_sid is not None:
-            GLib.source_remove(self.show_sid)
-            self.show_sid = None
+        self.cancel_show_request()
         self.show_sid = GLib.timeout_add(delay, self.__show, force)
         return
 
@@ -2151,9 +2151,8 @@ class GroupPopup(CairoPopup):
 
     def __show(self, force=False):
         group = self.group_r()
-        if self.show_sid is not None:
-            GLib.source_remove(self.show_sid)
-            self.show_sid = None
+        self.show_sid = None
+        self.cancel_hide_request();
         if group.locked_popup:
             if force:
                 group.locked_popup.hide()
@@ -2188,9 +2187,7 @@ class GroupPopup(CairoPopup):
         group = self.group_r()
         CairoPopup.hide(self)
         self.popup_showing = False
-        if self.show_sid is not None:
-            GLib.source_remove(self.show_sid)
-            self.show_sid = None
+        self.cancel_show_request()
         self.cancel_hide_request()
         shown_popup = self.globals.get_shown_popup()
         locked_popup = self.globals.get_locked_popup()

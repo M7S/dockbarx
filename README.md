@@ -1,14 +1,54 @@
 # DockbarX
-### Version 0.93-gtk3
+### Version 1.0-beta
 
 ## About DockbarX
-The gtk3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which for the moment only works as a stand-alone dock (called DockX).
+The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as a Xfce4 panel applet[^1] or a matepanel applet[^2]. DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
+
+DockbarX is free software and is licensed under GPL3.
+
+## Install in Ubuntu 20.04+ from ppa
+The main DockbarX ppa is not maintained for the moment. You can use Xu Zhen's unofficial DockbarX ppa instead. To add the ppa and install the application in Ubuntu (and derivatives), use the following commands:
+
+```
+sudo add-apt-repository ppa:xuzhen666/dockbarx
+sudo apt-get update
+sudo apt-get install dockbarx
+```
+
+If you want to use dockbarx as a Xfce panel applet you also need this command
+
+```
+sudo apt-get install xfce4-dockbarx-plugin
+```
+
+If you want to use dockbarx as a MATE panel applet you also need this command
+```
+sudo apt-get install dockbarx-mate-panel-applet
+```
+
+To get more themes for DockbarX and DockX use this command
+
+```
+sudo apt-get install dockbarx-themes-extra
+```
+
+## Install in archlinux
+There is an aur for DockbarX
+
+https://aur.archlinux.org/packages/dockbarx-gtk3-git/
+
+And there is also one for xfce4-dockbarx-plugin
+
+https://aur.archlinux.org/packages/xfce4-dockbarx-plugin-gtk3-git/
+
 
 ## Manual Installation
 
 1. Following dependencies needs to be installed (many of them might be installed already on your system):
-  - gir1.2-keybinder-3.0, python3-cairo, python3-dbus, python3-distutils, python3-gi, python3-gi-cairo, python3-pil, python3-polib, python3-xdg and python3-xlib.
-  - (Optional) gir1.2-zeitgeist-2.0, to access latest and most used documents.
+  - gir1.2-keybinder-3.0, gir1.2-pango-1.0, gir1.2-wnck-3.0, python3-cairo (>= 1.11.0), python3-dbus, python3-distutils, python3-gi, python3-gi-cairo, python3-pil, python3-polib, python3-xdg and python3-xlib.
+  - (Optional) gir1.2-zeitgeist-2.0 and zeitgeist, to access latest and most used documents.
+  - (Optional) indicator-application or ayatana-indicator-application, to use the appindicator applet with DockX
+  - (Optional) python3-pyudev (>= 0.15), to use the battery status applet with DockX
 2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install `$ sudo ./setup.py install`
 
 ## Usage
@@ -67,7 +107,8 @@ A: If you find a theme on the web that you like, copy the file (should be SOMETH
 
 A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad. I'm happy to help theme developers as much as I can.
 
-[^1]: Using [xfce-dockbarx-plugin] (https://github.com/TiZ-EX1/xfce4-dockbarx-plugin)
+[^1]: Using [xfce-dockbarx-plugin] (https://github.com/M7S/xfce4-dockbarx-plugin/tree/pygi-python3)
 
+[^2]: DockbarX doesn't work in mate 1.6 and later at the moment.
 
 
