@@ -493,6 +493,8 @@ class DockBar():
         from .dbx_dbus import DockbarDBus
         global UnityWatcher
         from .unity import UnityWatcher
+        global shlex
+        import shlex
 
         # Media Controls
         self.media_controls = {}
@@ -957,12 +959,12 @@ class DockBar():
         res_class = window.get_class_group().get_res_class().lower()
         res_name = window.get_class_group().get_name().lower()
         identifier = res_class or res_name
+        pid = window.get_pid()
         if not identifier:
             if window.has_name():
                 identifier = window.get_name().lower()
             else:
                 #in case window has no name - issue with Spotify
-                pid = window.get_pid()
                 try:
                     f = open("/proc/"+str(pid)+"/cmdline", "r")
                 except:
@@ -1027,9 +1029,16 @@ class DockBar():
             elif chromium:
                 app = self.__find_chromium_gio_app(identifier)
             else:
-                app = self.__find_gio_app(identifier)
+                app = self.__find_gio_app(identifier, pid)
             if app:
-                desktop_entry = self.__get_desktop_entry_for_id(app.get_id())
+                desktop_entry_file = app.get_filename()
+                if desktop_entry_file:
+                    try:
+                        desktop_entry = DesktopEntry(desktop_entry_file)
+                    except:
+                        desktop_entry = None
+                else:
+                    desktop_entry = self.__get_desktop_entry_for_id(app.get_id())
             else:
                 desktop_entry = None
             try:
@@ -1083,13 +1092,13 @@ class DockBar():
                         id = self.d_e_ids_by_exec[rc]
         return id
 
-    def __find_gio_app(self, identifier):
+    def __find_gio_app(self, identifier, pid=None):
         if self.apps_up_to_date == False:
             self.scan_apps()
         app = None
         app_id = None
-        rc = identifier.lower()
-        if rc != "":
+        if identifier != "":
+            rc = identifier.lower()
             if rc in self.apps_by_id:
                 app_id = rc
             elif rc in self.app_ids_by_name:
@@ -1109,8 +1118,25 @@ class DockBar():
                         app_id = self.app_ids_by_name[rc]
                     elif rc in list(self.app_ids_by_exec.keys()):
                         app_id = self.app_ids_by_exec[rc]
-            if app_id:
-                app = self.apps_by_id[app_id]
+        if app_id is None and pid is not None:
+            try:
+                f = open("/proc/"+str(pid)+"/cmdline", "r")
+                cmdline = f.readline();
+            except:
+                pass
+            else:
+                cmdline_str = cmdline.replace('\0', ' ').strip()
+                if cmdline_str in list(self.app_ids_by_cmd.keys()):
+                    app_id = self.app_ids_by_cmd[cmdline_str]
+                else:
+                    # there may be some extra spaces
+                    cmd_parts = cmdline.split('\0')[:-1]
+                    for desktop_entry_cmd in self.app_ids_by_cmd.keys():
+                        if shlex.split(desktop_entry_cmd) == cmd_parts:
+                            app_id = self.app_ids_by_cmd[desktop_entry_cmd]
+                            break
+        if app_id:
+            app = self.apps_by_id[app_id]
         return app
 
     def __get_ooo_app_name(self, window):
