@@ -926,6 +926,8 @@ class CairoArea(Gtk.Bin):
             child.set_margin_right(right)
 
     def set_label_color(self, color):
+        if self.label is None:
+            return
         label = "<span foreground=\"" + color + "\">" + escape(self.text) + \
                 "</span>"
         self.label.set_text(label)
@@ -1154,8 +1156,7 @@ class CairoToggleMenu(Gtk.Box):
         else:
             self.menu.show()
             color = self.globals.colors["color4"]
-        if self.toggle_button.label:
-            self.toggle_button.set_label_color(color)
+        self.toggle_button.set_label_color(color)
         self.show_menu = not self.show_menu
         self.emit("toggled", self.show_menu)
 
