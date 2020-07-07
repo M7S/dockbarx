@@ -801,6 +801,9 @@ class Group(ListOfWindows):
         self.popup.hide()
         self.dockbar_r().change_identifier(self.desktop_entry.getFileName(),
                                            self.identifier)
+        if self.globals.gtkmenu:
+            # the modal __identifier_dialog prevented us from receiving selection-done signal
+            self.__menu_closed()
 
     def __menu_edit_launcher(self, widget=None, event=None):
         if self.desktop_entry:
