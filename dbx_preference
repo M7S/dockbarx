@@ -1773,7 +1773,6 @@ class PrefDialog():
 
         # Previews
         self.preview_cb.set_active(self.globals.settings["preview"])
-        self.preview_cb.set_active(self.globals.settings["preview"])
         self.preview_minimized_cb.set_active(
                                    self.globals.settings["preview_minimized"])
         self.preview_size_spin.set_value(self.globals.settings["preview_size"])
