@@ -96,7 +96,7 @@ class ListOfWindows(list):
                not window.is_on_current_desktop():
                 continue
             if self.globals.settings["show_only_current_monitor"] and \
-               self.get_monitor() != window.monitor:
+               not window.is_on_monitor(self.get_monitor()):
                 continue
             windows.append(window)
         return ListOfWindows(windows)
@@ -382,7 +382,7 @@ class Group(ListOfWindows):
         if (self.globals.settings["show_only_current_desktop"] and \
            not window.is_on_current_desktop()) and \
            (self.globals.settings["show_only_current_monitor"] and \
-           self.get_monitor() != window.monitor):
+           not window.is_on_monitor(self.get_monitor())):
             window.item.hide()
         else:
             window.item.show()
@@ -1592,8 +1592,10 @@ class GroupButton(CairoAppButton):
                 #~ # Todo: Fix this for multiple dockbarx:s
                 #~ window.wnck.set_icon_geometry(0, 0, 0, 0)
                 #~ continue
-            if self.globals.settings["show_only_current_desktop"] and \
-               window.monitor != group.get_monitor():
+            if (self.globals.settings["show_only_current_desktop"] and \
+               not window.is_on_current_desktop()) or \
+               (self.globals.settings["show_only_current_monitor"] and \
+               not window.is_on_monitor(group.get_monitor())):
                 continue
             alloc = self.get_allocation()
             if self.get_window():
@@ -2463,7 +2465,7 @@ class WindowList(Gtk.Box):
             if (self.globals.settings["show_only_current_desktop"] and \
                not window.is_on_current_desktop()) or \
                (self.globals.settings["show_only_current_monitor"] and \
-               group.get_monitor() != window.get_monitor()):
+               not window.is_on_monitor(group.get_monitor())):
                 window.item.hide()
             else:
                 window.item.show()

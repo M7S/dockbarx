@@ -111,6 +111,11 @@ class Window():
         else:
             return False
 
+    def is_on_monitor(self, monitor):
+        if not self.globals.settings["show_only_current_monitor"]:
+            return True
+        return monitor.get_geometry().equal(self.get_monitor().get_geometry())
+
     def get_monitor(self):
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
