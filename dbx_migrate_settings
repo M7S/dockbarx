@@ -1,0 +1,146 @@
+#!/usr/bin/python3
+#
+#   dbx_migrate_settings
+#
+#	Copyright 2020 Xu Zhen
+#
+#	DockbarX is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation, either version 3 of the License, or
+#	(at your option) any later version.
+#
+#	DockbarX is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+from gi.repository import Gio
+from gi.repository import GLib
+from lxml import objectify
+
+if len(sys.argv) < 2:
+    print("A tool for migrating Dockbarx settings from GConf to GSettings")
+    print("Usage:")
+    print("  " + sys.argv[0] + " settings.xml")
+    print("\nThe settings.xml is created by")
+    print("  gconftool --dump /apps/dockbarx > settings.xml")
+    sys.exit(1)
+
+def get_gsettings(name, path=None):
+    if path is None:
+        path = name
+    schema_id = "org.dockbarx.%s" % name
+    path = "/org/dockbarx/%s/" % path
+    if GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 32:
+        source = Gio.SettingsSchemaSource.get_default()
+        schema = source.lookup(schema_id, True)
+        if not schema:
+            logger.error("No schema %s" % schema_id)
+            return (None, None)
+    else:
+        schema = None
+    return (Gio.Settings.new_with_path(schema_id, path), schema)
+
+def set_setting(gsettings, gschema, key, value):
+    key = key.replace("_", "-").lower()
+    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+        if not gschema.has_key(key):
+            return 1
+    if value is None:
+        gsettings.reset(key)
+        gsettings.sync()
+        return 0
+    basic_types = {
+        str: "s",
+        bool: "b",
+        int: "i",
+        float: "d"
+    }
+    if isinstance(value, list):
+        if len(value) == 0:
+            vtype = "as"
+        else:
+            vtype = "a%s" % basic_types[type(value[0])]
+    elif isinstance(value, dict):
+        vtype = "a{ss}"
+    else:
+        vtype = None
+        for t in basic_types:
+            if isinstance(value, t):
+                vtype = basic_types[t]
+                break
+        if vtype is None:
+            return 2
+    if not gsettings.set_value(key, GLib.Variant(vtype, value)):
+        return 3
+    gsettings.sync()
+    return 0
+
+def get_setting(gsettings, gschema, key):
+    key = key.replace("_", "-")
+    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+        if not gschema.has_key(key):
+            return None
+    return gsettings.get_value(key).unpack()
+
+dockbarx_gsettings = get_gsettings("dockbarx")
+dockx_gsettings = get_gsettings("dockx")
+
+xmldoc = objectify.parse(sys.argv[1])
+options = xmldoc.findall("/entrylist/entry")
+for option in options:
+    orig_key = key = option.key.pyval
+    elem = option.value
+    if elem.find("list") is not None:
+        value = [i.getchildren()[0].pyval for i in elem.find("list").getchildren()]
+    else:
+        value = elem.getchildren()[0].pyval
+
+    if key.startswith("dock/themes/"):
+        path = "dockx/" + key[len("dock/"):key.rindex("/")].lower()
+        gsettings, gschema = get_gsettings("dockx.theme", path)
+        if gsettings is not None:
+            colors = get_setting(gsettings, gschema, "colors")
+            if colors is None:
+                gsettings = None
+            else:
+                colors[key[key.rindex("/")+1:]] = str(value)
+                key = "colors"
+                value = colors
+    elif key.startswith("dock/"):
+        gsettings, gschema = dockx_gsettings
+        key = key[len("dock/"):]
+    elif key.startswith("themes/"):
+        path = key[:key.rindex("/")].lower()
+        gsettings, gschema = get_gsettings("dockbarx.theme", "dockbarx/" + path)
+        key = key[key.rindex("/")+1:]
+    elif key == "applets/applet_list":
+        gsettings, gschema = get_gsettings("applets")
+        key = "enabled_list"
+    elif key.startswith("applets/"):
+        applet = key[len("applets/"):]
+        applet = applet[:applet.index("/")]
+        gsettings, gschema = get_gsettings("applets.%s" % applet, "applets/%s" % applet)
+        key = key[key.rindex("/")+1:]
+    elif key.find("/") >= 0:
+        print("skip obsoleted option: %s" % key)
+        continue
+    else:
+        gsettings, gschema = dockbarx_gsettings
+
+    if gsettings is not None:
+        ret = set_setting(gsettings, gschema, key, value)
+    else:
+        ret = 1
+    if ret == 1:
+        print("skip obsoleted option: %s" % orig_key)
+    elif ret == 2:
+        print("skip unsupported value for option %s: %s" % (orig_key, value))
+    elif ret == 3:
+        print("failed to set value for option %s: %s" % (orig_key, value))
+
+
