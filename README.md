@@ -110,14 +110,13 @@ A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome
 
 *Q: How can I backup and restore all preferences to move my settings to another linux setup?*
 
-A: backup: dconf dump /org/dockbarx/ > dockbarx.xml
-   restore: dconf load /org/dockbarx/ < dockbarx.xml
+A: Backup: ```dconf dump /org/dockbarx/ > dockbarx.xml```\
+   Restore: ```dconf load /org/dockbarx/ < dockbarx.xml```\
    and don't forget to copy ~/.local/share/dockbarx/
 
 *Q: All the preferences were lost after upgrading to 1.0, how to get them back?*
 
-A: Dump the preferences from GConf database: gconftool --dump /apps/dockbarx > dockbarx.xml
-   Run the migrating tool: dbx_migrate_settings dockbarx.xml
+A: Dump the preferences from GConf database ```gconftool --dump /apps/dockbarx > dockbarx.xml```, and run the migrating tool ```dbx_migrate_settings dockbarx.xml```
 
 [^1]: Using [xfce-dockbarx-plugin] (https://github.com/M7S/xfce4-dockbarx-plugin/tree/pygi-python3)
 
