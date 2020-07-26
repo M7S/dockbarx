@@ -116,7 +116,7 @@ A: Backup: ```dconf dump /org/dockbarx/ > dockbarx.xml```\
 
 *Q: All the preferences were lost after upgrading to 1.0, how to get them back?*
 
-A: Dump the preferences from GConf database ```gconftool --dump /apps/dockbarx > dockbarx.xml```, and run the migrating tool ```dbx_migrate_settings dockbarx.xml```
+A: Dump the preferences from GConf database ```gconftool --dump /apps/dockbarx > dockbarx.xml```, run the migrating tool ```dbx_migrate_settings dockbarx.xml```, and move the application folder from ~/.dockbarx to ~/.local/share/dockbarx
 
 [^1]: Using [xfce-dockbarx-plugin] (https://github.com/M7S/xfce4-dockbarx-plugin/tree/pygi-python3)
 
