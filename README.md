@@ -49,6 +49,7 @@ https://aur.archlinux.org/packages/xfce4-dockbarx-plugin-gtk3-git/
   - (Optional) gir1.2-zeitgeist-2.0 and zeitgeist, to access latest and most used documents.
   - (Optional) indicator-application or ayatana-indicator-application, to use the appindicator applet with DockX
   - (Optional) python3-pyudev (>= 0.15), to use the battery status applet with DockX
+  - (Optional) python3-lxml, to use the settings migrating tool
 2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install `$ sudo ./setup.py install`
 
 ## Usage
@@ -106,6 +107,16 @@ A: If you find a theme on the web that you like, copy the file (should be SOMETH
 *Q: How can I make an theme of my own?*
 
 A: Read Theming HOWTO. If you need help ask me (Matias Särs alias M7S) on gnome-look or at launchpad. I'm happy to help theme developers as much as I can.
+
+*Q: How can I backup and restore all preferences to move my settings to another linux setup?*
+
+A: Backup: ```dconf dump /org/dockbarx/ > dockbarx.xml```\
+   Restore: ```dconf load /org/dockbarx/ < dockbarx.xml```\
+   and don't forget to copy ~/.local/share/dockbarx/
+
+*Q: All the preferences were lost after upgrading to 1.0, how to get them back?*
+
+A: Dump the preferences from GConf database ```gconftool --dump /apps/dockbarx > dockbarx.xml```, run the migrating tool ```dbx_migrate_settings dockbarx.xml```, and move the application folder from ~/.dockbarx to ~/.local/share/dockbarx
 
 [^1]: Using [xfce-dockbarx-plugin] (https://github.com/M7S/xfce4-dockbarx-plugin/tree/pygi-python3)
 

@@ -1591,6 +1591,8 @@ class PrefDialog():
         self.delay_spin.set_value(self.globals.settings["popup_delay"])
         self.second_delay_spin.set_value(
                                  self.globals.settings["second_popup_delay"])
+        self.reorder_window_list_cb.set_active(
+                            self.globals.settings["reorder_window_list"])
         self.no_popup_cb.set_active(
                             self.globals.settings["no_popup_for_one_window"])
         self.show_tooltip_cb.set_active(
@@ -1772,7 +1774,6 @@ class PrefDialog():
             self.popup_style_combo.set_active(-1)
 
         # Previews
-        self.preview_cb.set_active(self.globals.settings["preview"])
         self.preview_cb.set_active(self.globals.settings["preview"])
         self.preview_minimized_cb.set_active(
                                    self.globals.settings["preview_minimized"])

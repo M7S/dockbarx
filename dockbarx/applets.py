@@ -66,6 +66,7 @@ def set_applet_setting(gsettings, gschema, key, value, empty_list_type=str):
             return
     if value is None:
         gsettings.reset(key)
+        gsettings.sync()
         return
 
     basic_types = {
@@ -77,7 +78,7 @@ def set_applet_setting(gsettings, gschema, key, value, empty_list_type=str):
     if isinstance(value, list):
         if len(value) == 0:
             if empty_list_type in basic_types:
-                vtype = basic_types[empty_list_type]
+                vtype = "a%s" % basic_types[empty_list_type]
             else:
                 logger.error("Unsupported type: %s" % empty_list_type)
                 return
@@ -99,7 +100,8 @@ def set_applet_setting(gsettings, gschema, key, value, empty_list_type=str):
         if vtype is None:
             logger.error("The value must be a string, bool, int, float, or list")
             return
-    gsettings.set_value(key, GLib.Variant(vtype, value))
+    if gsettings.set_value(key, GLib.Variant(vtype, value)):
+        gsettings.sync()
 
 def get_applet_setting(gsettings, gschema, key):
     if type(key) != str:

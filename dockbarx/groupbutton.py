@@ -96,7 +96,7 @@ class ListOfWindows(list):
                not window.is_on_current_desktop():
                 continue
             if self.globals.settings["show_only_current_monitor"] and \
-               self.get_monitor() != window.monitor:
+               not window.is_on_monitor(self.get_monitor()):
                 continue
             windows.append(window)
         return ListOfWindows(windows)
@@ -382,7 +382,7 @@ class Group(ListOfWindows):
         if (self.globals.settings["show_only_current_desktop"] and \
            not window.is_on_current_desktop()) and \
            (self.globals.settings["show_only_current_monitor"] and \
-           self.get_monitor() != window.monitor):
+           not window.is_on_monitor(self.get_monitor())):
             window.item.hide()
         else:
             window.item.show()
@@ -801,6 +801,9 @@ class Group(ListOfWindows):
         self.popup.hide()
         self.dockbar_r().change_identifier(self.desktop_entry.getFileName(),
                                            self.identifier)
+        if self.globals.gtkmenu:
+            # the modal __identifier_dialog prevented us from receiving selection-done signal
+            self.__menu_closed()
 
     def __menu_edit_launcher(self, widget=None, event=None):
         if self.desktop_entry:
@@ -1589,8 +1592,10 @@ class GroupButton(CairoAppButton):
                 #~ # Todo: Fix this for multiple dockbarx:s
                 #~ window.wnck.set_icon_geometry(0, 0, 0, 0)
                 #~ continue
-            if self.globals.settings["show_only_current_desktop"] and \
-               window.monitor != group.get_monitor():
+            if (self.globals.settings["show_only_current_desktop"] and \
+               not window.is_on_current_desktop()) or \
+               (self.globals.settings["show_only_current_monitor"] and \
+               not window.is_on_monitor(group.get_monitor())):
                 continue
             alloc = self.get_allocation()
             if self.get_window():
@@ -2460,7 +2465,7 @@ class WindowList(Gtk.Box):
             if (self.globals.settings["show_only_current_desktop"] and \
                not window.is_on_current_desktop()) or \
                (self.globals.settings["show_only_current_monitor"] and \
-               group.get_monitor() != window.get_monitor()):
+               not window.is_on_monitor(group.get_monitor())):
                 window.item.hide()
             else:
                 window.item.show()

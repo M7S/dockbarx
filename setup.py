@@ -128,7 +128,7 @@ data_files=[
                                              "dockx_applets/namebar_window_buttons.py",
                                              "dockx_applets/namebar_window_title.applet",
                                              "dockx_applets/namebar_window_title.py"]),
-            ("bin", ["dbx_preference", "dockx"]),
+            ("bin", ["dbx_preference", "dbx_migrate_settings", "dockx"]),
             ("lib/mate-panel/", ["mate_panel_applet/dockbarx_mate_applet"]),
             ("share/applications/", ["dbx_preference.desktop"]),
             ("share/applications/", ["DockX.desktop"]),
