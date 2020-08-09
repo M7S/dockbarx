@@ -823,11 +823,11 @@ class DockX(CairoDockX):
                              XDisplay.get_atom('CARDINAL'), 32,
                              strut[:4],
                              X.PropModeReplace)
-
         topw.change_property(XDisplay.get_atom('_NET_WM_STRUT_PARTIAL'),
                              XDisplay.get_atom('CARDINAL'), 32,
                              strut,
                              X.PropModeReplace)
+        XDisplay.flush()
 
     def __get_monitor_and_strut_borders(self):
         # This function returns the distance from screen edges to
