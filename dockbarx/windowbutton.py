@@ -21,6 +21,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GdkX11
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from gi.repository import Pango
@@ -225,7 +226,7 @@ class Window():
         if event:
             t = event.time
         else:
-            t = 0
+            t = GdkX11.x11_get_server_time(Gdk.get_default_root_window())
         if self.wnck.get_workspace() is not None \
         and self.screen.get_active_workspace() != self.wnck.get_workspace():
             self.wnck.get_workspace().activate(t)
