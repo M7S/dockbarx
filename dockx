@@ -1294,7 +1294,10 @@ class DockX(CairoDockX):
         self.db_loaded = False
         if keep_locked_popup:
             locked_popup = self.globals.get_locked_popup()
-            locked_group_id = locked_popup.group_r().identifier
+            if locked_popup:
+                locked_group_id = locked_popup.group_r().identifier
+            else:
+                locked_group_id = None
         else:
             locked_group_id = None
         self.dockbar.reload(tell_parent=False, locked_group=locked_group_id)
