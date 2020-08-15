@@ -6,8 +6,8 @@ The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacemen
 
 DockbarX is free software and is licensed under GPL3.
 
-## Install in Ubuntu 20.04+ from ppa
-The main DockbarX ppa is not maintained for the moment. You can use Xu Zhen's unofficial DockbarX ppa instead. To add the ppa and install the application in Ubuntu (and derivatives), use the following commands:
+## Install in Ubuntu 18.04+ from PPA
+The main DockbarX PPA is not maintained for the moment. You can use Xu Zhen's unofficial DockbarX PPA instead. To add the PPA and install the application in Ubuntu (and derivatives), use the following commands:
 
 ```
 sudo add-apt-repository ppa:xuzhen666/dockbarx
