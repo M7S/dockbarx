@@ -345,11 +345,11 @@ class Group(ListOfWindows):
     def add_locked_popup(self):
         if self.locked_popup:
             return
+        self.popup.hide()
         locked_popup = self.globals.get_locked_popup()
         if locked_popup:
             locked_popup.destroy()
         self.locked_popup = LockedPopup(self)
-        self.popup.hide()
         self.globals.set_locked_popup(self.locked_popup)
         self.locked_popup.show()
 
@@ -357,6 +357,7 @@ class Group(ListOfWindows):
         if self.locked_popup:
             self.locked_popup.destroy()
             self.popup.hide()
+            self.locked_popup = None
 
     #### Window handling
     def add_window(self, wnck_window):
@@ -2049,7 +2050,7 @@ class GroupPopup(CairoPopup):
         else:
             return children[0]
 
-    def on_size_allocate(self, widget, allocation):
+    def on_size_allocate(self, widget, allocation, no_move=False):
         if allocation == self.last_allocation:
             return
         group = self.group_r()
@@ -2060,7 +2061,7 @@ class GroupPopup(CairoPopup):
         offset = int(self.popup_style.get("%s_distance" % self.popup_type, -7))
         dummy, wx, wy = window.get_origin()
         b_alloc = group.button.get_allocation()
-        width, height = self.get_size()
+        width, height = allocation.width, allocation.height
 
         if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
             mgeo = group.get_monitor().get_geometry();
@@ -2119,7 +2120,8 @@ class GroupPopup(CairoPopup):
                 x = x + b_alloc.width + offset
             p = wy + b_alloc.y + (b_alloc.height // 2) - y
         self.point(direction, p)
-        self.move(x, y)
+        if not no_move:
+            self.move(x, y)
         try:
             child_func = self.get_child_().on_popup_reallocate
         except AttributeError:
@@ -2286,15 +2288,18 @@ class LockedPopup(GroupPopup):
         group.window_list.apply_mini_mode()
         if not group.get_windows():
             self.hide()
-        else:
-            # not work
-            # GLib.idle_add(self.__on_realized)
-            pass
+        self.set_type_hint(Gdk.WindowTypeHint.DOCK)
+        self.set_keep_above(True)
+        self.set_decorated(False)
+        self.set_accept_focus(False)
+        self.set_resizable(False)
         self.overlap_sid = self.globals.connect("locked-list-overlap-changed", self.__set_own_strut)
-        self.connect("size-allocate", self.on_size_allocate)
+        self.size_allocate_sid = self.connect("size-allocate", self.on_size_allocate)
+        self.connect("realize", self.__on_realized)
 
     def show(self):
-        CairoPopup.show(self)
+        CairoPopup.show_all(self)
+        self.on_size_allocate(self, self.get_allocation())
 
     def hide(self):
         CairoPopup.hide(self)
@@ -2315,7 +2320,7 @@ class LockedPopup(GroupPopup):
         else:
             mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
 
-        width, height = self.get_size()
+        width, height = allocation.width, allocation.height
         if self.dockbar_r().orient in ("down", "up"):
             button_window = group.button.get_window()
             if button_window:
@@ -2326,7 +2331,7 @@ class LockedPopup(GroupPopup):
                 GroupPopup.on_size_allocate(self, widget, allocation)
                 self.__set_own_strut()
                 return
-        GroupPopup.on_size_allocate(self, widget, allocation)
+        GroupPopup.on_size_allocate(self, widget, allocation, no_move=True)
         strut = self.__get_other_strut(mgeo.width // 2 - width // 2,
                                        mgeo.width // 2 + width // 2)
         self.move(mgeo.width // 2 - width // 2, mgeo.height - height - strut - 1)
@@ -2340,44 +2345,40 @@ class LockedPopup(GroupPopup):
             child_func(self)
 
     def __set_own_strut(self, *args):
-        # Todo: This doesn't work at all. Find out why and uncomment.
-        return
-        #~ global display
-        #~ global X
-        #~ if display is None:
-            #~ from Xlib import display
-        #~ win = self.get_window()
-        #~ if win:
-            #~ if self.globals.settings["locked_list_no_overlap"] is False:
-                #~ topw = XDisplay.create_resource_object('window',
-                                                       #~ win.get_toplevel().get_xid())
-                #~ topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT"))
-                #~ topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT_PARTIAL"))
-                #~ return
-            #~ if  X is None:
-                #~ from Xlib import X
-            #~ group = self.group_r()
-            #~ a = self.get_allocation()
-            #~ x, y = self.get_position()
-            #~ if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            #~     mgeo = group.get_monitor().get_geometry();
-            #~ else:
-            #~     mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
-            #~ height = mgeo.y + mgeo.height - y
-            #~ x1 = mgeo.x + x
-            #~ x2 = mgeo.x + x + a.width
-            #~ strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
-            #~ topw = XDisplay.create_resource_object('window',
-                                                   #~ win.get_toplevel().get_xid())
-            #~ topw.change_property(XDisplay.get_atom('_NET_WM_STRUT'),
-                                 #~ XDisplay.get_atom('CARDINAL'), 32,
-                                 #~ strut[:4],
-                                 #~ X.PropModeReplace)
-
-            #~ topw.change_property(XDisplay.get_atom('_NET_WM_STRUT_PARTIAL'),
-                                 #~ XDisplay.get_atom('CARDINAL'), 32,
-                                 #~ strut,
-                                 #~ X.PropModeReplace)
+        win = self.get_window()
+        if not win:
+            return
+        topw = XDisplay.create_resource_object('window',
+                                               win.get_toplevel().get_xid())
+        if self.globals.settings["locked_list_no_overlap"] is False:
+            topw = XDisplay.create_resource_object('window',
+                                                   win.get_toplevel().get_xid())
+            topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT"))
+            topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT_PARTIAL"))
+            return
+        global X
+        if X is None:
+            from Xlib import X
+        group = self.group_r()
+        a = self.get_allocation()
+        x, y = self.get_position()
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
+            mgeo = group.get_monitor().get_geometry();
+        else:
+            mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
+        height = mgeo.y + mgeo.height - y
+        x1 = max(mgeo.x + x, 0)
+        x2 = max(mgeo.x + x + a.width, 0)
+        strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
+        topw.change_property(XDisplay.get_atom('_NET_WM_STRUT'),
+                             XDisplay.get_atom('CARDINAL'), 32,
+                             strut[:4],
+                             X.PropModeReplace)
+        topw.change_property(XDisplay.get_atom('_NET_WM_STRUT_PARTIAL'),
+                             XDisplay.get_atom('CARDINAL'), 32,
+                             strut,
+                             X.PropModeReplace)
+        XDisplay.flush()
 
     def __get_other_strut(self, x1, x2):
         # if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
@@ -2410,15 +2411,15 @@ class LockedPopup(GroupPopup):
                 strut = max(strut, prop2.value[3])
         return strut
 
-    def __on_realized(self):
-        while not self.get_window():
-            Gtk.main_iteration()
+    def __on_realized(self, widget):
+        self.get_window().set_override_redirect(False)
         self.__set_own_strut()
 
     def destroy(self):
         group = self.group_r()
         group.locked_popup = None
         self.globals.disconnect(self.overlap_sid)
+        self.disconnect(self.size_allocate_sid)
         self.childbox.remove(group.window_list)
         group.popup.set_child_(group.window_list)
         group.window_list.apply_normal_mode()

@@ -1127,7 +1127,7 @@ class DockX(CairoDockX):
         orient = {"top": "up", "left": "left",
                    "right": "right", "bottom": "down"}[pos]
         self.dockbar.set_orient(orient)
-        self.reload()
+        self.reload(keep_locked_popup = True)
 
     def __on_overlap_changed(self, *args):
         a = self.get_allocation()
@@ -1290,9 +1290,14 @@ class DockX(CairoDockX):
         #self.applets.find_applets()
         self.__rebuild()
 
-    def reload(self, *args):
+    def reload(self, keep_locked_popup=False, *args):
         self.db_loaded = False
-        self.dockbar.reload(tell_parent=False)
+        if keep_locked_popup:
+            locked_popup = self.globals.get_locked_popup()
+            locked_group_id = locked_popup.group_r().identifier
+        else:
+            locked_group_id = None
+        self.dockbar.reload(tell_parent=False, locked_group=locked_group_id)
         self.db_loaded = True
         self.applets.find_applets()
         self.theme.reload()

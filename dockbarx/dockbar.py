@@ -535,7 +535,7 @@ class DockBar():
 
         self.reload(tell_parent=False)
 
-    def reload(self, event=None, data=None, tell_parent=True):
+    def reload(self, event=None, data=None, tell_parent=True, locked_group=None):
         """Reloads DockbarX."""
         logger.info("DockbarX reload")
         # Clear away the old stuff, if any.
@@ -609,6 +609,12 @@ class DockBar():
         # Initiate group buttons with windows
         for window in self.screen.get_windows():
             self.__on_window_opened(self.screen, window)
+        # restore locked popup
+        if locked_group is not None:
+            for group in self.groups:
+                if group.identifier == locked_group:
+                    group.add_locked_popup()
+                    break
 
         self.screen.connect("window-opened", self.__on_window_opened)
         self.screen.connect("window-closed", self.__on_window_closed)

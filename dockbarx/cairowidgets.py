@@ -556,7 +556,8 @@ class CairoPopup(Gtk.Window):
 
     def on_draw(self, widget, ctx):
         #~ self.set_shape_mask()
-        w,h = self.get_size()
+        a = self.get_allocation()
+        w, h = a.width, a.height
         if self.is_composited():
             ctx.set_source_rgba(1, 1, 1, 0)
         else:
