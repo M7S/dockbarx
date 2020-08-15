@@ -64,7 +64,7 @@ class CairoDockX(Gtk.Window):
         gdk_screen = Gdk.Screen.get_default()
         visual = gdk_screen.get_rgba_visual()
         if visual is None:
-            visual = gdk_screen.get_rgb_visual()
+            visual = gdk_screen.get_system_visual()
         self.set_visual(visual)
         self.set_app_paintable(1)
         self.compute_padding()
