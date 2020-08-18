@@ -1898,8 +1898,13 @@ class DockBar():
             if not group.media_controls or not success:
                 group.action_launch_application()
         if len(windows) == 1:
-            # Just one window. Let's focus on it straight away.
-            windows[0].action_select_window()
+            # Just one window.
+            if windows[0].is_active_window:
+                # If it's already active, minimise it.
+                windows[0].action_minimize_window()
+            else:
+                # If it's inactive, let's show it.
+                windows[0].action_select_window()
 
     def __on_super_released(self, *args):
         # Break the signal connection to avoid multiple release calls.
