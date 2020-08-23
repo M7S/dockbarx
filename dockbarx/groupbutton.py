@@ -785,9 +785,10 @@ class Group(ListOfWindows):
 
     def __menu_closed(self, menushell=None):
         # Used only with the gtk menu
-        self.globals.gtkmenu = None
-        self.menu.delete_menu()
-        self.menu = None
+        if self.globals.gtkmenu:
+            self.globals.gtkmenu = None
+            self.menu.delete_menu()
+            self.menu = None
 
     def __menu_unminimize_all_windows(self, widget=None, event=None):
         if event:
