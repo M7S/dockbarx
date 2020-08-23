@@ -812,8 +812,8 @@ class Group(ListOfWindows):
             path = self.desktop_entry.getFileName()
         else:
             path = ""
-        self.dockbar_r().edit_launcher(path, self.identifier)
         self.popup.hide()
+        self.dockbar_r().edit_launcher(path, self.identifier)
         if self.globals.gtkmenu:
             # the modal DesktopFileEditor dialog prevented us from receiving selection-done signal
             self.__menu_closed()
