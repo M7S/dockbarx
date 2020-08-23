@@ -783,7 +783,7 @@ class Group(ListOfWindows):
                 x -= w - a.width
         return (x, y, False)
 
-    def __menu_closed(self, menushell):
+    def __menu_closed(self, menushell=None):
         # Used only with the gtk menu
         self.globals.gtkmenu = None
         self.menu.delete_menu()
