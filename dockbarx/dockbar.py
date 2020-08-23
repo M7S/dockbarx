@@ -493,6 +493,8 @@ class DockBar():
         from .dbx_dbus import DockbarDBus
         global UnityWatcher
         from .unity import UnityWatcher
+        global DesktopFileEditor
+        from .desktopfileeditor import DesktopFileEditor
         global shlex
         import shlex
 
@@ -1412,13 +1414,19 @@ class DockBar():
                     "mate-desktop-item-edit", "exo-desktop-item-edit")
         for program in programs:
             if check_program(program):
+                process = subprocess.Popen([program, new_path], env=os.environ)
+                GLib.timeout_add(100, self.__wait_for_launcher_editor,
+                                 process, path, new_path, identifier)
                 break
         else:
-            logger.warning("Error: Found no program for editing .desktop files.")
-            return
-        process = subprocess.Popen([program, new_path], env=os.environ)
-        GLib.timeout_add(100, self.__wait_for_launcher_editor,
-                            process, path, new_path, identifier)
+            editor = DesktopFileEditor()
+            editor.load(path)
+            editor.show_all()
+            action = editor.run()
+            if action == Gtk.ResponseType.OK:
+                editor.save(new_path)
+                self.__wait_for_launcher_editor(None, path, new_path, identifier)
+            editor.destroy()
 
     def update_pinned_apps_list(self, arg=None):
         # Saves pinned_apps_list
@@ -1591,7 +1599,7 @@ class DockBar():
 
     def __wait_for_launcher_editor(self, process,
                                    old_path, new_path, identifier):
-        if process.poll() != None:
+        if process is None or process.poll() != None:
             # Launcher editor closed.
             if os.path.isfile(new_path):
                 # Update desktop_entry.

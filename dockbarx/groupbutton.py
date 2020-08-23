@@ -813,6 +813,9 @@ class Group(ListOfWindows):
             path = ""
         self.dockbar_r().edit_launcher(path, self.identifier)
         self.popup.hide()
+        if self.globals.gtkmenu:
+            # the modal DesktopFileEditor dialog prevented us from receiving selection-done signal
+            self.__menu_closed()
 
     def __menu_pin(self, widget=None, event=None):
         self.pinned = True
