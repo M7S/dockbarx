@@ -187,7 +187,7 @@ class DesktopFileEditor(Gtk.Dialog):
         self.terminal_check.set_active(self.get_item("Terminal") == "true")
         icon = self.get_item("Icon")
         if icon.startswith("/"):
-            pixbuf = GdkPixbuf.new_from_file_at_size(icon, 64, 64)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, 64, 64)
         else:
             icon_theme = Gtk.IconTheme.get_default()
             pixbuf = icon_theme.load_icon(icon, 64, 0)
