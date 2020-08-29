@@ -741,13 +741,6 @@ class DockX(CairoDockX):
             self.box.pack_start(boxes[0], True, True, 0)
             self.box.pack_start(boxes[1], False, False, 0)
             self.box.pack_start(boxes[2], True, True, 0)
-            # Use hugh size requests so that the boxes get equally large.
-            if pos in ("left", "right"):
-                boxes[0].set_size_request(-1, 3000)
-                boxes[2].set_size_request(-1, 3000)
-            else:
-                boxes[0].set_size_request(3000, -1)
-                boxes[2].set_size_request(3000, -1)
         else:
             boxes = None
         return boxes
