@@ -715,7 +715,11 @@ class DockX(CairoDockX):
                 if appletscr is None:
                     continue
                 applet_id = self.applets.get_id(name)
-                applet = appletscr.get_dbx_applet({"name":name, "id":applet_id, "dock":self})
+                try:
+                    applet = appletscr.get_dbx_applet({"name":name, "id":applet_id, "dock":self})
+                except:
+                    logger.warning("Failed to load applet %s. If this applet was installed after DockbarX started, please restart DockbarX" % name)
+                    continue
                 expand = applet.get_expand() and panel
                 applet.finish_init()
             if expand:
