@@ -33,13 +33,13 @@ sudo apt-get install dockbarx-themes-extra
 ```
 
 ## Install in archlinux
-There is an aur for DockbarX
+There is an AUR for DockbarX
 
-https://aur.archlinux.org/packages/dockbarx-gtk3-git/
+https://aur.archlinux.org/packages/dockbarx/
 
 And there is also one for xfce4-dockbarx-plugin
 
-https://aur.archlinux.org/packages/xfce4-dockbarx-plugin-gtk3-git/
+https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
 
 
 ## Manual Installation
