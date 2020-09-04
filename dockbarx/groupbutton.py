@@ -51,7 +51,7 @@ _ = i18n.language.gettext
 X = None
 
 try:
-    WNCK_WINDOW_ACTION_MAXIMIZE = Wnck.WindowType.ACTION_MAXIMIZE
+    WNCK_WINDOW_ACTION_MAXIMIZE = Wnck.WindowActions.MAXIMIZE
 except:
     WNCK_WINDOW_ACTION_MAXIMIZE = 1 << 14
 
