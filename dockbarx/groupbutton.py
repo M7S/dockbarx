@@ -613,6 +613,7 @@ class Group(ListOfWindows):
             if not window.wnck.is_maximized() \
             and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
                 maximize = True
+                break
         else:
             maximize = False
         minimize = self.get_unminimized_count() > 0
