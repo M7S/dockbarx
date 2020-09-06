@@ -92,6 +92,8 @@ class Spacer(Gtk.EventBox):
 
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
+        self.drag_launcher = False
+        self.on_drop = False
         self.connect("button-release-event", self.on_button_release_event)
         self.connect("drag-motion", self.on_drag_motion)
         self.connect("drag-leave", self.on_drag_leave)
@@ -106,49 +108,65 @@ class Spacer(Gtk.EventBox):
     def on_drag_drop(self, widget, drag_context, x, y, t):
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
-            self.drag_get_data(drag_context, "text/groupbutton_name", t)
-            drag_context.finish(True, False, t)
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/groupbutton_name", False), t)
         elif "text/uri-list" in targets:
-            self.drag_get_data(drag_context, "text/uri-list", t)
-            drag_context.finish(True, False, t)
+            self.on_drop = True
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/uri-list", False), t)
         else:
-            drag_context.finish(False, False, t)
+            return False
         return True
 
-    def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
+    def on_drag_data_received(self, widget, drag_context, x, y, selection, targetType, t):
         selection_target = selection.get_target().name()
         if selection_target == "text/groupbutton_name":
-            self.dockbar_r().groupbutton_moved(selection.get_data(),
-                                                    "after")
+            name = selection.get_data().decode()
+            self.dockbar_r().groupbutton_moved(name, "after")
+            drag_context.finish(True, False, t)
         elif selection_target == "text/uri-list":
-            if ".desktop" in selection.get_data():
-                # .desktop file! This is a potential launcher.
-                #remove "file://" and "/n" from the URI
-                path = selection.get_data()
-                path = path.replace('\000', '')     # for spacefm
-                if path.startswith("file://"):
-                    path = path[7:]
-                else:
-                    # No support for other kind of uris.
-                    return
-                path = path.rstrip()
-                path = urllib.parse.unquote(path)
-                self.dockbar_r().launcher_dropped(path, "after")
+            dropped = False;
+            for uri in selection.get_uris():
+                uri = uri.replace('\000', '')     # for spacefm
+                if uri.startswith("file://") and uri.endswith(".desktop"):
+                    # .desktop file! This is a potential launcher.
+                    if self.on_drop:
+                        #remove "file://" from the URI
+                        path = uri[7:]
+                        path = urllib.parse.unquote(path)
+                        self.dockbar_r().launcher_dropped(path, "after")
+                        dropped = True
+                    else:
+                        self.drag_launcher = True
+                        break
+            if self.on_drop:
+                drag_context.finish(dropped, False, t)
+            else:
+                self.on_drag_motion(widget, drag_context, x, y, t)
 
     def on_drag_motion(self, widget, drag_context, x, y, t):
         if not self.drag_entered:
             self.on_drag_enter(widget, drag_context, x, y, t)
+            return True
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
             Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, t)
-        elif "text/uri-list" in targets():
-            Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
+        elif "text/uri-list" in targets:
+            if self.drag_launcher:
+                Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
+            else:
+                Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         else:
             Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         return True
 
     def on_drag_enter(self, widget, drag_context, x, y, t):
         self.drag_entered = True
+        targets = [target.name() for target in drag_context.list_targets()]
+        if "text/groupbutton_name" in targets:
+            pass
+        elif "text/uri-list" in targets:
+            self.on_drop = False
+            self.drag_launcher = False
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/uri-list", False), t)
 
     def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
@@ -1059,8 +1077,11 @@ class DockBar():
                 return
 
     def __remove_window(self, window):
-        identifier = self.windows[window]
-        group = self.groups[identifier]
+        try:
+            identifier = self.windows[window]
+            group = self.groups[identifier]
+        except KeyError:
+            return
         group.del_window(window)
         if not len(group) and not group.pinned:
             self.remove_groupbutton(group)

@@ -1391,10 +1391,10 @@ class GroupButton(CairoAppButton):
         # raised.
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
-        self.launcher_drag = False
+        self.dnd_has_launcher = False
+        self.dnd_on_drop = False
         self.dnd_position = "end"
         self.dnd_show_popup = None
-        self.dd_uri = None
 
         #Make buttons drag-able
         self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK,[], Gdk.DragAction.MOVE)
@@ -1486,13 +1486,13 @@ class GroupButton(CairoAppButton):
             state_type = state_type | IconFactory.MOUSE_BUTTON_DOWN
 
         if self.mouse_over or \
-           (self.drag_entered and not self.launcher_drag):
+           (self.drag_entered and not self.dnd_has_launcher):
             state_type = state_type | IconFactory.MOUSE_OVER
 
         if self.launch_effect:
             state_type = state_type | IconFactory.LAUNCH_EFFECT
 
-        if self.launcher_drag:
+        if self.dnd_has_launcher:
             if self.dnd_position == "start":
                 state_type = state_type | IconFactory.DRAG_DROPP_START
             else:
@@ -1720,6 +1720,7 @@ class GroupButton(CairoAppButton):
 
     def on_drag_end(self, widget, drag_context, result=None):
         self.is_current_drag_source = False
+        self.globals.dragging = False
         #~ # A delay is needed to make sure the button is
         #~ # shown after on_drag_end has hidden it and
         #~ # not the other way around.
@@ -1727,63 +1728,50 @@ class GroupButton(CairoAppButton):
 
     #### DnD (target)
     def on_drag_drop(self, widget, drag_context, x, y, t):
-        group = self.group_r()
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
             target_atom = Gdk.Atom.intern("text/groupbutton_name", False)
             self.drag_get_data(drag_context, target_atom, t)
-            drag_context.finish(True, False, t)
         elif "text/uri-list" in targets:
-            #Drag data should already be stored in self.dd_uri
-            if ".desktop" in self.dd_uri:
-                # .desktop file! This is a potential launcher.
-                #remove "file://" and "/n" from the URI
-                path = self.dd_uri
-                if path.startswith("file://"):
-                    path = path.replace('\000', '')     # for spacefm
-                    path = path[7:]
-                else:
-                    # No support for other kind of uris.
-                    return
-                path = path.rstrip()
-                path = urllib.parse.unquote(path)
-                self.dockbar_r().launcher_dropped(path, group,
-                                                  self.dnd_position)
-            else:
-                uri = self.dd_uri
-                # Remove the new line at the end
-                uri = uri.rstrip()
-                group.launch(None, None, uri)
-            drag_context.finish(True, False, t)
+            self.dnd_on_drop = True
+            target_atom = Gdk.Atom.intern("text/uri-list", False)
+            self.drag_get_data(drag_context, target_atom, t)
         else:
-            drag_context.finish(False, False, t)
-        self.dd_uri = None
+            return False
         return True
 
     def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
         group = self.group_r()
-        name = group.identifier or group.desktop_entry.getFileName()
         selection_target = selection.get_target().name()
         if selection_target == "text/groupbutton_name":
+            name = group.identifier or group.desktop_entry.getFileName()
             # Selection data is in bytes we need to decode it to a string.
             data = selection.get_data().decode()
             if data != name:
                 self.dockbar_r().groupbutton_moved(data, group, self.dnd_position)
+            context.finish(True, False, t)
         elif selection_target == "text/uri-list":
-            # Uri lists are tested on first motion instead on drop
-            # to check if it's a launcher.
-            # The data is saved in self.dd_uri to be used again
-            # if the file is dropped.
-            self.dd_uri = selection.get_data().decode()
-            if ".desktop" in selection.get_data().decode():
-                # .desktop file! This is a potential launcher.
-                self.launcher_drag = True
-            self.update_state()
+            for uri in selection.get_uris():
+                uri = uri.replace('\000', '')     # for spacefm
+                if uri.startswith("file://") and uri.endswith(".desktop"):
+                    # .desktop file! This is a potential launcher.
+                    if self.dnd_on_drop:
+                        #remove "file://" from the URI
+                        path = uri[7:]
+                        path = urllib.parse.unquote(path)
+                        self.dockbar_r().launcher_dropped(path, group,
+                                                          self.dnd_position)
+                    else:
+                        self.dnd_has_launcher = True
+                        break
+                elif self.dnd_on_drop:
+                    group.launch(None, None, uri)
+            if self.dnd_on_drop:
+                context.finish(True, False, t)
+            else:
+                self.__update_dragging_status(x, y)
 
     def on_drag_motion(self, widget, drag_context, x, y, t):
-        group = self.group_r()
-        if not self.drag_entered:
-            self.on_drag_enter(widget, drag_context, x, y, t)
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets and \
            not self.is_current_drag_source:
@@ -1792,38 +1780,26 @@ class GroupButton(CairoAppButton):
             Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
         else:
             Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
-        if self.launcher_drag:
-            dnd_position = "end"
-            if self.dockbar_r().orient in ("left", "right"):
-                if y <= self.get_allocation().height // 2:
-                    dnd_position = "start"
-            else:
-                if x <= self.get_allocation().width // 2:
-                    dnd_position = "start"
-            if dnd_position != self.dnd_position:
-                self.dnd_position = dnd_position
-                self.update_state()
+
+        if not self.drag_entered:
+            self.on_drag_enter(widget, drag_context, x, y, t)
+            return True
+
+        self.__update_dragging_status(x, y)
         return True
 
     def on_drag_enter(self, widget, drag_context, x, y, t):
         group = self.group_r()
         self.drag_entered = True
         targets = [target.name() for target in drag_context.list_targets()]
-        if not "text/groupbutton_name" in targets:
-            win_nr = group.get_count()
-            if win_nr == 1:
-                group[0].select_after_delay(600)
-            elif win_nr > 1:
-                delay = self.globals.settings["popup_delay"]
-                self.dnd_show_popup = GLib.timeout_add(delay,
-                                                          group.popup.show)
         if "text/groupbutton_name" in targets:
             if not self.is_current_drag_source:
-                self.launcher_drag = True
+                self.dnd_has_launcher = True
                 self.update_state()
         elif "text/uri-list" in targets:
             # We have to get the data to find out if this
             # is a launcher or something else.
+            self.dnd_on_drop = False
             target_atom = Gdk.Atom.intern("text/uri-list", False)
             self.drag_get_data(drag_context, target_atom, t)
             # No update_state() here!
@@ -1832,7 +1808,7 @@ class GroupButton(CairoAppButton):
 
     def on_drag_leave(self, widget, drag_context, t):
         group = self.group_r()
-        self.launcher_drag = False
+        self.dnd_has_launcher = False
         self.drag_entered = False
         self.update_state()
         group.popup.hide_if_not_hovered(100)
@@ -1848,6 +1824,28 @@ class GroupButton(CairoAppButton):
             #~ # the destination is hidden just before
             #~ # the drop is completed.
             #~ GLib.timeout_add(20, self.hide)
+
+    def __update_dragging_status(self, x, y):
+        if self.dnd_has_launcher:
+            dnd_position = "end"
+            if self.dockbar_r().orient in ("left", "right"):
+                if y <= self.get_allocation().height // 2:
+                    dnd_position = "start"
+            else:
+                if x <= self.get_allocation().width // 2:
+                    dnd_position = "start"
+            if dnd_position != self.dnd_position:
+                self.dnd_position = dnd_position
+                self.update_state()
+        else:
+            group = self.group_r()
+            win_nr = group.get_count()
+            if win_nr == 1:
+                group[0].select_after_delay(600)
+            elif win_nr > 1:
+                delay = self.globals.settings["popup_delay"]
+                self.dnd_show_popup = GLib.timeout_add(delay, group.popup.show)
+            self.update_state()
 
 
     #### Events
@@ -1919,7 +1917,9 @@ class GroupButton(CairoAppButton):
             self.opacify(delay)
 
     def on_leave_notify_event(self, widget, event):
-        self.leave_notify_sid = None
+        if self.leave_notify_sid is not None:
+            GLib.source_remove(self.leave_notify_sid)
+            self.leave_notify_sid = None
         group = self.group_r()
         if group is None:
             return
