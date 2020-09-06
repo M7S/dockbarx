@@ -1433,9 +1433,9 @@ class PrefDialog():
         notebook.append_page(plugins_box, Gtk.Label(label=_("Plugins")))
         notebook.append_page(advanced_box, Gtk.Label(label=_("Advanced")))
         ca.pack_start(notebook, True, True, 0)
-        self.__update()
         self.dialog.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
         self.dialog.show_all()
+        self.__update()
         dock = False
         for name in dbus.SessionBus().list_names():
             if str(name).startswith("org.dockbar.DockX"):
