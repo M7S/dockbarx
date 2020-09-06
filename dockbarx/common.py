@@ -922,6 +922,7 @@ class Globals(GObject.GObject):
     def __on_dock_theme_gsettings_changed(self, settings, gkey, data=None):
         colors = self.dock_theme_gsettings.get_value("colors").unpack()
         self.__update_dock_colors(colors)
+        self.emit("dock-theme-changed")
 
     def __get_settings(self, default):
         settings = default.copy()
