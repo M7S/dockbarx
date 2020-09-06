@@ -999,8 +999,10 @@ class Globals(GObject.GObject):
             alpha = self.theme_gsettings.get_value(a)
             if self.theme_gsettings.get_user_value(c) is None:
                 self.theme_gsettings.set_value(c, color)
+                self.theme_gsettings.sync()
             if self.theme_gsettings.get_user_value(a) is None:
                 self.theme_gsettings.set_value(a, alpha)
+                self.theme_gsettings.sync()
 
     def update_popup_style(self, default_style):
         # Runs when the theme has changed.
@@ -1061,6 +1063,7 @@ class Globals(GObject.GObject):
         if update_needed:
             self.old_dock_gs_colors = colors
             self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
+            self.dock_theme_gsettings.sync()
             self.emit("preference-update")
 
 
@@ -1071,6 +1074,7 @@ class Globals(GObject.GObject):
 
     def set_pinned_apps_list(self, pinned_apps):
         self.gsettings.set_value("launchers", GLib.Variant("as", pinned_apps))
+        self.gsettings.sync()
 
     def set_shown_popup(self, popup):
         if popup is None:
@@ -1101,6 +1105,7 @@ class Globals(GObject.GObject):
 
     def set_applets_enabled_list(self, applets_list):
         self.applets_gsettings.set_value("enabled-list", GLib.Variant("as", applets_list))
+        self.applets_gsettings.sync()
 
 
 __connector = Connector()
