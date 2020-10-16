@@ -1024,6 +1024,14 @@ class DockBar():
             if self.globals.settings["separate_ooo_apps"]:
                 connect(window, "name-changed",
                         self.__on_ooo_window_name_changed)
+        if res_class == '' and res_name == 'untitled window':
+            win_name = window.get_name().lower()
+            if win_name == 'untitled window':
+                connect(window, "name-changed",
+                        self.__on_cef_window_name_changed)
+            else:
+                identifier = win_name
+
         self.windows[window] = identifier
         if identifier in self.groups.get_identifiers():
             self.groups[identifier].add_window(window)
@@ -1237,6 +1245,13 @@ class DockBar():
         else:
             logger.warning("OOo app error: Name changed but no group found.")
         if identifier != self.__get_ooo_app_name(window):
+            self.__remove_window(window)
+            self.__add_window(window)
+            if window == self.screen.get_active_window():
+                self.__on_active_window_changed(self.screen, None)
+
+    def __on_cef_window_name_changed(self, window):
+        if window.get_name().lower() != 'untitled window':
             self.__remove_window(window)
             self.__add_window(window)
             if window == self.screen.get_active_window():
