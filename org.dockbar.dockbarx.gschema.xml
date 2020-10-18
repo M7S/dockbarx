@@ -783,6 +783,12 @@
 
     <key name='position' type='s'>
       <default>"left"</default>
+       <choices>
+        <choice value='left'/>
+        <choice value='right'/>
+        <choice value='top'/>
+        <choice value='bottom'/>
+      </choices>
       <summary>The position of the dock</summary>
       <description>
         Position the dock at left, right, top or bottom.
@@ -808,6 +814,11 @@
 
     <key name='mode' type='s'>
       <default>"centered"</default>
+      <choices>
+        <choice value='panel'/>
+        <choice value='corner'/>
+        <choice value='centered'/>
+      </choices>
       <summary>The mode of the dock</summary>
       <description>
         The dock has three modes:
@@ -819,6 +830,13 @@
 
     <key name='behavior' type='s'>
       <default>"panel"</default>
+      <choices>
+        <choice value='panel'/>
+        <choice value='standard'/>
+        <choice value='dodge windows'/>
+        <choice value='dodge active window'/>
+        <choice value='always autohide'/>
+      </choices>
       <summary>The behavior of the dock</summary>
       <description>
         Description needed
