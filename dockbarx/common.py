@@ -588,6 +588,7 @@ class Globals(GObject.GObject):
         "dock-position-changed": (GObject.SignalFlags.RUN_FIRST,
                                       None,()),
         "dock-mode-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "dock-type-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-offset-changed": (GObject.SignalFlags.RUN_FIRST,
                                 None,()),
         "dock-overlap-changed": (GObject.SignalFlags.RUN_FIRST,
@@ -714,7 +715,8 @@ class Globals(GObject.GObject):
           "dock/size": 42,
           "dock/offset":0,
           "dock/mode": "centered",
-          "dock/behavior": "panel",
+          "dock/type": "dock",
+          "dock/behavior": "standard",
           "dock/end_decorations": False,
           
           "applets/enabled_list": ["DockbarX"]}
@@ -890,6 +892,8 @@ class Globals(GObject.GObject):
             self.emit("dock-end-decorations-changed")
         elif "theme-file" == gkey:
             self.emit("dock-theme-changed")
+        elif "type" == gkey:
+            self.emit("dock-type-changed")
         self.emit("preference-update")
 
     def __on_applets_gsettings_changed(self, settings, gkey, data=None):

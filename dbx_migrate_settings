@@ -114,6 +114,8 @@ for option in options:
     elif key.startswith("dock/"):
         gsettings, gschema = dockx_gsettings
         key = key[len("dock/"):]
+        if key == "behavior" and value == "panel":
+            value = "standard"
     elif key.startswith("themes/"):
         path = key[:key.rindex("/")].lower()
         gsettings, gschema = get_gsettings("dockbarx.theme", "dockbarx/" + path)

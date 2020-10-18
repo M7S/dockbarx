@@ -984,6 +984,9 @@ class DockBar():
         window = Wnck.Window.get(window.get_xid())
         res_class = window.get_class_group().get_res_class().lower()
         res_name = window.get_class_group().get_name().lower()
+        if self.globals.settings["dock/type"] == "normal window":
+            if res_class == "dockx" and res_name == "dockx":
+                return
         identifier = res_class or res_name
         pid = window.get_pid()
         if not identifier:

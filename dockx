@@ -57,7 +57,8 @@ class CairoDockX(Gtk.Window):
         GObject.GObject.__init__(self)
         self.globals = Globals()
         self.theme = DockTheme()
-        self.set_type_hint(Gdk.WindowTypeHint.DOCK)
+        if self.globals.settings["dock/type"] == "dock":
+            self.set_type_hint(Gdk.WindowTypeHint.DOCK)
         self.stick()
         self.set_accept_focus(False)
         self.set_decorated(False)
@@ -499,7 +500,7 @@ class DockX(CairoDockX):
                             "top": 1000, "bottom":1000}
         self.geometry_time = 0
         self.last_geometry_window = lambda: None
-        if self.globals.settings["dock/behavior"] in ("panel", "standard"):
+        if self.globals.settings["dock/behavior"] == "standard":
             self.autohide = False
         else:
             self.autohide = True
@@ -794,7 +795,8 @@ class DockX(CairoDockX):
     def __set_dock_strut(self, x, y, w, h):
         if not self.get_window():
             return
-        set_strut = self.globals.settings["dock/behavior"] == "panel"
+        set_strut = self.globals.settings["dock/type"] == "dock" and \
+                self.globals.settings["dock/behavior"] == "standard"
         if not set_strut:
             topw = XDisplay.create_resource_object('window',
                                     self.get_toplevel().get_window().get_xid())
@@ -1137,7 +1139,7 @@ class DockX(CairoDockX):
         self.position_dock()
 
     def __on_behavior_changed(self, *args):
-        if self.globals.settings["dock/behavior"] in ("panel", "standard"):
+        if self.globals.settings["dock/behavior"] == "standard":
             if self.autohide:
                 self.autohide = False
                 if self.autohide_sid is not None:

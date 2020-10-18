@@ -1298,6 +1298,19 @@ class PrefDialog():
         hbox.set_border_width(5)
         label = Gtk.Label(label=_("Type"))
         hbox.pack_start(label, False, False, 0)
+        self.dock_type_box = Gtk.ComboBoxText()
+        for pos in (_("dock"), _("normal window")):
+            self.dock_type_box.append_text(pos)
+        self.dock_type_box.connect("changed", self.__cb_changed)
+        hbox.pack_start(self.dock_type_box, False, True, 0)
+        label = Gtk.Label(label=_("(Need to restart dockx to take effect)"))
+        hbox.pack_start(label, False, False, 0)
+        dock_box.pack_start(hbox, False, True, 0)
+
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
+        hbox.set_border_width(5)
+        label = Gtk.Label(label=_("Mode"))
+        hbox.pack_start(label, False, False, 0)
         self.dock_mode_box = Gtk.ComboBoxText()
         for pos in (_("panel"), _("corner"), _("centered")):
             self.dock_mode_box.append_text(pos)
@@ -1325,7 +1338,7 @@ class PrefDialog():
         label = Gtk.Label(label=_("Behavior"))
         hbox.pack_start(label, False, False, 0)
         self.dock_behavior_box = Gtk.ComboBoxText()
-        for pos in (_("panel"), _("standard"), _("dodge windows"),
+        for pos in (_("standard"), _("dodge windows"),
                     _("dodge active window"), _("always autohide")):
             self.dock_behavior_box.append_text(pos)
         self.dock_behavior_box.connect("changed", self.__cb_changed)
@@ -1818,6 +1831,12 @@ class PrefDialog():
             self.dock_offset_spin.set_sensitive(False)
         else:
             self.dock_offset_spin.set_sensitive(True)
+        model = self.dock_type_box.get_model()
+        for i in range(len(model)):
+            mode = self.globals.settings["dock/type"].lower()
+            if model[i][0].lower() == _(mode):
+                self.dock_type_box.set_active(i)
+                break
         model = self.dock_mode_box.get_model()
         for i in range(len(model)):
             mode = self.globals.settings["dock/mode"].lower()
@@ -2013,6 +2032,12 @@ class PrefDialog():
                 if value == _(p) and p != self.globals.settings["dock/size"]:
                     self.dock_gsettings.set_string("position", p)
 
+        if combobox == self.dock_type_box:
+            pos = ("dock", "normal window")
+            for p in pos:
+                if value == _(p) and p != self.globals.settings["dock/type"]:
+                    self.dock_gsettings.set_string("type", p)
+
         if combobox == self.dock_mode_box:
             pos = ("panel", "centered", "corner")
             for p in pos:
@@ -2020,7 +2045,7 @@ class PrefDialog():
                     self.dock_gsettings.set_string("mode", p)
 
         if combobox == self.dock_behavior_box:
-            pos = ("panel", "standard", "dodge windows",
+            pos = ("standard", "dodge windows",
                    "dodge active window", "always autohide")
             for p in pos:
                 if value == _(p) and \
