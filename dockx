@@ -941,6 +941,7 @@ class DockX(CairoDockX):
 
     def show_dock(self):
         self.show()
+        self.position_dock()
         if self.globals.settings["dock/mode"] != "centered":
             self.move(self.old_x, self.old_y)
             self.dockbar.dockbar_moved()
@@ -1305,6 +1306,7 @@ class DockX(CairoDockX):
         # self.position_dock(rebuild=True)  # already in __on_dock_theme_reloaded
         if self.autohide:
             self.__compute_should_autohide()
+            self.show_dock()
 
     def on_destroy(self, *args):
         Gtk.main_quit()
