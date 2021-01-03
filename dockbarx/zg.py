@@ -26,7 +26,8 @@
 
 from datetime import date
 from time import time
-        
+from .log import logger
+
 import gi
 from gi.repository import GLib
 try:
