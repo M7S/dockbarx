@@ -34,7 +34,8 @@ https://aur.archlinux.org/packages/dockbarx/
 
 And there is also one for xfce4-dockbarx-plugin
 
-https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
+https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/ (Gtk2)
+https://aur.archlinux.org/packages/xfce4-dockbarx-plugin-git/ (Gtk3)
 
 ## Manual Installation
 
