@@ -2574,10 +2574,10 @@ class WindowList(Gtk.Box):
         if self.size_overflow:
             self.scrolled_window = self.__create_scrolled_window(locked_popup_list)
             self.scrolled_window.add_with_viewport(self.window_box)
-            self.add(self.scrolled_window)
+            self.pack_start(self.scrolled_window, True, True, 0)
             self.scrolled_window.show_all()
         else:
-            self.add(self.window_box)
+            self.pack_start(self.window_box, True, True, 0)
             self.window_box.show_all()
 
     def __create_scrolled_window(self, horizontal):
@@ -2622,7 +2622,7 @@ class WindowList(Gtk.Box):
 
     #### Plugins
     def add_plugin(self, plugin):
-        self.pack_start(plugin, True, True, 0)
+        self.pack_end(plugin, True, True, 0)
         plugin.show()
 
     def remove_plugin(self, plugin):
