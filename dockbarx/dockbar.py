@@ -992,7 +992,7 @@ class DockBar():
             xwin = XDisplay.create_resource_object('window', window.get_xid())
             wmclass = xwin.get_wm_class()
             if wmclass is not None:
-                res_class = wmclass[0].lower()
+                res_class = wmclass[1].lower()
         identifier = res_class or res_name
         pid = window.get_pid()
         if not identifier:
