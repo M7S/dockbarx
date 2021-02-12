@@ -528,6 +528,9 @@ class Group(ListOfWindows):
             self.window_list.remove_plugin(self.media_controls)
             self.media_controls = None
             self.button.update_tooltip()
+            if self.popup.popup_showing:
+                if self.get_count() == 0:
+                    self.popup.hide()
 
     def get_desktop_entry_file_name(self):
         if self.desktop_entry:
