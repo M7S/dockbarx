@@ -878,7 +878,7 @@ class DockBar():
                                              Wnck.WindowType.DIALOG]):
             return
         connect(window, "state-changed", self.__on_window_state_changed)
-        # ~ connect(window, "class-changed", self.__on_window_class_changed)
+        connect(window, "class-changed", self.__on_window_class_changed)
         if window.is_skip_tasklist():
             self.skip_tasklist_windows.append(window)
             return
@@ -902,7 +902,6 @@ class DockBar():
 
     def __on_window_class_changed(self, window):
         # Remove and readd window to update the class name.
-        # TODO: check if this is working at all. Class name doesn't seem to be updated in wnck.
         if window.is_skip_tasklist():
             return()
         self.__remove_window(window)
@@ -982,11 +981,18 @@ class DockBar():
 
     def __add_window(self, window):
         window = Wnck.Window.get(window.get_xid())
-        res_class = window.get_class_group().get_res_class().lower()
-        res_name = window.get_class_group().get_name().lower()
+        class_group = window.get_class_group()
+        res_class = class_group.get_id().lower()
+        res_name = class_group.get_name().lower()
         if self.globals.settings["dock/type"] == "normal window":
             if res_class == "dockx" and res_name == "dockx":
                 return
+        if res_class == '':
+            # group class id doesn't seem to be updated in wnck. Use WM_CLASS instead
+            xwin = XDisplay.create_resource_object('window', window.get_xid())
+            wmclass = xwin.get_wm_class()
+            if wmclass is not None:
+                res_class = wmclass[0].lower()
         identifier = res_class or res_name
         pid = window.get_pid()
         if not identifier:
@@ -1027,13 +1033,6 @@ class DockBar():
             if self.globals.settings["separate_ooo_apps"]:
                 connect(window, "name-changed",
                         self.__on_ooo_window_name_changed)
-        if res_class == '' and res_name == 'untitled window':
-            win_name = window.get_name().lower()
-            if win_name == 'untitled window':
-                connect(window, "name-changed",
-                        self.__on_cef_window_name_changed)
-            else:
-                identifier = win_name
 
         self.windows[window] = identifier
         if identifier in self.groups.get_identifiers():
@@ -1183,7 +1182,7 @@ class DockBar():
         # Separates the different openoffice applications from each other
         # The names are chosen to match the gio app ids.
         name = window.get_name().lower()
-        resclass = window.get_class_group().get_res_class().lower()
+        resclass = window.get_class_group().get_id().lower()
         if "libreoffice" in resclass:
             office = "libreoffice"
         elif "soffice" in resclass:
@@ -1206,7 +1205,7 @@ class DockBar():
         return window.get_name()
 
     def __get_chromium_id(self, window):
-        resclass = window.get_class_group().get_res_class().lower()
+        resclass = window.get_class_group().get_id().lower()
         pid = window.get_pid()
         try:
             f = open("/proc/"+str(pid)+"/cmdline", "r")
@@ -1248,13 +1247,6 @@ class DockBar():
         else:
             logger.warning("OOo app error: Name changed but no group found.")
         if identifier != self.__get_ooo_app_name(window):
-            self.__remove_window(window)
-            self.__add_window(window)
-            if window == self.screen.get_active_window():
-                self.__on_active_window_changed(self.screen, None)
-
-    def __on_cef_window_name_changed(self, window):
-        if window.get_name().lower() != 'untitled window':
             self.__remove_window(window)
             self.__add_window(window)
             if window == self.screen.get_active_window():
