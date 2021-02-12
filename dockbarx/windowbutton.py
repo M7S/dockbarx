@@ -314,28 +314,35 @@ class WindowItem(CairoButton):
         self.press_sid = None
         self.pressed = False
 
+        self.area.set_needs_attention(window.wnck.needs_attention())
+
         self.close_button = CairoCloseButton()
+        self.close_button.set_halign(Gtk.Align.START)
+        self.close_button.set_valign(Gtk.Align.CENTER)
         self.close_button.set_no_show_all(True)
         if self.globals.settings["show_close_button"]:
             self.close_button.show()
+
         self.label = Gtk.Label()
         self.label.set_ellipsize(Pango.EllipsizeMode.END)
         self.label.set_halign(Gtk.Align.START)
         self.label.set_valign(Gtk.Align.CENTER)
-        self.__update_label()
-        self.area.set_needs_attention(window.wnck.needs_attention())
-        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+
         icon = window.wnck.get_mini_icon()
         self.icon_image = Gtk.Image()
         self.icon_image.set_from_pixbuf(icon)
-        hbox.pack_start(self.icon_image, False, False, 0)
-        hbox.pack_start(self.label, True, True, 4)
-        self.close_button.set_halign(Gtk.Align.START)
-        self.close_button.set_valign(Gtk.Align.CENTER)
-        hbox.pack_start(self.close_button, False, False, 0)
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            self.icon_image.set_margin_start(2)
+        else:
+            self.icon_image.set_margin_left(2)
+
+        self.header_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 4)
+        self.header_box.pack_start(self.icon_image, False, False, 0)
+        self.header_box.pack_start(self.label, True, True, 0)
+        self.header_box.pack_start(self.close_button, False, False, 0)
 
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        vbox.pack_start(hbox, False, False, 0)
+        vbox.pack_start(self.header_box, False, False, 0)
         self.preview = Gtk.Image()
         self.preview.set_halign(Gtk.Align.CENTER)
         self.preview.set_valign(Gtk.Align.CENTER)
@@ -347,6 +354,7 @@ class WindowItem(CairoButton):
         vbox.show_all()
 
         self.show_all()
+        self.__update_label()
         self.update_show_state()
 
         self.drag_dest_set(0, [], 0)
@@ -420,10 +428,18 @@ class WindowItem(CairoButton):
         if self.globals.settings["preview"]:
             # The label should be 140px wide unless there are more room
             # because the preview takes up more.
-            size = 140
+            label_size = 140
         else:
-            size = self.globals.settings["window_title_width"]
-        self.label.set_size_request(size, -1)
+            label_size = self.globals.settings["window_title_width"]
+
+        size = label_size + self.icon_image.get_pixel_size() + \
+                self.close_button.get_allocation().width + \
+                self.header_box.get_spacing() * 2
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
+            size += self.icon_image.get_margin_start()
+        else:
+            size += self.icon_image.get_margin_left()
+        self.header_box.set_size_request(size, -1)
 
     def __make_minimized_icon(self, icon):
         pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, icon.get_width(), icon.get_height())
