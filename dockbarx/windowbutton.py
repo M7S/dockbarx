@@ -528,30 +528,31 @@ class WindowItem(CairoButton):
 
     def set_preview_image(self):
         window = self.window_r()
-        if window.wnck.is_minimized():
-            # TODO: self.globals.settings["preview_minimized"]
-            self.preview.set_from_pixbuf(window.wnck.get_icon())
-        else:
-            try:
-                xwin = XDisplay.create_resource_object('window', window.xid)
-                xwin.composite_redirect_window(Xlib.ext.composite.RedirectAutomatic)
-                geo = xwin.get_geometry()
-                pixmap = xwin.composite_name_window_pixmap()
-                image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
-                pixmap.free()
-                xwin.composite_unredirect_window(Xlib.ext.composite.RedirectAutomatic)
-            except:
+        try:
+            xwin = XDisplay.create_resource_object('window', window.xid)
+            # window.wnck.is_minimized() may not work with some wine program windows
+            if xwin.get_wm_state().state == Xlib.Xutil.IconicState:
+                # TODO: self.globals.settings["preview_minimized"]
                 self.preview.set_from_pixbuf(window.wnck.get_icon())
-                return;
-            im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
-            data = im.tobytes()
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
-                data = GLib.Bytes.new(data)
-                pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
-            else:
-                pixbuf = GdkPixbuf.Pixbuf.new_from_data(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
-            w, h = self.preview.get_size_request()
-            self.preview.set_from_pixbuf(pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR))
+                return
+            xwin.composite_redirect_window(Xlib.ext.composite.RedirectAutomatic)
+            geo = xwin.get_geometry()
+            pixmap = xwin.composite_name_window_pixmap()
+            image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
+            pixmap.free()
+            xwin.composite_unredirect_window(Xlib.ext.composite.RedirectAutomatic)
+        except:
+            self.preview.set_from_pixbuf(window.wnck.get_icon())
+            return;
+        im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
+        data = im.tobytes()
+        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
+            data = GLib.Bytes.new(data)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
+        else:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_data(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
+        w, h = self.preview.get_size_request()
+        self.preview.set_from_pixbuf(pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR))
 
     #### Events
     def on_enter_notify_event(self, widget, event):
