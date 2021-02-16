@@ -521,11 +521,6 @@ class WindowItem(CairoButton):
         else:
             self.preview.hide()
 
-    def get_preview_allocation(self):
-        a = self.preview.get_allocation()
-        self.area.set_preview_allocation(a)
-        return a
-
     def set_preview_image(self):
         window = self.window_r()
         try:

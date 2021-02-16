@@ -888,7 +888,6 @@ class CairoArea(Gtk.Bin):
         self.active_window = False
         self.needs_attention = False
         self.minimized = False
-        self.preview_allocation = [0, 0, 0, 0]
         if text:
             self.label = Gtk.Label()
             self.add(self.label)
@@ -950,13 +949,6 @@ class CairoArea(Gtk.Bin):
             self.draw_type_frame(ctx, 0, 0, a.width, a.height, "active_item")
         if highlighted:
             self.draw_frame(ctx, 0, 0, a.width, a.height)
-        # Empty preview space
-        if preview:
-            # Todo: Check preview allocation, does it contain allocation offsets (a.x, a.y)? If so, change it.
-            ctx.rectangle(*self.preview_allocation)
-            ctx.set_source_rgba(1, 1, 1, 0)
-            ctx.set_operator(cairo.OPERATOR_SOURCE)
-            ctx.fill()
         return
 
     def draw_frame(self, ctx, x, y, w, h):
@@ -1040,9 +1032,6 @@ class CairoArea(Gtk.Bin):
     def set_minimized(self, minimized):
         self.minimized = minimized
         self.queue_draw()
-
-    def set_preview_allocation(self, allocation):
-        self.preview_allocation = allocation
 
     def pointer_is_inside(self):
         mx,my = self.get_pointer()
