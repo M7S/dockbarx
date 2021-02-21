@@ -35,7 +35,11 @@ import locale
 from .log import logger
 import sys
 import struct
-from Xlib import display
+from Xlib import display, X
+
+import _thread
+from Xlib.ext import record
+from Xlib.protocol import rq
 
 
 DBusGMainLoop(set_as_default=True) # for async calls
@@ -373,7 +377,71 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
             return None
 
 
+class XEventObserver(GObject.GObject):
+    __gsignals__ = {
+        "window-update": (GObject.SignalFlags.RUN_FIRST, None, (int,))
+    }
 
+    def __init__(self):
+        GObject.GObject.__init__(self)
+        self.dpy = display.Display()
+        self.dpy2 = display.Display()
+        self.atoms = (self.dpy.get_atom("_NET_WM_USER_TIME") ,
+                      self.dpy.get_atom("_NET_WM_OPAQUE_REGION"))
+        self.running = False
+        if not self.dpy.has_extension("RECORD"):
+            logger.warn("RECORD extension not found")
+            self.ctx = None
+        else:
+            self.ctx = self.dpy.record_create_context(
+                0,
+                [record.AllClients],
+                [{
+                    'core_requests': (0, 0),
+                    'core_replies': (0, 0),
+                    'ext_requests': (0, 0, 0, 0),
+                    'ext_replies': (0, 0, 0, 0),
+                    'delivered_events': (X.PropertyNotify, X.PropertyNotify),
+                    'device_events': (0, 0),
+                    'errors': (0, 0),
+                    'client_started': False,
+                    'client_died': False,
+                }])
+
+    def destroy(self):
+        if self.ctx is not None:
+            self.stop()
+            self.dpy.record_free_context(self.ctx)
+            self.ctx = None
+
+    def start(self):
+        if self.running:
+            return
+        if self.ctx is None:
+            return
+        self.running = True
+        _thread.start_new_thread(self.dpy.record_enable_context, (self.ctx, self._notify))
+
+    def stop(self):
+        if self.running:
+            self.dpy2.record_disable_context(self.ctx)
+            self.dpy2.sync()
+            self.running = False
+
+    def _notify(self, reply):
+        if reply.category != record.FromServer:
+            return
+        if reply.client_swapped:
+            return
+        if not len(reply.data) or reply.data[0] < 2:
+            # not an event
+            return
+        data = reply.data
+        while len(data):
+            event, data = rq.EventField(None).parse_binary_value(data, self.dpy.display, None, None)
+            # event.type == X.PropertyNotify:
+            if event.atom in self.atoms:
+                self.emit("window-update", event.window.id)
 
 class Opacify():
     def __init__(self):
@@ -570,6 +638,8 @@ class Globals(GObject.GObject):
                                  None,()),
         "show-previews-changed": (GObject.SignalFlags.RUN_FIRST,
                                   None,()),
+        "keep-previews-changed": (GObject.SignalFlags.RUN_FIRST,
+                                 None,()),
         "preview-size-changed": (GObject.SignalFlags.RUN_FIRST,
                                  None,()),
         "window-title-width-changed": (GObject.SignalFlags.RUN_FIRST,
@@ -617,7 +687,7 @@ class Globals(GObject.GObject):
           "show_only_current_monitor": False,
           "preview": True,
           "preview_size": 150,
-          "preview_minimized": True,
+          "preview_keep": False,
           "old_menu": False,
           "show_close_button": True,
           "locked_list_in_menu": True,
@@ -843,6 +913,8 @@ class Globals(GObject.GObject):
             self.emit("show-previews-changed")
         elif "preview_size" == key:
             self.emit("preview-size-changed")
+        elif "preview_keep" == key:
+            self.emit("keep-previews-changed")
         elif "window_title_width" == key:
             self.emit("window-title-width-changed")
         elif "groupbutton_show_tooltip" == key:

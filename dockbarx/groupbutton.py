@@ -390,6 +390,9 @@ class Group(ListOfWindows):
 
         self.button.update_tooltip()
 
+        if self.globals.settings["preview"] and self.globals.settings["preview_keep"]:
+            window.update_preview_later()
+
         # Set minimize animation
         # (if the eventbox is created already,
         # otherwise the icon animation is set in sizealloc())
@@ -440,6 +443,11 @@ class Group(ListOfWindows):
         if has_active != self.has_active_window:
             self.has_active_window = has_active
             self.button.update_state_if_shown()
+
+    def update_window_previews(self):
+        for window in self.get_windows():
+            if window.item.get_visible():
+                window.update_preview_later()
 
     def needs_attention_changed(self, arg=None, state_update=True):
         # Checks if there are any urgent windows and changes
@@ -2504,7 +2512,7 @@ class WindowList(Gtk.Box):
 
     def add_item(self, item):
         if self.show_previews:
-            item.update_preview()
+            item.update_preview_size()
             item.set_show_preview(self.show_previews)
         self.window_box.pack_start(item, True, True, 0)
 
@@ -2534,14 +2542,14 @@ class WindowList(Gtk.Box):
             if self.dockbar_r().orient in ("down", "up"):
                 width = 10
                 for window in group.get_windows():
-                    width += max(190, window.item.update_preview()[0])
+                    width += max(190, window.item.update_preview_size()[0])
                     width += 16
                 if width > mgeo.width:
                     show_previews = False
             else:
                 height = 12 + self.title.get_preferred_height()[0]
                 for window in group.get_windows():
-                    height += window.item.update_preview()[1]
+                    height += window.item.update_preview_size()[1]
                     height += 24 + window.item.label.get_preferred_height()[0]
                 if height > mgeo.height:
                     show_previews = False

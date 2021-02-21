@@ -931,13 +931,9 @@ class PrefDialog():
         self.preview_cb = Gtk.CheckButton.new_with_label(_("Show previews"))
         self.preview_cb.connect("toggled", self.__checkbutton_toggled, "preview")
         vbox.pack_start(self.preview_cb, False, True, 0)
-        self.preview_minimized_cb = Gtk.CheckButton.new_with_label(_("Show previews for minimized windows"))
-        self.preview_minimized_cb.set_tooltip_text(_("To get previews for minimized windows you need to active \"Keep previews of minimized windows\" in Compiz plugin Workarounds."))
-        self.preview_minimized_cb.connect("toggled", self.__checkbutton_toggled, "preview_minimized")
-        vbox.pack_start(self.preview_minimized_cb, False, True, 0)
-        self.preview_minimized_cb.set_no_show_all(True)
-        if self.globals.get_compiz_version() >= "0.9":
-            self.preview_minimized_cb.show()
+        self.preview_keep_cb = Gtk.CheckButton.new_with_label(_("Keep previews for minimized windows (experimental)"))
+        self.preview_keep_cb.connect("toggled", self.__checkbutton_toggled, "preview_keep")
+        vbox.pack_start(self.preview_keep_cb, False, True, 0)
         popup_box.pack_start(vbox, False, True, 5)
 
         # Locked list
@@ -1788,8 +1784,8 @@ class PrefDialog():
 
         # Previews
         self.preview_cb.set_active(self.globals.settings["preview"])
-        self.preview_minimized_cb.set_active(
-                                   self.globals.settings["preview_minimized"])
+        self.preview_keep_cb.set_active(self.globals.settings["preview_keep"])
+        self.preview_keep_cb.set_sensitive(self.globals.settings["preview"])
         self.preview_size_spin.set_value(self.globals.settings["preview_size"])
         self.window_title_width_spin.set_value(
                                     self.globals.settings["window_title_width"])
@@ -1944,10 +1940,8 @@ class PrefDialog():
         if button.get_active() != self.globals.settings[name]:
             gsettings.set_boolean(name1, button.get_active())
 
-        if name == "preview" and button.get_active():
-            self.__show_preview_dialogs()
-        #~ elif name == "preview_minimized" and button.get_active():
-            #~ self.__show_preview_minimized_dialogs()
+        if name == "preview":
+            self.preview_keep_cb.set_sensitive(button.get_active())
         elif name == "opacify" and button.get_active():
             self.__show_opacify_dialog()
 
@@ -2364,116 +2358,6 @@ class PrefDialog():
             font = button.get_font_name()
         if font != self.globals.settings[name]:
             self.gsettings.set_string(name.replace('_', '-'), font)
-
-    def __show_preview_dialogs(self):
-        # Check if the needed compiz plugin is activated
-        # and ask if it should be if it isn't.
-        try:
-            plugins = compiz_call_sync("core/allscreens/active_plugins",
-                                        "get")
-        except dbus.exceptions.DBusException:
-            # This probably means that compiz isn't running.
-            # Assume that kwin is used instead and do nothing.
-            return
-        if not "kdecompat" in plugins:
-            #Check if the plugin is installed.
-            proxy = BUS.get_object("org.freedesktop.compiz",
-                                   "/org/freedesktop/compiz")
-            if "kdecompat" in str(proxy.Introspect()):
-                message = _("Previews requires the compiz plugin KDE Compatibility to be activated. Should dockbarx activate it for you?")
-                flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-                md = Gtk.MessageDialog(self.dialog,
-                                       flags,
-                                       Gtk.MessageType.QUESTION,
-                                       Gtk.ButtonsType.YES_NO,
-                                       message)
-                response = md.run()
-                md.destroy()
-                if response == Gtk.ResponseType.YES:
-                    plugins.append("kdecompat")
-                    compiz_call_sync("core/allscreens/active_plugins",
-                                     "set", plugins)
-            else:
-                message = _("The compiz plugin KDE Compatibility that is needed for previews doesn't seem to be installed. If you use ubuntu, you need to install the package compiz-fusion-plugins-main.")
-                flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-                md = Gtk.MessageDialog(self.dialog,
-                                       flags,
-                                       Gtk.MessageType.INFO,
-                                       Gtk.ButtonsType.CLOSE,
-                                       message)
-                md.run()
-                md.destroy()
-
-        # Check if Support Plasma thumbnails is activated.
-        try:
-            plasmat = compiz_call_sync(
-                                    "kdecompat/screen0/plasma_thumbnails",
-                                    "get")
-        except dbus.exceptions.DBusException:
-            return
-        if not plasmat:
-            message = _("Previews requires that Support Plasma Thumnails should be activated in KDE Compatibility plugin. Should dockbarx activate it for you?")
-            flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-            md = Gtk.MessageDialog(self.dialog,
-                                   flags,
-                                   Gtk.MessageType.QUESTION,
-                                   Gtk.ButtonsType.YES_NO,
-                                   message)
-            response = md.run()
-            md.destroy()
-            if response == Gtk.ResponseType.YES:
-                plugins.append("kdecompat")
-                compiz_call_sync("kdecompat/screen0/plasma_thumbnails",
-                                 "set", True)
-
-    def __show_preview_minimized_dialogs(self):
-        # This function is not used right now, it can cause compiz to freeze.
-
-        # Check if the needed compiz plugin is activated
-        # and ask if it should be if it isn't.
-        try:
-            plugins = compiz_call_sync("core/screen0/active_plugins",
-                                       "get")
-        except dbus.exceptions.DBusException:
-            # This probably means that compiz isn't running.
-            raise
-            return
-        if not "workarounds" in plugins:
-            message = _("Previews for minimzied windows requires the compiz plugin Workarounds to be activated. Should dockbarx activate it for you?")
-            flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-            md = Gtk.MessageDialog(self.dialog,
-                                   flags,
-                                   Gtk.MessageType.QUESTION,
-                                   Gtk.ButtonsType.YES_NO,
-                                   message)
-            response = md.run()
-            md.destroy()
-            if response == Gtk.ResponseType.YES:
-                plugins.append("workarounds")
-                compiz_call_sync("core/allscreens/active_plugins", "set",
-                                 plugins)
-            else:
-                return
-        # Check if Support Plasma thumbnails is activated.
-        try:
-            mp = compiz_call_sync("workarounds/screen0/keep_minimized_windows",
-                                  "get")
-        except dbus.exceptions.DBusException:
-            return
-        if not mp:
-            message = _("Previews for minimzied windows requires the option \"Keep previews of minimized windows\" to be activated in compiz plugin Workarounds. Should DockbarX activate it for you?")
-            flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-            md = Gtk.MessageDialog(self.dialog,
-                                   flags,
-                                   Gtk.MessageType.QUESTION,
-                                   Gtk.ButtonsType.YES_NO,
-                                   message)
-            response = md.run()
-            md.destroy()
-            if response == Gtk.ResponseType.YES:
-                plugins.append("kdecompat")
-                compiz_call_sync("workarounds/screen0/keep_minimized_windows",
-                                 "set", True)
 
     def __show_opacify_dialog(self):
         # Check if the needed compiz plugin is activated

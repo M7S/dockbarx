@@ -102,11 +102,11 @@
       </description>
     </key>
 
-    <key name='preview-minimized' type='b'>
-      <default>true</default>
-      <summary>Show previews for minimized windows</summary>
+    <key name='preview-keep' type='b'>
+      <default>false</default>
+      <summary>Keep previews for minimized windows</summary>
       <description>
-        Show previews for minimized windows
+        Keep previews for minimized windows
       </description>
     </key>
 

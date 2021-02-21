@@ -479,6 +479,10 @@ class DockBar():
         self.globals.connect("theme-changed", self.__on_theme_changed)
         self.globals.connect("media-buttons-changed",
                              self.__on_media_controls_changed)
+        self.globals.connect("keep-previews-changed",
+                             self.__on_preview_changed)
+        self.globals.connect("show-previews-changed",
+                             self.__on_preview_changed)
 
     #### Parent functions
     # The dock/applet/widget interacts with dockbar through these functions.
@@ -553,6 +557,8 @@ class DockBar():
         self.app_monitor = Gio.AppInfoMonitor.get()
         self.app_monitor.connect("changed", self.__rescan_apps)
         self.scan_apps()
+
+        self.x11obs = XEventObserver()
 
         self.reload(tell_parent=False)
 
@@ -655,6 +661,13 @@ class DockBar():
             except AttributeError:
                 pass
 
+        if self.globals.settings["preview"] and \
+           self.globals.settings["preview_keep"]:
+            self.x11obs.start()
+
+
+    def destroy(self):
+        self.x11obs.destroy()
 
     def set_orient(self, orient):
         """ Set the orient (up, down, left or right) and prepares the container.
@@ -1687,6 +1700,16 @@ class DockBar():
         else:
             for group in self.groups:
                 group.remove_media_controls()
+
+    def __on_preview_changed(self, *args):
+        if self.globals.settings["preview"] and \
+           self.globals.settings["preview_keep"]:
+            self.x11obs.start()
+            if self.groups is not None:
+                for group in self.groups.get_shown_groups():
+                    group.update_window_previews()
+        else:
+            self.x11obs.stop()
 
     def __on_unity_changed(self, *args):
         if self.globals.settings["unity"]:
