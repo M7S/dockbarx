@@ -937,10 +937,6 @@ class CairoArea(Gtk.Bin):
     def on_draw(self, widget, ctx):
         a = self.get_allocation()
         mx , my = self.get_pointer()
-        preview = self.globals.settings["preview"] and \
-                  self.globals.get_compiz_version() >= "0.9" and \
-                  (self.globals.settings["preview_minimized"] or \
-                   not self.minimized)
         highlighted = self.highlighted or \
                       (mx >= 0 and mx < a.width and my >= 0 and my < a.height)
         if self.needs_attention:
