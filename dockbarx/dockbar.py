@@ -311,6 +311,7 @@ class GroupList(list):
             self.previous_button = cairowidgets.CairoArrowButton("up")
         self.arrow_box.pack_start(self.next_button, True, True, 0)
         self.arrow_box.pack_start(self.previous_button, True, True, 0)
+        self.arrow_box.set_no_show_all(True)
         self.box.pack_start(self.arrow_box, False, False, 0)
 
         #Connections
