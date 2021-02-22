@@ -806,7 +806,7 @@ class Group(ListOfWindows):
         if event:
             t = event.time
         else:
-            t = 1
+            t = GdkX11.x11_get_server_time(Gdk.get_default_root_window())
         for window in self.get_minimized_windows():
             window.wnck.unminimize(t)
         self.popup.hide()

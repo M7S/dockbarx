@@ -307,7 +307,7 @@ class Window():
             if event:
                 t = event.time
             else:
-                t = 0
+                t = GdkX11.x11_get_server_time(Gdk.get_default_root_window())
             self.wnck.unminimize(t)
         else:
             self.wnck.minimize()
