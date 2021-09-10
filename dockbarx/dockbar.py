@@ -996,7 +996,10 @@ class DockBar():
     def __add_window(self, window):
         window = Wnck.Window.get(window.get_xid())
         class_group = window.get_class_group()
-        res_class = class_group.get_id().lower()
+        try:
+            res_class = class_group.get_id().lower()
+        except UnicodeDecodeError:
+            res_class = ""
         res_name = class_group.get_name().lower()
         if self.globals.settings["dock/type"] == "normal window":
             if res_class == "dockx" and res_name == "dockx":
@@ -1007,6 +1010,10 @@ class DockBar():
             wmclass = xwin.get_wm_class()
             if wmclass is not None:
                 res_class = wmclass[1].lower()
+                try:
+                    res_class = bytes(res_class, "latin-1").decode("utf-8")
+                except:
+                    pass
         identifier = res_class or res_name
         pid = window.get_pid()
         if not identifier:
