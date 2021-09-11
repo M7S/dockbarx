@@ -1170,8 +1170,9 @@ class Group(ListOfWindows):
                 GLib.source_remove(self.scrollpeak_sid)
             if not keyboard_select:
                 self.scrollpeak_sid = GLib.timeout_add(1500, self.scrollpeak_select)
-            while Gtk.events_pending():
-                    Gtk.main_iteration()
+            ctx = GLib.MainContext.default()
+            while ctx.pending():
+                ctx.iteration(False)
             if self.scrollpeak_window: #TODO: find out why scollpeak_window is None sometimes.
                 self.scrollpeak_window.opacify()
 

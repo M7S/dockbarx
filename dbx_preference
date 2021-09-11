@@ -476,9 +476,8 @@ class AppletsFrame():
         pass
 
 class PrefDialog():
-    def __init__ (self):
-
-
+    def __init__ (self, app):
+        self.app = app
         self.globals = Globals()
         self.dialog = Gtk.Dialog(_("DockBarX preferences"))
         self.__load_theme()
@@ -1898,12 +1897,12 @@ class PrefDialog():
         else:
             self.dock_bar2_box.hide()
 
-    def dialog_close(self,par1,par2):
+    def dialog_close(self, *args, **kwargs):
         if self.dialog is None:
             return
         self.dialog.destroy()
         self.dialog = None
-        Gtk.main_quit()
+        self.app.quit()
 
     def __rb_toggled(self,button,par1):
         # Read the value of the toggled radio button and write to settings
@@ -2383,7 +2382,16 @@ class PrefDialog():
                 compiz_call_sync("core/allscreens/active_plugins", "set",
                                  plugins)
 
-Gtk.init(sys.argv)
-dialog = PrefDialog()
-signal.signal(signal.SIGINT, dialog.dialog_close)
-Gtk.main()
+
+class PrefApp(Gtk.Application):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, application_id="org.dockbarx.preference", flags=Gio.ApplicationFlags.FLAGS_NONE, **kwargs)
+        self.window = None
+
+    def do_activate(self):
+        if not self.window:
+            self.window = PrefDialog(self)
+            self.add_window(self.window.dialog)
+            GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.window.dialog_close)
+
+PrefApp().run(sys.argv)

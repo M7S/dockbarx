@@ -37,6 +37,7 @@ gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GObject
 from gi.repository import GLib
+from gi.repository import Gio
 from dockbarx.common import Globals, XDisplay, check_x11
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
@@ -51,10 +52,10 @@ import urllib.parse
 WNCK_WINDOW_STATE_MINIMIZED = 1
 
 
-class CairoDockX(Gtk.Window):
+class CairoDockX(Gtk.ApplicationWindow):
     """The Dock Window for running DockbarX as a standalone dock"""
-    def __init__(self):
-        GObject.GObject.__init__(self)
+    def __init__(self, application):
+        super().__init__(application=application)
         self.globals = Globals()
         self.theme = DockTheme()
         if self.globals.settings["dock/type"] == "dock":
@@ -494,7 +495,8 @@ class CairoDockX(Gtk.Window):
 
 
 class DockX(CairoDockX):
-    def __init__(self, monitor=0):
+    def __init__(self, application, monitor=0):
+        super().__init__(application=application)
         self.globals = Globals()
         self.empty_space = {"left": 1000, "right": 1000,
                             "top": 1000, "bottom":1000}
@@ -509,6 +511,7 @@ class DockX(CairoDockX):
             self.monitor = Gdk.Display.get_default().get_monitor(monitor)
         else:
             self.monitor = monitor
+        self.app = application
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
         self.db_loaded = False
@@ -520,7 +523,6 @@ class DockX(CairoDockX):
         self.dockbar.set_keyboard_show_dock(True)
         self.dockbar.load()
         self.db_loaded = True
-        CairoDockX.__init__(self)
         self.set_keep_above(True)
         self.autohide_sid = None
         self.autounhide_sid = None
@@ -1245,8 +1247,9 @@ class DockX(CairoDockX):
 
     def __calulate_db_max_size_on_realized(self):
         # Wait while gtk events are pending.
-        while Gtk.events_pending():
-                    Gtk.main_iteration()
+        ctx = GLib.MainContext.default()
+        while ctx.pending():
+            ctx.iteration(False)
         self.calculate_dockbar_max_size()
 
     def get_screen_geometry(self):
@@ -1312,7 +1315,7 @@ class DockX(CairoDockX):
 
     def on_destroy(self, *args):
         self.dockbar.destroy()
-        Gtk.main_quit()
+        self.app.quit()
 
     #### Menu stuff
     def create_popup_menu(self, event):
@@ -1547,23 +1550,33 @@ class DockXDBus(dbus.service.Object):
         pass
 
 
-monitor = 0
-argv = sys.argv
-if "--monitor" in argv:
-    i = argv.index("--monitor")
-    try:
-        monitor = int(sys.argv[i + 1])
-    except IndexError:
-        print("Warning: No monitor specified", file=sys.stderr)
-    except ValueError:
-        print("Warning: Invalid monitor index: " + sys.argv[i + 1], file=sys.stderr)
-    argv = argv[:i] + argv[i + 2:]
-Gtk.init(argv)
+class DockXApp(Gtk.Application):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, application_id="org.dockbarx.dockx", flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE, **kwargs)
+        self.window = None
+        self.monitor = 0
+        self.add_main_option("monitor", 0, GLib.OptionFlags.IN_MAIN, GLib.OptionArg.INT, "show on specified monitor", None)
+
+    #def do_startup(self):
+    #    Gtk.Application.do_startup(self)
+
+    def do_activate(self):
+        if not self.window:
+            self.window = DockX(application=self, monitor=self.monitor)
+            self.add_window(self.window)
+            GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.window.on_destroy)
+        self.window.present()
+
+    def do_command_line(self, command_line):
+        options = command_line.get_options_dict()
+        options = options.end().unpack()
+        if "monitor" in options:
+            self.monitor = int(options["monitor"])
+        self.activate()
+        return 0
+
+
 if not check_x11():
     sys.exit(1)
-dockx = DockX(monitor)
-del monitor
-del argv
-signal.signal(signal.SIGINT, dockx.on_destroy)
-Gtk.main()
+DockXApp().run(sys.argv)
 
