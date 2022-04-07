@@ -544,6 +544,8 @@ class DockBar():
         self.globals.connect("gkey-changed", self.__gkeys_changed)
         self.globals.connect("use-number-shortcuts-changed",
                              self.__init_number_shortcuts)
+        self.globals.connect("use-number-shortcuts-shift-launch-changed",
+                             self.__init_number_shortcuts)
         Keybinder.init()
         Keybinder.set_use_cooked_accelerators(False)
 
@@ -1912,6 +1914,7 @@ class DockBar():
     def __init_number_shortcuts(self, *args):
         for i in range(10):
             key = "<super>%s" % i
+            shift_key = "<super><shift>%s" % i
             if self.globals.settings["use_number_shortcuts"]:
                 try:
                     success = Keybinder.bind(key,
@@ -1925,9 +1928,28 @@ class DockBar():
                         Keybinder.unbind(key)
                     except:
                         pass
+
+                # Shift + <number> launches a new instance
+                if self.globals.settings["use_number_shortcuts_shift_launch"]:
+                    try:
+                        success = Keybinder.bind(shift_key,
+                                             self.__on_shift_number_shortcut_pressed, i)
+                    except:
+                        success = False
+                    if not success:
+                        # Keybinder sometimes doesn't unbind faulty binds.
+                        # We have to do it manually.
+                        try:
+                            Keybinder.unbind(shift_key)
+                        except:
+                            pass
             else:
                 try:
                     Keybinder.unbind(key)
+                except:
+                    pass
+                try:
+                    Keybinder.unbind(shift_key)
                 except:
                     pass
 
@@ -2014,3 +2036,13 @@ class DockBar():
             if not group.media_controls or not success:
                 group.action_launch_application()
         self.next_group = None
+
+    def __on_shift_number_shortcut_pressed(self, key, n, keyboard_grabbed=False):
+            if n == 0:
+                n = 10
+            n -= 1
+            try:
+                group = self.groups[n]
+            except IndexError:
+                return
+            group.action_launch_application()

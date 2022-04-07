@@ -753,11 +753,19 @@
 
     <key name='use-number-shortcuts' type='b'>
       <default>false</default>
-      <summary>Select applications usning super+number shortcuts</summary>
+      <summary>Select applications using super+number shortcuts</summary>
       <description>
         Select applications usning super+number shortcuts.
         Eg. super+1 to select the next window of the first application and
         shift+super+1 to select the previous window of the first application.
+      </description>
+    </key>
+
+    <key name='use-number-shortcuts-shift-launch' type='b'>
+      <default>false</default>
+      <summary>Launch new instance of an application with super+shift+number shortcuts</summary>
+      <description>
+        After hitting super+shift+1, an new instance of the first application will be launched.
       </description>
     </key>
 
