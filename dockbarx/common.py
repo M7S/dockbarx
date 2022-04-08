@@ -652,6 +652,8 @@ class Globals(GObject.GObject):
         "gkey-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "use-number-shortcuts-changed": (GObject.SignalFlags.RUN_FIRST,
                                          None,()),
+        "use-number-shortcuts-shift-launch-changed": (GObject.SignalFlags.RUN_FIRST,
+                                                      None,()),
         "show-close-button-changed": (GObject.SignalFlags.RUN_FIRST,
                                       None,()),
         "dock-size-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
@@ -778,6 +780,7 @@ class Globals(GObject.GObject):
           "gkeys_select_previous_window_keystr": "<super><control><shift>Tab",
           "gkeys_select_next_group_skip_launchers": False,
           "use_number_shortcuts": True,
+          "use_number_shortcuts_shift_launch": True,
           "launchers": [],
 
           "dock/theme_file": "dbx.tar.gz",
@@ -929,6 +932,8 @@ class Globals(GObject.GObject):
             self.emit("unity-changed")
         elif "use_number_shortcuts" == key:
             self.emit("use-number-shortcuts-changed")
+        elif "use_number_shortcuts_shift_launch" == key:
+            self.emit("use-number-shortcuts-shift-launch-changed")
         elif key == "theme":
             self.emit("theme-changed")
         elif key.startswith("color"):
