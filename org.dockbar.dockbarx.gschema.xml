@@ -438,6 +438,14 @@
       </description>
     </key>
 
+    <key name='groupbutton-no-tooltip' type='b'>
+      <default>false</default>
+      <summary>Don't show tooltip</summary>
+      <description>
+        Don't show tooltip at all.
+      </description>
+    </key>
+
     <key name='groupbutton-left-click-action' type='s'>
       <default>"select"</default>
       <summary>Action for groupbutton left clicking</summary>

@@ -1920,7 +1920,7 @@ class GroupButton(CairoAppButton):
             delay = self.globals.settings["popup_delay"]
         else:
             delay = self.globals.settings["second_popup_delay"]
-        if not self.globals.gtkmenu and not self.globals.dragging:
+        if not self.globals.gtkmenu and not self.globals.dragging and not self.globals.settings["groupbutton_no_tooltip"]:
             group.popup.show_after_delay(delay)
         self.update_state()
         # Opacify
