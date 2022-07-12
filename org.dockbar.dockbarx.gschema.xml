@@ -442,7 +442,7 @@
       <default>false</default>
       <summary>Don't show window list</summary>
       <description>
-        Turn off window list completely.
+        Turn off window list on mouse hover.
       </description>
     </key>
 
