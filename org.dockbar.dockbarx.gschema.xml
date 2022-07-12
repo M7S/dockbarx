@@ -438,11 +438,11 @@
       </description>
     </key>
 
-    <key name='groupbutton-no-tooltip' type='b'>
+    <key name='groupbutton-no-window-list' type='b'>
       <default>false</default>
-      <summary>Don't show tooltip</summary>
+      <summary>Don't show window list</summary>
       <description>
-        Don't show tooltip at all.
+        Turn off window list completely.
       </description>
     </key>
 

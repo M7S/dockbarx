@@ -841,23 +841,22 @@ class PrefDialog():
 
         #--- Popup page
         popup_box.set_border_width(5)
-        self.reorder_window_list_cb = Gtk.CheckButton.new_with_label(
-                          _("Reorder the window list so that the last activated window is first in the list."))
-        self.reorder_window_list_cb.connect("toggled", self.__checkbutton_toggled,
-                                 "reorder_window_list")
-        popup_box.pack_start(self.reorder_window_list_cb, False, True, 5)
+        self.no_window_list_cb = Gtk.CheckButton.new_with_label(
+                          _("Don't show window list on mouse hover"))
+        self.no_window_list_cb.connect("toggled", self.__checkbutton_toggled,
+                                 "groupbutton_no_window_list")
+        self.no_window_list_cb.set_tooltip_text(_("You can access the window list by right clicking on the button twice"))
+        popup_box.pack_start(self.no_window_list_cb, False, True, 5)
         self.no_popup_cb = Gtk.CheckButton.new_with_label(
                           _("Show window list only if more than one window is open"))
         self.no_popup_cb.connect("toggled", self.__checkbutton_toggled,
                                  "no_popup_for_one_window")
         popup_box.pack_start(self.no_popup_cb, False, True, 5)
-
-        self.no_tooltip_cb = Gtk.CheckButton.new_with_label(
-                          _("No tooltip"))
-        self.no_tooltip_cb.connect("toggled", self.__checkbutton_toggled,
-                                 "groupbutton_no_tooltip")
-        popup_box.pack_start(self.no_tooltip_cb, False, True, 5)
-
+        self.reorder_window_list_cb = Gtk.CheckButton.new_with_label(
+                          _("Reorder the window list so that the last activated window is first in the list."))
+        self.reorder_window_list_cb.connect("toggled", self.__checkbutton_toggled,
+                                 "reorder_window_list")
+        popup_box.pack_start(self.reorder_window_list_cb, False, True, 5)
         self.show_tooltip_cb = Gtk.CheckButton.new_with_label(
                           _("Show tooltip when no window is open"))
         self.show_tooltip_cb.connect("toggled", self.__checkbutton_toggled,
@@ -1616,8 +1615,8 @@ class PrefDialog():
                             self.globals.settings["no_popup_for_one_window"])
         self.show_tooltip_cb.set_active(
                             self.globals.settings["groupbutton_show_tooltip"])
-        self.no_tooltip_cb.set_active(
-                            self.globals.settings["groupbutton_no_tooltip"])
+        self.no_window_list_cb.set_active(
+                            self.globals.settings["groupbutton_no_window_list"])
 
         # Locked list
         self.locked_list_menu_cb.set_active(
