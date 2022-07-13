@@ -636,6 +636,8 @@ class Globals(GObject.GObject):
         "unity-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "show-tooltip-changed": (GObject.SignalFlags.RUN_FIRST,
                                  None,()),
+        "no-window-list-changed": (GObject.SignalFlags.RUN_FIRST,
+                                 None,()),
         "show-previews-changed": (GObject.SignalFlags.RUN_FIRST,
                                   None,()),
         "keep-previews-changed": (GObject.SignalFlags.RUN_FIRST,
@@ -735,6 +737,7 @@ class Globals(GObject.GObject):
           "separate_ooo_apps": True,
 
           "groupbutton_show_tooltip": False,
+          "groupbutton_no_window_list": False,
 
           "groupbutton_left_click_action": "select",
           "groupbutton_shift_and_left_click_action": "launch application",
@@ -922,6 +925,8 @@ class Globals(GObject.GObject):
             self.emit("window-title-width-changed")
         elif "groupbutton_show_tooltip" == key:
             self.emit("show-tooltip-changed")
+        elif "groupbutton_no_window_list" == key:
+            self.emit("no-window-list-changed")
         elif "show_close_button" == key:
             self.emit("show-close-button-changed")
         elif "media_buttons" == key:

@@ -438,6 +438,14 @@
       </description>
     </key>
 
+    <key name='groupbutton-no-window-list' type='b'>
+      <default>false</default>
+      <summary>Don't show window list</summary>
+      <description>
+        Turn off window list on mouse hover.
+      </description>
+    </key>
+
     <key name='groupbutton-left-click-action' type='s'>
       <default>"select"</default>
       <summary>Action for groupbutton left clicking</summary>
