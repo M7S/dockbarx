@@ -1513,7 +1513,7 @@ class GroupButton(CairoAppButton):
         # Add the number of windows
         state_type = state_type | window_count
         if state_type != self.state_type or force_update:
-            surface = self.icon_factory.surface_update(state_type)
+            surface = self.icon_factory.surface_update(state_type, force_update=force_update)
             self.state_type = state_type
             # Set the button size to the size of the surface
             width = surface.get_width()
