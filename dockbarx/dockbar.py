@@ -295,6 +295,7 @@ class GroupList(list):
         self.__make_arrow_buttons()
         self.allocation_sid = self.box.connect("size-allocate",
                                                self.on_size_allocate)
+        self.container.show()
 
     def __make_arrow_buttons(self):
         if self.arrow_box is not None:
