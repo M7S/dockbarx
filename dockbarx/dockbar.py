@@ -302,17 +302,19 @@ class GroupList(list):
             self.next_button.destroy()
             self.previous_button.destroy()
             self.arrow_box.destroy()
+        self.arrow_box = Gtk.Grid.new()
         if self.orient in ("down", "up"):
-            self.arrow_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
             self.next_button = cairowidgets.CairoArrowButton("right")
             self.previous_button = cairowidgets.CairoArrowButton("left")
+            self.arrow_box.attach(self.next_button, 0, 0, 1, 1)
+            self.arrow_box.attach(self.previous_button, 0, 1, 1, 1)
+            self.arrow_box.set_row_homogeneous(True)
         else:
-            self.arrow_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
             self.next_button = cairowidgets.CairoArrowButton("down")
             self.previous_button = cairowidgets.CairoArrowButton("up")
-        self.arrow_box.pack_start(self.next_button, True, True, 0)
-        self.arrow_box.pack_start(self.previous_button, True, True, 0)
-        self.arrow_box.set_no_show_all(True)
+            self.arrow_box.attach(self.next_button, 0, 0, 1, 1)
+            self.arrow_box.attach(self.previous_button, 1, 0, 1, 1)
+            self.arrow_box.set_column_homogeneous(True)
         self.box.pack_start(self.arrow_box, False, False, 0)
 
         #Connections
