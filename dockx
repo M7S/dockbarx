@@ -819,6 +819,7 @@ class DockX(CairoDockX):
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
         else:
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
+        strut = list(map(lambda e: 0 if e < 0 else e, strut))
         topw = XDisplay.create_resource_object('window',
                                 self.get_toplevel().get_window().get_xid())
         topw.change_property(XDisplay.get_atom('_NET_WM_STRUT'),
