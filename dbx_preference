@@ -1352,6 +1352,18 @@ class PrefDialog():
 
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         hbox.set_border_width(5)
+        label = Gtk.Label(label=_("Layer"))
+        hbox.pack_start(label, False, False, 0)
+        self.dock_layer_box = Gtk.ComboBoxText()
+        for pos in (_("above other windows"), _("below other windows"),
+                    _("default layer")):
+            self.dock_layer_box.append_text(pos)
+        self.dock_layer_box.connect("changed", self.__cb_changed)
+        hbox.pack_start(self.dock_layer_box, False, True, 0)
+        dock_box.pack_start(hbox, False, True, 0)
+
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
+        hbox.set_border_width(5)
         label = Gtk.Label(label=_("Size"))
         hbox.pack_start(label, False, True, 0)
         adj = Gtk.Adjustment.new(self.globals.settings["dock/size"],
@@ -1862,6 +1874,12 @@ class PrefDialog():
             self.end_decoration_cb.show()
         else:
             self.end_decoration_cb.hide()
+        model = self.dock_layer_box.get_model()
+        for i in range(len(model)):
+            mode = self.globals.settings["dock/layer"].lower()
+            if model[i][0].lower() == _(mode):
+                self.dock_layer_box.set_active(i)
+                break
         model = self.dock_position_box.get_model()
         for i in range(len(model)):
             pos = self.globals.settings["dock/position"].lower()
@@ -2059,6 +2077,15 @@ class PrefDialog():
                 if value == _(p) and \
                    p != self.globals.settings["dock/behavior"]:
                     self.dock_gsettings.set_string("behavior", p)
+
+        if combobox == self.dock_layer_box:
+            pos = ("above other windows", "below other windows",
+                    "default layer")
+            for p in pos:
+                if value == _(p) and \
+                   p != self.globals.settings["dock/layer"]:
+                    self.dock_gsettings.set_string("layer", p)
+
 
     def __adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to settings

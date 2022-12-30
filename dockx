@@ -523,7 +523,6 @@ class DockX(CairoDockX):
         self.dockbar.set_keyboard_show_dock(True)
         self.dockbar.load()
         self.db_loaded = True
-        self.set_keep_above(True)
         self.autohide_sid = None
         self.autounhide_sid = None
         self.autounhide_sid = None
@@ -549,6 +548,8 @@ class DockX(CairoDockX):
         self.globals.connect("dock-offset-changed", self.__on_offset_changed)
         self.globals.connect("dock-behavior-changed",
                              self.__on_behavior_changed)
+        self.globals.connect("dock-layer-changed",
+                             self.__on_layer_changed)
         self.__compute_should_autohide()
         self.screen.connect("active-window-changed",
                             self.__on_active_window_changed)
@@ -564,6 +565,7 @@ class DockX(CairoDockX):
         if self.autohide:
             self.show_dock()
         self.dbus_obj = DockXDBus(self)
+        self.__on_layer_changed()
 
     def position_dock(self, rebuild=False):
         centered = self.globals.settings["dock/mode"] == "centered"
@@ -1168,6 +1170,16 @@ class DockX(CairoDockX):
             a = self.get_allocation()
             x, y = self.get_position()
             self.__set_dock_strut(x, y, a.width, a.height)
+
+    def __on_layer_changed(self, *args):
+        layer = self.globals.settings["dock/layer"]
+        if layer == "above other windows":
+            self.set_keep_above(True)
+        elif layer == "below other windows":
+            self.set_keep_below(True)
+        else:
+            self.set_keep_above(False)
+            self.set_keep_below(False)
 
     def __on_dock_theme_reloaded(self, *args):
         self.compute_padding()

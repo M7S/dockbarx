@@ -878,6 +878,19 @@
       </description>
     </key>
 
+    <key name='layer' type='s'>
+      <default>"above other windows"</default>
+      <choices>
+        <choice value='above other windows'/>
+        <choice value='below other windows'/>
+        <choice value='default layer'/>
+      </choices>
+      <summary>Window stacking layer</summary>
+      <description>
+        Window stacking layer
+      </description>
+    </key>
+
   </schema>
 
 

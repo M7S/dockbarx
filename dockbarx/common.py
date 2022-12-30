@@ -669,6 +669,7 @@ class Globals(GObject.GObject):
                                  None,()),
         "dock-behavior-changed": (GObject.SignalFlags.RUN_FIRST,
                                   None,()),
+        "dock-layer-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-theme-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-color-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-end-decorations-changed": (GObject.SignalFlags.RUN_FIRST,
@@ -794,6 +795,7 @@ class Globals(GObject.GObject):
           "dock/type": "dock",
           "dock/behavior": "standard",
           "dock/end_decorations": False,
+          "dock/layer": "above other windows",
           
           "applets/enabled_list": ["DockbarX"]}
 
@@ -970,6 +972,8 @@ class Globals(GObject.GObject):
             self.emit("dock-behavior-changed")
         elif "mode" == gkey:
             self.emit("dock-mode-changed")
+        elif "layer" == gkey:
+            self.emit("dock-layer-changed")
         elif "end-decorations" == gkey:
             self.emit("dock-end-decorations-changed")
         elif "theme-file" == gkey:
