@@ -704,6 +704,7 @@ class DockBar():
             if orient in ("left", "right"):
                 group.popup.point("left")
             # Update the surface
+            group.button.icon_factory.reset_surfaces()
             group.button.update_state(force_update=True)
 
         if self.globals.settings["show_only_current_desktop"]:
