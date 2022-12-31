@@ -348,16 +348,21 @@ class GroupList(list):
             # No buttons are shown on the screen, no size overflow.
             self.hide_arrow_buttons()
             return
-        max_size = self.calculate_max_size()
+        max_size, max_size_no_arrow = self.calculate_max_sizes()
         if max_size < self.button_size:
             return
         max_buttons = max_size // self.button_size
-        if len(groups) <= self.overflow_set * max_buttons:
+        max_buttons_no_arrow = max_size_no_arrow // self.button_size
+        groups_num = len(groups)
+        if groups_num == max_buttons_no_arrow:
+            # No need arrows
+            max_buttons = max_buttons_no_arrow
+        if groups_num <= self.overflow_set * max_buttons:
             # The current overflow_set is too high and would
             # show a empty screen, let's decrease it to something
             # that will actually show something.
-            self.overflow_set = (len(groups) - 1) // max_buttons
-        if len(groups) <= max_buttons:
+            self.overflow_set = (groups_num - 1) // max_buttons
+        if groups_num <= max_buttons:
             self.hide_arrow_buttons()
         else:
             self.show_arrow_buttons()
@@ -366,7 +371,7 @@ class GroupList(list):
             self.previous_button.set_sensitive(False)
         else:
             self.previous_button.set_sensitive(True)
-        if self.overflow_set == (len(groups) - 1) // max_buttons:
+        if self.overflow_set == (groups_num - 1) // max_buttons:
             self.next_button.set_sensitive(False)
         else:
             self.next_button.set_sensitive(True)
@@ -376,8 +381,8 @@ class GroupList(list):
             group.button.hide()
         begin = self.overflow_set * max_buttons
         end = (self.overflow_set + 1) * max_buttons
-        if end > len(groups):
-            end = len(groups)
+        if end > groups_num:
+            end = groups_num
             begin = max(0, end - max_buttons)
         for group in groups[begin:end]:
             group.button.show()
@@ -411,7 +416,7 @@ class GroupList(list):
     def get_max_size(self):
         return self.max_size
 
-    def calculate_max_size(self):
+    def calculate_max_sizes(self):
         if self.max_size is None:
             # Maxsize is not set externally use the allocation size.
             if self.orient in ("down", "up"):
@@ -420,18 +425,21 @@ class GroupList(list):
                 size = self.box.get_allocation().height
         else:
             size = self.max_size
+        e_size = size
         # Remove the size of the arrows (if visible) from max size.
         if self.orient in ("down", "up"):
             if self.arrows_visible:
-                size = size - self.arrow_box.get_allocation().width
+                e_size -= self.arrow_box.get_allocation().width
         else:
             if self.arrows_visible:
-                size = size - self.arrow_box.get_allocation().height
+                e_size -= self.arrow_box.get_allocation().height
         # Add gap size to max size since button size includes gap size
         # and the number of gaps is one less than the number of
         # buttons.
-        size = size + self.container.get_spacing()
-        return size
+        spacing = self.container.get_spacing()
+        size += spacing
+        e_size += spacing
+        return (e_size, size)
 
     def on_size_allocate(self, widget, allocation):
         if allocation.width <= 1:
@@ -711,7 +719,8 @@ class DockBar():
 
         if self.globals.settings["show_only_current_desktop"]:
             self.__on_desktop_changed()
-        #~ self.groups.manage_size_overflow() # Don't think line does anything useful here. Remove if everything looks OK.
+        else:
+            self.groups.manage_size_overflow()
 
         # If a floating window panel is shown, close it.
         lp = self.globals.get_locked_popup()
@@ -754,6 +763,7 @@ class DockBar():
             group.button.set_manual_size(True)
             # Update the button so that it get the new size.
             group.button.update_state(force_update=True)
+        self.groups.manage_size_overflow()
 
     def set_max_size(self, max_size):
         """Set the max size DockbarX is allowed to occupy."""
@@ -885,6 +895,7 @@ class DockBar():
             active_group_name = self.windows[active_window]
             active_group = self.groups[active_group_name]
             active_group.set_active_window(active_window)
+        self.groups.manage_size_overflow()
 
     def __on_window_closed(self, screen, window):
         if window in self.windows:
