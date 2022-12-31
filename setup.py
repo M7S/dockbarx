@@ -28,7 +28,7 @@ import os
 import sys
 import stat
 
-VERSION = "1.0-beta"
+VERSION = "1.0-beta2"
 
 class build_trans(cmd.Command):
     description = "Compile .po files into .mo files"

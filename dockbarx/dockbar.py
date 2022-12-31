@@ -42,7 +42,7 @@ from .key_listener import KeyListener
 from . import i18n
 _ = i18n.language.gettext
 
-VERSION = "1.0-beta"
+VERSION = "1.0-beta2"
 
 
 SPECIAL_RES_CLASSES = {
