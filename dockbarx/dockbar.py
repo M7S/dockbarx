@@ -258,7 +258,8 @@ class GroupList(list):
         if aspect_ratio == self.aspect_ratio:
             return
         self.aspect_ratio = aspect_ratio
-        self.calculate_button_size()
+        if self.calculate_button_size():
+            self.manage_size_overflow()
 
     def set_orient(self, orient):
         for pair in (("up", "down"), ("left", "right")):
@@ -348,13 +349,15 @@ class GroupList(list):
             # No buttons are shown on the screen, no size overflow.
             self.hide_arrow_buttons()
             return
+        self.show_arrow_buttons()
         max_size, max_size_no_arrow = self.calculate_max_sizes()
-        if max_size < self.button_size:
-            return
         max_buttons = max_size // self.button_size
         max_buttons_no_arrow = max_size_no_arrow // self.button_size
         groups_num = len(groups)
-        if groups_num == max_buttons_no_arrow:
+        if max_buttons <= 0:
+            # Ensure at least one icon will be showed
+            max_buttons = max_buttons_no_arrow = 1
+        elif groups_num <= max_buttons_no_arrow:
             # No need arrows
             max_buttons = max_buttons_no_arrow
         if groups_num <= self.overflow_set * max_buttons:
@@ -364,8 +367,6 @@ class GroupList(list):
             self.overflow_set = (groups_num - 1) // max_buttons
         if groups_num <= max_buttons:
             self.hide_arrow_buttons()
-        else:
-            self.show_arrow_buttons()
         # Button sensitivity
         if self.overflow_set == 0:
             self.previous_button.set_sensitive(False)
@@ -398,14 +399,15 @@ class GroupList(list):
             size = self.container.get_allocation().width
         if size <= 1:
             # Not yet realized. No reason to continue.
-            return
+            return False
         spacing = self.container.get_spacing()
         button_size = int(size * self.aspect_ratio + spacing)
         if button_size != self.button_size:
             # The button size has changed lets check if all buttons
             # still can be shown at once.
             self.button_size = button_size
-            self.manage_size_overflow()
+            return True
+        return False
 
     def set_max_size(self, max_size):
         # When ran in dock (and possibly other cases) the max
@@ -446,6 +448,7 @@ class GroupList(list):
             # Not yet realized.
             return
         self.calculate_button_size()
+        self.manage_size_overflow()
 
     def on_next_button_clicked(self, *args):
         self.overflow_set = self.overflow_set + 1
