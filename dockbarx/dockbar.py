@@ -183,17 +183,7 @@ class GroupList(list):
         self.arrow_box = None
         self.aspect_ratio = None
         self.max_size = None
-        if self.orient in ("down", "up"):
-            self.container = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        else:
-            self.container = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.allocation_sid = self.box.connect("size-allocate",
-                                               self.on_size_allocate)
-        self.box.pack_start(self.container, False, False, 0)
-        self.empty = Spacer(dockbar)
-        self.box.pack_start(self.empty, True, True, 0)
+        self.__make_box_and_container()
         self.box.show_all()
         self.__make_arrow_buttons()
 
@@ -269,13 +259,6 @@ class GroupList(list):
                 self.orient = orient
                 return
         self.orient = orient
-        # Make new box and container
-        if self.orient in ("down", "up"):
-            container = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        else:
-            container = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-            box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         # Remove the children from the container.
         for child in self.container.get_children():
             self.container.remove(child)
@@ -288,15 +271,23 @@ class GroupList(list):
         self.container.destroy()
         self.empty.destroy()
         self.box.destroy()
-        self.box = box
-        self.container = container
+        # Make new box and container
+        self.__make_box_and_container()
+        self.__make_arrow_buttons()
+        self.container.show()
+
+    def __make_box_and_container(self):
+        if self.orient in ("down", "up"):
+            self.container = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        else:
+            self.container = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.box.pack_start(self.container, False, False, 0)
         self.empty = Spacer(self.dockbar_r())
         self.box.pack_start(self.empty, True, True, 0)
-        self.__make_arrow_buttons()
         self.allocation_sid = self.box.connect("size-allocate",
                                                self.on_size_allocate)
-        self.container.show()
 
     def __make_arrow_buttons(self):
         if self.arrow_box is not None:
