@@ -260,9 +260,9 @@ class GroupList(list):
                 return
         self.orient = orient
         # Remove the children from the container.
-        for child in self.container.get_children():
+        children = self.container.get_children()
+        for child in children:
             self.container.remove(child)
-            container.pack_start(child, True, True, 0)
         # Destroy the old box and container.
         self.box.remove(self.container)
         self.box.remove(self.empty)
@@ -273,6 +273,8 @@ class GroupList(list):
         self.box.destroy()
         # Make new box and container
         self.__make_box_and_container()
+        for child in children:
+            self.container.pack_start(child, True, True, 0)
         self.__make_arrow_buttons()
         self.container.show()
 
