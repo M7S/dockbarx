@@ -440,6 +440,16 @@ class GroupList(list):
         if allocation.width <= 1:
             # Not yet realized.
             return
+        size = self.dockbar_r().size
+        if size is not None:
+            if self.orient in ("down", "up"):
+                if allocation.height > size:
+                    allocation.height = size
+                    widget.size_allocate(allocation)
+            else:
+                if allocation.width > size:
+                    allocation.width = size
+                    widget.size_allocate(allocation)
         self.calculate_button_size()
         self.manage_size_overflow()
 
