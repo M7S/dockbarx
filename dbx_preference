@@ -735,12 +735,8 @@ class PrefDialog():
                                  self.__checkbutton_toggled, "old_menu")
         self.old_menu_cb.set_margin_top(5)
         self.old_menu_cb.set_margin_bottom(5)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.old_menu_cb.set_margin_start(10)
-            self.old_menu_cb.set_margin_end(10)
-        else:
-            self.old_menu_cb.set_margin_left(10)
-            self.old_menu_cb.set_margin_right(10)
+        self.old_menu_cb.set_margin_start(10)
+        self.old_menu_cb.set_margin_end(10)
         appearance_box.pack_start(self.old_menu_cb, False, True, 0)
 
         bpbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
@@ -770,10 +766,7 @@ class PrefDialog():
             s = ("badge_fg", "badge_bg")[i]
             self.badge_color_buttons[i].set_title(text)
             self.badge_color_buttons[i].set_hexpand(True)
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                Gtk.ColorChooser.set_use_alpha(self.badge_color_buttons[i], True)
-            else:
-                self.badge_color_buttons[i].set_use_alpha(True)
+            Gtk.ColorChooser.set_use_alpha(self.badge_color_buttons[i], True)
             self.badge_color_buttons[i].connect("color-set",
                                                 self.__bp_color_set, s)
             table.attach(self.custom_badge_color_cbs[i], 0, i, 1, 1)
@@ -825,10 +818,7 @@ class PrefDialog():
             s = ("progress_fg", "progress_bg")[i]
             self.progress_color_buttons[i].set_title(text)
             self.progress_color_buttons[i].set_hexpand(True)
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                Gtk.ColorChooser.set_use_alpha(self.progress_color_buttons[i], True)
-            else:
-                self.progress_color_buttons[i].set_use_alpha(True)
+            Gtk.ColorChooser.set_use_alpha(self.progress_color_buttons[i], True)
             self.progress_color_buttons[i].connect("color-set",
                                                    self.__bp_color_set, s)
             table.attach(self.custom_progress_color_cbs[i], 0, i, 1, 1)
@@ -1412,10 +1402,7 @@ class PrefDialog():
         hbox.set_border_width(5)
         label = Gtk.Label(label=_("Background color"))
         self.dock_bg_color_button = Gtk.ColorButton()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            Gtk.ColorChooser.set_use_alpha(self.dock_bg_color_button, True)
-        else:
-            self.dock_bg_color_button.set_use_alpha(True)
+        Gtk.ColorChooser.set_use_alpha(self.dock_bg_color_button, True)
         self.dock_bg_color_button.set_title(_("Background color"))
         self.dock_bg_color_button.connect("color-set",
                                           self.__dock_color_set, "bg_color")
@@ -1433,10 +1420,7 @@ class PrefDialog():
         label.set_xalign(1)
         label.set_yalign(0.5)
         self.bar2_bg_color_button = Gtk.ColorButton()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            Gtk.ColorChooser.set_use_alpha(self.bar2_bg_color_button, True)
-        else:
-            self.bar2_bg_color_button.set_use_alpha(True)
+        Gtk.ColorChooser.set_use_alpha(self.bar2_bg_color_button, True)
         self.bar2_bg_color_button.set_title(_("Second background color"))
         self.bar2_bg_color_button.connect("color-set", self.__dock_color_set,
                                           "bar2_bg_color")
@@ -1573,10 +1557,7 @@ class PrefDialog():
         self.custom_badge_cb.set_active(custom_font)
         self.badge_font_button.set_sensitive(custom_font)
         badge_font = self.globals.settings["badge_font"]
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            Gtk.FontChooser.set_font(self.badge_font_button, badge_font)
-        else:
-            self.badge_font_button.set_font_name(badge_font)
+        Gtk.FontChooser.set_font(self.badge_font_button, badge_font)
         for i in (0, 1):
             s = ("badge_custom_fg_color", "badge_custom_bg_color")[i]
             active = self.globals.settings[s]
@@ -1585,17 +1566,11 @@ class PrefDialog():
             s = ("badge_fg", "badge_bg")[i]
             # range [0, 255]
             alpha = self.globals.settings[s + "_alpha"]
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                color = Gdk.RGBA();
-                Gdk.RGBA.parse(color, self.globals.settings[s + "_color"])
-                # range [0, 1]
-                color.alpha = alpha / 255
-                Gtk.ColorChooser.set_rgba(self.badge_color_buttons[i], color)
-            else:
-                color = Gdk.color_parse(self.globals.settings[s + "_color"])
-                self.badge_color_buttons[i].set_color(color)
-                # range [0, 65535]
-                self.badge_color_buttons[i].set_alpha(alpha * 257)
+            color = Gdk.RGBA();
+            Gdk.RGBA.parse(color, self.globals.settings[s + "_color"])
+            # range [0, 1]
+            color.alpha = alpha / 255
+            Gtk.ColorChooser.set_rgba(self.badge_color_buttons[i], color)
 
         for i in (0, 1):
             s = ("progress_custom_fg_color", "progress_custom_bg_color")[i]
@@ -1605,17 +1580,11 @@ class PrefDialog():
             s = ("progress_fg", "progress_bg")[i]
             # range [0, 255]
             alpha = self.globals.settings[s + "_alpha"]
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                color = Gdk.RGBA();
-                Gdk.RGBA.parse(color, self.globals.settings[s + "_color"])
-                # range [0, 1]
-                color.alpha = alpha / 255
-                Gtk.ColorChooser.set_rgba(self.progress_color_buttons[i], color)
-            else:
-                color = Gdk.color_parse(self.globals.settings[s + "_color"])
-                self.progress_color_buttons[i].set_color(color)
-                # range [0, 65535]
-                self.progress_color_buttons[i].set_alpha(alpha * 257)
+            color = Gdk.RGBA();
+            Gdk.RGBA.parse(color, self.globals.settings[s + "_color"])
+            # range [0, 1]
+            color.alpha = alpha / 255
+            Gtk.ColorChooser.set_rgba(self.progress_color_buttons[i], color)
 
         # Popup
         self.delay_spin.set_value(self.globals.settings["popup_delay"])
@@ -1707,13 +1676,9 @@ class PrefDialog():
         for i in range(1, 9):
             c = "color%s"%i
             a = c+"_alpha"
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                color = Gdk.RGBA()
-                Gdk.RGBA.parse(color, self.globals.colors[c])
-                Gtk.ColorChooser.set_rgba(self.color_buttons[c], color)
-            else:
-                color = Gdk.color_parse(self.globals.colors[c])
-                self.color_buttons[c].set_color(color)
+            color = Gdk.RGBA()
+            Gdk.RGBA.parse(color, self.globals.colors[c])
+            Gtk.ColorChooser.set_rgba(self.color_buttons[c], color)
             #Alpha
             if a in self.globals.colors \
             and not (c in self.theme_alphas \
@@ -1723,26 +1688,13 @@ class PrefDialog():
                 except ValueError:
                     # in some themes, <colorX name="Not used" default="#000000" opacity="no" />
                     alpha = 255
-                if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                    Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], True)
-                    color = Gtk.ColorChooser.get_rgba(self.color_buttons[c])
-                    # range [0, 1]
-                    color.alpha = alpha / 255
-                    Gtk.ColorChooser.set_rgba(self.color_buttons[c], color)
-                else:
-                    self.color_buttons[c].set_use_alpha(True)
-                    try:
-                        # range [0, 65535]
-                        self.color_buttons[c].set_alpha(alpha * 257)
-                    except:
-                        print(c)
-                        print(alpha)
-                        raise
+                Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], True)
+                color = Gtk.ColorChooser.get_rgba(self.color_buttons[c])
+                # range [0, 1]
+                color.alpha = alpha / 255
+                Gtk.ColorChooser.set_rgba(self.color_buttons[c], color)
             else:
-                if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                    Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], False)
-                else:
-                    self.color_buttons[c].set_use_alpha(False)
+                Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], False)
 
         #Select action
         model = self.select_one_cg.get_model()
@@ -1902,29 +1854,17 @@ class PrefDialog():
         #Dock Colors
         # range [0, 255]
         alpha = self.globals.dock_colors["bg_alpha"]
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gdk.RGBA()
-            Gdk.RGBA.parse(color, self.globals.dock_colors["bg_color"])
-            # range [0, 1]
-            color.alpha = alpha / 255
-            Gtk.ColorChooser.set_rgba(self.dock_bg_color_button, color)
-        else:
-            color = Gdk.color_parse(self.globals.dock_colors["bg_color"])
-            self.dock_bg_color_button.set_color(color)
-            # range [0, 65535]
-            self.dock_bg_color_button.set_alpha(alpha * 257)
+        color = Gdk.RGBA()
+        Gdk.RGBA.parse(color, self.globals.dock_colors["bg_color"])
+        # range [0, 1]
+        color.alpha = alpha / 255
+        Gtk.ColorChooser.set_rgba(self.dock_bg_color_button, color)
         alpha = self.globals.dock_colors["bar2_bg_alpha"]
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gdk.RGBA()
-            Gdk.RGBA.parse(color, self.globals.dock_colors["bar2_bg_color"])
-            # range [0, 1]
-            color.alpha = alpha / 255
-            Gtk.ColorChooser.set_rgba(self.bar2_bg_color_button, color)
-        else:
-            color = Gdk.color_parse(self.globals.dock_colors["bar2_bg_color"])
-            self.bar2_bg_color_button.set_color(color)
-            # range [0, 65535]
-            self.bar2_bg_color_button.set_alpha(alpha * 257)
+        color = Gdk.RGBA()
+        Gdk.RGBA.parse(color, self.globals.dock_colors["bar2_bg_color"])
+        # range [0, 1]
+        color.alpha = alpha / 255
+        Gtk.ColorChooser.set_rgba(self.bar2_bg_color_button, color)
         if int(self.dock_theme.get("use_bar2", False)):
             self.dock_bar2_box.show()
         else:
@@ -2108,17 +2048,9 @@ class PrefDialog():
             return
         color_string = self.globals.settings[c + "_color"]
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gtk.ColorChooser.get_rgba(button)
-            new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
-            new_alpha = round(color.alpha * 255)
-        else:
-            color = button.get_color()
-            cs = color.to_string()
-            # cs has 16-bit per color, we want 8.
-            new_color = cs[0:3] + cs[5:7] + cs[9:11]
-            # get_alpha() range [0, 65535]
-            new_alpha = min(int(round(button.get_alpha() / 257.0)), 255)
+        color = Gtk.ColorChooser.get_rgba(button)
+        new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
+        new_alpha = round(color.alpha * 255)
 
         if new_color != color_string:
             s = c + "_color"
@@ -2135,21 +2067,11 @@ class PrefDialog():
         if not self.theme:
             return
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gtk.ColorChooser.get_rgba(button)
-            new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
-            use_alpha = Gtk.ColorChooser.get_use_alpha(button)
-            if use_alpha:
-                new_alpha = round(color.alpha * 255)
-        else:
-            color = button.get_color()
-            cs = color.to_string()
-            # cs has 16-bit per color, we want 8.
-            new_color = cs[0:3] + cs[5:7] + cs[9:11]
-            use_alpha = button.get_use_alpha();
-            if use_alpha:
-                # get_alpha() range [0, 65535]
-                new_alpha = min(int(round(button.get_alpha() / 257.0)), 255)
+        color = Gtk.ColorChooser.get_rgba(button)
+        new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
+        use_alpha = Gtk.ColorChooser.get_use_alpha(button)
+        if use_alpha:
+            new_alpha = round(color.alpha * 255)
 
         theme_name = self.theme.get_name().lower().replace(" ", "_")
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
@@ -2353,16 +2275,9 @@ class PrefDialog():
         colors = self.globals.dock_colors
         update_needed = False
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gtk.ColorChooser.get_rgba(button)
-            new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
-            new_alpha = round(color.alpha * 255)
-        else:
-            color = button.get_color()
-            cs = color.to_string()
-            # cs has 16-bit per color, we want 8.
-            new_color = cs[0:3] + cs[5:7] + cs[9:11]
-            new_alpha = min(int(round(button.get_alpha() / 256.0)), 255)
+        color = Gtk.ColorChooser.get_rgba(button)
+        new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
+        new_alpha = round(color.alpha * 255)
 
         if new_color != colors[c]:
             colors[c] = new_color
@@ -2393,10 +2308,7 @@ class PrefDialog():
         self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
 
     def __set_font(self, button, name):
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            font = Gtk.FontChooser.get_font(button);
-        else:
-            font = button.get_font_name()
+        font = Gtk.FontChooser.get_font(button);
         if font != self.globals.settings[name]:
             self.gsettings.set_string(name.replace('_', '-'), font)
 

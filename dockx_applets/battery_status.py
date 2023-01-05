@@ -73,15 +73,9 @@ def _set_margin(widget, top=-1, bottom=-1, left=-1, right=-1):
     if bottom >= 0:
         widget.set_margin_bottom(bottom)
     if left >= 0:
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            widget.set_margin_start(left)
-        else:
-            widget.set_margin_left(left)
+        widget.set_margin_start(left)
     if right >= 0:
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            widget.set_margin_end(right)
-        else:
-            widget.set_margin_right(right)
+        widget.set_margin_end(right)
 
 def _split_time(time, nosec=True):
     seconds = time % 60
@@ -654,10 +648,7 @@ class PowerDevicesDialog(Gtk.Dialog):
             value = _("N/A")
         label = Gtk.Label.new(name)
         label.set_halign(Gtk.Align.START)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            label.set_margin_start(margin)
-        else:
-            label.set_margin_left(margin)
+        label.set_margin_start(margin)
         table.attach(label, 0, row, 1, 1)
         if not group:
             label = Gtk.Label.new(value)
@@ -902,18 +893,12 @@ class DockXBatteryApplet(DockXApplet):
             self.main_menu_item_session_reboot.hide()
             self.main_menu_item_session_poweroff.hide()
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            self.main_menu.popup_at_pointer(event)
-        else:
-            self.main_menu.popup(None, None, self.calc_menu_position, None, event.button, event.time)
+        self.main_menu.popup_at_pointer(event)
         return
 
     def show_extra_menu(self, event):
         """Show popup menu"""
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            self.extra_menu.popup_at_pointer(event)
-        else:
-            self.extra_menu.popup(None, None, self.__calc_menu_position, None, event.button, event.time)
+        self.extra_menu.popup_at_pointer(event)
 
     def set_label_rotation(self, rotation):
         angle = { "no": 0, "clockwise": 270, "anticlockwise": 90 }
@@ -1162,17 +1147,11 @@ class DockXBatteryApplet(DockXApplet):
 
     def __load_theme_icon(self, name, size, flags = Gtk.IconLookupFlags.FORCE_SIZE, fallback = "error"):
         if self.__options["use_symbolic_icon"]:
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
-                flags = flags | Gtk.IconLookupFlags.FORCE_SYMBOLIC
-                flags = flags & (~Gtk.IconLookupFlags.FORCE_REGULAR)
-            elif name.find("-symbolic") < 0:
-                name = name + "-symbolic"
+            flags = flags | Gtk.IconLookupFlags.FORCE_SYMBOLIC
+            flags = flags & (~Gtk.IconLookupFlags.FORCE_REGULAR)
         else:
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
-                flags = flags | Gtk.IconLookupFlags.FORCE_REGULAR
-                flags = flags & (~Gtk.IconLookupFlags.FORCE_SYMBOLIC)
-            else:
-                name = name.replace("-symbolic", "")
+            flags = flags | Gtk.IconLookupFlags.FORCE_REGULAR
+            flags = flags & (~Gtk.IconLookupFlags.FORCE_SYMBOLIC)
         try:
             pixbuf = self.icon_theme.load_icon(name, size, Gtk.IconLookupFlags(flags))
         except:
@@ -1256,54 +1235,6 @@ class DockXBatteryApplet(DockXApplet):
                 else:
                     text = _("%s: Not Available") % device["name"]
             return text
-
-    def __calc_menu_position(self, menu, x, y, push_in):
-        """Detect main menu popup position"""
-        _, x, y = self.get_window().get_origin()
-        a = self.get_allocation()
-        size_req = menu.size_request()
-        w = size_req.width
-        h = size_req.height
-        size = self.get_size()
-        if self.get_position() == "left":
-            x += size
-            y += a.y
-        if self.get_position() == "right":
-            x -= w
-            y += a.y
-        if self.get_position() == "top":
-            x += a.x
-            y += size
-        if self.get_position() == "bottom":
-            x += a.x
-            y -= h
-        screen = self.get_window().get_screen()
-        if y + h > screen.get_height():
-                y = screen.get_height() - h
-        if x + w >= screen.get_width():
-                x = screen.get_width() - w
-        return x, y, True
-
-        #~ # detect screen with applet
-        #~ screen = self.get_screen()
-        #~ # detect monitor with screen
-        #~ monitor = screen.get_monitor_geometry(screen.get_monitor_at_window(self.window))
-        #~ # detect applet size
-        #~ x_size, y_size = self.size_request()
-        #~ # detect coordinates of window with applet
-        #~ x_origin, y_origin = self.window.get_origin()
-        #~ # detect menu size
-        #~ x_menu, y_menu = menu.size_request()
-        #~ # detect y position (popup direction) for main menu according to its size and applet location
-        #~ if y_origin + y_menu < monitor.height :
-            #~ y = y_origin + y_size - 1
-        #~ else:
-            #~ y = y_origin - y_menu + 1
-        #~ # detect x position for main menu
-        #~ x = x_origin - 1
-        #~ # return coordinates with menu position
-        #~ return x, y, True
-
 
     def on_setting_changed(self, key, value):
         if key in self.__status_options or key in self.__font_options:
@@ -1405,10 +1336,7 @@ class DockXBatteryPreferences(DockXAppletDialog):
         self.font_button.set_show_style(True)
         self.font_button.set_hexpand(True)
         self.font_button.set_size_request(220, -1)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
-            Gtk.FontChooser.set_font(self.font_button, self.get_setting("font"))
-        else:
-            self.font_button.set_font_name(self.get_setting("font"))
+        Gtk.FontChooser.set_font(self.font_button, self.get_setting("font"))
         self.font_button.set_sensitive(label_visibility != "never")
         self.font_button.connect("font-set", self.__on_font_changed, "font")
         table.attach(self.font_button, 1, row, 1, 1)
@@ -1420,12 +1348,8 @@ class DockXBatteryPreferences(DockXAppletDialog):
         self.color_button = Gtk.ColorButton()
         self.color_button.set_hexpand(True)
         self.color_button.set_size_request(220, -1)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            Gtk.ColorChooser.set_use_alpha(self.color_button, hasattr(Pango, "attr_foreground_alpha_new"))
-            Gtk.ColorChooser.set_rgba(self.color_button, self.__rgba_convert(self.get_setting("color")))
-        else:
-            self.color_button.set_use_alpha(hasattr(Pango, "attr_foreground_alpha_new"))
-            self.color_button.set_rgba(self.__rgba_convert(self.get_setting("color")))
+        Gtk.ColorChooser.set_use_alpha(self.color_button, hasattr(Pango, "attr_foreground_alpha_new"))
+        Gtk.ColorChooser.set_rgba(self.color_button, self.__rgba_convert(self.get_setting("color")))
         self.color_button.set_sensitive(label_visibility != "never")
         self.color_button.connect("color-set", self.__on_color_changed, "color")
         table.attach(self.color_button, 1, row, 1, 1)
@@ -1625,17 +1549,11 @@ class DockXBatteryPreferences(DockXAppletDialog):
         self.set_setting(option, state)
 
     def __on_font_changed(self, button, option):
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
-            font = Gtk.FontChooser.get_font(button);
-        else:
-            font = button.get_font_name()
+        font = Gtk.FontChooser.get_font(button);
         self.set_setting(option, font)
 
     def __on_color_changed(self, button, option):
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            rgba = Gtk.ColorChooser.get_rgba(button);
-        else:
-            rgba = button.get_rgba()
+        rgba = Gtk.ColorChooser.get_rgba(button);
         self.set_setting(option, self.__rgba_convert(rgba))
 
     def __on_spin_changed(self, spin, option):
@@ -1662,15 +1580,9 @@ class DockXBatteryPreferences(DockXAppletDialog):
         elif key == "use_symbolic_icon":
             self.icon_style_combox.set_active_id(str(value))
         elif key == "font":
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
-                Gtk.FontChooser.set_font(self.font_button, value);
-            else:
-                self.font_button.set_font_name(value)
+            Gtk.FontChooser.set_font(self.font_button, value);
         elif key == "color":
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                Gtk.ColorChooser.set_rgba(self.color_button, self.__rgba_convert(value))
-            else:
-                self.color_button.set_rgba(self.__rgba_convert(value))
+            Gtk.ColorChooser.set_rgba(self.color_button, self.__rgba_convert(value))
         elif key == "rotation":
             self.rotation_combox.set_active_id(value)
         elif key == "show_cpu_modes":

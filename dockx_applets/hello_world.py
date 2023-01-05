@@ -105,10 +105,7 @@ class HelloWorldPreferences(DockXAppletDialog):
         self.entry.connect("changed", self.save_text)
         hbox.pack_start(self.entry, False, False, 5)
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 10:
-            self.button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.BUTTON);
-        else:
-            self.button = Gtk.Button.new_from_stock(Gtk.STOCK_CLEAR);
+        self.button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.BUTTON);
         self.button.connect("clicked", self.reset_to_default_text)
         self.button.show()
         hbox.pack_start(self.button, True, True, 0)

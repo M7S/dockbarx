@@ -529,12 +529,8 @@ class CairoPopup(Gtk.Window):
     def set_padding(self, top, bottom, left, right):
         self.childbox.set_margin_top(top)
         self.childbox.set_margin_bottom(bottom)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.childbox.set_margin_start(left)
-            self.childbox.set_margin_end(right)
-        else:
-            self.childbox.set_margin_left(left)
-            self.childbox.set_margin_right(right)
+        self.childbox.set_margin_start(left)
+        self.childbox.set_margin_end(right)
 
     def add(self, child):
         self.childbox.add(child)
@@ -777,12 +773,8 @@ class CairoPopup(Gtk.Window):
         a = self.get_allocation()
         top = self.get_margin_top()
         bottom = self.get_margin_bottom()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            left = self.get_margin_start()
-            right = self.get_margin_end()
-        else:
-            left = self.get_margin_left()
-            right = self.get_margin_right()
+        left = self.get_margin_start()
+        right = self.get_margin_end()
         x, y = self.get_pointer()
         if x >= left and x < a.width - right and \
            y >= top and y <= a.height - bottom:
@@ -918,12 +910,8 @@ class CairoArea(Gtk.Bin):
             return
         child.set_margin_top(top)
         child.set_margin_bottom(bottom)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            child.set_margin_start(left)
-            child.set_margin_end(right)
-        else:
-            child.set_margin_left(left)
-            child.set_margin_right(right)
+        child.set_margin_start(left)
+        child.set_margin_end(right)
 
     def set_label_color(self, color):
         if self.label is None:
@@ -1067,12 +1055,8 @@ class CairoCheckMenuItem(CairoMenuItem):
         CairoMenuItem.__init__(self, None)
         self.indicator = Gtk.CheckMenuItem()
         self.indicator.set_draw_as_radio(toggle_type == "radio")
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.indicator.set_margin_start(12)
-            self.indicator.set_margin_end(5)
-        else:
-            self.indicator.set_margin_left(12)
-            self.indicator.set_margin_right(5)
+        self.indicator.set_margin_start(12)
+        self.indicator.set_margin_end(5)
         self.area.label = Gtk.Label()
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.indicator.set_halign(Gtk.Align.END)

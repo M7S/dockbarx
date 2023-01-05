@@ -126,12 +126,8 @@ class Window():
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
         x, y, w, h = self.wnck.get_geometry()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            gdk_display = Gdk.Screen.get_default().get_display()
-            return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
-        else:
-            gdk_screen = Gdk.Screen.get_default()
-            return gdk_screen.get_monitor_at_point(x + (w // 2), y  + (h // 2))
+        gdk_display = Gdk.Screen.get_default().get_display()
+        return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
 
     def destroy(self):
         if self.preview_sid:
@@ -359,10 +355,7 @@ class WindowItem(CairoButton):
         icon = window.wnck.get_mini_icon()
         self.icon_image = Gtk.Image()
         self.icon_image.set_from_pixbuf(icon)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.icon_image.set_margin_start(2)
-        else:
-            self.icon_image.set_margin_left(2)
+        self.icon_image.set_margin_start(2)
 
         self.header_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 4)
         self.header_box.pack_start(self.icon_image, False, False, 0)
@@ -475,10 +468,7 @@ class WindowItem(CairoButton):
         size = label_size + self.icon_image.get_pixel_size() + \
                 self.close_button.get_allocation().width + \
                 self.header_box.get_spacing() * 2
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            size += self.icon_image.get_margin_start()
-        else:
-            size += self.icon_image.get_margin_left()
+        size += self.icon_image.get_margin_start()
         self.header_box.set_size_request(size, -1)
 
     def __make_minimized_icon(self, icon):
@@ -570,11 +560,8 @@ class WindowItem(CairoButton):
             return None
         im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
         data = im.tobytes()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
-            data = GLib.Bytes.new(data)
-            pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
-        else:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_data(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
+        data = GLib.Bytes.new(data)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
         w, h = self.preview.get_size_request()
         pixbuf = pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
         if self.globals.settings["preview_keep"]:

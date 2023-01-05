@@ -110,11 +110,7 @@ class AppIndicator(Gtk.EventBox):
                                          #~ self.__on_menu_resized)
         gtkmenu = self.menu.get_menu()
         self.sd_sid = gtkmenu.connect("selection-done", self.menu_closed)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            gtkmenu.popup_at_pointer(event)
-        else:
-            gtkmenu.popup(None, None, self.position_menu, None,
-                          event.button, event.time)
+        gtkmenu.popup_at_pointer(event)
 
     def menu_closed(self, *args):
         if self.menu is not None:

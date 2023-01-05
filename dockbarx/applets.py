@@ -42,17 +42,14 @@ BUS = dbus.SessionBus()
 def get_applet_gsetting(applet_id):
     schema_id = "org.dockbarx.applets.%s" % applet_id
     path = "/org/dockbarx/applets/%s/" % applet_id
-    if GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 32:
-        source = Gio.SettingsSchemaSource.get_default()
-        schema = source.lookup(schema_id, True)
-        if not schema:
-            logger.error("No schema %s" % schema_id)
-            return (None, 1)
-        if schema.get_path() != path:
-            logger.error("No %s in schema %s" % (path, schema_id))
-            return (None, 1)
-    else:
-        schema = None
+    source = Gio.SettingsSchemaSource.get_default()
+    schema = source.lookup(schema_id, True)
+    if not schema:
+        logger.error("No schema %s" % schema_id)
+        return (None, 1)
+    if schema.get_path() != path:
+        logger.error("No %s in schema %s" % (path, schema_id))
+        return (None, 1)
     return (Gio.Settings.new_with_path(schema_id, path), schema)
 
 def set_applet_setting(gsettings, gschema, key, value, empty_list_type=str):
@@ -60,7 +57,7 @@ def set_applet_setting(gsettings, gschema, key, value, empty_list_type=str):
         logger.error("The key must be a string")
         return
     key = key.replace("_", "-")
-    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+    if gschema is not None:
         if not gschema.has_key(key):
             logger.error("No %s in schema %s" % (key, gschema.get_id()))
             return
@@ -108,7 +105,7 @@ def get_applet_setting(gsettings, gschema, key):
         logger.error("The key must be a string")
         return None
     key = key.replace("_", "-")
-    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+    if gschema is not None:
         if not gschema.has_key(key):
             logger.error("No %s in schema %s" % (key, gschema.get_id()))
             return None
@@ -119,7 +116,7 @@ def get_applet_default_setting(gsettings, gschema, key):
         logger.error("The key must be a string")
         return None
     key = key.replace("_", "-")
-    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+    if gschema is not None:
         if not gschema.has_key(key):
             logger.error("No %s in schema %s" % (key, gschema.get_id()))
             return None
