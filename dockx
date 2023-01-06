@@ -45,8 +45,6 @@ from Xlib import X
 from math import pi, sin, cos, tan, atan
 import weakref
 import time
-import dbus
-import dbus.service
 import urllib.parse
 
 WNCK_WINDOW_STATE_MINIMIZED = 1
@@ -557,7 +555,6 @@ class DockX(CairoDockX):
         self.connect("size-allocate", self.on_size_allocate)
         if self.autohide:
             self.show_dock()
-        self.dbus_obj = DockXDBus(self)
         self.__on_layer_changed()
 
     def position_dock(self, rebuild=False):
@@ -1472,84 +1469,17 @@ class EventPadding(Gtk.EventBox):
     def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
 
-class DockXDBus(dbus.service.Object):
-
-    def __init__(self, dockx):
-        self.bus_name = "org.dockbar.DockX"
-        if "org.dockbar.DockX" in dbus.SessionBus().list_names():
-            for n in range(1, 100):
-                name = "org.dockbar.DockX%s" % n
-                if not name in dbus.SessionBus().list_names():
-                    self.bus_name = name
-                    break
-        self.dockx_r = weakref.ref(dockx)
-        bus_name = dbus.service.BusName(self.bus_name,
-                                        bus = dbus.SessionBus())
-        dbus.service.Object.__init__(self, bus_name,
-                                     "/org/dockbar/DockX")
-
-    @dbus.service.method(dbus_interface="org.dockbar.DockX",
-                         in_signature="", out_signature="",)
-    def Reload(self):
-        self.dockx_r().reload()
-
-    @dbus.service.method(dbus_interface="org.dockbar.DockX",
-                         in_signature="", out_signature="s",)
-    def GetPosition(self):
-        return self.dockx_r().globals.settings["dock/position"]
-
-    @dbus.service.method(dbus_interface="org.dockbar.DockX",
-                         in_signature="", out_signature="i",)
-    def GetFullSize(self):
-        dockx = self.dockx_r()
-        rel_size = float(dockx.theme.get("rel_size", 100))
-        size = dockx.globals.settings["dock/size"]
-        return max(size, int(size * rel_size / 100))
-
-    @dbus.service.method(dbus_interface="org.dockbar.DockX",
-                         in_signature="", out_signature="i",)
-    def GetSize(self):
-        return self.dockx_r().globals.settings["dock/size"]
-
-
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='ss', out_signature='v')
-    def Get(self, interface_name, property_name):
-        return self.GetAll(interface_name)[property_name]
-
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='s', out_signature='a{sv}')
-    def GetAll(self, interface_name):
-        if interface_name == "org.dockbar.DockX":
-            return {}
-        else:
-            raise dbus.exceptions.DBusException(
-                'com.example.UnknownInterface',
-                'The Foo object does not implement the %s interface'
-                    % interface_name)
-
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='ssv', out_signature='')
-    def Set(self, interface_name, property_name, property_value):
-        pass
-
-    @dbus.service.signal(dbus_interface=dbus.PROPERTIES_IFACE,
-                         signature='sa{sv}as')
-    def PropertiesChanged(self, interface_name, changed_properties,
-                          invalidated_properties):
-        pass
-
-
 class DockXApp(Gtk.Application):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, application_id="org.dockbarx.dockx", flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE, **kwargs)
+        super().__init__(*args, application_id="org.dockbar.DockX", flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE, **kwargs)
         self.window = None
         self.monitor = 0
         self.add_main_option("monitor", 0, GLib.OptionFlags.IN_MAIN, GLib.OptionArg.INT, "show on specified monitor", None)
 
-    #def do_startup(self):
-    #    Gtk.Application.do_startup(self)
-
+    def do_startup(self):
+        Gtk.Application.do_startup(self)
+        self.register_dbus()
+        
     def do_activate(self):
         if not self.window:
             self.window = DockX(application=self, monitor=self.monitor)
@@ -1564,6 +1494,56 @@ class DockXApp(Gtk.Application):
             self.monitor = int(options["monitor"])
         self.activate()
         return 0
+
+    def register_dbus(self):
+        dbus_xml = \
+            "<node>" \
+              "<interface name='org.dockbar.DockX'>" \
+                "<method name='Reload'/>" \
+                "<method name='GetPosition'>" \
+                  "<arg type='s' name='pos' direction='out'/>" \
+                "</method>" \
+                "<method name='GetFullSize'>" \
+                  "<arg type='i' name='size' direction='out'/>" \
+                "</method>" \
+                "<method name='GetSize'>" \
+                  "<arg type='i' name='size' direction='out'/>" \
+                "</method>" \
+              "</interface>" \
+            "</node>"
+        info = Gio.DBusNodeInfo.new_for_xml(dbus_xml)
+        iface = info.lookup_interface("org.dockbar.DockX")
+        dbus = self.get_dbus_connection()
+        dbus_path = self.get_dbus_object_path()
+        dbus.register_object(dbus_path, iface, self.dbus_method_call, None, None);
+
+    def dbus_method_call(self, connection, sender, object_path, interface_name, method_name, parameters, invocation):
+        ret = None
+        if self.window is None:
+            err = Gio.DBusError.FAILED
+            err_message = "Not ready yet"
+        if method_name == "Reload":
+            self.window.reload()
+            ret = GLib.Variant.new_tuple()
+        elif method_name == "GetPosition":
+            pos = self.window.globals.settings["dock/position"]
+            ret = GLib.Variant.new_tuple(GLib.Variant.new_string(pos))
+        elif method_name == "GetFullSize":
+            rel_size = float(self.window.theme.get("rel_size", 100))
+            size = self.window.globals.settings["dock/size"]
+            full_size = max(size, int(size * rel_size / 100))
+            ret = GLib.Variant.new_tuple(GLib.Variant.new_int32(full_size))
+        elif method_name == "GetSize":
+            size = self.window.globals.settings["dock/size"]
+            ret = GLib.Variant.new_tuple(GLib.Variant.new_int32(size))
+        else:
+            err = Gio.DBusError.UNKNOWN_METHOD
+            err_message = "No such method: %s" % method_name
+
+        if ret is not None:
+            invocation.return_value(ret)
+        else:
+            invocation.return_error_literal(err.quark(), err, err_message)
 
 
 if not check_x11():
