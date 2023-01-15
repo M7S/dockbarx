@@ -22,6 +22,8 @@ import logging.handlers
 import os
 import sys
 
+# To avoid infinite recursion in some cases, e.g. out of disk space
+logging.raiseExceptions = False
 
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 logger = logging.getLogger("DockbarX")
