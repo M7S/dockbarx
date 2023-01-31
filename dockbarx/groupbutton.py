@@ -199,9 +199,9 @@ class Group(ListOfWindows):
         if self.scrollpeak_sid is not None:
             GLib.source_remove(self.scrollpeak_sid)
         if self.deopacify_sid is not None:
-            self.deopacify()
             GLib.source_remove(self.deopacify_sid)
             self.opacify_sid = None
+            self.deopacify()
         if self.opacify_sid is not None:
             GLib.source_remove(self.opacify_sid)
             self.opacify_sid = None
@@ -483,25 +483,34 @@ class Group(ListOfWindows):
             if not self.opacify_sid:
                 # Todo: Would it be better to remove previous delays if
                 # a delay already is set?
-                self.opacify_sid = GLib.timeout_add(delay, self.opacify)
+                self.opacify_sid = GLib.timeout_add(delay, self.opacify_delayed)
             return
+        self.cancel_opacify_request()
+        self.cancel_deopacify_request()
         xids = [window.wnck.get_xid() for window in self]
         opacify(xids, self.identifier)
         self.opacified = True
+
+    def opacify_delayed(self):
         self.opacify_sid = None
+        self.opacify()
 
     def deopacify(self, delay=0):
         if delay:
             if not self.deopacify_sid:
                 # Todo: Would it be better to remove previous delays if
                 # a delay already is set?
-                self.deopacify_sid = GLib.timeout_add(delay, self.deopacify)
+                self.deopacify_sid = GLib.timeout_add(delay, self.deopacify_delayed)
             return
-        if self.button.opacify_sid is not None:
-            GLib.source_remove(self.button.opacify_sid)
-            self.button.opacify_sid = None
         self.cancel_opacify_request()
+        self.cancel_deopacify_request()
+        self.button.cancel_opacify_request()
         deopacify(self.identifier)
+        self.opacified = False
+
+    def deopacify_delayed(self):
+        self.deopacify_sid = None
+        self.deopacify()
 
     def cancel_opacify_request(self):
         if self.opacify_sid:
@@ -1670,30 +1679,38 @@ class GroupButton(CairoAppButton):
             if not self.opacify_sid:
                 # Todo: Would it be better to remove previous delays if
                 # a delay already is set?
-                self.opacify_sid = GLib.timeout_add(delay, self.opacify)
+                self.opacify_sid = GLib.timeout_add(delay, self.opacify_delayed)
             return
-        if group.get_unminimized_count() > 0 and \
-           self.pointer_is_inside():
+        if group.get_unminimized_count() > 0 and self.pointer_is_inside():
+            self.cancel_opacify_request()
+            self.cancel_deopacify_request()
             group.opacify()
             # This is a safety check to make sure that opacify won't stay on
             # forever when it shouldn't be.
             self.deopacify(500)
-        if self.opacify_sid:
-            GLib.source_remove(self.opacify_sid)
-            self.opacify_sid = None
+
+    def opacify_delayed(self):
+        self.opacify_sid = None
+        self.opacify()
 
     def deopacify(self, delay=None):
         if delay:
             self.cancel_deopacify_request()
-            self.deopacify_sid = GLib.timeout_add(delay, self.deopacify)
+            self.deopacify_sid = GLib.timeout_add(delay, self.deopacify_delayed)
             return
         group = self.group_r()
         # Make sure that mouse cursor really has left the window button.
         if self.pointer_is_inside():
             return True
+        self.cancel_opacify_request()
+        self.cancel_deopacify_request()
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
         group.deopacify(110)
+
+    def deopacify_delayed(self):
+        self.deopacify_sid = None
+        self.deopacify()
 
     def cancel_deopacify_request(self):
         if self.deopacify_sid:
