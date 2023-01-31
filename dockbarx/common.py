@@ -441,7 +441,8 @@ class XEventObserver(GObject.GObject):
             event, data = rq.EventField(None).parse_binary_value(data, self.dpy.display, None, None)
             # event.type == X.PropertyNotify:
             if event.atom in self.atoms:
-                self.emit("window-update", event.window.id)
+                # emit signals in main thread
+                GLib.idle_add(lambda: self.emit("window-update", event.window.id))
 
 class Opacify():
     def __init__(self):
