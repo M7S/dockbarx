@@ -1057,7 +1057,10 @@ class DockBar():
                     identifier = cmd
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
-            identifier = SPECIAL_RES_CLASSES[identifier]
+            if self.__find_gio_app(identifier, pid):
+                del SPECIAL_RES_CLASSES[identifier]
+            else:
+                identifier = SPECIAL_RES_CLASSES[identifier]
         wine = False
         chromium_pwa = False
         if ".exe" in identifier:
