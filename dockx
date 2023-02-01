@@ -500,6 +500,7 @@ class DockX(CairoDockX):
             self.autohide = False
         else:
             self.autohide = True
+        Wnck.set_client_type(Wnck.ClientType.PAGER)
         self.screen = Wnck.Screen.get_default()
         self.monitor = Gdk.Display.get_default().get_monitor(monitor)
         self.app = application

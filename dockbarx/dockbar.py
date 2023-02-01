@@ -546,7 +546,7 @@ class DockBar():
         self.dbus = DockbarDBus(self)
 
         # Wnck for controlling windows
-        Wnck.set_client_type(2) # 2=CLIENT_TYPE_PAGER
+        Wnck.set_client_type(Wnck.ClientType.PAGER)
         self.screen = Wnck.Screen.get_default()
         self.root_xid = int(Gdk.Screen.get_default().get_root_window().get_xid())
         self.screen.force_update()
