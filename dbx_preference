@@ -852,6 +852,12 @@ class PrefDialog():
         self.show_tooltip_cb.connect("toggled", self.__checkbutton_toggled,
                                  "groupbutton_show_tooltip")
         popup_box.pack_start(self.show_tooltip_cb, False, True, 5)
+        self.shape_mask_cb = Gtk.CheckButton.new_with_label(
+                          _("Use X11 shape extension for the popup"))
+        self.shape_mask_cb.connect("toggled", self.__checkbutton_toggled, "shape_mask")
+        self.shape_mask_cb.set_tooltip_text(_("Make X11 compositors happy with the nonrectangular popup"))
+        popup_box.pack_start(self.shape_mask_cb, False, True, 5)
+
 
         self.preview_size_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.preview_size_spinbox.set_border_width(5)
@@ -1598,6 +1604,7 @@ class PrefDialog():
                             self.globals.settings["groupbutton_show_tooltip"])
         self.no_window_list_cb.set_active(
                             self.globals.settings["groupbutton_no_window_list"])
+        self.shape_mask_cb.set_active(self.globals.settings["shape_mask"])
 
         # Locked list
         self.locked_list_menu_cb.set_active(

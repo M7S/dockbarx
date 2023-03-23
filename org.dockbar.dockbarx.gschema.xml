@@ -68,6 +68,14 @@
       </description>
     </key>
 
+    <key name='shape-mask' type='b'>
+      <default>false</default>
+      <summary>set shape mask for window list</summary>
+      <description>
+        Use X11 window shape extension for the popup window of window list
+      </description>
+    </key>
+
     <key name='show-only-current-desktop' type='b'>
       <default>false</default>
       <summary>Show only applications and windows that exists on the current desktop/workspace.</summary>

@@ -29,7 +29,6 @@ from gi.repository import GLib
 gi.require_version("PangoCairo", "1.0")
 from gi.repository import PangoCairo
 from gi.repository import Pango
-from gi.repository import cairo as gicairo
 import cairo
 
 from .common import Globals, connect, disconnect
@@ -494,6 +493,7 @@ class CairoPopup(Gtk.Window):
         self.popup_style = PopupStyle()
         self.popup_type = type_
         self._pointer_is_inside = False
+        self.shape_mask = False
 
         self.childbox = Gtk.Box()
         Gtk.Window.add(self, self.childbox)
@@ -551,7 +551,10 @@ class CairoPopup(Gtk.Window):
             self.set_padding(*padding)
 
     def on_draw(self, widget, ctx):
-        #~ self.set_shape_mask()
+        if self.globals.settings["shape_mask"]:
+            self.set_shape_mask()
+        elif self.shape_mask:
+            self.clear_shape_mask()
         a = self.get_allocation()
         w, h = a.width, a.height
         if self.is_composited():
@@ -570,24 +573,21 @@ class CairoPopup(Gtk.Window):
         if h==0: h = 600
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(surface)
-        ctx.set_source_rgba(0, 0, 0,0)
+        ctx.set_source_rgba(0, 0, 0, 0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
         ctx.paint()
         r = int(self.popup_style.get("popup_roundness", 6))
-        if self.is_composited():
-            make_path(ctx, 0, 0, w, h, r, 0,
-                      self.__get_arrow_size(), self.pointer, self.ap)
-            ctx.set_source_rgba(1, 1, 1, 1)
-            ctx.fill()
-            region = gicairo.Region.create_from_surface(surface)
-            self.input_shape_combine_region(surface)
-        else:
-            make_path(ctx, 0, 0, w, h, r, 1,
-                      self.__get_arrow_size(), self.pointer, self.ap)
-            ctx.set_source_rgb(0, 0, 0)
-            ctx.fill()
-            region = Gdk.cairo_region_create_from_surface(surface)
-            self.shape_combine_region(region)
+        make_path(ctx, 0, 0, w, h, r, 2,
+                  self.__get_arrow_size(), self.pointer, self.ap)
+        ctx.set_source_rgb(0, 0, 0)
+        ctx.fill()
+        region = Gdk.cairo_region_create_from_surface(surface)
+        self.shape_combine_region(region)
+        self.shape_mask = True
+
+    def clear_shape_mask(self):
+        self.shape_combine_region(None)
+        self.shape_mask = False
 
     def draw_frame(self, ctx, w, h):
         color = self.globals.colors["color1"]
