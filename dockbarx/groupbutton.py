@@ -2150,6 +2150,7 @@ class GroupPopup(CairoPopup):
             pass
         else:
             child_func(self)
+        self.update_shape()
 
 
     def on_leave_notify_event(self, widget, event):

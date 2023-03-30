@@ -508,7 +508,6 @@ class CairoPopup(Gtk.Window):
         else:
             self.point("left")
         self.connect("draw", self.on_draw)
-        self.connect("map", self.on_map)
         self.connect("enter-notify-event", self.on_enter_notify_event)
         self.connect("leave-notify-event", self.on_leave_notify_event)
         self.popup_reloaded_sid = self.popup_style.connect(
@@ -563,7 +562,7 @@ class CairoPopup(Gtk.Window):
         ctx.set_operator(cairo.OPERATOR_OVER)
         self.draw_frame(ctx, w, h)
 
-    def on_map(self, widget):
+    def update_shape(self):
         if self.globals.settings["shape_mask"]:
             self.set_shape_mask()
         elif self.shape_mask:
