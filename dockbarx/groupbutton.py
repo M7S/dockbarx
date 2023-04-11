@@ -1870,8 +1870,13 @@ class GroupButton(CairoAppButton):
                 group[0].select_after_delay(600)
             elif win_nr > 1:
                 delay = self.globals.settings["popup_delay"]
-                self.dnd_show_popup = GLib.timeout_add(delay, group.popup.show)
+                self.dnd_show_popup = GLib.timeout_add(delay, self.__show_dragging_popup)
             self.update_state()
+
+    def __show_dragging_popup(self):
+        self.dnd_show_popup = None
+        group = self.group_r()
+        group.popup.show()
 
 
     #### Events
