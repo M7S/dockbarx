@@ -1740,6 +1740,9 @@ class GroupButton(CairoAppButton):
 
 
     def on_drag_end(self, widget, drag_context, result=None):
+        # May also be called from the drag-data-delete signal
+        if not self.globals.dragging:
+            return
         self.is_current_drag_source = False
         self.globals.dragging = False
         #~ # A delay is needed to make sure the button is
@@ -1748,7 +1751,8 @@ class GroupButton(CairoAppButton):
         #~ GLib.timeout_add(30, self.show)
 
     def on_drag_data_delete(self, widget, context):
-        # No drag-end signal afterwards, call the handler here
+        # No drag-end signal afterwards for xfce4-panel plugin,
+        # call the handler here
         self.on_drag_end(widget, context)
 
     #### DnD (target)
@@ -1774,7 +1778,8 @@ class GroupButton(CairoAppButton):
             data = selection.get_data().decode()
             if data != name:
                 self.dockbar_r().groupbutton_moved(data, group, self.dnd_position)
-            # The source won't receive the drag-end signal (why?), use the drag-data-delete signal instead
+            # The source won't receive the drag-end signal in xfce4-panel (why?),
+            # use the drag-data-delete signal as a workaround
             context.finish(True, True, t)
         elif selection_target == "text/uri-list":
             for uri in selection.get_uris():
