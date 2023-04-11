@@ -1434,6 +1434,7 @@ class GroupButton(CairoAppButton):
         self.connect("drag-begin", self.on_drag_begin)
         self.connect("drag-data-get", self.on_drag_data_get)
         self.connect("drag-end", self.on_drag_end)
+        self.connect("drag-data-delete", self.on_drag_data_delete)
 
     def dockbar_moved(self, arg=None):
         self.set_icongeo()
@@ -1746,6 +1747,10 @@ class GroupButton(CairoAppButton):
         #~ # not the other way around.
         #~ GLib.timeout_add(30, self.show)
 
+    def on_drag_data_delete(self, widget, context):
+        # No drag-end signal afterwards, call the handler here
+        self.on_drag_end(widget, context)
+
     #### DnD (target)
     def on_drag_drop(self, widget, drag_context, x, y, t):
         targets = [target.name() for target in drag_context.list_targets()]
@@ -1769,7 +1774,8 @@ class GroupButton(CairoAppButton):
             data = selection.get_data().decode()
             if data != name:
                 self.dockbar_r().groupbutton_moved(data, group, self.dnd_position)
-            context.finish(True, False, t)
+            # The source won't receive the drag-end signal (why?), use the drag-data-delete signal instead
+            context.finish(True, True, t)
         elif selection_target == "text/uri-list":
             for uri in selection.get_uris():
                 uri = uri.replace('\000', '')     # for spacefm
