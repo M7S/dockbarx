@@ -2569,6 +2569,7 @@ class WindowList(Gtk.Box):
         self.__rebuild_list()
         for window in group:
             window.item.set_show_preview(show_previews)
+        group.popup.resize(10, 10)
 
     def __on_show_previews_changed(self, arg=None):
         self.set_show_previews(self.globals.settings["preview"])
