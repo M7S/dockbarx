@@ -242,6 +242,8 @@ class Group(ListOfWindows):
         for window in self:
             window.desktop_changed()
 
+        self.window_list.set_show_previews(self.globals.settings["preview"])
+
         # hide after the possible enter-notify-event
         GLib.timeout_add(10, self.popup.hide)
         if self.button.is_visible():
@@ -2461,7 +2463,7 @@ class WindowList(Gtk.Box):
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.window_box = None
         self.scrolled_window = None
-        self.show_previews = False
+        self.show_previews = None
         self.size_overflow = False
         self.mini_mode = False
 
@@ -2561,6 +2563,8 @@ class WindowList(Gtk.Box):
                     height += 24 + window.item.label.get_preferred_height()[0]
                 if height > mgeo.height:
                     show_previews = False
+        if self.show_previews == show_previews:
+            return
         self.show_previews = show_previews
         self.__rebuild_list()
         for window in group:
