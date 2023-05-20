@@ -42,7 +42,7 @@ from .key_listener import KeyListener
 from . import i18n
 _ = i18n.language.gettext
 
-VERSION = "1.0-beta"
+VERSION = "1.0-beta2"
 
 
 SPECIAL_RES_CLASSES = {
@@ -92,6 +92,8 @@ class Spacer(Gtk.EventBox):
 
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
+        self.drag_launcher = False
+        self.on_drop = False
         self.connect("button-release-event", self.on_button_release_event)
         self.connect("drag-motion", self.on_drag_motion)
         self.connect("drag-leave", self.on_drag_leave)
@@ -106,49 +108,65 @@ class Spacer(Gtk.EventBox):
     def on_drag_drop(self, widget, drag_context, x, y, t):
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
-            self.drag_get_data(drag_context, "text/groupbutton_name", t)
-            drag_context.finish(True, False, t)
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/groupbutton_name", False), t)
         elif "text/uri-list" in targets:
-            self.drag_get_data(drag_context, "text/uri-list", t)
-            drag_context.finish(True, False, t)
+            self.on_drop = True
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/uri-list", False), t)
         else:
-            drag_context.finish(False, False, t)
+            return False
         return True
 
-    def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
+    def on_drag_data_received(self, widget, drag_context, x, y, selection, targetType, t):
         selection_target = selection.get_target().name()
         if selection_target == "text/groupbutton_name":
-            self.dockbar_r().groupbutton_moved(selection.get_data(),
-                                                    "after")
+            name = selection.get_data().decode()
+            self.dockbar_r().groupbutton_moved(name, "after")
+            drag_context.finish(True, False, t)
         elif selection_target == "text/uri-list":
-            if ".desktop" in selection.get_data():
-                # .desktop file! This is a potential launcher.
-                #remove "file://" and "/n" from the URI
-                path = selection.get_data()
-                path = path.replace('\000', '')     # for spacefm
-                if path.startswith("file://"):
-                    path = path[7:]
-                else:
-                    # No support for other kind of uris.
-                    return
-                path = path.rstrip()
-                path = urllib.parse.unquote(path)
-                self.dockbar_r().launcher_dropped(path, "after")
+            dropped = False;
+            for uri in selection.get_uris():
+                uri = uri.replace('\000', '')     # for spacefm
+                if uri.startswith("file://") and uri.endswith(".desktop"):
+                    # .desktop file! This is a potential launcher.
+                    if self.on_drop:
+                        #remove "file://" from the URI
+                        path = uri[7:]
+                        path = urllib.parse.unquote(path)
+                        self.dockbar_r().launcher_dropped(path, "after")
+                        dropped = True
+                    else:
+                        self.drag_launcher = True
+                        break
+            if self.on_drop:
+                drag_context.finish(dropped, False, t)
+            else:
+                self.on_drag_motion(widget, drag_context, x, y, t)
 
     def on_drag_motion(self, widget, drag_context, x, y, t):
         if not self.drag_entered:
             self.on_drag_enter(widget, drag_context, x, y, t)
+            return True
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
             Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, t)
-        elif "text/uri-list" in targets():
-            Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
+        elif "text/uri-list" in targets:
+            if self.drag_launcher:
+                Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
+            else:
+                Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         else:
             Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         return True
 
     def on_drag_enter(self, widget, drag_context, x, y, t):
         self.drag_entered = True
+        targets = [target.name() for target in drag_context.list_targets()]
+        if "text/groupbutton_name" in targets:
+            pass
+        elif "text/uri-list" in targets:
+            self.on_drop = False
+            self.drag_launcher = False
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/uri-list", False), t)
 
     def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
@@ -165,17 +183,7 @@ class GroupList(list):
         self.arrow_box = None
         self.aspect_ratio = None
         self.max_size = None
-        if self.orient in ("down", "up"):
-            self.container = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        else:
-            self.container = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        self.allocation_sid = self.box.connect("size-allocate",
-                                               self.on_size_allocate)
-        self.box.pack_start(self.container, False, False, 0)
-        self.empty = Spacer(dockbar)
-        self.box.pack_start(self.empty, True, True, 0)
+        self.__make_box_and_container()
         self.box.show_all()
         self.__make_arrow_buttons()
 
@@ -240,7 +248,8 @@ class GroupList(list):
         if aspect_ratio == self.aspect_ratio:
             return
         self.aspect_ratio = aspect_ratio
-        self.calculate_button_size()
+        if self.calculate_button_size():
+            self.manage_size_overflow()
 
     def set_orient(self, orient):
         for pair in (("up", "down"), ("left", "right")):
@@ -250,17 +259,10 @@ class GroupList(list):
                 self.orient = orient
                 return
         self.orient = orient
-        # Make new box and container
-        if self.orient in ("down", "up"):
-            container = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        else:
-            container = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-            box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         # Remove the children from the container.
-        for child in self.container.get_children():
+        children = self.container.get_children()
+        for child in children:
             self.container.remove(child)
-            container.pack_start(child, True, True, 0)
         # Destroy the old box and container.
         self.box.remove(self.container)
         self.box.remove(self.empty)
@@ -269,12 +271,23 @@ class GroupList(list):
         self.container.destroy()
         self.empty.destroy()
         self.box.destroy()
-        self.box = box
-        self.container = container
+        # Make new box and container
+        self.__make_box_and_container()
+        for child in children:
+            self.container.pack_start(child, True, True, 0)
+        self.__make_arrow_buttons()
+        self.container.show()
+
+    def __make_box_and_container(self):
+        if self.orient in ("down", "up"):
+            self.container = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+            self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        else:
+            self.container = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+            self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
         self.box.pack_start(self.container, False, False, 0)
         self.empty = Spacer(self.dockbar_r())
         self.box.pack_start(self.empty, True, True, 0)
-        self.__make_arrow_buttons()
         self.allocation_sid = self.box.connect("size-allocate",
                                                self.on_size_allocate)
 
@@ -283,16 +296,19 @@ class GroupList(list):
             self.next_button.destroy()
             self.previous_button.destroy()
             self.arrow_box.destroy()
+        self.arrow_box = Gtk.Grid.new()
         if self.orient in ("down", "up"):
-            self.arrow_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
             self.next_button = cairowidgets.CairoArrowButton("right")
             self.previous_button = cairowidgets.CairoArrowButton("left")
+            self.arrow_box.attach(self.next_button, 0, 0, 1, 1)
+            self.arrow_box.attach(self.previous_button, 0, 1, 1, 1)
+            self.arrow_box.set_row_homogeneous(True)
         else:
-            self.arrow_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
             self.next_button = cairowidgets.CairoArrowButton("down")
             self.previous_button = cairowidgets.CairoArrowButton("up")
-        self.arrow_box.pack_start(self.next_button, True, True, 0)
-        self.arrow_box.pack_start(self.previous_button, True, True, 0)
+            self.arrow_box.attach(self.next_button, 0, 0, 1, 1)
+            self.arrow_box.attach(self.previous_button, 1, 0, 1, 1)
+            self.arrow_box.set_column_homogeneous(True)
         self.box.pack_start(self.arrow_box, False, False, 0)
 
         #Connections
@@ -326,25 +342,30 @@ class GroupList(list):
             # No buttons are shown on the screen, no size overflow.
             self.hide_arrow_buttons()
             return
-        max_size = self.calculate_max_size()
-        if max_size < self.button_size:
-            return
+        self.show_arrow_buttons()
+        max_size, max_size_no_arrow = self.calculate_max_sizes()
         max_buttons = max_size // self.button_size
-        if len(groups) <= self.overflow_set * max_buttons:
+        max_buttons_no_arrow = max_size_no_arrow // self.button_size
+        groups_num = len(groups)
+        if max_buttons <= 0:
+            # Ensure at least one icon will be showed
+            max_buttons = max_buttons_no_arrow = 1
+        elif groups_num <= max_buttons_no_arrow:
+            # No need arrows
+            max_buttons = max_buttons_no_arrow
+        if groups_num <= self.overflow_set * max_buttons:
             # The current overflow_set is too high and would
             # show a empty screen, let's decrease it to something
             # that will actually show something.
-            self.overflow_set = (len(groups) - 1) // max_buttons
-        if len(groups) <= max_buttons:
+            self.overflow_set = (groups_num - 1) // max_buttons
+        if groups_num <= max_buttons:
             self.hide_arrow_buttons()
-        else:
-            self.show_arrow_buttons()
         # Button sensitivity
         if self.overflow_set == 0:
             self.previous_button.set_sensitive(False)
         else:
             self.previous_button.set_sensitive(True)
-        if self.overflow_set == (len(groups) - 1) // max_buttons:
+        if self.overflow_set == (groups_num - 1) // max_buttons:
             self.next_button.set_sensitive(False)
         else:
             self.next_button.set_sensitive(True)
@@ -354,8 +375,8 @@ class GroupList(list):
             group.button.hide()
         begin = self.overflow_set * max_buttons
         end = (self.overflow_set + 1) * max_buttons
-        if end > len(groups):
-            end = len(groups)
+        if end > groups_num:
+            end = groups_num
             begin = max(0, end - max_buttons)
         for group in groups[begin:end]:
             group.button.show()
@@ -371,14 +392,15 @@ class GroupList(list):
             size = self.container.get_allocation().width
         if size <= 1:
             # Not yet realized. No reason to continue.
-            return
+            return False
         spacing = self.container.get_spacing()
         button_size = int(size * self.aspect_ratio + spacing)
         if button_size != self.button_size:
             # The button size has changed lets check if all buttons
             # still can be shown at once.
             self.button_size = button_size
-            self.manage_size_overflow()
+            return True
+        return False
 
     def set_max_size(self, max_size):
         # When ran in dock (and possibly other cases) the max
@@ -389,7 +411,7 @@ class GroupList(list):
     def get_max_size(self):
         return self.max_size
 
-    def calculate_max_size(self):
+    def calculate_max_sizes(self):
         if self.max_size is None:
             # Maxsize is not set externally use the allocation size.
             if self.orient in ("down", "up"):
@@ -398,24 +420,38 @@ class GroupList(list):
                 size = self.box.get_allocation().height
         else:
             size = self.max_size
+        e_size = size
         # Remove the size of the arrows (if visible) from max size.
         if self.orient in ("down", "up"):
             if self.arrows_visible:
-                size = size - self.arrow_box.get_allocation().width
+                e_size -= self.arrow_box.get_allocation().width
         else:
             if self.arrows_visible:
-                size = size - self.arrow_box.get_allocation().height
+                e_size -= self.arrow_box.get_allocation().height
         # Add gap size to max size since button size includes gap size
         # and the number of gaps is one less than the number of
         # buttons.
-        size = size + self.container.get_spacing()
-        return size
+        spacing = self.container.get_spacing()
+        size += spacing
+        e_size += spacing
+        return (e_size, size)
 
     def on_size_allocate(self, widget, allocation):
         if allocation.width <= 1:
             # Not yet realized.
             return
+        size = self.dockbar_r().size
+        if size is not None:
+            if self.orient in ("down", "up"):
+                if allocation.height > size:
+                    allocation.height = size
+                    widget.size_allocate(allocation)
+            else:
+                if allocation.width > size:
+                    allocation.width = size
+                    widget.size_allocate(allocation)
         self.calculate_button_size()
+        self.manage_size_overflow()
 
     def on_next_button_clicked(self, *args):
         self.overflow_set = self.overflow_set + 1
@@ -460,6 +496,10 @@ class DockBar():
         self.globals.connect("theme-changed", self.__on_theme_changed)
         self.globals.connect("media-buttons-changed",
                              self.__on_media_controls_changed)
+        self.globals.connect("keep-previews-changed",
+                             self.__on_preview_changed)
+        self.globals.connect("show-previews-changed",
+                             self.__on_preview_changed)
 
     #### Parent functions
     # The dock/applet/widget interacts with dockbar through these functions.
@@ -493,6 +533,8 @@ class DockBar():
         from .dbx_dbus import DockbarDBus
         global UnityWatcher
         from .unity import UnityWatcher
+        global DesktopFileEditor
+        from .desktopfileeditor import DesktopFileEditor
         global shlex
         import shlex
 
@@ -504,7 +546,7 @@ class DockBar():
         self.dbus = DockbarDBus(self)
 
         # Wnck for controlling windows
-        Wnck.set_client_type(2) # 2=CLIENT_TYPE_PAGER
+        Wnck.set_client_type(Wnck.ClientType.PAGER)
         self.screen = Wnck.Screen.get_default()
         self.root_xid = int(Gdk.Screen.get_default().get_root_window().get_xid())
         self.screen.force_update()
@@ -518,6 +560,8 @@ class DockBar():
         self.__init_number_shortcuts()
         self.globals.connect("gkey-changed", self.__gkeys_changed)
         self.globals.connect("use-number-shortcuts-changed",
+                             self.__init_number_shortcuts)
+        self.globals.connect("use-number-shortcuts-shift-launch-changed",
                              self.__init_number_shortcuts)
         Keybinder.init()
         Keybinder.set_use_cooked_accelerators(False)
@@ -533,9 +577,11 @@ class DockBar():
         self.app_monitor.connect("changed", self.__rescan_apps)
         self.scan_apps()
 
+        self.x11obs = XEventObserver()
+
         self.reload(tell_parent=False)
 
-    def reload(self, event=None, data=None, tell_parent=True):
+    def reload(self, event=None, data=None, tell_parent=True, locked_group=None):
         """Reloads DockbarX."""
         logger.info("DockbarX reload")
         # Clear away the old stuff, if any.
@@ -609,6 +655,12 @@ class DockBar():
         # Initiate group buttons with windows
         for window in self.screen.get_windows():
             self.__on_window_opened(self.screen, window)
+        # restore locked popup
+        if locked_group is not None:
+            for group in self.groups:
+                if group.identifier == locked_group:
+                    group.add_locked_popup()
+                    break
 
         self.screen.connect("window-opened", self.__on_window_opened)
         self.screen.connect("window-closed", self.__on_window_closed)
@@ -628,6 +680,13 @@ class DockBar():
             except AttributeError:
                 pass
 
+        if self.globals.settings["preview"] and \
+           self.globals.settings["preview_keep"]:
+            self.x11obs.start()
+
+
+    def destroy(self):
+        self.x11obs.destroy()
 
     def set_orient(self, orient):
         """ Set the orient (up, down, left or right) and prepares the container.
@@ -660,10 +719,14 @@ class DockBar():
                 group.popup.point("down")
             if orient in ("left", "right"):
                 group.popup.point("left")
+            # Update the surface
+            group.button.icon_factory.reset_surfaces()
+            group.button.update_state(force_update=True)
 
         if self.globals.settings["show_only_current_desktop"]:
             self.__on_desktop_changed()
-        #~ self.groups.manage_size_overflow() # Don't think line does anything useful here. Remove if everything looks OK.
+        else:
+            self.groups.manage_size_overflow()
 
         # If a floating window panel is shown, close it.
         lp = self.globals.get_locked_popup()
@@ -706,6 +769,7 @@ class DockBar():
             group.button.set_manual_size(True)
             # Update the button so that it get the new size.
             group.button.update_state(force_update=True)
+        self.groups.manage_size_overflow()
 
     def set_max_size(self, max_size):
         """Set the max size DockbarX is allowed to occupy."""
@@ -837,6 +901,7 @@ class DockBar():
             active_group_name = self.windows[active_window]
             active_group = self.groups[active_group_name]
             active_group.set_active_window(active_window)
+        self.groups.manage_size_overflow()
 
     def __on_window_closed(self, screen, window):
         if window in self.windows:
@@ -852,7 +917,7 @@ class DockBar():
                                              Wnck.WindowType.DIALOG]):
             return
         connect(window, "state-changed", self.__on_window_state_changed)
-        # ~ connect(window, "class-changed", self.__on_window_class_changed)
+        connect(window, "class-changed", self.__on_window_class_changed)
         if window.is_skip_tasklist():
             self.skip_tasklist_windows.append(window)
             return
@@ -876,7 +941,6 @@ class DockBar():
 
     def __on_window_class_changed(self, window):
         # Remove and readd window to update the class name.
-        # TODO: check if this is working at all. Class name doesn't seem to be updated in wnck.
         if window.is_skip_tasklist():
             return()
         self.__remove_window(window)
@@ -956,8 +1020,25 @@ class DockBar():
 
     def __add_window(self, window):
         window = Wnck.Window.get(window.get_xid())
-        res_class = window.get_class_group().get_res_class().lower()
-        res_name = window.get_class_group().get_name().lower()
+        class_group = window.get_class_group()
+        try:
+            res_class = class_group.get_id().lower()
+        except UnicodeDecodeError:
+            res_class = ""
+        res_name = class_group.get_name().lower()
+        if self.globals.settings["dock/type"] == "normal window":
+            if res_class == "dockx" and res_name == "dockx":
+                return
+        if res_class == '':
+            # group class id doesn't seem to be updated in wnck. Use WM_CLASS instead
+            xwin = XDisplay.create_resource_object('window', window.get_xid())
+            wmclass = xwin.get_wm_class()
+            if wmclass is not None:
+                res_class = wmclass[1].lower()
+                try:
+                    res_class = bytes(res_class, "latin-1").decode("utf-8")
+                except:
+                    pass
         identifier = res_class or res_name
         pid = window.get_pid()
         if not identifier:
@@ -976,19 +1057,24 @@ class DockBar():
                     identifier = cmd
         # Special cases
         if identifier in SPECIAL_RES_CLASSES:
-            identifier = SPECIAL_RES_CLASSES[identifier]
+            if self.__find_gio_app(identifier, pid):
+                del SPECIAL_RES_CLASSES[identifier]
+            else:
+                identifier = SPECIAL_RES_CLASSES[identifier]
         wine = False
-        chromium = False
+        chromium_pwa = False
         if ".exe" in identifier:
             if self.globals.settings["separate_wine_apps"]:
                 wine = True
             else:
                 identifier = "wine"
-        if identifier in ("chromium-browser", "chrome-browser"):
-            identifier = self.__get_chromium_id(window)
-            if not identifier in ("chromium-browser", "chrome-browser"):
-                chromium = True
-        if identifier == "prism" and \
+        if self.__is_chromium_based(identifier):
+            pwa_id = self.__get_chromium_pwa_id(window)
+            if pwa_id is not None:
+                pwa_host = identifier
+                identifier += ":" + pwa_id
+                chromium_pwa = True
+        elif identifier == "prism" and \
            self.globals.settings["separate_prism_apps"]:
             identifier = self.__get_prism_app_name(window)
         elif identifier.startswith("openoffice") or \
@@ -998,6 +1084,7 @@ class DockBar():
             if self.globals.settings["separate_ooo_apps"]:
                 connect(window, "name-changed",
                         self.__on_ooo_window_name_changed)
+
         self.windows[window] = identifier
         if identifier in self.groups.get_identifiers():
             self.groups[identifier].add_window(window)
@@ -1008,8 +1095,8 @@ class DockBar():
                 desktop_entry_id = self.d_e_ids_by_wine_program[identifier]
             else:
                 desktop_entry_id = None
-        elif chromium:
-            desktop_entry_id = self.__find_chromium_d_e_id(identifier)
+        elif chromium_pwa:
+            desktop_entry_id = self.__find_chromium_pwa_desktop_entry_id(pwa_id)
         else:
             desktop_entry_id = self.__find_desktop_entry_id(identifier)
         if desktop_entry_id:
@@ -1026,8 +1113,8 @@ class DockBar():
                 if res_name in self.wine_app_ids_by_program:
                     app_id = self.wine_app_ids_by_program[res_name]
                     app = self.apps_by_id[app_id]
-            elif chromium:
-                app = self.__find_chromium_gio_app(identifier)
+            elif chromium_pwa:
+                app = self.__find_chromium_pwa_gio_app(pwa_host, pwa_id)
             else:
                 app = self.__find_gio_app(identifier, pid)
             if app:
@@ -1051,8 +1138,11 @@ class DockBar():
                 return
 
     def __remove_window(self, window):
-        identifier = self.windows[window]
-        group = self.groups[identifier]
+        try:
+            identifier = self.windows[window]
+            group = self.groups[identifier]
+        except KeyError:
+            return
         group.del_window(window)
         if not len(group) and not group.pinned:
             self.remove_groupbutton(group)
@@ -1143,7 +1233,7 @@ class DockBar():
         # Separates the different openoffice applications from each other
         # The names are chosen to match the gio app ids.
         name = window.get_name().lower()
-        resclass = window.get_class_group().get_res_class().lower()
+        resclass = window.get_class_group().get_id().lower()
         if "libreoffice" in resclass:
             office = "libreoffice"
         elif "soffice" in resclass:
@@ -1165,38 +1255,49 @@ class DockBar():
     def __get_prism_app_name(self, window):
         return window.get_name()
 
-    def __get_chromium_id(self, window):
-        resclass = window.get_class_group().get_res_class().lower()
-        pid = window.get_pid()
-        try:
-            f = open("/proc/"+str(pid)+"/cmdline", "r")
-        except:
-            raise
-        cmd = f.readline()
-        if "--app=" in cmd:
-            # Get the app address, remove trailing null char and remove '"'
-            app = cmd.split("--app=")[-1][:-1].translate(None, "\"")
-            return "%s-%s" % (resclass, app)
-        else:
-            return resclass
+    def __is_chromium_based(self, text):
+        apps = ("chromium-browser", "chromium-devel",
+                "google-chrome", # "google-chrome-beta", "google-chrome-unstable",
+                "microsoft-edge", # "microsoft-edge-beta", "microsoft-edge-dev",
+                "brave-browser",
+                "vivaldi-stable", "vivaldi-snapshot")
+        for app in apps:
+            if app in text:
+                return True
+        return False
 
-    def __find_chromium_gio_app(self, identifier):
-        app = identifier.split("-browser-", 1)[-1]
-        name = identifier.split("-browser-", 1)[0] + "-browser"
+    def __get_chromium_pwa_id(self, window):
+        xwin = XDisplay.create_resource_object('window', window.get_xid())
+        wmclass = xwin.get_wm_class()
+        pwa_id = None
+        if wmclass is not None:
+            resclass = wmclass[0].lower()
+            if resclass.startswith("crx_"):
+                pwa_id = resclass[4:]
+                if pwa_id.startswith("_"):
+                    # microsoft edge
+                    pwa_id = pwa_id[1:]
+        return pwa_id
+
+    def __get_chromium_app_id_from_cmdline(self, cmd):
+        if "--app-id=" in cmd:
+            return cmd.split("--app-id=")[-1].split(" ")[0].replace("\"", "").replace("'", "")
+        else:
+            return ""
+
+    def __find_chromium_pwa_gio_app(self, host, pwa_id):
+        if self.apps_up_to_date == False:
+            self.scan_apps()
         for cmd in self.app_ids_by_cmd:
-            if name in cmd and "--app=" in cmd:
-                a = str(cmd.split("--app=")[-1][:-1]).translate(None, "\"")
-                if app == a:
+            if host in cmd:
+                if pwa_id == self.__get_chromium_app_id_from_cmdline(cmd):
                     id = self.app_ids_by_cmd[cmd]
                     return self.apps_by_id[id]
 
-    def __find_chromium_d_e_id(self, identifier):
-        app = identifier.split("-browser-", 1)[-1]
+    def __find_chromium_pwa_desktop_entry_id(self, pwa_id):
         for cmd in self.d_e_ids_by_chromium_cmd:
-            if "--app=" in cmd:
-                a = str(cmd.split("--app=")[-1][:-1]).translate(None, "\"")
-                if app == a:
-                    return self.d_e_ids_by_chromium_cmd[cmd]
+            if pwa_id == self.__get_chromium_app_id_from_cmdline(cmd):
+                return self.d_e_ids_by_chromium_cmd[cmd]
         return None
 
     def __on_ooo_window_name_changed(self, window):
@@ -1245,10 +1346,9 @@ class DockBar():
         exe = desktop_entry.getExec()
         wine = False
         chromium = False
-        if ("chromium-browser" in exe or "chrome-browser" in exe) and \
-           "--app=" in exe:
+        if self.__is_chromium_based(exe) and "--app-id=" in exe:
             cmd = exe
-            app = cmd.split("--app=")[-1][:-1].translate(None, "\"")
+            app = self.__get_chromium_app_id_from_cmdline(cmd)
             chromium = True
         elif self.globals.settings["separate_wine_apps"] \
         and "wine" in exe and ".exe" in exe.lower():
@@ -1288,9 +1388,8 @@ class DockBar():
                     break
                 else:
                     continue
-            if chromium and ("chromium-browser" in identifier or \
-               "chrome-browser" in identifier):
-                a = identifier.split("-browser-", 1)[-1]
+            if chromium and self.__is_chromium_based(identifier):
+                a = identifier.split(":")[-1]
                 if a == app:
                     break
                 else:
@@ -1406,13 +1505,19 @@ class DockBar():
                     "mate-desktop-item-edit", "exo-desktop-item-edit")
         for program in programs:
             if check_program(program):
+                process = subprocess.Popen([program, new_path], env=os.environ)
+                GLib.timeout_add(100, self.__wait_for_launcher_editor,
+                                 process, path, new_path, identifier)
                 break
         else:
-            logger.warning("Error: Found no program for editing .desktop files.")
-            return
-        process = subprocess.Popen([program, new_path], env=os.environ)
-        GLib.timeout_add(100, self.__wait_for_launcher_editor,
-                            process, path, new_path, identifier)
+            editor = DesktopFileEditor()
+            editor.load(path)
+            editor.show_all()
+            action = editor.run()
+            if action == Gtk.ResponseType.OK:
+                editor.save(new_path)
+                self.__wait_for_launcher_editor(None, path, new_path, identifier)
+            editor.destroy()
 
     def update_pinned_apps_list(self, arg=None):
         # Saves pinned_apps_list
@@ -1473,8 +1578,7 @@ class DockBar():
                 exe = exe[:exe.rfind(".exe")+4][exe.rfind("\\")+1:].lower()
                 self.d_e_ids_by_wine_program[exe] = id
                 return
-            elif ("chromium-browser" in exe or "chrome-browser" in exe) and \
-                 "--app=" in exe:
+            elif self.__is_chromium_based(exe) and "--app-id=" in exe:
                 self.d_e_ids_by_chromium_cmd[exe] = id
                 return
             l = exe.split()
@@ -1585,7 +1689,7 @@ class DockBar():
 
     def __wait_for_launcher_editor(self, process,
                                    old_path, new_path, identifier):
-        if process.poll() != None:
+        if process is None or process.poll() != None:
             # Launcher editor closed.
             if os.path.isfile(new_path):
                 # Update desktop_entry.
@@ -1641,6 +1745,16 @@ class DockBar():
         else:
             for group in self.groups:
                 group.remove_media_controls()
+
+    def __on_preview_changed(self, *args):
+        if self.globals.settings["preview"] and \
+           self.globals.settings["preview_keep"]:
+            self.x11obs.start()
+            if self.groups is not None:
+                for group in self.groups.get_shown_groups():
+                    group.update_window_previews()
+        else:
+            self.x11obs.stop()
 
     def __on_unity_changed(self, *args):
         if self.globals.settings["unity"]:
@@ -1826,6 +1940,7 @@ class DockBar():
     def __init_number_shortcuts(self, *args):
         for i in range(10):
             key = "<super>%s" % i
+            shift_key = "<super><shift>%s" % i
             if self.globals.settings["use_number_shortcuts"]:
                 try:
                     success = Keybinder.bind(key,
@@ -1839,9 +1954,28 @@ class DockBar():
                         Keybinder.unbind(key)
                     except:
                         pass
+
+                # Shift + <number> launches a new instance
+                if self.globals.settings["use_number_shortcuts_shift_launch"]:
+                    try:
+                        success = Keybinder.bind(shift_key,
+                                             self.__on_shift_number_shortcut_pressed, i)
+                    except:
+                        success = False
+                    if not success:
+                        # Keybinder sometimes doesn't unbind faulty binds.
+                        # We have to do it manually.
+                        try:
+                            Keybinder.unbind(shift_key)
+                        except:
+                            pass
             else:
                 try:
                     Keybinder.unbind(key)
+                except:
+                    pass
+                try:
+                    Keybinder.unbind(shift_key)
                 except:
                     pass
 
@@ -1898,8 +2032,13 @@ class DockBar():
             if not group.media_controls or not success:
                 group.action_launch_application()
         if len(windows) == 1:
-            # Just one window. Let's focus on it straight away.
-            windows[0].action_select_window()
+            # Just one window.
+            if windows[0].is_active_window:
+                # If it's already active, minimise it.
+                windows[0].action_minimize_window()
+            else:
+                # If it's inactive, let's show it.
+                windows[0].action_select_window()
 
     def __on_super_released(self, *args):
         # Break the signal connection to avoid multiple release calls.
@@ -1923,3 +2062,13 @@ class DockBar():
             if not group.media_controls or not success:
                 group.action_launch_application()
         self.next_group = None
+
+    def __on_shift_number_shortcut_pressed(self, key, n, keyboard_grabbed=False):
+            if n == 0:
+                n = 10
+            n -= 1
+            try:
+                group = self.groups[n]
+            except IndexError:
+                return
+            group.action_launch_application()

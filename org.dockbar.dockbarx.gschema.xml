@@ -68,6 +68,14 @@
       </description>
     </key>
 
+    <key name='shape-mask' type='b'>
+      <default>false</default>
+      <summary>set shape mask for window list</summary>
+      <description>
+        Use X11 window shape extension for the popup window of window list
+      </description>
+    </key>
+
     <key name='show-only-current-desktop' type='b'>
       <default>false</default>
       <summary>Show only applications and windows that exists on the current desktop/workspace.</summary>
@@ -89,8 +97,6 @@
       <summary>Use thumbnails in window list</summary>
       <description>
         Use thumbnails in window list.
-        This option only works when you use the window manager kwin or
-        compiz with adyfuoadyfudfas
       </description>
     </key>
 
@@ -102,11 +108,11 @@
       </description>
     </key>
 
-    <key name='preview-minimized' type='b'>
-      <default>true</default>
-      <summary>Show previews for minimized windows</summary>
+    <key name='preview-keep' type='b'>
+      <default>false</default>
+      <summary>Keep previews for minimized windows</summary>
       <description>
-        Show previews for minimized windows
+        Keep previews for minimized windows
       </description>
     </key>
 
@@ -438,6 +444,14 @@
       </description>
     </key>
 
+    <key name='groupbutton-no-window-list' type='b'>
+      <default>false</default>
+      <summary>Don't show window list</summary>
+      <description>
+        Turn off window list on mouse hover.
+      </description>
+    </key>
+
     <key name='groupbutton-left-click-action' type='s'>
       <default>"select"</default>
       <summary>Action for groupbutton left clicking</summary>
@@ -753,11 +767,19 @@
 
     <key name='use-number-shortcuts' type='b'>
       <default>false</default>
-      <summary>Select applications usning super+number shortcuts</summary>
+      <summary>Select applications using super+number shortcuts</summary>
       <description>
         Select applications usning super+number shortcuts.
         Eg. super+1 to select the next window of the first application and
         shift+super+1 to select the previous window of the first application.
+      </description>
+    </key>
+
+    <key name='use-number-shortcuts-shift-launch' type='b'>
+      <default>false</default>
+      <summary>Launch new instance of an application with super+shift+number shortcuts</summary>
+      <description>
+        After hitting super+shift+1, an new instance of the first application will be launched.
       </description>
     </key>
 
@@ -783,6 +805,12 @@
 
     <key name='position' type='s'>
       <default>"left"</default>
+       <choices>
+        <choice value='left'/>
+        <choice value='right'/>
+        <choice value='top'/>
+        <choice value='bottom'/>
+      </choices>
       <summary>The position of the dock</summary>
       <description>
         Position the dock at left, right, top or bottom.
@@ -808,6 +836,11 @@
 
     <key name='mode' type='s'>
       <default>"centered"</default>
+      <choices>
+        <choice value='panel'/>
+        <choice value='corner'/>
+        <choice value='centered'/>
+      </choices>
       <summary>The mode of the dock</summary>
       <description>
         The dock has three modes:
@@ -818,7 +851,13 @@
     </key>
 
     <key name='behavior' type='s'>
-      <default>"panel"</default>
+      <default>"standard"</default>
+      <choices>
+        <choice value='standard'/>
+        <choice value='dodge windows'/>
+        <choice value='dodge active window'/>
+        <choice value='always autohide'/>
+      </choices>
       <summary>The behavior of the dock</summary>
       <description>
         Description needed
@@ -830,6 +869,31 @@
       <summary>Decorate the ends of the dock</summary>
       <description>
         Decorate the ends of the dock.
+      </description>
+    </key>
+
+    <key name='type' type='s'>
+      <default>"dock"</default>
+      <choices>
+        <choice value='dock'/>
+        <choice value='normal window'/>
+      </choices>
+      <summary>The window type of dockx</summary>
+      <description>
+        The window type of dockx
+      </description>
+    </key>
+
+    <key name='layer' type='s'>
+      <default>"above other windows"</default>
+      <choices>
+        <choice value='above other windows'/>
+        <choice value='below other windows'/>
+        <choice value='default layer'/>
+      </choices>
+      <summary>Window stacking layer</summary>
+      <description>
+        Window stacking layer
       </description>
     </key>
 

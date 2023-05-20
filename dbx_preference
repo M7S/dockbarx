@@ -476,9 +476,8 @@ class AppletsFrame():
         pass
 
 class PrefDialog():
-    def __init__ (self):
-
-
+    def __init__ (self, app):
+        self.app = app
         self.globals = Globals()
         self.dialog = Gtk.Dialog(_("DockBarX preferences"))
         self.__load_theme()
@@ -736,12 +735,8 @@ class PrefDialog():
                                  self.__checkbutton_toggled, "old_menu")
         self.old_menu_cb.set_margin_top(5)
         self.old_menu_cb.set_margin_bottom(5)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.old_menu_cb.set_margin_start(10)
-            self.old_menu_cb.set_margin_end(10)
-        else:
-            self.old_menu_cb.set_margin_left(10)
-            self.old_menu_cb.set_margin_right(10)
+        self.old_menu_cb.set_margin_start(10)
+        self.old_menu_cb.set_margin_end(10)
         appearance_box.pack_start(self.old_menu_cb, False, True, 0)
 
         bpbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
@@ -771,10 +766,7 @@ class PrefDialog():
             s = ("badge_fg", "badge_bg")[i]
             self.badge_color_buttons[i].set_title(text)
             self.badge_color_buttons[i].set_hexpand(True)
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                Gtk.ColorChooser.set_use_alpha(self.badge_color_buttons[i], True)
-            else:
-                self.badge_color_buttons[i].set_use_alpha(True)
+            Gtk.ColorChooser.set_use_alpha(self.badge_color_buttons[i], True)
             self.badge_color_buttons[i].connect("color-set",
                                                 self.__bp_color_set, s)
             table.attach(self.custom_badge_color_cbs[i], 0, i, 1, 1)
@@ -826,10 +818,7 @@ class PrefDialog():
             s = ("progress_fg", "progress_bg")[i]
             self.progress_color_buttons[i].set_title(text)
             self.progress_color_buttons[i].set_hexpand(True)
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                Gtk.ColorChooser.set_use_alpha(self.progress_color_buttons[i], True)
-            else:
-                self.progress_color_buttons[i].set_use_alpha(True)
+            Gtk.ColorChooser.set_use_alpha(self.progress_color_buttons[i], True)
             self.progress_color_buttons[i].connect("color-set",
                                                    self.__bp_color_set, s)
             table.attach(self.custom_progress_color_cbs[i], 0, i, 1, 1)
@@ -842,22 +831,33 @@ class PrefDialog():
 
         #--- Popup page
         popup_box.set_border_width(5)
-        self.reorder_window_list_cb = Gtk.CheckButton.new_with_label(
-                          _("Reorder the window list so that the last activated window is first in the list."))
-        self.reorder_window_list_cb.connect("toggled", self.__checkbutton_toggled,
-                                 "reorder_window_list")
-        popup_box.pack_start(self.reorder_window_list_cb, False, True, 5)
+        self.no_window_list_cb = Gtk.CheckButton.new_with_label(
+                          _("Don't show window list on mouse hover"))
+        self.no_window_list_cb.connect("toggled", self.__checkbutton_toggled,
+                                 "groupbutton_no_window_list")
+        self.no_window_list_cb.set_tooltip_text(_("You can access the window list by right clicking on the button twice"))
+        popup_box.pack_start(self.no_window_list_cb, False, True, 5)
         self.no_popup_cb = Gtk.CheckButton.new_with_label(
                           _("Show window list only if more than one window is open"))
         self.no_popup_cb.connect("toggled", self.__checkbutton_toggled,
                                  "no_popup_for_one_window")
         popup_box.pack_start(self.no_popup_cb, False, True, 5)
-
+        self.reorder_window_list_cb = Gtk.CheckButton.new_with_label(
+                          _("Reorder the window list so that the last activated window is first in the list."))
+        self.reorder_window_list_cb.connect("toggled", self.__checkbutton_toggled,
+                                 "reorder_window_list")
+        popup_box.pack_start(self.reorder_window_list_cb, False, True, 5)
         self.show_tooltip_cb = Gtk.CheckButton.new_with_label(
                           _("Show tooltip when no window is open"))
         self.show_tooltip_cb.connect("toggled", self.__checkbutton_toggled,
                                  "groupbutton_show_tooltip")
         popup_box.pack_start(self.show_tooltip_cb, False, True, 5)
+        self.shape_mask_cb = Gtk.CheckButton.new_with_label(
+                          _("Use X11 shape extension for the popup"))
+        self.shape_mask_cb.connect("toggled", self.__checkbutton_toggled, "shape_mask")
+        self.shape_mask_cb.set_tooltip_text(_("Make X11 compositors happy with the nonrectangular popup"))
+        popup_box.pack_start(self.shape_mask_cb, False, True, 5)
+
 
         self.preview_size_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.preview_size_spinbox.set_border_width(5)
@@ -931,13 +931,9 @@ class PrefDialog():
         self.preview_cb = Gtk.CheckButton.new_with_label(_("Show previews"))
         self.preview_cb.connect("toggled", self.__checkbutton_toggled, "preview")
         vbox.pack_start(self.preview_cb, False, True, 0)
-        self.preview_minimized_cb = Gtk.CheckButton.new_with_label(_("Show previews for minimized windows"))
-        self.preview_minimized_cb.set_tooltip_text(_("To get previews for minimized windows you need to active \"Keep previews of minimized windows\" in Compiz plugin Workarounds."))
-        self.preview_minimized_cb.connect("toggled", self.__checkbutton_toggled, "preview_minimized")
-        vbox.pack_start(self.preview_minimized_cb, False, True, 0)
-        self.preview_minimized_cb.set_no_show_all(True)
-        if self.globals.get_compiz_version() >= "0.9":
-            self.preview_minimized_cb.show()
+        self.preview_keep_cb = Gtk.CheckButton.new_with_label(_("Keep previews for minimized windows (experimental)"))
+        self.preview_keep_cb.connect("toggled", self.__checkbutton_toggled, "preview_keep")
+        vbox.pack_start(self.preview_keep_cb, False, True, 0)
         popup_box.pack_start(vbox, False, True, 5)
 
         # Locked list
@@ -1288,7 +1284,12 @@ class PrefDialog():
         self.number_shortcuts_cb.connect("toggled",
                                              self.__checkbutton_toggled,
                                              "use_number_shortcuts")
+        self.number_shortcuts_shift_launch_cb = Gtk.CheckButton.new_with_label(_("Shift+Number to launch new instances (Super+number)"))
+        self.number_shortcuts_shift_launch_cb.connect("toggled",
+                                                      self.__checkbutton_toggled,
+                                                      "use_number_shortcuts_shift_launch")
         table.attach(self.number_shortcuts_cb, 0, i + 4, 4, 1)
+        table.attach(self.number_shortcuts_shift_launch_cb, 0, i + 5, 4, 1)
         table.set_border_width(5)
         frame.add(table)
         advanced_box.pack_start(frame, False, False, 5)
@@ -1297,6 +1298,19 @@ class PrefDialog():
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         hbox.set_border_width(5)
         label = Gtk.Label(label=_("Type"))
+        hbox.pack_start(label, False, False, 0)
+        self.dock_type_box = Gtk.ComboBoxText()
+        for pos in (_("dock"), _("normal window")):
+            self.dock_type_box.append_text(pos)
+        self.dock_type_box.connect("changed", self.__cb_changed)
+        hbox.pack_start(self.dock_type_box, False, True, 0)
+        label = Gtk.Label(label=_("(Need to restart dockx to take effect)"))
+        hbox.pack_start(label, False, False, 0)
+        dock_box.pack_start(hbox, False, True, 0)
+
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
+        hbox.set_border_width(5)
+        label = Gtk.Label(label=_("Mode"))
         hbox.pack_start(label, False, False, 0)
         self.dock_mode_box = Gtk.ComboBoxText()
         for pos in (_("panel"), _("corner"), _("centered")):
@@ -1325,11 +1339,23 @@ class PrefDialog():
         label = Gtk.Label(label=_("Behavior"))
         hbox.pack_start(label, False, False, 0)
         self.dock_behavior_box = Gtk.ComboBoxText()
-        for pos in (_("panel"), _("standard"), _("dodge windows"),
+        for pos in (_("standard"), _("dodge windows"),
                     _("dodge active window"), _("always autohide")):
             self.dock_behavior_box.append_text(pos)
         self.dock_behavior_box.connect("changed", self.__cb_changed)
         hbox.pack_start(self.dock_behavior_box, False, True, 0)
+        dock_box.pack_start(hbox, False, True, 0)
+
+        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
+        hbox.set_border_width(5)
+        label = Gtk.Label(label=_("Layer"))
+        hbox.pack_start(label, False, False, 0)
+        self.dock_layer_box = Gtk.ComboBoxText()
+        for pos in (_("above other windows"), _("below other windows"),
+                    _("default layer")):
+            self.dock_layer_box.append_text(pos)
+        self.dock_layer_box.connect("changed", self.__cb_changed)
+        hbox.pack_start(self.dock_layer_box, False, True, 0)
         dock_box.pack_start(hbox, False, True, 0)
 
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
@@ -1382,10 +1408,7 @@ class PrefDialog():
         hbox.set_border_width(5)
         label = Gtk.Label(label=_("Background color"))
         self.dock_bg_color_button = Gtk.ColorButton()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            Gtk.ColorChooser.set_use_alpha(self.dock_bg_color_button, True)
-        else:
-            self.dock_bg_color_button.set_use_alpha(True)
+        Gtk.ColorChooser.set_use_alpha(self.dock_bg_color_button, True)
         self.dock_bg_color_button.set_title(_("Background color"))
         self.dock_bg_color_button.connect("color-set",
                                           self.__dock_color_set, "bg_color")
@@ -1403,10 +1426,7 @@ class PrefDialog():
         label.set_xalign(1)
         label.set_yalign(0.5)
         self.bar2_bg_color_button = Gtk.ColorButton()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            Gtk.ColorChooser.set_use_alpha(self.bar2_bg_color_button, True)
-        else:
-            self.bar2_bg_color_button.set_use_alpha(True)
+        Gtk.ColorChooser.set_use_alpha(self.bar2_bg_color_button, True)
         self.bar2_bg_color_button.set_title(_("Second background color"))
         self.bar2_bg_color_button.connect("color-set", self.__dock_color_set,
                                           "bar2_bg_color")
@@ -1433,9 +1453,9 @@ class PrefDialog():
         notebook.append_page(plugins_box, Gtk.Label(label=_("Plugins")))
         notebook.append_page(advanced_box, Gtk.Label(label=_("Advanced")))
         ca.pack_start(notebook, True, True, 0)
-        self.__update()
         self.dialog.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
         self.dialog.show_all()
+        self.__update()
         dock = False
         for name in dbus.SessionBus().list_names():
             if str(name).startswith("org.dockbar.DockX"):
@@ -1543,10 +1563,7 @@ class PrefDialog():
         self.custom_badge_cb.set_active(custom_font)
         self.badge_font_button.set_sensitive(custom_font)
         badge_font = self.globals.settings["badge_font"]
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            Gtk.FontChooser.set_font(self.badge_font_button, badge_font)
-        else:
-            self.badge_font_button.set_font_name(badge_font)
+        Gtk.FontChooser.set_font(self.badge_font_button, badge_font)
         for i in (0, 1):
             s = ("badge_custom_fg_color", "badge_custom_bg_color")[i]
             active = self.globals.settings[s]
@@ -1555,17 +1572,11 @@ class PrefDialog():
             s = ("badge_fg", "badge_bg")[i]
             # range [0, 255]
             alpha = self.globals.settings[s + "_alpha"]
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                color = Gdk.RGBA();
-                Gdk.RGBA.parse(color, self.globals.settings[s + "_color"])
-                # range [0, 1]
-                color.alpha = alpha / 255
-                Gtk.ColorChooser.set_rgba(self.badge_color_buttons[i], color)
-            else:
-                color = Gdk.color_parse(self.globals.settings[s + "_color"])
-                self.badge_color_buttons[i].set_color(color)
-                # range [0, 65535]
-                self.badge_color_buttons[i].set_alpha(alpha * 257)
+            color = Gdk.RGBA();
+            Gdk.RGBA.parse(color, self.globals.settings[s + "_color"])
+            # range [0, 1]
+            color.alpha = alpha / 255
+            Gtk.ColorChooser.set_rgba(self.badge_color_buttons[i], color)
 
         for i in (0, 1):
             s = ("progress_custom_fg_color", "progress_custom_bg_color")[i]
@@ -1575,17 +1586,11 @@ class PrefDialog():
             s = ("progress_fg", "progress_bg")[i]
             # range [0, 255]
             alpha = self.globals.settings[s + "_alpha"]
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                color = Gdk.RGBA();
-                Gdk.RGBA.parse(color, self.globals.settings[s + "_color"])
-                # range [0, 1]
-                color.alpha = alpha / 255
-                Gtk.ColorChooser.set_rgba(self.progress_color_buttons[i], color)
-            else:
-                color = Gdk.color_parse(self.globals.settings[s + "_color"])
-                self.progress_color_buttons[i].set_color(color)
-                # range [0, 65535]
-                self.progress_color_buttons[i].set_alpha(alpha * 257)
+            color = Gdk.RGBA();
+            Gdk.RGBA.parse(color, self.globals.settings[s + "_color"])
+            # range [0, 1]
+            color.alpha = alpha / 255
+            Gtk.ColorChooser.set_rgba(self.progress_color_buttons[i], color)
 
         # Popup
         self.delay_spin.set_value(self.globals.settings["popup_delay"])
@@ -1597,6 +1602,9 @@ class PrefDialog():
                             self.globals.settings["no_popup_for_one_window"])
         self.show_tooltip_cb.set_active(
                             self.globals.settings["groupbutton_show_tooltip"])
+        self.no_window_list_cb.set_active(
+                            self.globals.settings["groupbutton_no_window_list"])
+        self.shape_mask_cb.set_active(self.globals.settings["shape_mask"])
 
         # Locked list
         self.locked_list_menu_cb.set_active(
@@ -1675,13 +1683,9 @@ class PrefDialog():
         for i in range(1, 9):
             c = "color%s"%i
             a = c+"_alpha"
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                color = Gdk.RGBA()
-                Gdk.RGBA.parse(color, self.globals.colors[c])
-                Gtk.ColorChooser.set_rgba(self.color_buttons[c], color)
-            else:
-                color = Gdk.color_parse(self.globals.colors[c])
-                self.color_buttons[c].set_color(color)
+            color = Gdk.RGBA()
+            Gdk.RGBA.parse(color, self.globals.colors[c])
+            Gtk.ColorChooser.set_rgba(self.color_buttons[c], color)
             #Alpha
             if a in self.globals.colors \
             and not (c in self.theme_alphas \
@@ -1691,26 +1695,13 @@ class PrefDialog():
                 except ValueError:
                     # in some themes, <colorX name="Not used" default="#000000" opacity="no" />
                     alpha = 255
-                if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                    Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], True)
-                    color = Gtk.ColorChooser.get_rgba(self.color_buttons[c])
-                    # range [0, 1]
-                    color.alpha = alpha / 255
-                    Gtk.ColorChooser.set_rgba(self.color_buttons[c], color)
-                else:
-                    self.color_buttons[c].set_use_alpha(True)
-                    try:
-                        # range [0, 65535]
-                        self.color_buttons[c].set_alpha(alpha * 257)
-                    except:
-                        print(c)
-                        print(alpha)
-                        raise
+                Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], True)
+                color = Gtk.ColorChooser.get_rgba(self.color_buttons[c])
+                # range [0, 1]
+                color.alpha = alpha / 255
+                Gtk.ColorChooser.set_rgba(self.color_buttons[c], color)
             else:
-                if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                    Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], False)
-                else:
-                    self.color_buttons[c].set_use_alpha(False)
+                Gtk.ColorChooser.set_use_alpha(self.color_buttons[c], False)
 
         #Select action
         model = self.select_one_cg.get_model()
@@ -1775,8 +1766,8 @@ class PrefDialog():
 
         # Previews
         self.preview_cb.set_active(self.globals.settings["preview"])
-        self.preview_minimized_cb.set_active(
-                                   self.globals.settings["preview_minimized"])
+        self.preview_keep_cb.set_active(self.globals.settings["preview_keep"])
+        self.preview_keep_cb.set_sensitive(self.globals.settings["preview"])
         self.preview_size_spin.set_value(self.globals.settings["preview_size"])
         self.window_title_width_spin.set_value(
                                     self.globals.settings["window_title_width"])
@@ -1808,6 +1799,9 @@ class PrefDialog():
                self.globals.settings["gkeys_select_next_group_skip_launchers"])
         self.number_shortcuts_cb.set_active(
                                 self.globals.settings["use_number_shortcuts"])
+        self.number_shortcuts_shift_launch_cb.set_active(
+                                self.globals.settings["use_number_shortcuts_shift_launch"])
+        self.number_shortcuts_shift_launch_cb.set_sensitive(self.globals.settings["use_number_shortcuts"])
 
         # Dock page
         self.dock_size_spin.set_value(self.globals.settings["dock/size"])
@@ -1818,6 +1812,12 @@ class PrefDialog():
             self.dock_offset_spin.set_sensitive(False)
         else:
             self.dock_offset_spin.set_sensitive(True)
+        model = self.dock_type_box.get_model()
+        for i in range(len(model)):
+            mode = self.globals.settings["dock/type"].lower()
+            if model[i][0].lower() == _(mode):
+                self.dock_type_box.set_active(i)
+                break
         model = self.dock_mode_box.get_model()
         for i in range(len(model)):
             mode = self.globals.settings["dock/mode"].lower()
@@ -1833,6 +1833,12 @@ class PrefDialog():
             self.end_decoration_cb.show()
         else:
             self.end_decoration_cb.hide()
+        model = self.dock_layer_box.get_model()
+        for i in range(len(model)):
+            mode = self.globals.settings["dock/layer"].lower()
+            if model[i][0].lower() == _(mode):
+                self.dock_layer_box.set_active(i)
+                break
         model = self.dock_position_box.get_model()
         for i in range(len(model)):
             pos = self.globals.settings["dock/position"].lower()
@@ -1855,40 +1861,28 @@ class PrefDialog():
         #Dock Colors
         # range [0, 255]
         alpha = self.globals.dock_colors["bg_alpha"]
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gdk.RGBA()
-            Gdk.RGBA.parse(color, self.globals.dock_colors["bg_color"])
-            # range [0, 1]
-            color.alpha = alpha / 255
-            Gtk.ColorChooser.set_rgba(self.dock_bg_color_button, color)
-        else:
-            color = Gdk.color_parse(self.globals.dock_colors["bg_color"])
-            self.dock_bg_color_button.set_color(color)
-            # range [0, 65535]
-            self.dock_bg_color_button.set_alpha(alpha * 257)
+        color = Gdk.RGBA()
+        Gdk.RGBA.parse(color, self.globals.dock_colors["bg_color"])
+        # range [0, 1]
+        color.alpha = alpha / 255
+        Gtk.ColorChooser.set_rgba(self.dock_bg_color_button, color)
         alpha = self.globals.dock_colors["bar2_bg_alpha"]
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gdk.RGBA()
-            Gdk.RGBA.parse(color, self.globals.dock_colors["bar2_bg_color"])
-            # range [0, 1]
-            color.alpha = alpha / 255
-            Gtk.ColorChooser.set_rgba(self.bar2_bg_color_button, color)
-        else:
-            color = Gdk.color_parse(self.globals.dock_colors["bar2_bg_color"])
-            self.bar2_bg_color_button.set_color(color)
-            # range [0, 65535]
-            self.bar2_bg_color_button.set_alpha(alpha * 257)
+        color = Gdk.RGBA()
+        Gdk.RGBA.parse(color, self.globals.dock_colors["bar2_bg_color"])
+        # range [0, 1]
+        color.alpha = alpha / 255
+        Gtk.ColorChooser.set_rgba(self.bar2_bg_color_button, color)
         if int(self.dock_theme.get("use_bar2", False)):
             self.dock_bar2_box.show()
         else:
             self.dock_bar2_box.hide()
 
-    def dialog_close(self,par1,par2):
+    def dialog_close(self, *args, **kwargs):
         if self.dialog is None:
             return
         self.dialog.destroy()
         self.dialog = None
-        Gtk.main_quit()
+        self.app.quit()
 
     def __rb_toggled(self,button,par1):
         # Read the value of the toggled radio button and write to settings
@@ -1925,10 +1919,8 @@ class PrefDialog():
         if button.get_active() != self.globals.settings[name]:
             gsettings.set_boolean(name1, button.get_active())
 
-        if name == "preview" and button.get_active():
-            self.__show_preview_dialogs()
-        #~ elif name == "preview_minimized" and button.get_active():
-            #~ self.__show_preview_minimized_dialogs()
+        if name == "preview":
+            self.preview_keep_cb.set_sensitive(button.get_active())
         elif name == "opacify" and button.get_active():
             self.__show_opacify_dialog()
 
@@ -2013,6 +2005,12 @@ class PrefDialog():
                 if value == _(p) and p != self.globals.settings["dock/size"]:
                     self.dock_gsettings.set_string("position", p)
 
+        if combobox == self.dock_type_box:
+            pos = ("dock", "normal window")
+            for p in pos:
+                if value == _(p) and p != self.globals.settings["dock/type"]:
+                    self.dock_gsettings.set_string("type", p)
+
         if combobox == self.dock_mode_box:
             pos = ("panel", "centered", "corner")
             for p in pos:
@@ -2020,12 +2018,21 @@ class PrefDialog():
                     self.dock_gsettings.set_string("mode", p)
 
         if combobox == self.dock_behavior_box:
-            pos = ("panel", "standard", "dodge windows",
+            pos = ("standard", "dodge windows",
                    "dodge active window", "always autohide")
             for p in pos:
                 if value == _(p) and \
                    p != self.globals.settings["dock/behavior"]:
                     self.dock_gsettings.set_string("behavior", p)
+
+        if combobox == self.dock_layer_box:
+            pos = ("above other windows", "below other windows",
+                    "default layer")
+            for p in pos:
+                if value == _(p) and \
+                   p != self.globals.settings["dock/layer"]:
+                    self.dock_gsettings.set_string("layer", p)
+
 
     def __adjustment_changed(self, widget, setting):
         # Read the value of the adjustment and write to settings
@@ -2048,17 +2055,9 @@ class PrefDialog():
             return
         color_string = self.globals.settings[c + "_color"]
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gtk.ColorChooser.get_rgba(button)
-            new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
-            new_alpha = round(color.alpha * 255)
-        else:
-            color = button.get_color()
-            cs = color.to_string()
-            # cs has 16-bit per color, we want 8.
-            new_color = cs[0:3] + cs[5:7] + cs[9:11]
-            # get_alpha() range [0, 65535]
-            new_alpha = min(int(round(button.get_alpha() / 257.0)), 255)
+        color = Gtk.ColorChooser.get_rgba(button)
+        new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
+        new_alpha = round(color.alpha * 255)
 
         if new_color != color_string:
             s = c + "_color"
@@ -2075,21 +2074,11 @@ class PrefDialog():
         if not self.theme:
             return
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gtk.ColorChooser.get_rgba(button)
-            new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
-            use_alpha = Gtk.ColorChooser.get_use_alpha(button)
-            if use_alpha:
-                new_alpha = round(color.alpha * 255)
-        else:
-            color = button.get_color()
-            cs = color.to_string()
-            # cs has 16-bit per color, we want 8.
-            new_color = cs[0:3] + cs[5:7] + cs[9:11]
-            use_alpha = button.get_use_alpha();
-            if use_alpha:
-                # get_alpha() range [0, 65535]
-                new_alpha = min(int(round(button.get_alpha() / 257.0)), 255)
+        color = Gtk.ColorChooser.get_rgba(button)
+        new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
+        use_alpha = Gtk.ColorChooser.get_use_alpha(button)
+        if use_alpha:
+            new_alpha = round(color.alpha * 255)
 
         theme_name = self.theme.get_name().lower().replace(" ", "_")
         for sign in ("'", '"', "!", "?", "*", "(", ")", "/", "#", "@"):
@@ -2293,16 +2282,9 @@ class PrefDialog():
         colors = self.globals.dock_colors
         update_needed = False
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            color = Gtk.ColorChooser.get_rgba(button)
-            new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
-            new_alpha = round(color.alpha * 255)
-        else:
-            color = button.get_color()
-            cs = color.to_string()
-            # cs has 16-bit per color, we want 8.
-            new_color = cs[0:3] + cs[5:7] + cs[9:11]
-            new_alpha = min(int(round(button.get_alpha() / 256.0)), 255)
+        color = Gtk.ColorChooser.get_rgba(button)
+        new_color = "#%02x%02x%02x" % (round(color.red * 255), round(color.green * 255), round(color.blue * 255))
+        new_alpha = round(color.alpha * 255)
 
         if new_color != colors[c]:
             colors[c] = new_color
@@ -2333,122 +2315,9 @@ class PrefDialog():
         self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
 
     def __set_font(self, button, name):
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            font = Gtk.FontChooser.get_font(button);
-        else:
-            font = button.get_font_name()
+        font = Gtk.FontChooser.get_font(button);
         if font != self.globals.settings[name]:
             self.gsettings.set_string(name.replace('_', '-'), font)
-
-    def __show_preview_dialogs(self):
-        # Check if the needed compiz plugin is activated
-        # and ask if it should be if it isn't.
-        try:
-            plugins = compiz_call_sync("core/allscreens/active_plugins",
-                                        "get")
-        except dbus.exceptions.DBusException:
-            # This probably means that compiz isn't running.
-            # Assume that kwin is used instead and do nothing.
-            return
-        if not "kdecompat" in plugins:
-            #Check if the plugin is installed.
-            proxy = BUS.get_object("org.freedesktop.compiz",
-                                   "/org/freedesktop/compiz")
-            if "kdecompat" in str(proxy.Introspect()):
-                message = _("Previews requires the compiz plugin KDE Compatibility to be activated. Should dockbarx activate it for you?")
-                flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-                md = Gtk.MessageDialog(self.dialog,
-                                       flags,
-                                       Gtk.MessageType.QUESTION,
-                                       Gtk.ButtonsType.YES_NO,
-                                       message)
-                response = md.run()
-                md.destroy()
-                if response == Gtk.ResponseType.YES:
-                    plugins.append("kdecompat")
-                    compiz_call_sync("core/allscreens/active_plugins",
-                                     "set", plugins)
-            else:
-                message = _("The compiz plugin KDE Compatibility that is needed for previews doesn't seem to be installed. If you use ubuntu, you need to install the package compiz-fusion-plugins-main.")
-                flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-                md = Gtk.MessageDialog(self.dialog,
-                                       flags,
-                                       Gtk.MessageType.INFO,
-                                       Gtk.ButtonsType.CLOSE,
-                                       message)
-                md.run()
-                md.destroy()
-
-        # Check if Support Plasma thumbnails is activated.
-        try:
-            plasmat = compiz_call_sync(
-                                    "kdecompat/screen0/plasma_thumbnails",
-                                    "get")
-        except dbus.exceptions.DBusException:
-            return
-        if not plasmat:
-            message = _("Previews requires that Support Plasma Thumnails should be activated in KDE Compatibility plugin. Should dockbarx activate it for you?")
-            flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-            md = Gtk.MessageDialog(self.dialog,
-                                   flags,
-                                   Gtk.MessageType.QUESTION,
-                                   Gtk.ButtonsType.YES_NO,
-                                   message)
-            response = md.run()
-            md.destroy()
-            if response == Gtk.ResponseType.YES:
-                plugins.append("kdecompat")
-                compiz_call_sync("kdecompat/screen0/plasma_thumbnails",
-                                 "set", True)
-
-    def __show_preview_minimized_dialogs(self):
-        # This function is not used right now, it can cause compiz to freeze.
-
-        # Check if the needed compiz plugin is activated
-        # and ask if it should be if it isn't.
-        try:
-            plugins = compiz_call_sync("core/screen0/active_plugins",
-                                       "get")
-        except dbus.exceptions.DBusException:
-            # This probably means that compiz isn't running.
-            raise
-            return
-        if not "workarounds" in plugins:
-            message = _("Previews for minimzied windows requires the compiz plugin Workarounds to be activated. Should dockbarx activate it for you?")
-            flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-            md = Gtk.MessageDialog(self.dialog,
-                                   flags,
-                                   Gtk.MessageType.QUESTION,
-                                   Gtk.ButtonsType.YES_NO,
-                                   message)
-            response = md.run()
-            md.destroy()
-            if response == Gtk.ResponseType.YES:
-                plugins.append("workarounds")
-                compiz_call_sync("core/allscreens/active_plugins", "set",
-                                 plugins)
-            else:
-                return
-        # Check if Support Plasma thumbnails is activated.
-        try:
-            mp = compiz_call_sync("workarounds/screen0/keep_minimized_windows",
-                                  "get")
-        except dbus.exceptions.DBusException:
-            return
-        if not mp:
-            message = _("Previews for minimzied windows requires the option \"Keep previews of minimized windows\" to be activated in compiz plugin Workarounds. Should DockbarX activate it for you?")
-            flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
-            md = Gtk.MessageDialog(self.dialog,
-                                   flags,
-                                   Gtk.MessageType.QUESTION,
-                                   Gtk.ButtonsType.YES_NO,
-                                   message)
-            response = md.run()
-            md.destroy()
-            if response == Gtk.ResponseType.YES:
-                plugins.append("kdecompat")
-                compiz_call_sync("workarounds/screen0/keep_minimized_windows",
-                                 "set", True)
 
     def __show_opacify_dialog(self):
         # Check if the needed compiz plugin is activated
@@ -2474,7 +2343,16 @@ class PrefDialog():
                 compiz_call_sync("core/allscreens/active_plugins", "set",
                                  plugins)
 
-Gtk.init(sys.argv)
-dialog = PrefDialog()
-signal.signal(signal.SIGINT, dialog.dialog_close)
-Gtk.main()
+
+class PrefApp(Gtk.Application):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, application_id="org.dockbarx.preference", flags=Gio.ApplicationFlags.FLAGS_NONE, **kwargs)
+        self.window = None
+
+    def do_activate(self):
+        if not self.window:
+            self.window = PrefDialog(self)
+            self.add_window(self.window.dialog)
+            GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.window.dialog_close)
+
+PrefApp().run(sys.argv)

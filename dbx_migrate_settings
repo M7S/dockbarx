@@ -35,19 +35,16 @@ def get_gsettings(name, path=None):
         path = name
     schema_id = "org.dockbarx.%s" % name
     path = "/org/dockbarx/%s/" % path
-    if GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 32:
-        source = Gio.SettingsSchemaSource.get_default()
-        schema = source.lookup(schema_id, True)
-        if not schema:
-            logger.error("No schema %s" % schema_id)
-            return (None, None)
-    else:
-        schema = None
+    source = Gio.SettingsSchemaSource.get_default()
+    schema = source.lookup(schema_id, True)
+    if not schema:
+        logger.error("No schema %s" % schema_id)
+        return (None, None)
     return (Gio.Settings.new_with_path(schema_id, path), schema)
 
 def set_setting(gsettings, gschema, key, value):
     key = key.replace("_", "-").lower()
-    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+    if gschema is not None:
         if not gschema.has_key(key):
             return 1
     if value is None:
@@ -82,7 +79,7 @@ def set_setting(gsettings, gschema, key, value):
 
 def get_setting(gsettings, gschema, key):
     key = key.replace("_", "-")
-    if gschema is not None and (GLib.MAJOR_VERSION > 2 or GLib.MINOR_VERSION >= 40):
+    if gschema is not None:
         if not gschema.has_key(key):
             return None
     return gsettings.get_value(key).unpack()
@@ -114,6 +111,8 @@ for option in options:
     elif key.startswith("dock/"):
         gsettings, gschema = dockx_gsettings
         key = key[len("dock/"):]
+        if key == "behavior" and value == "panel":
+            value = "standard"
     elif key.startswith("themes/"):
         path = key[:key.rindex("/")].lower()
         gsettings, gschema = get_gsettings("dockbarx.theme", "dockbarx/" + path)

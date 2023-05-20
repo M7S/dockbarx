@@ -55,10 +55,7 @@ class ClockApplet(DockXApplet):
         self.connect("clicked", self.on_clicked)
 
         self.menu = Gtk.Menu()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 10:
-            preferences_item = Gtk.MenuItem.new_with_mnemonic(_("_Preferences"))
-        else:
-            preferences_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
+        preferences_item = Gtk.MenuItem.new_with_mnemonic(_("_Preferences"))
         preferences_item.connect('activate', self.open_preferences)
         self.menu.insert(preferences_item, 0)
         self.menu.show_all()

@@ -143,7 +143,7 @@ class IconFactory():
         self.average_color = None
 
 
-    def surface_update(self, type_ = 0):
+    def surface_update(self, type_ = 0, force_update=False):
         # Checks if the requested pixbuf is already
         # drawn and returns it if it is.
         # Otherwise the surface is drawn, saved and returned.
@@ -157,7 +157,7 @@ class IconFactory():
         type_ += self.win_nr
         self.orient = self.dockbar_r().orient
         is_vertical = self.orient in ("left", "right")
-        if type_ in self.surfaces:
+        if not force_update and type_ in self.surfaces:
             surface = self.surfaces[type_]
         else:
             self.temp = {}

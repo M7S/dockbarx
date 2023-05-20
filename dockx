@@ -37,6 +37,7 @@ gi.require_version('Wnck', '3.0')
 from gi.repository import Wnck
 from gi.repository import GObject
 from gi.repository import GLib
+from gi.repository import Gio
 from dockbarx.common import Globals, XDisplay, check_x11
 from dockbarx.theme import DockTheme
 from dockbarx.applets import DockXApplets, DockXApplet
@@ -44,19 +45,19 @@ from Xlib import X
 from math import pi, sin, cos, tan, atan
 import weakref
 import time
-import dbus
-import dbus.service
+import urllib.parse
 
 WNCK_WINDOW_STATE_MINIMIZED = 1
 
 
-class CairoDockX(Gtk.Window):
+class CairoDockX(Gtk.ApplicationWindow):
     """The Dock Window for running DockbarX as a standalone dock"""
-    def __init__(self):
-        GObject.GObject.__init__(self)
+    def __init__(self, application):
+        super().__init__(application=application)
         self.globals = Globals()
         self.theme = DockTheme()
-        self.set_type_hint(Gdk.WindowTypeHint.DOCK)
+        if self.globals.settings["dock/type"] == "dock":
+            self.set_type_hint(Gdk.WindowTypeHint.DOCK)
         self.stick()
         self.set_accept_focus(False)
         self.set_decorated(False)
@@ -64,7 +65,7 @@ class CairoDockX(Gtk.Window):
         gdk_screen = Gdk.Screen.get_default()
         visual = gdk_screen.get_rgba_visual()
         if visual is None:
-            visual = gdk_screen.get_rgb_visual()
+            visual = gdk_screen.get_system_visual()
         self.set_visual(visual)
         self.set_app_paintable(1)
         self.compute_padding()
@@ -474,12 +475,8 @@ class CairoDockX(Gtk.Window):
             padding = (p, b, 0, 0)
         child.set_margin_top(padding[0])
         child.set_margin_bottom(padding[1])
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            child.set_margin_start(padding[2])
-            child.set_margin_end(padding[3])
-        else:
-            child.set_margin_left(padding[2])
-            child.set_margin_right(padding[3])
+        child.set_margin_start(padding[2])
+        child.set_margin_end(padding[3])
 
     def add_box(self, widget):
         self.add(widget)
@@ -492,21 +489,21 @@ class CairoDockX(Gtk.Window):
 
 
 class DockX(CairoDockX):
-    def __init__(self, monitor=0):
+    def __init__(self, application, monitor=0):
+        super().__init__(application=application)
         self.globals = Globals()
         self.empty_space = {"left": 1000, "right": 1000,
                             "top": 1000, "bottom":1000}
         self.geometry_time = 0
         self.last_geometry_window = lambda: None
-        if self.globals.settings["dock/behavior"] in ("panel", "standard"):
+        if self.globals.settings["dock/behavior"] == "standard":
             self.autohide = False
         else:
             self.autohide = True
+        Wnck.set_client_type(Wnck.ClientType.PAGER)
         self.screen = Wnck.Screen.get_default()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            self.monitor = Gdk.Display.get_default().get_monitor(monitor)
-        else:
-            self.monitor = monitor
+        self.monitor = Gdk.Display.get_default().get_monitor(monitor)
+        self.app = application
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
         self.db_loaded = False
@@ -518,8 +515,6 @@ class DockX(CairoDockX):
         self.dockbar.set_keyboard_show_dock(True)
         self.dockbar.load()
         self.db_loaded = True
-        CairoDockX.__init__(self)
-        self.set_keep_above(True)
         self.autohide_sid = None
         self.autounhide_sid = None
         self.autounhide_sid = None
@@ -545,6 +540,8 @@ class DockX(CairoDockX):
         self.globals.connect("dock-offset-changed", self.__on_offset_changed)
         self.globals.connect("dock-behavior-changed",
                              self.__on_behavior_changed)
+        self.globals.connect("dock-layer-changed",
+                             self.__on_layer_changed)
         self.__compute_should_autohide()
         self.screen.connect("active-window-changed",
                             self.__on_active_window_changed)
@@ -559,7 +556,7 @@ class DockX(CairoDockX):
         self.connect("size-allocate", self.on_size_allocate)
         if self.autohide:
             self.show_dock()
-        self.dbus_obj = DockXDBus(self)
+        self.__on_layer_changed()
 
     def position_dock(self, rebuild=False):
         centered = self.globals.settings["dock/mode"] == "centered"
@@ -715,7 +712,11 @@ class DockX(CairoDockX):
                 if appletscr is None:
                     continue
                 applet_id = self.applets.get_id(name)
-                applet = appletscr.get_dbx_applet({"name":name, "id":applet_id, "dock":self})
+                try:
+                    applet = appletscr.get_dbx_applet({"name":name, "id":applet_id, "dock":self})
+                except:
+                    logger.warning("Failed to load applet %s. If this applet was installed after DockbarX started, please restart DockbarX" % name)
+                    continue
                 expand = applet.get_expand() and panel
                 applet.finish_init()
             if expand:
@@ -741,13 +742,6 @@ class DockX(CairoDockX):
             self.box.pack_start(boxes[0], True, True, 0)
             self.box.pack_start(boxes[1], False, False, 0)
             self.box.pack_start(boxes[2], True, True, 0)
-            # Use hugh size requests so that the boxes get equally large.
-            if pos in ("left", "right"):
-                boxes[0].set_size_request(-1, 3000)
-                boxes[2].set_size_request(-1, 3000)
-            else:
-                boxes[0].set_size_request(3000, -1)
-                boxes[2].set_size_request(3000, -1)
         else:
             boxes = None
         return boxes
@@ -788,15 +782,13 @@ class DockX(CairoDockX):
         return applets
 
     def __get_monitor_at_point(self, screen, x, y):
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            return screen.get_display().get_monitor_at_point(x, y)
-        else:
-            return screen.get_monitor_at_point(x, y)
+        return screen.get_display().get_monitor_at_point(x, y)
 
     def __set_dock_strut(self, x, y, w, h):
         if not self.get_window():
             return
-        set_strut = self.globals.settings["dock/behavior"] == "panel"
+        set_strut = self.globals.settings["dock/type"] == "dock" and \
+                self.globals.settings["dock/behavior"] == "standard"
         if not set_strut:
             topw = XDisplay.create_resource_object('window',
                                     self.get_toplevel().get_window().get_xid())
@@ -817,17 +809,18 @@ class DockX(CairoDockX):
             strut = [0, 0, y + h, 0, 0, 0, 0, 0, x, x + w - 1, 0, 0]
         else:
             strut = [0, 0, 0, sh - y, 0, 0, 0, 0, 0, 0, x, x + w - 1]
+        strut = list(map(lambda e: 0 if e < 0 else e, strut))
         topw = XDisplay.create_resource_object('window',
                                 self.get_toplevel().get_window().get_xid())
         topw.change_property(XDisplay.get_atom('_NET_WM_STRUT'),
                              XDisplay.get_atom('CARDINAL'), 32,
                              strut[:4],
                              X.PropModeReplace)
-
         topw.change_property(XDisplay.get_atom('_NET_WM_STRUT_PARTIAL'),
                              XDisplay.get_atom('CARDINAL'), 32,
                              strut,
                              X.PropModeReplace)
+        XDisplay.flush()
 
     def __get_monitor_and_strut_borders(self):
         # This function returns the distance from screen edges to
@@ -943,6 +936,7 @@ class DockX(CairoDockX):
 
     def show_dock(self):
         self.show()
+        self.position_dock()
         if self.globals.settings["dock/mode"] != "centered":
             self.move(self.old_x, self.old_y)
             self.dockbar.dockbar_moved()
@@ -986,10 +980,7 @@ class DockX(CairoDockX):
         if not self.should_autohide:
             self.show_dock()
             return False
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 20:
-            s, x, y = display.get_default_seat().get_pointer().get_position()
-        else:
-            s, x, y, mod = display.get_pointer()
+        s, x, y = display.get_default_seat().get_pointer().get_position()
         if y >= y1 and y <= y2 and x >= x1 and x <= x2:
             self.show_dock()
             return False
@@ -999,11 +990,8 @@ class DockX(CairoDockX):
         if self.globals.shown_popup() is not None or not self.should_autohide:
             return True
         pos = self.globals.settings["dock/position"]
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 20:
-            device = self.get_display().get_default_seat().get_pointer()
-            n, x, y, m = self.get_window().get_device_position(device)
-        else:
-            x, y = self.get_pointer()
+        device = self.get_display().get_default_seat().get_pointer()
+        n, x, y, m = self.get_window().get_device_position(device)
 
         a = self.get_allocation()
         if x >= 0 and x < a.width and y >= 0 and y < a.height:
@@ -1127,7 +1115,7 @@ class DockX(CairoDockX):
         orient = {"top": "up", "left": "left",
                    "right": "right", "bottom": "down"}[pos]
         self.dockbar.set_orient(orient)
-        self.reload()
+        self.reload(keep_locked_popup = True)
 
     def __on_overlap_changed(self, *args):
         a = self.get_allocation()
@@ -1138,7 +1126,7 @@ class DockX(CairoDockX):
         self.position_dock()
 
     def __on_behavior_changed(self, *args):
-        if self.globals.settings["dock/behavior"] in ("panel", "standard"):
+        if self.globals.settings["dock/behavior"] == "standard":
             if self.autohide:
                 self.autohide = False
                 if self.autohide_sid is not None:
@@ -1164,6 +1152,16 @@ class DockX(CairoDockX):
             a = self.get_allocation()
             x, y = self.get_position()
             self.__set_dock_strut(x, y, a.width, a.height)
+
+    def __on_layer_changed(self, *args):
+        layer = self.globals.settings["dock/layer"]
+        if layer == "above other windows":
+            self.set_keep_above(True)
+        elif layer == "below other windows":
+            self.set_keep_below(True)
+        else:
+            self.set_keep_above(False)
+            self.set_keep_below(False)
 
     def __on_dock_theme_reloaded(self, *args):
         self.compute_padding()
@@ -1244,8 +1242,9 @@ class DockX(CairoDockX):
 
     def __calulate_db_max_size_on_realized(self):
         # Wait while gtk events are pending.
-        while Gtk.events_pending():
-                    Gtk.main_iteration()
+        ctx = GLib.MainContext.default()
+        while ctx.pending():
+            ctx.iteration(False)
         self.calculate_dockbar_max_size()
 
     def get_screen_geometry(self):
@@ -1257,20 +1256,16 @@ class DockX(CairoDockX):
         if screen is None:
             screen = Gdk.Screen.get_default()
         geo = Gdk.Rectangle()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            display = screen.get_display();
-            for i in range(0, display.get_n_monitors()):
-                monitor = display.get_monitor(i)
-                monitor_geo = monitor.get_geometry()
-                w = monitor_geo.x + monitor_geo.width
-                if w > geo.width:
-                    geo.width = w
-                h = monitor_geo.y + monitor_geo.height
-                if h > geo.height:
-                    geo.height = h
-        else:
-            geo.width = screen.get_width();
-            geo.height = screen.get_height();
+        display = screen.get_display();
+        for i in range(0, display.get_n_monitors()):
+            monitor = display.get_monitor(i)
+            monitor_geo = monitor.get_geometry()
+            w = monitor_geo.x + monitor_geo.width
+            if w > geo.width:
+                geo.width = w
+            h = monitor_geo.y + monitor_geo.height
+            if h > geo.height:
+                geo.height = h
         return geo
 
     def get_monitor_geometry(self):
@@ -1281,27 +1276,34 @@ class DockX(CairoDockX):
             screen = None
         if screen is None:
             screen = Gdk.Screen.get_default()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            return screen.get_display().get_primary_monitor().get_geometry();
-        else:
-            return screen.get_monitor_geometry(self.monitor)
+        return screen.get_display().get_primary_monitor().get_geometry();
 
     def reload_applets(self):
         #self.applets.find_applets()
         self.__rebuild()
 
-    def reload(self, *args):
+    def reload(self, keep_locked_popup=False, *args):
         self.db_loaded = False
-        self.dockbar.reload(tell_parent=False)
+        if keep_locked_popup:
+            locked_popup = self.globals.get_locked_popup()
+            if locked_popup:
+                locked_group_id = locked_popup.group_r().identifier
+            else:
+                locked_group_id = None
+        else:
+            locked_group_id = None
+        self.dockbar.reload(tell_parent=False, locked_group=locked_group_id)
         self.db_loaded = True
         self.applets.find_applets()
         self.theme.reload()
         # self.position_dock(rebuild=True)  # already in __on_dock_theme_reloaded
         if self.autohide:
             self.__compute_should_autohide()
+            self.show_dock()
 
     def on_destroy(self, *args):
-        Gtk.main_quit()
+        self.dockbar.destroy()
+        self.app.quit()
 
     #### Menu stuff
     def create_popup_menu(self, event):
@@ -1334,7 +1336,7 @@ class DockX(CairoDockX):
         menushell.destroy()
 
     def __menu_close_selected(self, *args):
-        Gtk.main_quit()
+        self.on_destroy()
 
     def __menu_preferences_selected(self, *args):
         os.spawnlp(os.P_NOWAIT,"dbx_preference",
@@ -1356,6 +1358,8 @@ class EventPadding(Gtk.EventBox):
         self.position = None
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
+        self.drag_launcher = False
+        self.on_drop = False
         self.connect("button-release-event", self.on_button_release_event)
         self.connect("drag-motion", self.on_drag_motion)
         self.connect("drag-leave", self.on_drag_leave)
@@ -1398,13 +1402,12 @@ class EventPadding(Gtk.EventBox):
     def on_drag_drop(self, widget, drag_context, x, y, t):
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
-            self.drag_get_data(drag_context, "text/groupbutton_name", t)
-            drag_context.finish(True, False, t)
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/groupbutton_name", False), t)
         elif "text/uri-list" in targets:
-            self.drag_get_data(drag_context, "text/uri-list", t)
-            drag_context.finish(True, False, t)
+            self.on_drop = True
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/uri-list", False), t)
         else:
-            drag_context.finish(False, False, t)
+            return False
         return True
 
     def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
@@ -1412,127 +1415,139 @@ class EventPadding(Gtk.EventBox):
             return
         selection_target = selection.get_target().name()
         if selection_target == "text/groupbutton_name":
-            self.dock_r().dockbar.groupbutton_moved(selection.get_data(),
-                                                    self.position)
+            data = selection.get_data().decode()
+            self.dock_r().dockbar.groupbutton_moved(data, self.position)
+            context.finish(True, False, t)
         elif selection_target == "text/uri-list":
-            if ".desktop" in selection.get_data():
-                # .desktop file! This is a potential launcher.
-                #remove "file://" and "/n" from the URI
-                path = selection.get_data()
-                if path.startswith("file://"):
-                    path = path[7:]
-                else:
-                    # No support for other kind of uris.
-                    return
-                path = path.rstrip()
-                path = path.replace("%20"," ")
-                self.dock_r().dockbar.launcher_dropped(path, self.position)
+            dropped = False
+            for uri in selection.get_uris():
+                uri = uri.replace('\000', '')     # for spacefm
+                if uri.startswith("file://") and uri.endswith(".desktop"):
+                    # .desktop file! This is a potential launcher.
+                    if self.on_drop:
+                        #remove "file://" from the URI
+                        path = uri[7:]
+                        path = urllib.parse.unquote(path)
+                        self.dock_r().dockbar.launcher_dropped(path, self.position)
+                        dropped = True
+                    else:
+                        self.drag_launcher = True
+                        break
+            if self.on_drop:
+                context.finish(dropped, False, t)
+            else:
+                self.on_drag_motion(widget, context, x, y, t)
 
     def on_drag_motion(self, widget, drag_context, x, y, t):
         if not self.position in ("before", "after"):
             return True
         if not self.drag_entered:
             self.on_drag_enter(widget, drag_context, x, y, t)
+            return True
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
             Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, t)
         elif "text/uri-list" in targets:
-            Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
+            if self.drag_launcher:
+                Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
+            else:
+                Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         else:
             Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
         return True
 
     def on_drag_enter(self, widget, drag_context, x, y, t):
         self.drag_entered = True
+        targets = [target.name() for target in drag_context.list_targets()]
+        if "text/groupbutton_name" in targets:
+            pass
+        elif "text/uri-list" in targets:
+            self.on_drop = False
+            self.drag_launcher = False
+            self.drag_get_data(drag_context, Gdk.Atom.intern("text/uri-list", False), t)
+
 
     def on_drag_leave(self, widget, drag_context, t):
         self.drag_entered = False
 
-class DockXDBus(dbus.service.Object):
+class DockXApp(Gtk.Application):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, application_id="org.dockbar.DockX", flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE, **kwargs)
+        self.window = None
+        self.monitor = 0
+        self.add_main_option("monitor", 0, GLib.OptionFlags.IN_MAIN, GLib.OptionArg.INT, "show on specified monitor", None)
 
-    def __init__(self, dockx):
-        self.bus_name = "org.dockbar.DockX"
-        if "org.dockbar.DockX" in dbus.SessionBus().list_names():
-            for n in range(1, 100):
-                name = "org.dockbar.DockX%s" % n
-                if not name in dbus.SessionBus().list_names():
-                    self.bus_name = name
-                    break
-        self.dockx_r = weakref.ref(dockx)
-        bus_name = dbus.service.BusName(self.bus_name,
-                                        bus = dbus.SessionBus())
-        dbus.service.Object.__init__(self, bus_name,
-                                     "/org/dockbar/DockX")
+    def do_startup(self):
+        Gtk.Application.do_startup(self)
+        self.register_dbus()
+        
+    def do_activate(self):
+        if not self.window:
+            self.window = DockX(application=self, monitor=self.monitor)
+            self.add_window(self.window)
+            GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.window.on_destroy)
+        self.window.present()
 
-    @dbus.service.method(dbus_interface="org.dockbar.DockX",
-                         in_signature="", out_signature="",)
-    def Reload(self):
-        self.dockx_r().reload()
+    def do_command_line(self, command_line):
+        options = command_line.get_options_dict()
+        options = options.end().unpack()
+        if "monitor" in options:
+            self.monitor = int(options["monitor"])
+        self.activate()
+        return 0
 
-    @dbus.service.method(dbus_interface="org.dockbar.DockX",
-                         in_signature="", out_signature="s",)
-    def GetPosition(self):
-        return self.dockx_r().globals.settings["dock/position"]
+    def register_dbus(self):
+        dbus_xml = \
+            "<node>" \
+              "<interface name='org.dockbar.DockX'>" \
+                "<method name='Reload'/>" \
+                "<method name='GetPosition'>" \
+                  "<arg type='s' name='pos' direction='out'/>" \
+                "</method>" \
+                "<method name='GetFullSize'>" \
+                  "<arg type='i' name='size' direction='out'/>" \
+                "</method>" \
+                "<method name='GetSize'>" \
+                  "<arg type='i' name='size' direction='out'/>" \
+                "</method>" \
+              "</interface>" \
+            "</node>"
+        info = Gio.DBusNodeInfo.new_for_xml(dbus_xml)
+        iface = info.lookup_interface("org.dockbar.DockX")
+        dbus = self.get_dbus_connection()
+        dbus_path = self.get_dbus_object_path()
+        dbus.register_object(dbus_path, iface, self.dbus_method_call, None, None);
 
-    @dbus.service.method(dbus_interface="org.dockbar.DockX",
-                         in_signature="", out_signature="i",)
-    def GetFullSize(self):
-        dockx = self.dockx_r()
-        rel_size = float(dockx.theme.get("rel_size", 100))
-        size = dockx.globals.settings["dock/size"]
-        return max(size, int(size * rel_size / 100))
-
-    @dbus.service.method(dbus_interface="org.dockbar.DockX",
-                         in_signature="", out_signature="i",)
-    def GetSize(self):
-        return self.dockx_r().globals.settings["dock/size"]
-
-
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='ss', out_signature='v')
-    def Get(self, interface_name, property_name):
-        return self.GetAll(interface_name)[property_name]
-
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='s', out_signature='a{sv}')
-    def GetAll(self, interface_name):
-        if interface_name == "org.dockbar.DockX":
-            return {}
+    def dbus_method_call(self, connection, sender, object_path, interface_name, method_name, parameters, invocation):
+        ret = None
+        if self.window is None:
+            err = Gio.DBusError.FAILED
+            err_message = "Not ready yet"
+        if method_name == "Reload":
+            self.window.reload()
+            ret = GLib.Variant.new_tuple()
+        elif method_name == "GetPosition":
+            pos = self.window.globals.settings["dock/position"]
+            ret = GLib.Variant.new_tuple(GLib.Variant.new_string(pos))
+        elif method_name == "GetFullSize":
+            rel_size = float(self.window.theme.get("rel_size", 100))
+            size = self.window.globals.settings["dock/size"]
+            full_size = max(size, int(size * rel_size / 100))
+            ret = GLib.Variant.new_tuple(GLib.Variant.new_int32(full_size))
+        elif method_name == "GetSize":
+            size = self.window.globals.settings["dock/size"]
+            ret = GLib.Variant.new_tuple(GLib.Variant.new_int32(size))
         else:
-            raise dbus.exceptions.DBusException(
-                'com.example.UnknownInterface',
-                'The Foo object does not implement the %s interface'
-                    % interface_name)
+            err = Gio.DBusError.UNKNOWN_METHOD
+            err_message = "No such method: %s" % method_name
 
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='ssv', out_signature='')
-    def Set(self, interface_name, property_name, property_value):
-        pass
-
-    @dbus.service.signal(dbus_interface=dbus.PROPERTIES_IFACE,
-                         signature='sa{sv}as')
-    def PropertiesChanged(self, interface_name, changed_properties,
-                          invalidated_properties):
-        pass
+        if ret is not None:
+            invocation.return_value(ret)
+        else:
+            invocation.return_error_literal(err.quark(), err, err_message)
 
 
-monitor = 0
-argv = sys.argv
-if "--monitor" in argv:
-    i = argv.index("--monitor")
-    try:
-        monitor = int(sys.argv[i + 1])
-    except IndexError:
-        print("Warning: No monitor specified", file=sys.stderr)
-    except ValueError:
-        print("Warning: Invalid monitor index: " + sys.argv[i + 1], file=sys.stderr)
-    argv = argv[:i] + argv[i + 2:]
-Gtk.init(argv)
 if not check_x11():
     sys.exit(1)
-dockx = DockX(monitor)
-del monitor
-del argv
-signal.signal(signal.SIGINT, dockx.on_destroy)
-Gtk.main()
+DockXApp().run(sys.argv)
 

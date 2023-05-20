@@ -185,14 +185,9 @@ class PrefDialog(DockXAppletDialog):
         label = Gtk.Label(label='Theme:')
         themes = self.find_themes()
         self.theme_combo = Gtk.ComboBoxText()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            label.set_margin_start(5)
-            label.set_margin_end(5)
-            self.theme_combo.set_margin_end(5)
-        else:
-            label.set_margin_left(5)
-            label.set_margin_right(5)
-            self.theme_combo.set_margin_right(5)
+        label.set_margin_start(5)
+        label.set_margin_end(5)
+        self.theme_combo.set_margin_end(5)
         for theme in list(themes.keys()):
                 self.theme_combo.append_text(theme)
         self.theme_combo.connect('changed', self.cb_changed)
@@ -216,10 +211,7 @@ class PrefDialog(DockXAppletDialog):
         image = Gtk.Image.new_from_icon_name("edit-clear", Gtk.IconSize.SMALL_TOOLBAR)
         self.reset_custom_layout_button.add(image)
         self.reset_custom_layout_button.connect("clicked", self.reset_custom_layout)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.reset_custom_layout_button.set_margin_end(5)
-        else:
-            self.reset_custom_layout_button.set_margin_right(5)
+        self.reset_custom_layout_button.set_margin_end(5)
         hbox.pack_start(self.reset_custom_layout_button, False, False, 1)
 
         vbox.pack_start(hbox, True, True, 0)
@@ -238,12 +230,8 @@ class PrefDialog(DockXAppletDialog):
         label = Gtk.Label.new("Display")
         label.set_halign(Gtk.Align.END)
         self.show_title_cbt = Gtk.ComboBoxText()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            label.set_margin_start(5)
-            self.show_title_cbt.set_margin_end(5)
-        else:
-            label.set_margin_left(5)
-            self.show_title_cbt.set_margin_right(5)
+        label.set_margin_start(5)
+        self.show_title_cbt.set_margin_end(5)
         
         self.show_title_options = {_("Title of the active window"): "always",
                                    _("Title of the topmost maximized window"): "maximized"}
@@ -270,10 +258,7 @@ class PrefDialog(DockXAppletDialog):
             text = font_settings_and_labels[name]
             label = Gtk.Label.new(text)
             self.font_button = Gtk.FontButton()
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-                label.set_margin_start(5)
-            else:
-                label.set_margin_left(5)
+            label.set_margin_start(5)
             label.set_halign(Gtk.Align.END)
             self.font_buttons[name] = Gtk.FontButton()
             self.font_buttons[name].set_use_font(True)
@@ -286,10 +271,7 @@ class PrefDialog(DockXAppletDialog):
             image = Gtk.Image.new_from_icon_name("edit-clear", Gtk.IconSize.SMALL_TOOLBAR)
             self.font_clear_buttons[name].add(image)
             self.font_clear_buttons[name].connect("clicked", self.font_reset, name)
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-                self.font_clear_buttons[name].set_margin_end(5)
-            else:
-                self.font_clear_buttons[name].set_margin_right(5)
+            self.font_clear_buttons[name].set_margin_end(5)
             table.attach(label, 0, row, 1, 1)
             table.attach(self.font_buttons[name], 1, row, 1, 1)
             table.attach(self.font_clear_buttons[name], 2, row, 1, 1)
@@ -297,27 +279,18 @@ class PrefDialog(DockXAppletDialog):
             row += 1
             text = color_settings_and_labels[name]
             label = Gtk.Label.new(text)
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-                label.set_margin_start(5)
-            else:
-                label.set_margin_left(5)
+            label.set_margin_start(5)
             label.set_halign(Gtk.Align.END)
             self.color_buttons[name] = Gtk.ColorButton()
             self.color_buttons[name].set_title(text)
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-                Gtk.ColorChooser.set_use_alpha(self.color_buttons[name], hasattr(Pango, "attr_foreground_alpha_new"))
-            else:
-                self.color_buttons[name].set_use_alpha(hasattr(Pango, "attr_foreground_alpha_new"))
+            Gtk.ColorChooser.set_use_alpha(self.color_buttons[name], hasattr(Pango, "attr_foreground_alpha_new"))
             self.color_buttons[name].set_hexpand(True)
             self.color_buttons[name].connect("color-set", self.color_set, name)
             self.color_clear_buttons[name] = Gtk.Button()
             image = Gtk.Image.new_from_icon_name("edit-clear", Gtk.IconSize.SMALL_TOOLBAR)
             self.color_clear_buttons[name].add(image)
             self.color_clear_buttons[name].connect("clicked", self.color_reset, name)
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-                self.color_clear_buttons[name].set_margin_end(5)
-            else:
-                self.color_clear_buttons[name].set_margin_right(5)
+            self.color_clear_buttons[name].set_margin_end(5)
             table.attach(label, 0, row, 1, 1)
             table.attach(self.color_buttons[name], 1, row, 1, 1)
             table.attach(self.color_clear_buttons[name], 2, row, 1, 1)
@@ -326,12 +299,8 @@ class PrefDialog(DockXAppletDialog):
         label = Gtk.Label.new(_("Alignment"))
         label.set_halign(Gtk.Align.END)
         self.al_cbt = Gtk.ComboBoxText()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            label.set_margin_start(5)
-            self.al_cbt.set_margin_end(5)
-        else:
-            label.set_margin_left(5)
-            self.al_cbt.set_margin_right(5)
+        label.set_margin_start(5)
+        self.al_cbt.set_margin_end(5)
         self.alignment_options = {_("Left / Top"): "left / top",
                                   _("Center"): "center",
                                   _("Right / Bottom"): "right / bottom" }
@@ -349,19 +318,13 @@ class PrefDialog(DockXAppletDialog):
 
         row += 1
         label = Gtk.Label.new(_("Size"))
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            label.set_margin_end(5)
-        else:
-            label.set_margin_right(5)
+        label.set_margin_end(5)
         label.set_halign(Gtk.Align.END)
         table.attach(label, 0, row, 1, 1)
         adj = Gtk.Adjustment(0, 100, 10000, 1, 50)
         self.size_spin = Gtk.SpinButton.new(adj, 0.5, 0)
         self.size_spin.set_hexpand(True)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.size_spin.set_margin_end(5)
-        else:
-            self.size_spin.set_margin_right(5)
+        self.size_spin.set_margin_end(5)
         adj.connect("value_changed", self.spin_changed, self.size_spin)
         table.attach(self.size_spin, 1, row, 2, 1)
 
@@ -401,10 +364,7 @@ class PrefDialog(DockXAppletDialog):
             self.set_button_color(self.color_buttons[state], state, color=value)
         elif key == 'active_font' or key == "passive_font":
             state = key.split("_")[0]
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
-                Gtk.FontChooser.set_font(self.font_buttons[state], value)
-            else:
-                self.font_buttons[state].set_font_name(value)
+            Gtk.FontChooser.set_font(self.font_buttons[state], value)
         elif key == 'active_alpha' or key == "passive_alpha":
             state = key.split("_")[0]
             self.set_button_color(self.color_buttons[state], state, alpha=value)
@@ -417,14 +377,10 @@ class PrefDialog(DockXAppletDialog):
             color = self.get_setting(state + "_color")
         if alpha is None:
             alpha = self.get_setting(state + "_alpha")
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            rgba = Gdk.RGBA()
-            Gdk.RGBA.parse(rgba, color)
-            rgba.alpha = alpha / 255
-            Gtk.ColorChooser.set_rgba(button, rgba)
-        else:
-            button.set_color(Gdk.color_parse(color))
-            button.set_alpha(alpha * 257)
+        rgba = Gdk.RGBA()
+        Gdk.RGBA.parse(rgba, color)
+        rgba.alpha = alpha / 255
+        Gtk.ColorChooser.set_rgba(button, rgba)
 
     def update(self):
         prefs = ("show_title", "use_custom_layout", "custom_layout",
@@ -468,10 +424,7 @@ class PrefDialog(DockXAppletDialog):
         self.set_setting("custom_layout", None, ignore_changed_event=False)
 
     def font_set(self, button, setting_base):
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 2:
-            font = Gtk.FontChooser.get_font(button)
-        else:
-            font = button.get_font_name()
+        font = Gtk.FontChooser.get_font(button)
         self.set_setting(setting_base+"_font", font)
 
     def font_reset(self, button, setting_base):
@@ -482,17 +435,9 @@ class PrefDialog(DockXAppletDialog):
         # Read the value from color (and alpha) and write
         # it as 8-bit/channel hex string.
         # (Alpha is written like int (0-255).)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 4:
-            rgba = Gtk.ColorChooser.get_rgba(button)
-            new_color = "#%02x%02x%02x" % (round(rgba.red * 255), round(rgba.green * 255), round(rgba.blue * 255))
-            new_alpha = round(rgba.alpha * 255)
-        else:
-            color = button.get_color()
-            alpha = button.get_alpha()
-            cs = color.to_string()
-            # cs has 16-bit per color, we want 8.
-            new_color = cs[0:3] + cs[5:7] + cs[9:11]
-            new_alpha = min(int(button.get_alpha() / 257), 255)
+        rgba = Gtk.ColorChooser.get_rgba(button)
+        new_color = "#%02x%02x%02x" % (round(rgba.red * 255), round(rgba.green * 255), round(rgba.blue * 255))
+        new_alpha = round(rgba.alpha * 255)
         self.set_setting(setting_base+"_color", new_color)
         self.set_setting(setting_base+"_alpha", new_alpha)
 
@@ -532,12 +477,8 @@ class PrefDialog(DockXAppletDialog):
 
 def create_context_menu(applet_id):
     menu = Gtk.Menu()
-    if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 10:
-        pref_item = Gtk.MenuItem.new_with_mnemonic(_("_Preferences"))
-        about_item = Gtk.MenuItem.new_with_mnemonic(_("_About"))
-    else:
-        pref_item = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
-        about_item = Gtk.ImageMenuItem(Gtk.STOCK_ABOUT)
+    pref_item = Gtk.MenuItem.new_with_mnemonic(_("_Preferences"))
+    about_item = Gtk.MenuItem.new_with_mnemonic(_("_About"))
     menu.append(pref_item)
     menu.append(about_item)
     pref_item.connect('activate', open_pref_dialog, applet_id)

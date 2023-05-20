@@ -57,7 +57,7 @@ class DockbarMateApplet(object):
         # been set correctly by a size allocate call.
         self.applet_origin_x = -1000
         self.applet_origin_y = -1000
-        #~ applet.connect("delete-event", self.__cleanup)
+        applet.connect("delete-event", self.__cleanup)
         applet.show_all()
 
         # Most of initializion must happen after dockbarx is
@@ -127,7 +127,8 @@ class DockbarMateApplet(object):
         container.show_all()
 
     def __cleanup(self,event):
-        pass
+        if hasattr(self.dockbar, "destroy"):
+            self.dockbar.destroy()
 
 
 def applet_factory(applet, iid, data):

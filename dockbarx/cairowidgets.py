@@ -29,7 +29,6 @@ from gi.repository import GLib
 gi.require_version("PangoCairo", "1.0")
 from gi.repository import PangoCairo
 from gi.repository import Pango
-from gi.repository import cairo as gicairo
 import cairo
 
 from .common import Globals, connect, disconnect
@@ -487,13 +486,14 @@ class CairoPopup(Gtk.Window):
         gdk_screen = Gdk.Screen.get_default()
         visual = gdk_screen.get_rgba_visual()
         if visual is None:
-            visual = gdk_screen.get_rgb_visual()
+            visual = gdk_screen.get_system_visual()
         self.set_visual(visual)
         self.set_app_paintable(1)
         self.globals = Globals()
         self.popup_style = PopupStyle()
         self.popup_type = type_
         self._pointer_is_inside = False
+        self.shape_mask = False
 
         self.childbox = Gtk.Box()
         Gtk.Window.add(self, self.childbox)
@@ -529,12 +529,8 @@ class CairoPopup(Gtk.Window):
     def set_padding(self, top, bottom, left, right):
         self.childbox.set_margin_top(top)
         self.childbox.set_margin_bottom(bottom)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.childbox.set_margin_start(left)
-            self.childbox.set_margin_end(right)
-        else:
-            self.childbox.set_margin_left(left)
-            self.childbox.set_margin_right(right)
+        self.childbox.set_margin_start(left)
+        self.childbox.set_margin_end(right)
 
     def add(self, child):
         self.childbox.add(child)
@@ -555,8 +551,8 @@ class CairoPopup(Gtk.Window):
             self.set_padding(*padding)
 
     def on_draw(self, widget, ctx):
-        #~ self.set_shape_mask()
-        w,h = self.get_size()
+        a = self.get_allocation()
+        w, h = a.width, a.height
         if self.is_composited():
             ctx.set_source_rgba(1, 1, 1, 0)
         else:
@@ -566,6 +562,12 @@ class CairoPopup(Gtk.Window):
         ctx.set_operator(cairo.OPERATOR_OVER)
         self.draw_frame(ctx, w, h)
 
+    def update_shape(self):
+        if self.globals.settings["shape_mask"]:
+            self.set_shape_mask()
+        elif self.shape_mask:
+            self.clear_shape_mask()
+
     def set_shape_mask(self):
         # Set window shape from alpha mask of background image
         w,h = self.get_size()
@@ -573,24 +575,21 @@ class CairoPopup(Gtk.Window):
         if h==0: h = 600
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         ctx = cairo.Context(surface)
-        ctx.set_source_rgba(0, 0, 0,0)
+        ctx.set_source_rgba(0, 0, 0, 0)
         ctx.set_operator (cairo.OPERATOR_SOURCE)
         ctx.paint()
         r = int(self.popup_style.get("popup_roundness", 6))
-        if self.is_composited():
-            make_path(ctx, 0, 0, w, h, r, 0,
-                      self.__get_arrow_size(), self.pointer, self.ap)
-            ctx.set_source_rgba(1, 1, 1, 1)
-            ctx.fill()
-            region = gicairo.Region.create_from_surface(surface)
-            self.input_shape_combine_region(surface)
-        else:
-            make_path(ctx, 0, 0, w, h, r, 1,
-                      self.__get_arrow_size(), self.pointer, self.ap)
-            ctx.set_source_rgb(0, 0, 0)
-            ctx.fill()
-            region = Gdk.cairo_region_create_from_surface(surface)
-            self.shape_combine_region(region)
+        make_path(ctx, 0, 0, w, h, r, 2,
+                  self.__get_arrow_size(), self.pointer, self.ap)
+        ctx.set_source_rgb(0, 0, 0)
+        ctx.fill()
+        region = Gdk.cairo_region_create_from_surface(surface)
+        self.shape_combine_region(region)
+        self.shape_mask = True
+
+    def clear_shape_mask(self):
+        self.shape_combine_region(None)
+        self.shape_mask = False
 
     def draw_frame(self, ctx, w, h):
         color = self.globals.colors["color1"]
@@ -776,12 +775,8 @@ class CairoPopup(Gtk.Window):
         a = self.get_allocation()
         top = self.get_margin_top()
         bottom = self.get_margin_bottom()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            left = self.get_margin_start()
-            right = self.get_margin_end()
-        else:
-            left = self.get_margin_left()
-            right = self.get_margin_right()
+        left = self.get_margin_start()
+        right = self.get_margin_end()
         x, y = self.get_pointer()
         if x >= left and x < a.width - right and \
            y >= top and y <= a.height - bottom:
@@ -887,7 +882,6 @@ class CairoArea(Gtk.Bin):
         self.active_window = False
         self.needs_attention = False
         self.minimized = False
-        self.preview_allocation = [0, 0, 0, 0]
         if text:
             self.label = Gtk.Label()
             self.add(self.label)
@@ -918,12 +912,8 @@ class CairoArea(Gtk.Bin):
             return
         child.set_margin_top(top)
         child.set_margin_bottom(bottom)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            child.set_margin_start(left)
-            child.set_margin_end(right)
-        else:
-            child.set_margin_left(left)
-            child.set_margin_right(right)
+        child.set_margin_start(left)
+        child.set_margin_end(right)
 
     def set_label_color(self, color):
         if self.label is None:
@@ -937,10 +927,6 @@ class CairoArea(Gtk.Bin):
     def on_draw(self, widget, ctx):
         a = self.get_allocation()
         mx , my = self.get_pointer()
-        preview = self.globals.settings["preview"] and \
-                  self.globals.get_compiz_version() >= "0.9" and \
-                  (self.globals.settings["preview_minimized"] or \
-                   not self.minimized)
         highlighted = self.highlighted or \
                       (mx >= 0 and mx < a.width and my >= 0 and my < a.height)
         if self.needs_attention:
@@ -949,13 +935,6 @@ class CairoArea(Gtk.Bin):
             self.draw_type_frame(ctx, 0, 0, a.width, a.height, "active_item")
         if highlighted:
             self.draw_frame(ctx, 0, 0, a.width, a.height)
-        # Empty preview space
-        if preview:
-            # Todo: Check preview allocation, does it contain allocation offsets (a.x, a.y)? If so, change it.
-            ctx.rectangle(*self.preview_allocation)
-            ctx.set_source_rgba(1, 1, 1, 0)
-            ctx.set_operator(cairo.OPERATOR_SOURCE)
-            ctx.fill()
         return
 
     def draw_frame(self, ctx, x, y, w, h):
@@ -1040,9 +1019,6 @@ class CairoArea(Gtk.Bin):
         self.minimized = minimized
         self.queue_draw()
 
-    def set_preview_allocation(self, allocation):
-        self.preview_allocation = allocation
-
     def pointer_is_inside(self):
         mx,my = self.get_pointer()
         a = self.get_allocation()
@@ -1081,12 +1057,8 @@ class CairoCheckMenuItem(CairoMenuItem):
         CairoMenuItem.__init__(self, None)
         self.indicator = Gtk.CheckMenuItem()
         self.indicator.set_draw_as_radio(toggle_type == "radio")
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 12:
-            self.indicator.set_margin_start(12)
-            self.indicator.set_margin_end(5)
-        else:
-            self.indicator.set_margin_left(12)
-            self.indicator.set_margin_right(5)
+        self.indicator.set_margin_start(12)
+        self.indicator.set_margin_end(5)
         self.area.label = Gtk.Label()
         hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.indicator.set_halign(Gtk.Align.END)

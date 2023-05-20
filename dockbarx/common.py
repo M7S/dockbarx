@@ -35,7 +35,11 @@ import locale
 from .log import logger
 import sys
 import struct
-from Xlib import display
+from Xlib import display, X
+
+import _thread
+from Xlib.ext import record
+from Xlib.protocol import rq
 
 
 DBusGMainLoop(set_as_default=True) # for async calls
@@ -373,7 +377,72 @@ class DesktopEntry(xdg.DesktopEntry.DesktopEntry):
             return None
 
 
+class XEventObserver(GObject.GObject):
+    __gsignals__ = {
+        "window-update": (GObject.SignalFlags.RUN_FIRST, None, (int,))
+    }
 
+    def __init__(self):
+        GObject.GObject.__init__(self)
+        self.dpy = display.Display()
+        self.dpy2 = display.Display()
+        self.atoms = (self.dpy.get_atom("_NET_WM_USER_TIME") ,
+                      self.dpy.get_atom("_NET_WM_OPAQUE_REGION"))
+        self.running = False
+        if not self.dpy.has_extension("RECORD"):
+            logger.warn("RECORD extension not found")
+            self.ctx = None
+        else:
+            self.ctx = self.dpy.record_create_context(
+                0,
+                [record.AllClients],
+                [{
+                    'core_requests': (0, 0),
+                    'core_replies': (0, 0),
+                    'ext_requests': (0, 0, 0, 0),
+                    'ext_replies': (0, 0, 0, 0),
+                    'delivered_events': (X.PropertyNotify, X.PropertyNotify),
+                    'device_events': (0, 0),
+                    'errors': (0, 0),
+                    'client_started': False,
+                    'client_died': False,
+                }])
+
+    def destroy(self):
+        if self.ctx is not None:
+            self.stop()
+            self.dpy.record_free_context(self.ctx)
+            self.ctx = None
+
+    def start(self):
+        if self.running:
+            return
+        if self.ctx is None:
+            return
+        self.running = True
+        _thread.start_new_thread(self.dpy.record_enable_context, (self.ctx, self._notify))
+
+    def stop(self):
+        if self.running:
+            self.dpy2.record_disable_context(self.ctx)
+            self.dpy2.sync()
+            self.running = False
+
+    def _notify(self, reply):
+        if reply.category != record.FromServer:
+            return
+        if reply.client_swapped:
+            return
+        if not len(reply.data) or reply.data[0] < 2:
+            # not an event
+            return
+        data = reply.data
+        while len(data):
+            event, data = rq.EventField(None).parse_binary_value(data, self.dpy.display, None, None)
+            # event.type == X.PropertyNotify:
+            if event.atom in self.atoms:
+                # emit signals in main thread
+                GLib.idle_add(lambda: self.emit("window-update", event.window.id))
 
 class Opacify():
     def __init__(self):
@@ -568,8 +637,12 @@ class Globals(GObject.GObject):
         "unity-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "show-tooltip-changed": (GObject.SignalFlags.RUN_FIRST,
                                  None,()),
+        "no-window-list-changed": (GObject.SignalFlags.RUN_FIRST,
+                                 None,()),
         "show-previews-changed": (GObject.SignalFlags.RUN_FIRST,
                                   None,()),
+        "keep-previews-changed": (GObject.SignalFlags.RUN_FIRST,
+                                 None,()),
         "preview-size-changed": (GObject.SignalFlags.RUN_FIRST,
                                  None,()),
         "window-title-width-changed": (GObject.SignalFlags.RUN_FIRST,
@@ -582,18 +655,22 @@ class Globals(GObject.GObject):
         "gkey-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "use-number-shortcuts-changed": (GObject.SignalFlags.RUN_FIRST,
                                          None,()),
+        "use-number-shortcuts-shift-launch-changed": (GObject.SignalFlags.RUN_FIRST,
+                                                      None,()),
         "show-close-button-changed": (GObject.SignalFlags.RUN_FIRST,
                                       None,()),
         "dock-size-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-position-changed": (GObject.SignalFlags.RUN_FIRST,
                                       None,()),
         "dock-mode-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
+        "dock-type-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-offset-changed": (GObject.SignalFlags.RUN_FIRST,
                                 None,()),
         "dock-overlap-changed": (GObject.SignalFlags.RUN_FIRST,
                                  None,()),
         "dock-behavior-changed": (GObject.SignalFlags.RUN_FIRST,
                                   None,()),
+        "dock-layer-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-theme-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-color-changed": (GObject.SignalFlags.RUN_FIRST, None,()),
         "dock-end-decorations-changed": (GObject.SignalFlags.RUN_FIRST,
@@ -616,13 +693,14 @@ class Globals(GObject.GObject):
           "show_only_current_monitor": False,
           "preview": True,
           "preview_size": 150,
-          "preview_minimized": True,
+          "preview_keep": False,
           "old_menu": False,
           "show_close_button": True,
           "locked_list_in_menu": True,
           "locked_list_no_overlap": False,
           "window_title_width": 140,
           "reorder_window_list": True,
+          "shape_mask": False,
 
           "select_one_window": "select or minimize window",
           "select_multiple_windows": "select or minimize all",
@@ -662,6 +740,7 @@ class Globals(GObject.GObject):
           "separate_ooo_apps": True,
 
           "groupbutton_show_tooltip": False,
+          "groupbutton_no_window_list": False,
 
           "groupbutton_left_click_action": "select",
           "groupbutton_shift_and_left_click_action": "launch application",
@@ -707,6 +786,7 @@ class Globals(GObject.GObject):
           "gkeys_select_previous_window_keystr": "<super><control><shift>Tab",
           "gkeys_select_next_group_skip_launchers": False,
           "use_number_shortcuts": True,
+          "use_number_shortcuts_shift_launch": True,
           "launchers": [],
 
           "dock/theme_file": "dbx.tar.gz",
@@ -714,8 +794,10 @@ class Globals(GObject.GObject):
           "dock/size": 42,
           "dock/offset":0,
           "dock/mode": "centered",
-          "dock/behavior": "panel",
+          "dock/type": "dock",
+          "dock/behavior": "standard",
           "dock/end_decorations": False,
+          "dock/layer": "above other windows",
           
           "applets/enabled_list": ["DockbarX"]}
 
@@ -841,10 +923,14 @@ class Globals(GObject.GObject):
             self.emit("show-previews-changed")
         elif "preview_size" == key:
             self.emit("preview-size-changed")
+        elif "preview_keep" == key:
+            self.emit("keep-previews-changed")
         elif "window_title_width" == key:
             self.emit("window-title-width-changed")
         elif "groupbutton_show_tooltip" == key:
             self.emit("show-tooltip-changed")
+        elif "groupbutton_no_window_list" == key:
+            self.emit("no-window-list-changed")
         elif "show_close_button" == key:
             self.emit("show-close-button-changed")
         elif "media_buttons" == key:
@@ -855,6 +941,8 @@ class Globals(GObject.GObject):
             self.emit("unity-changed")
         elif "use_number_shortcuts" == key:
             self.emit("use-number-shortcuts-changed")
+        elif "use_number_shortcuts_shift_launch" == key:
+            self.emit("use-number-shortcuts-shift-launch-changed")
         elif key == "theme":
             self.emit("theme-changed")
         elif key.startswith("color"):
@@ -886,10 +974,14 @@ class Globals(GObject.GObject):
             self.emit("dock-behavior-changed")
         elif "mode" == gkey:
             self.emit("dock-mode-changed")
+        elif "layer" == gkey:
+            self.emit("dock-layer-changed")
         elif "end-decorations" == gkey:
             self.emit("dock-end-decorations-changed")
         elif "theme-file" == gkey:
             self.emit("dock-theme-changed")
+        elif "type" == gkey:
+            self.emit("dock-type-changed")
         self.emit("preference-update")
 
     def __on_applets_gsettings_changed(self, settings, gkey, data=None):
@@ -922,6 +1014,7 @@ class Globals(GObject.GObject):
     def __on_dock_theme_gsettings_changed(self, settings, gkey, data=None):
         colors = self.dock_theme_gsettings.get_value("colors").unpack()
         self.__update_dock_colors(colors)
+        self.emit("dock-theme-changed")
 
     def __get_settings(self, default):
         settings = default.copy()
@@ -998,8 +1091,10 @@ class Globals(GObject.GObject):
             alpha = self.theme_gsettings.get_value(a)
             if self.theme_gsettings.get_user_value(c) is None:
                 self.theme_gsettings.set_value(c, color)
+                self.theme_gsettings.sync()
             if self.theme_gsettings.get_user_value(a) is None:
                 self.theme_gsettings.set_value(a, alpha)
+                self.theme_gsettings.sync()
 
     def update_popup_style(self, default_style):
         # Runs when the theme has changed.
@@ -1060,6 +1155,7 @@ class Globals(GObject.GObject):
         if update_needed:
             self.old_dock_gs_colors = colors
             self.dock_theme_gsettings.set_value("colors", GLib.Variant("a{ss}", colors))
+            self.dock_theme_gsettings.sync()
             self.emit("preference-update")
 
 
@@ -1070,6 +1166,7 @@ class Globals(GObject.GObject):
 
     def set_pinned_apps_list(self, pinned_apps):
         self.gsettings.set_value("launchers", GLib.Variant("as", pinned_apps))
+        self.gsettings.sync()
 
     def set_shown_popup(self, popup):
         if popup is None:
@@ -1100,6 +1197,7 @@ class Globals(GObject.GObject):
 
     def set_applets_enabled_list(self, applets_list):
         self.applets_gsettings.set_value("enabled-list", GLib.Variant("as", applets_list))
+        self.applets_gsettings.sync()
 
 
 __connector = Connector()

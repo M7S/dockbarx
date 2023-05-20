@@ -51,7 +51,7 @@ _ = i18n.language.gettext
 X = None
 
 try:
-    WNCK_WINDOW_ACTION_MAXIMIZE = Wnck.WindowType.ACTION_MAXIMIZE
+    WNCK_WINDOW_ACTION_MAXIMIZE = Wnck.WindowActions.MAXIMIZE
 except:
     WNCK_WINDOW_ACTION_MAXIMIZE = 1 << 14
 
@@ -170,10 +170,7 @@ class Group(ListOfWindows):
         self.update_name()
 
         self.monitor = self.get_monitor()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            mgeo = self.monitor.get_geometry();
-        else:
-            mgeo = Gdk.Screen.get_default().get_monitor_geometry(self.monitor)
+        mgeo = self.monitor.get_geometry();
         self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
 
 
@@ -202,9 +199,9 @@ class Group(ListOfWindows):
         if self.scrollpeak_sid is not None:
             GLib.source_remove(self.scrollpeak_sid)
         if self.deopacify_sid is not None:
-            self.deopacify()
             GLib.source_remove(self.deopacify_sid)
             self.opacify_sid = None
+            self.deopacify()
         if self.opacify_sid is not None:
             GLib.source_remove(self.opacify_sid)
             self.opacify_sid = None
@@ -227,17 +224,11 @@ class Group(ListOfWindows):
     def get_monitor(self):
         window = self.dockbar_r().groups.box.get_window()
         gdk_screen = Gdk.Screen.get_default()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            display = gdk_screen.get_display();
-            if window is not None:
-                return display.get_monitor_at_window(window)
-            else:
-                return display.get_primary_monitor()
+        display = gdk_screen.get_display();
+        if window is not None:
+            return display.get_monitor_at_window(window)
         else:
-            if window is not None:
-                return gdk_screen.get_monitor_at_window(window)
-            else:
-                return 0
+            return display.get_primary_monitor()
 
     def get_app_uri(self):
         if self.desktop_entry is not None:
@@ -250,6 +241,8 @@ class Group(ListOfWindows):
         self.nextlist = None
         for window in self:
             window.desktop_changed()
+
+        self.window_list.set_show_previews(self.globals.settings["preview"])
 
         # hide after the possible enter-notify-event
         GLib.timeout_add(10, self.popup.hide)
@@ -345,11 +338,11 @@ class Group(ListOfWindows):
     def add_locked_popup(self):
         if self.locked_popup:
             return
+        self.popup.hide()
         locked_popup = self.globals.get_locked_popup()
         if locked_popup:
             locked_popup.destroy()
         self.locked_popup = LockedPopup(self)
-        self.popup.hide()
         self.globals.set_locked_popup(self.locked_popup)
         self.locked_popup.show()
 
@@ -357,6 +350,7 @@ class Group(ListOfWindows):
         if self.locked_popup:
             self.locked_popup.destroy()
             self.popup.hide()
+            self.locked_popup = None
 
     #### Window handling
     def add_window(self, wnck_window):
@@ -388,6 +382,9 @@ class Group(ListOfWindows):
             window.item.show()
 
         self.button.update_tooltip()
+
+        if self.globals.settings["preview"] and self.globals.settings["preview_keep"]:
+            window.update_preview_later()
 
         # Set minimize animation
         # (if the eventbox is created already,
@@ -440,6 +437,11 @@ class Group(ListOfWindows):
             self.has_active_window = has_active
             self.button.update_state_if_shown()
 
+    def update_window_previews(self):
+        for window in self.get_windows():
+            if window.item.get_visible():
+                window.update_preview_later()
+
     def needs_attention_changed(self, arg=None, state_update=True):
         # Checks if there are any urgent windows and changes
         # the group button looks if there are at least one
@@ -483,25 +485,34 @@ class Group(ListOfWindows):
             if not self.opacify_sid:
                 # Todo: Would it be better to remove previous delays if
                 # a delay already is set?
-                self.opacify_sid = GLib.timeout_add(delay, self.opacify)
+                self.opacify_sid = GLib.timeout_add(delay, self.opacify_delayed)
             return
+        self.cancel_opacify_request()
+        self.cancel_deopacify_request()
         xids = [window.wnck.get_xid() for window in self]
         opacify(xids, self.identifier)
         self.opacified = True
+
+    def opacify_delayed(self):
         self.opacify_sid = None
+        self.opacify()
 
     def deopacify(self, delay=0):
         if delay:
             if not self.deopacify_sid:
                 # Todo: Would it be better to remove previous delays if
                 # a delay already is set?
-                self.deopacify_sid = GLib.timeout_add(delay, self.deopacify)
+                self.deopacify_sid = GLib.timeout_add(delay, self.deopacify_delayed)
             return
-        if self.button.opacify_sid is not None:
-            GLib.source_remove(self.button.opacify_sid)
-            self.button.opacify_sid = None
         self.cancel_opacify_request()
+        self.cancel_deopacify_request()
+        self.button.cancel_opacify_request()
         deopacify(self.identifier)
+        self.opacified = False
+
+    def deopacify_delayed(self):
+        self.deopacify_sid = None
+        self.deopacify()
 
     def cancel_opacify_request(self):
         if self.opacify_sid:
@@ -527,6 +538,9 @@ class Group(ListOfWindows):
             self.window_list.remove_plugin(self.media_controls)
             self.media_controls = None
             self.button.update_tooltip()
+            if self.popup.popup_showing:
+                if self.get_count() == 0:
+                    self.popup.hide()
 
     def get_desktop_entry_file_name(self):
         if self.desktop_entry:
@@ -612,6 +626,7 @@ class Group(ListOfWindows):
             if not window.wnck.is_maximized() \
             and window.wnck.get_actions() & WNCK_WINDOW_ACTION_MAXIMIZE:
                 maximize = True
+                break
         else:
             maximize = False
         minimize = self.get_unminimized_count() > 0
@@ -782,17 +797,18 @@ class Group(ListOfWindows):
                 x -= w - a.width
         return (x, y, False)
 
-    def __menu_closed(self, menushell):
+    def __menu_closed(self, menushell=None):
         # Used only with the gtk menu
-        self.globals.gtkmenu = None
-        self.menu.delete_menu()
-        self.menu = None
+        if self.globals.gtkmenu:
+            self.globals.gtkmenu = None
+            self.menu.delete_menu()
+            self.menu = None
 
     def __menu_unminimize_all_windows(self, widget=None, event=None):
         if event:
             t = event.time
         else:
-            t = 1
+            t = GdkX11.x11_get_server_time(Gdk.get_default_root_window())
         for window in self.get_minimized_windows():
             window.wnck.unminimize(t)
         self.popup.hide()
@@ -810,8 +826,11 @@ class Group(ListOfWindows):
             path = self.desktop_entry.getFileName()
         else:
             path = ""
-        self.dockbar_r().edit_launcher(path, self.identifier)
         self.popup.hide()
+        self.dockbar_r().edit_launcher(path, self.identifier)
+        if self.globals.gtkmenu:
+            # the modal DesktopFileEditor dialog prevented us from receiving selection-done signal
+            self.__menu_closed()
 
     def __menu_pin(self, widget=None, event=None):
         self.pinned = True
@@ -1153,8 +1172,9 @@ class Group(ListOfWindows):
                 GLib.source_remove(self.scrollpeak_sid)
             if not keyboard_select:
                 self.scrollpeak_sid = GLib.timeout_add(1500, self.scrollpeak_select)
-            while Gtk.events_pending():
-                    Gtk.main_iteration()
+            ctx = GLib.MainContext.default()
+            while ctx.pending():
+                ctx.iteration(False)
             if self.scrollpeak_window: #TODO: find out why scollpeak_window is None sometimes.
                 self.scrollpeak_window.opacify()
 
@@ -1385,10 +1405,10 @@ class GroupButton(CairoAppButton):
         # raised.
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
-        self.launcher_drag = False
+        self.dnd_has_launcher = False
+        self.dnd_on_drop = False
         self.dnd_position = "end"
         self.dnd_show_popup = None
-        self.dd_uri = None
 
         #Make buttons drag-able
         self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK,[], Gdk.DragAction.MOVE)
@@ -1416,6 +1436,7 @@ class GroupButton(CairoAppButton):
         self.connect("drag-begin", self.on_drag_begin)
         self.connect("drag-data-get", self.on_drag_data_get)
         self.connect("drag-end", self.on_drag_end)
+        self.connect("drag-data-delete", self.on_drag_data_delete)
 
     def dockbar_moved(self, arg=None):
         self.set_icongeo()
@@ -1480,13 +1501,13 @@ class GroupButton(CairoAppButton):
             state_type = state_type | IconFactory.MOUSE_BUTTON_DOWN
 
         if self.mouse_over or \
-           (self.drag_entered and not self.launcher_drag):
+           (self.drag_entered and not self.dnd_has_launcher):
             state_type = state_type | IconFactory.MOUSE_OVER
 
         if self.launch_effect:
             state_type = state_type | IconFactory.LAUNCH_EFFECT
 
-        if self.launcher_drag:
+        if self.dnd_has_launcher:
             if self.dnd_position == "start":
                 state_type = state_type | IconFactory.DRAG_DROPP_START
             else:
@@ -1495,7 +1516,7 @@ class GroupButton(CairoAppButton):
         # Add the number of windows
         state_type = state_type | window_count
         if state_type != self.state_type or force_update:
-            surface = self.icon_factory.surface_update(state_type)
+            surface = self.icon_factory.surface_update(state_type, force_update=force_update)
             self.state_type = state_type
             # Set the button size to the size of the surface
             width = surface.get_width()
@@ -1661,30 +1682,38 @@ class GroupButton(CairoAppButton):
             if not self.opacify_sid:
                 # Todo: Would it be better to remove previous delays if
                 # a delay already is set?
-                self.opacify_sid = GLib.timeout_add(delay, self.opacify)
+                self.opacify_sid = GLib.timeout_add(delay, self.opacify_delayed)
             return
-        if group.get_unminimized_count() > 0 and \
-           self.pointer_is_inside():
+        if group.get_unminimized_count() > 0 and self.pointer_is_inside():
+            self.cancel_opacify_request()
+            self.cancel_deopacify_request()
             group.opacify()
             # This is a safety check to make sure that opacify won't stay on
             # forever when it shouldn't be.
             self.deopacify(500)
-        if self.opacify_sid:
-            GLib.source_remove(self.opacify_sid)
-            self.opacify_sid = None
+
+    def opacify_delayed(self):
+        self.opacify_sid = None
+        self.opacify()
 
     def deopacify(self, delay=None):
         if delay:
             self.cancel_deopacify_request()
-            self.deopacify_sid = GLib.timeout_add(delay, self.deopacify)
+            self.deopacify_sid = GLib.timeout_add(delay, self.deopacify_delayed)
             return
         group = self.group_r()
         # Make sure that mouse cursor really has left the window button.
         if self.pointer_is_inside():
             return True
+        self.cancel_opacify_request()
+        self.cancel_deopacify_request()
         # Wait before deopacifying in case a new windowbutton
         # should call opacify, to avoid flickering
         group.deopacify(110)
+
+    def deopacify_delayed(self):
+        self.deopacify_sid = None
+        self.deopacify()
 
     def cancel_deopacify_request(self):
         if self.deopacify_sid:
@@ -1713,71 +1742,69 @@ class GroupButton(CairoAppButton):
 
 
     def on_drag_end(self, widget, drag_context, result=None):
+        # May also be called from the drag-data-delete signal
+        if not self.globals.dragging:
+            return
         self.is_current_drag_source = False
+        self.globals.dragging = False
         #~ # A delay is needed to make sure the button is
         #~ # shown after on_drag_end has hidden it and
         #~ # not the other way around.
         #~ GLib.timeout_add(30, self.show)
 
+    def on_drag_data_delete(self, widget, context):
+        # No drag-end signal afterwards for xfce4-panel plugin,
+        # call the handler here
+        self.on_drag_end(widget, context)
+
     #### DnD (target)
     def on_drag_drop(self, widget, drag_context, x, y, t):
-        group = self.group_r()
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets:
             target_atom = Gdk.Atom.intern("text/groupbutton_name", False)
             self.drag_get_data(drag_context, target_atom, t)
-            drag_context.finish(True, False, t)
         elif "text/uri-list" in targets:
-            #Drag data should already be stored in self.dd_uri
-            if ".desktop" in self.dd_uri:
-                # .desktop file! This is a potential launcher.
-                #remove "file://" and "/n" from the URI
-                path = self.dd_uri
-                if path.startswith("file://"):
-                    path = path.replace('\000', '')     # for spacefm
-                    path = path[7:]
-                else:
-                    # No support for other kind of uris.
-                    return
-                path = path.rstrip()
-                path = urllib.parse.unquote(path)
-                self.dockbar_r().launcher_dropped(path, group,
-                                                  self.dnd_position)
-            else:
-                uri = self.dd_uri
-                # Remove the new line at the end
-                uri = uri.rstrip()
-                group.launch(None, None, uri)
-            drag_context.finish(True, False, t)
+            self.dnd_on_drop = True
+            target_atom = Gdk.Atom.intern("text/uri-list", False)
+            self.drag_get_data(drag_context, target_atom, t)
         else:
-            drag_context.finish(False, False, t)
-        self.dd_uri = None
+            return False
         return True
 
     def on_drag_data_received(self, widget, context, x, y, selection, targetType, t):
         group = self.group_r()
-        name = group.identifier or group.desktop_entry.getFileName()
         selection_target = selection.get_target().name()
         if selection_target == "text/groupbutton_name":
+            name = group.identifier or group.desktop_entry.getFileName()
             # Selection data is in bytes we need to decode it to a string.
             data = selection.get_data().decode()
             if data != name:
                 self.dockbar_r().groupbutton_moved(data, group, self.dnd_position)
+            # The source won't receive the drag-end signal in xfce4-panel (why?),
+            # use the drag-data-delete signal as a workaround
+            context.finish(True, True, t)
         elif selection_target == "text/uri-list":
-            # Uri lists are tested on first motion instead on drop
-            # to check if it's a launcher.
-            # The data is saved in self.dd_uri to be used again
-            # if the file is dropped.
-            self.dd_uri = selection.get_data().decode()
-            if ".desktop" in selection.get_data().decode():
-                # .desktop file! This is a potential launcher.
-                self.launcher_drag = True
-            self.update_state()
+            for uri in selection.get_uris():
+                uri = uri.replace('\000', '')     # for spacefm
+                if uri.startswith("file://") and uri.endswith(".desktop"):
+                    # .desktop file! This is a potential launcher.
+                    if self.dnd_on_drop:
+                        #remove "file://" from the URI
+                        path = uri[7:]
+                        path = urllib.parse.unquote(path)
+                        self.dockbar_r().launcher_dropped(path, group,
+                                                          self.dnd_position)
+                    else:
+                        self.dnd_has_launcher = True
+                        break
+                elif self.dnd_on_drop:
+                    group.launch(None, None, uri)
+            if self.dnd_on_drop:
+                context.finish(True, False, t)
+            else:
+                self.__update_dragging_status(x, y)
 
     def on_drag_motion(self, widget, drag_context, x, y, t):
-        group = self.group_r()
-        if not self.drag_entered:
-            self.on_drag_enter(widget, drag_context, x, y, t)
         targets = [target.name() for target in drag_context.list_targets()]
         if "text/groupbutton_name" in targets and \
            not self.is_current_drag_source:
@@ -1786,38 +1813,26 @@ class GroupButton(CairoAppButton):
             Gdk.drag_status(drag_context, Gdk.DragAction.COPY, t)
         else:
             Gdk.drag_status(drag_context, Gdk.DragAction.PRIVATE, t)
-        if self.launcher_drag:
-            dnd_position = "end"
-            if self.dockbar_r().orient in ("left", "right"):
-                if y <= self.get_allocation().height // 2:
-                    dnd_position = "start"
-            else:
-                if x <= self.get_allocation().width // 2:
-                    dnd_position = "start"
-            if dnd_position != self.dnd_position:
-                self.dnd_position = dnd_position
-                self.update_state()
+
+        if not self.drag_entered:
+            self.on_drag_enter(widget, drag_context, x, y, t)
+            return True
+
+        self.__update_dragging_status(x, y)
         return True
 
     def on_drag_enter(self, widget, drag_context, x, y, t):
         group = self.group_r()
         self.drag_entered = True
         targets = [target.name() for target in drag_context.list_targets()]
-        if not "text/groupbutton_name" in targets:
-            win_nr = group.get_count()
-            if win_nr == 1:
-                group[0].select_after_delay(600)
-            elif win_nr > 1:
-                delay = self.globals.settings["popup_delay"]
-                self.dnd_show_popup = GLib.timeout_add(delay,
-                                                          group.popup.show)
         if "text/groupbutton_name" in targets:
             if not self.is_current_drag_source:
-                self.launcher_drag = True
+                self.dnd_has_launcher = True
                 self.update_state()
         elif "text/uri-list" in targets:
             # We have to get the data to find out if this
             # is a launcher or something else.
+            self.dnd_on_drop = False
             target_atom = Gdk.Atom.intern("text/uri-list", False)
             self.drag_get_data(drag_context, target_atom, t)
             # No update_state() here!
@@ -1826,7 +1841,7 @@ class GroupButton(CairoAppButton):
 
     def on_drag_leave(self, widget, drag_context, t):
         group = self.group_r()
-        self.launcher_drag = False
+        self.dnd_has_launcher = False
         self.drag_entered = False
         self.update_state()
         group.popup.hide_if_not_hovered(100)
@@ -1842,6 +1857,33 @@ class GroupButton(CairoAppButton):
             #~ # the destination is hidden just before
             #~ # the drop is completed.
             #~ GLib.timeout_add(20, self.hide)
+
+    def __update_dragging_status(self, x, y):
+        if self.dnd_has_launcher:
+            dnd_position = "end"
+            if self.dockbar_r().orient in ("left", "right"):
+                if y <= self.get_allocation().height // 2:
+                    dnd_position = "start"
+            else:
+                if x <= self.get_allocation().width // 2:
+                    dnd_position = "start"
+            if dnd_position != self.dnd_position:
+                self.dnd_position = dnd_position
+                self.update_state()
+        else:
+            group = self.group_r()
+            win_nr = group.get_count()
+            if win_nr == 1:
+                group[0].select_after_delay(600)
+            elif win_nr > 1:
+                delay = self.globals.settings["popup_delay"]
+                self.dnd_show_popup = GLib.timeout_add(delay, self.__show_dragging_popup)
+            self.update_state()
+
+    def __show_dragging_popup(self):
+        self.dnd_show_popup = None
+        group = self.group_r()
+        group.popup.show()
 
 
     #### Events
@@ -1904,7 +1946,7 @@ class GroupButton(CairoAppButton):
             delay = self.globals.settings["popup_delay"]
         else:
             delay = self.globals.settings["second_popup_delay"]
-        if not self.globals.gtkmenu and not self.globals.dragging:
+        if not self.globals.gtkmenu and not self.globals.dragging and not self.globals.settings["groupbutton_no_window_list"]:
             group.popup.show_after_delay(delay)
         self.update_state()
         # Opacify
@@ -1913,7 +1955,9 @@ class GroupButton(CairoAppButton):
             self.opacify(delay)
 
     def on_leave_notify_event(self, widget, event):
-        self.leave_notify_sid = None
+        if self.leave_notify_sid is not None:
+            GLib.source_remove(self.leave_notify_sid)
+            self.leave_notify_sid = None
         group = self.group_r()
         if group is None:
             return
@@ -2049,7 +2093,7 @@ class GroupPopup(CairoPopup):
         else:
             return children[0]
 
-    def on_size_allocate(self, widget, allocation):
+    def on_size_allocate(self, widget, allocation, no_move=False):
         if allocation == self.last_allocation:
             return
         group = self.group_r()
@@ -2060,12 +2104,9 @@ class GroupPopup(CairoPopup):
         offset = int(self.popup_style.get("%s_distance" % self.popup_type, -7))
         dummy, wx, wy = window.get_origin()
         b_alloc = group.button.get_allocation()
-        width, height = self.get_size()
+        width, height = allocation.width, allocation.height
 
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            mgeo = group.get_monitor().get_geometry();
-        else:
-            mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
+        mgeo = group.get_monitor().get_geometry();
 
         if width > mgeo.width or height > mgeo.height:
             # The popup is too big to fit. Tell the child it needs to shrink.
@@ -2119,13 +2160,15 @@ class GroupPopup(CairoPopup):
                 x = x + b_alloc.width + offset
             p = wy + b_alloc.y + (b_alloc.height // 2) - y
         self.point(direction, p)
-        self.move(x, y)
+        if not no_move:
+            self.move(x, y)
         try:
             child_func = self.get_child_().on_popup_reallocate
         except AttributeError:
             pass
         else:
             child_func(self)
+        self.update_shape()
 
 
     def on_leave_notify_event(self, widget, event):
@@ -2264,10 +2307,7 @@ class GroupPopup(CairoPopup):
 class LockedPopup(GroupPopup):
     def __init__(self, group):
         self.globals = Globals()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            mgeo = group.get_monitor().get_geometry();
-        else:
-            mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
+        mgeo = group.get_monitor().get_geometry();
         button_window = group.button.get_window()
         if button_window:
             dummy, wx, wy = button_window.get_origin()
@@ -2286,15 +2326,18 @@ class LockedPopup(GroupPopup):
         group.window_list.apply_mini_mode()
         if not group.get_windows():
             self.hide()
-        else:
-            # not work
-            # GLib.idle_add(self.__on_realized)
-            pass
+        self.set_type_hint(Gdk.WindowTypeHint.DOCK)
+        self.set_keep_above(True)
+        self.set_decorated(False)
+        self.set_accept_focus(False)
+        self.set_resizable(False)
         self.overlap_sid = self.globals.connect("locked-list-overlap-changed", self.__set_own_strut)
-        self.connect("size-allocate", self.on_size_allocate)
+        self.size_allocate_sid = self.connect("size-allocate", self.on_size_allocate)
+        self.connect("realize", self.__on_realized)
 
     def show(self):
-        CairoPopup.show(self)
+        CairoPopup.show_all(self)
+        self.on_size_allocate(self, self.get_allocation())
 
     def hide(self):
         CairoPopup.hide(self)
@@ -2310,12 +2353,9 @@ class LockedPopup(GroupPopup):
             # The group doesn't seem to be remove properly when a new
             # locked popup is opened.
             return
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            mgeo = group.get_monitor().get_geometry();
-        else:
-            mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
+        mgeo = group.get_monitor().get_geometry();
 
-        width, height = self.get_size()
+        width, height = allocation.width, allocation.height
         if self.dockbar_r().orient in ("down", "up"):
             button_window = group.button.get_window()
             if button_window:
@@ -2326,7 +2366,7 @@ class LockedPopup(GroupPopup):
                 GroupPopup.on_size_allocate(self, widget, allocation)
                 self.__set_own_strut()
                 return
-        GroupPopup.on_size_allocate(self, widget, allocation)
+        GroupPopup.on_size_allocate(self, widget, allocation, no_move=True)
         strut = self.__get_other_strut(mgeo.width // 2 - width // 2,
                                        mgeo.width // 2 + width // 2)
         self.move(mgeo.width // 2 - width // 2, mgeo.height - height - strut - 1)
@@ -2340,50 +2380,40 @@ class LockedPopup(GroupPopup):
             child_func(self)
 
     def __set_own_strut(self, *args):
-        # Todo: This doesn't work at all. Find out why and uncomment.
-        return
-        #~ global display
-        #~ global X
-        #~ if display is None:
-            #~ from Xlib import display
-        #~ win = self.get_window()
-        #~ if win:
-            #~ if self.globals.settings["locked_list_no_overlap"] is False:
-                #~ topw = XDisplay.create_resource_object('window',
-                                                       #~ win.get_toplevel().get_xid())
-                #~ topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT"))
-                #~ topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT_PARTIAL"))
-                #~ return
-            #~ if  X is None:
-                #~ from Xlib import X
-            #~ group = self.group_r()
-            #~ a = self.get_allocation()
-            #~ x, y = self.get_position()
-            #~ if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            #~     mgeo = group.get_monitor().get_geometry();
-            #~ else:
-            #~     mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
-            #~ height = mgeo.y + mgeo.height - y
-            #~ x1 = mgeo.x + x
-            #~ x2 = mgeo.x + x + a.width
-            #~ strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
-            #~ topw = XDisplay.create_resource_object('window',
-                                                   #~ win.get_toplevel().get_xid())
-            #~ topw.change_property(XDisplay.get_atom('_NET_WM_STRUT'),
-                                 #~ XDisplay.get_atom('CARDINAL'), 32,
-                                 #~ strut[:4],
-                                 #~ X.PropModeReplace)
-
-            #~ topw.change_property(XDisplay.get_atom('_NET_WM_STRUT_PARTIAL'),
-                                 #~ XDisplay.get_atom('CARDINAL'), 32,
-                                 #~ strut,
-                                 #~ X.PropModeReplace)
+        win = self.get_window()
+        if not win:
+            return
+        topw = XDisplay.create_resource_object('window',
+                                               win.get_toplevel().get_xid())
+        if self.globals.settings["locked_list_no_overlap"] is False:
+            topw = XDisplay.create_resource_object('window',
+                                                   win.get_toplevel().get_xid())
+            topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT"))
+            topw.delete_property(XDisplay.get_atom("_NET_WM_STRUT_PARTIAL"))
+            return
+        global X
+        if X is None:
+            from Xlib import X
+        group = self.group_r()
+        a = self.get_allocation()
+        x, y = self.get_position()
+        mgeo = group.get_monitor().get_geometry();
+        height = mgeo.y + mgeo.height - y
+        x1 = max(mgeo.x + x, 0)
+        x2 = max(mgeo.x + x + a.width, 0)
+        strut = [0, 0, 0, height, 0, 0, 0, 0, 0, 0, x1, x2]
+        topw.change_property(XDisplay.get_atom('_NET_WM_STRUT'),
+                             XDisplay.get_atom('CARDINAL'), 32,
+                             strut[:4],
+                             X.PropModeReplace)
+        topw.change_property(XDisplay.get_atom('_NET_WM_STRUT_PARTIAL'),
+                             XDisplay.get_atom('CARDINAL'), 32,
+                             strut,
+                             X.PropModeReplace)
+        XDisplay.flush()
 
     def __get_other_strut(self, x1, x2):
-        # if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-        #     monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
-        # else:
-        #     monitor = self.get_screen().get_monitor_geometry(0)
+        # monitor = self.get_screen().get_display().get_monitor(0).get_geometry();
         # mx, my, mw, mh = monitor
         root = XDisplay.screen().root
         windows = root.query_tree()._data['children']
@@ -2410,15 +2440,15 @@ class LockedPopup(GroupPopup):
                 strut = max(strut, prop2.value[3])
         return strut
 
-    def __on_realized(self):
-        while not self.get_window():
-            Gtk.main_iteration()
+    def __on_realized(self, widget):
+        self.get_window().set_override_redirect(False)
         self.__set_own_strut()
 
     def destroy(self):
         group = self.group_r()
         group.locked_popup = None
         self.globals.disconnect(self.overlap_sid)
+        self.disconnect(self.size_allocate_sid)
         self.childbox.remove(group.window_list)
         group.popup.set_child_(group.window_list)
         group.window_list.apply_normal_mode()
@@ -2433,7 +2463,7 @@ class WindowList(Gtk.Box):
         self.dockbar_r = weakref.ref(group.dockbar_r())
         self.window_box = None
         self.scrolled_window = None
-        self.show_previews = False
+        self.show_previews = None
         self.size_overflow = False
         self.mini_mode = False
 
@@ -2495,7 +2525,7 @@ class WindowList(Gtk.Box):
 
     def add_item(self, item):
         if self.show_previews:
-            item.update_preview()
+            item.update_preview_size()
             item.set_show_preview(self.show_previews)
         self.window_box.pack_start(item, True, True, 0)
 
@@ -2518,28 +2548,28 @@ class WindowList(Gtk.Box):
             return
         if show_previews:
             # Only show the previews if there is enough room on the screen.
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-                mgeo = group.get_monitor().get_geometry();
-            else:
-                mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
+            mgeo = group.get_monitor().get_geometry();
             if self.dockbar_r().orient in ("down", "up"):
                 width = 10
                 for window in group.get_windows():
-                    width += max(190, window.item.update_preview()[0])
+                    width += max(190, window.item.update_preview_size()[0])
                     width += 16
                 if width > mgeo.width:
                     show_previews = False
             else:
                 height = 12 + self.title.get_preferred_height()[0]
                 for window in group.get_windows():
-                    height += window.item.update_preview()[1]
+                    height += window.item.update_preview_size()[1]
                     height += 24 + window.item.label.get_preferred_height()[0]
                 if height > mgeo.height:
                     show_previews = False
+        if self.show_previews == show_previews:
+            return
         self.show_previews = show_previews
         self.__rebuild_list()
         for window in group:
             window.item.set_show_preview(show_previews)
+        group.popup.resize(10, 10)
 
     def __on_show_previews_changed(self, arg=None):
         self.set_show_previews(self.globals.settings["preview"])
@@ -2565,10 +2595,10 @@ class WindowList(Gtk.Box):
         if self.size_overflow:
             self.scrolled_window = self.__create_scrolled_window(locked_popup_list)
             self.scrolled_window.add_with_viewport(self.window_box)
-            self.add(self.scrolled_window)
+            self.pack_start(self.scrolled_window, True, True, 0)
             self.scrolled_window.show_all()
         else:
-            self.add(self.window_box)
+            self.pack_start(self.window_box, True, True, 0)
             self.window_box.show_all()
 
     def __create_scrolled_window(self, horizontal):
@@ -2583,10 +2613,7 @@ class WindowList(Gtk.Box):
             self.adjustment = scrolled_window.get_vadjustment()
         self.scroll_changed_sid = self.adjustment.connect("changed",
                                             self.__on_scroll_changed, horizontal)
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            mgeo = group.get_monitor().get_geometry();
-        else:
-            mgeo = Gdk.Screen.get_default().get_monitor_geometry(group.get_monitor())
+        mgeo = group.get_monitor().get_geometry();
         # Todo: Size is hardcoded to monitor height/width - 100.
         #       Does this need to be more gracefully calculated?
         if horizontal:
@@ -2613,7 +2640,7 @@ class WindowList(Gtk.Box):
 
     #### Plugins
     def add_plugin(self, plugin):
-        self.pack_start(plugin, True, True, 0)
+        self.pack_end(plugin, True, True, 0)
         plugin.show()
 
     def remove_plugin(self, plugin):

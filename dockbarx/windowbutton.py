@@ -21,6 +21,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GdkX11
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from gi.repository import Pango
@@ -64,6 +65,7 @@ class Window():
         self.deopacify_sid = None
         self.opacify_sid = None
         self.select_sid = None
+        self.preview_sid = None
         self.xid = self.wnck.get_xid()
         self.is_active_window = False
         self.on_current_desktop = self.is_on_current_desktop()
@@ -79,6 +81,8 @@ class Window():
                                                 self.__on_window_name_changed)
         self.geometry_changed_event = self.wnck.connect("geometry-changed",
                                                 self.__on_geometry_changed)
+        self.window_sid = group.dockbar_r().x11obs.connect("window-update",
+                                                self.__on_window_update)
 
         self.item = WindowItem(self, group)
         self.needs_attention = self.wnck.needs_attention()
@@ -101,6 +105,8 @@ class Window():
         if self.is_active_window != mode:
             self.is_active_window = mode
             self.item.active_changed()
+            if self.globals.settings["preview"] and self.globals.settings["preview_keep"]:
+                self.update_preview_later()
 
     def is_on_current_desktop(self):
         aws = self.screen.get_active_workspace()
@@ -120,27 +126,25 @@ class Window():
         if not self.globals.settings["show_only_current_monitor"]:
             return 0
         x, y, w, h = self.wnck.get_geometry()
-        if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 22:
-            gdk_display = Gdk.Screen.get_default().get_display()
-            return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
-        else:
-            gdk_screen = Gdk.Screen.get_default()
-            return gdk_screen.get_monitor_at_point(x + (w // 2), y  + (h // 2))
+        gdk_display = Gdk.Screen.get_default().get_display()
+        return gdk_display.get_monitor_at_point(x + (w // 2), y  + (h // 2))
 
     def destroy(self):
+        if self.preview_sid:
+            GLib.source_remove(self.preview_sid)
+            self.preview_sid = None
         if self.deopacify_sid:
             GLib.source_remove(self.deopacify_sid)
             self.deopacify()
-        self.remove_delayed_select()
-
-        self.item.clean_up()
-        self.item.destroy()
         self.globals.disconnect(self.globals_event)
         self.wnck.disconnect(self.state_changed_event)
         self.wnck.disconnect(self.icon_changed_event)
         self.wnck.disconnect(self.name_changed_event)
-        if self.geometry_changed_event is not None:
-            self.wnck.disconnect(self.geometry_changed_event)
+        self.wnck.disconnect(self.geometry_changed_event)
+        self.remove_delayed_select()
+
+        self.item.clean_up()
+        self.item.destroy()
         del self.screen
         del self.wnck
         del self.globals
@@ -175,8 +179,11 @@ class Window():
 
     def __on_window_name_changed(self, window):
         self.item.name_changed()
+        if self.globals.settings["preview"] and \
+           self.globals.settings["preview_keep"]:
+            self.update_preview_later(200)
 
-    def __on_geometry_changed(self, *args):
+    def __on_geometry_changed(self, window):
         group = self.group_r()
         if self.globals.settings["show_only_current_monitor"]:
             monitor = self.get_monitor()
@@ -190,8 +197,17 @@ class Window():
                 self.on_current_desktop = onc
                 self.item.update_show_state()
                 group.window_desktop_changed()
+        
         if self.globals.settings["preview"]:
-            self.item.update_preview()
+            self.item.update_preview_size()
+            if self.globals.settings["preview_keep"]:
+                self.update_preview_later()
+
+    def __on_window_update(self, x11obs, xid):
+        if self.xid == xid and hasattr(self, "globals") and \
+           self.globals.settings["preview"] and \
+           self.globals.settings["preview_keep"]:
+             self.update_preview_later(300)
 
     def desktop_changed(self):
         self.on_current_desktop = self.is_on_current_desktop()
@@ -199,6 +215,15 @@ class Window():
             self.item.show()
         else:
             self.item.hide()
+
+    def update_preview_later(self, delay = 100):
+        if self.preview_sid is not None:
+            GLib.source_remove(self.preview_sid)
+        self.preview_sid = GLib.timeout_add(delay, self.update_preview)
+
+    def update_preview(self):
+        self.preview_sid = None
+        self.item.take_preview()
 
     #### Opacify
     def opacify(self):
@@ -225,7 +250,7 @@ class Window():
         if event:
             t = event.time
         else:
-            t = 0
+            t = GdkX11.x11_get_server_time(Gdk.get_default_root_window())
         if self.wnck.get_workspace() is not None \
         and self.screen.get_active_workspace() != self.wnck.get_workspace():
             self.wnck.get_workspace().activate(t)
@@ -278,7 +303,7 @@ class Window():
             if event:
                 t = event.time
             else:
-                t = 0
+                t = GdkX11.x11_get_server_time(Gdk.get_default_root_window())
             self.wnck.unminimize(t)
         else:
             self.wnck.minimize()
@@ -313,28 +338,32 @@ class WindowItem(CairoButton):
         self.press_sid = None
         self.pressed = False
 
+        self.area.set_needs_attention(window.wnck.needs_attention())
+
         self.close_button = CairoCloseButton()
+        self.close_button.set_halign(Gtk.Align.START)
+        self.close_button.set_valign(Gtk.Align.CENTER)
         self.close_button.set_no_show_all(True)
         if self.globals.settings["show_close_button"]:
             self.close_button.show()
+
         self.label = Gtk.Label()
         self.label.set_ellipsize(Pango.EllipsizeMode.END)
         self.label.set_halign(Gtk.Align.START)
         self.label.set_valign(Gtk.Align.CENTER)
-        self.__update_label()
-        self.area.set_needs_attention(window.wnck.needs_attention())
-        hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+
         icon = window.wnck.get_mini_icon()
         self.icon_image = Gtk.Image()
         self.icon_image.set_from_pixbuf(icon)
-        hbox.pack_start(self.icon_image, False, False, 0)
-        hbox.pack_start(self.label, True, True, 4)
-        self.close_button.set_halign(Gtk.Align.START)
-        self.close_button.set_valign(Gtk.Align.CENTER)
-        hbox.pack_start(self.close_button, False, False, 0)
+        self.icon_image.set_margin_start(2)
+
+        self.header_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 4)
+        self.header_box.pack_start(self.icon_image, False, False, 0)
+        self.header_box.pack_start(self.label, True, True, 0)
+        self.header_box.pack_start(self.close_button, False, False, 0)
 
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        vbox.pack_start(hbox, False, False, 0)
+        vbox.pack_start(self.header_box, False, False, 0)
         self.preview = Gtk.Image()
         self.preview.set_halign(Gtk.Align.CENTER)
         self.preview.set_valign(Gtk.Align.CENTER)
@@ -346,10 +375,13 @@ class WindowItem(CairoButton):
         vbox.show_all()
 
         self.show_all()
+        self.__update_label()
         self.update_show_state()
 
         self.drag_dest_set(0, [], 0)
         self.drag_entered = False
+
+        self.last_preview = None
 
         # Make scroll events work.
         self.add_events(Gdk.EventMask.SCROLL_MASK)
@@ -372,15 +404,20 @@ class WindowItem(CairoButton):
         self.globals_events.append(self.globals.connect("color-changed",
                                     self.__update_label))
         self.globals_events.append(self.globals.connect("preview-size-changed",
-                                    self.update_preview))
+                                    self.update_preview_size))
         self.globals_events.append(self.globals.connect("window-title-width-changed",
                                     self.__update_label))
+        self.globals_events.append(self.globals.connect("keep-previews-changed",
+                                    self.__clear_saved_preview))
+        self.globals_events.append(self.globals.connect("show-previews-changed",
+                                    self.__clear_saved_preview))
+
 
     def clean_up(self):
-        window = self.window_r()
         if self.deopacify_sid:
             GLib.source_remove(self.deopacify_sid)
             self.deopacify_sid = None
+            window = self.window_r()
             window.deopacify()
         if self.opacify_sid:
             GLib.source_remove(self.opacify_sid)
@@ -394,7 +431,7 @@ class WindowItem(CairoButton):
 
     def show(self):
         if self.globals.settings["preview"]:
-            self.update_preview()
+            self.update_preview_size()
         CairoButton.show(self)
 
     def __on_show_close_button_changed(self, *args):
@@ -403,6 +440,11 @@ class WindowItem(CairoButton):
         else:
             self.close_button.hide()
             self.label.queue_resize()
+
+    def __clear_saved_preview(self, *args):
+        if not self.globals.settings["preview"] or \
+           not self.globals.settings["preview_keep"]:
+            self.last_preview = None
 
     #### Appearance
     def __update_label(self, arg=None):
@@ -419,10 +461,15 @@ class WindowItem(CairoButton):
         if self.globals.settings["preview"]:
             # The label should be 140px wide unless there are more room
             # because the preview takes up more.
-            size = 140
+            label_size = 140
         else:
-            size = self.globals.settings["window_title_width"]
-        self.label.set_size_request(size, -1)
+            label_size = self.globals.settings["window_title_width"]
+
+        size = label_size + self.icon_image.get_pixel_size() + \
+                self.close_button.get_allocation().width + \
+                self.header_box.get_spacing() * 2
+        size += self.icon_image.get_margin_start()
+        self.header_box.set_size_request(size, -1)
 
     def __make_minimized_icon(self, icon):
         pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, icon.get_width(), icon.get_height())
@@ -478,7 +525,7 @@ class WindowItem(CairoButton):
             self.show()
 
     ####Preview
-    def update_preview(self, *args):
+    def update_preview_size(self, *args):
         window = self.window_r()
         group = self.group_r()
         width = window.wnck.get_geometry()[2]
@@ -496,6 +543,31 @@ class WindowItem(CairoButton):
         self.preview.set_size_request(width, height)
         return width, height
 
+    def take_preview(self):
+        window = self.window_r()
+        try:
+            xwin = XDisplay.create_resource_object('window', window.xid)
+            # window.wnck.is_minimized() may not work with some wine program windows
+            if xwin.get_wm_state().state != Xlib.Xutil.NormalState:
+                return None
+            xwin.composite_redirect_window(Xlib.ext.composite.RedirectAutomatic)
+            pixmap = xwin.composite_name_window_pixmap()
+            xwin.composite_unredirect_window(Xlib.ext.composite.RedirectAutomatic)
+            geo = xwin.get_geometry()
+            image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
+            pixmap.free()
+        except:
+            return None
+        im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
+        data = im.tobytes()
+        data = GLib.Bytes.new(data)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
+        w, h = self.preview.get_size_request()
+        pixbuf = pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
+        if self.globals.settings["preview_keep"]:
+            self.last_preview = pixbuf
+        return pixbuf
+
     def set_show_preview(self, show_preview):
         if show_preview:
             if self.group_r().popup.popup_showing:
@@ -504,36 +576,15 @@ class WindowItem(CairoButton):
         else:
             self.preview.hide()
 
-    def get_preview_allocation(self):
-        a = self.preview.get_allocation()
-        self.area.set_preview_allocation(a)
-        return a
-
     def set_preview_image(self):
-        window = self.window_r()
-        if window.wnck.is_minimized():
-            # TODO: self.globals.settings["preview_minimized"]
-            self.preview.set_from_pixbuf(window.wnck.get_icon())
+        pixbuf = self.take_preview()
+        if pixbuf is not None:
+            self.preview.set_from_pixbuf(pixbuf)
+        elif self.globals.settings["preview_keep"] and (self.last_preview is not None):
+            self.preview.set_from_pixbuf(self.last_preview)
         else:
-            try:
-                xwin = XDisplay.create_resource_object('window', window.xid)
-                xwin.composite_redirect_window(Xlib.ext.composite.RedirectAutomatic)
-                geo = xwin.get_geometry()
-                pixmap = xwin.composite_name_window_pixmap()
-                image_object = pixmap.get_image(0, 0, geo.width, geo.height, Xlib.X.ZPixmap, 0xffffffff)
-                xwin.composite_unredirect_window(Xlib.ext.composite.RedirectAutomatic)
-            except:
-                self.preview.set_from_pixbuf(window.wnck.get_icon())
-                return;
-            im = Image.frombuffer("RGBX", (geo.width, geo.height), image_object.data, "raw", "BGRX").convert("RGB")
-            data = im.tobytes()
-            if Gtk.MAJOR_VERSION > 3 or Gtk.MINOR_VERSION >= 14:
-                data = GLib.Bytes.new(data)
-                pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
-            else:
-                pixbuf = GdkPixbuf.Pixbuf.new_from_data(data, GdkPixbuf.Colorspace.RGB, False, 8, geo.width, geo.height, geo.width * 3)
-            w, h = self.preview.get_size_request()
-            self.preview.set_from_pixbuf(pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR))
+            window = self.window_r()
+            self.preview.set_from_pixbuf(window.wnck.get_icon())
 
     #### Events
     def on_enter_notify_event(self, widget, event):
