@@ -1017,7 +1017,12 @@ class IconFactory():
 
     def __resize_surface(self, surface, w, h):
         im = self.__surface2pil(surface)
-        im = im.resize((w, h), Image.ANTIALIAS)
+        try:
+            algo = Image.LANCZOS
+        except AttributeError:
+            # removed in python-pillow 10.0.0
+            algo = Image.ANTIALIAS
+        im = im.resize((w, h), algo)
         return self.__pil2surface(im)
 
     def __command_print_size(self, surface):
