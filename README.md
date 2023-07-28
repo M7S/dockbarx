@@ -1,5 +1,5 @@
 # DockbarX
-### Version 1.0-beta2
+### Version 1.0-beta3
 
 ## About DockbarX
 The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as a Xfce4 panel applet[^1] or a matepanel applet. DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
