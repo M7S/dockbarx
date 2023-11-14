@@ -859,21 +859,6 @@ class PrefDialog():
         popup_box.pack_start(self.shape_mask_cb, False, True, 5)
 
 
-        self.preview_size_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.preview_size_spinbox.set_border_width(5)
-        spinlabel = Gtk.Label(label=_("Preview size"))
-        spinlabel.set_xalign(0)
-        spinlabel.set_yalign(0.5)
-        adj = Gtk.Adjustment.new(200, 50, 800, 1, 50, 0)
-        self.preview_size_spin = Gtk.SpinButton.new(adj, 0.5, 0)
-        self.preview_size_spinbox.pack_start(spinlabel, False, True, 0)
-        self.preview_size_spinbox.pack_start(self.preview_size_spin,
-                                             False, True, 5)
-        adj.connect("value_changed", self.__adjustment_changed, "preview_size")
-        self.preview_size_spinbox.show_all()
-        self.preview_size_spinbox.set_no_show_all(True)
-        popup_box.pack_start(self.preview_size_spinbox, False, True, 5)
-
         self.window_title_width_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.window_title_width_spinbox.set_border_width(5)
         spinlabel = Gtk.Label(label=_("Window title width"))
@@ -935,6 +920,22 @@ class PrefDialog():
         self.preview_keep_cb.connect("toggled", self.__checkbutton_toggled, "preview_keep")
         vbox.pack_start(self.preview_keep_cb, False, True, 0)
         popup_box.pack_start(vbox, False, True, 5)
+
+        self.preview_size_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        self.preview_size_spinbox.set_border_width(5)
+        spinlabel = Gtk.Label(label=_("Preview size"))
+        spinlabel.set_xalign(0)
+        spinlabel.set_yalign(0.5)
+        adj = Gtk.Adjustment.new(200, 50, 800, 1, 50, 0)
+        self.preview_size_spin = Gtk.SpinButton.new(adj, 0.5, 0)
+        self.preview_size_spinbox.pack_start(spinlabel, False, True, 0)
+        self.preview_size_spinbox.pack_start(self.preview_size_spin,
+                                             False, True, 5)
+        adj.connect("value_changed", self.__adjustment_changed, "preview_size")
+        self.preview_size_spinbox.show_all()
+        self.preview_size_spinbox.set_no_show_all(True)
+        popup_box.pack_start(self.preview_size_spinbox, False, True, 5)
+
 
         # Locked list
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
@@ -1769,14 +1770,9 @@ class PrefDialog():
         self.preview_keep_cb.set_active(self.globals.settings["preview_keep"])
         self.preview_keep_cb.set_sensitive(self.globals.settings["preview"])
         self.preview_size_spin.set_value(self.globals.settings["preview_size"])
+        self.preview_size_spin.set_sensitive(self.globals.settings["preview"])
         self.window_title_width_spin.set_value(
                                     self.globals.settings["window_title_width"])
-        if self.globals.settings["preview"]:
-            self.preview_size_spinbox.show()
-            self.window_title_width_spinbox.hide()
-        else:
-            self.preview_size_spinbox.hide()
-            self.window_title_width_spinbox.show()
 
         # Advanced page stuff
         self.ignore_workspace_cb.set_active(

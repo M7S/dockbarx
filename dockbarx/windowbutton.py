@@ -348,7 +348,7 @@ class WindowItem(CairoButton):
             self.close_button.show()
 
         self.label = Gtk.Label()
-        self.label.set_ellipsize(Pango.EllipsizeMode.END)
+        self.label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
         self.label.set_halign(Gtk.Align.START)
         self.label.set_valign(Gtk.Align.CENTER)
 
@@ -458,10 +458,11 @@ class WindowItem(CairoButton):
         text = "<span foreground=\"" + color + "\">" + text + "</span>"
         self.label.set_text(text)
         self.label.set_use_markup(True)
-        if self.globals.settings["preview"]:
-            # The label should be 140px wide unless there are more room
-            # because the preview takes up more.
-            label_size = 140
+        self.__set_label_size()
+
+    def __set_label_size(self):
+        if self.preview.get_visible():
+            label_size = self.globals.settings["preview_size"]
         else:
             label_size = self.globals.settings["window_title_width"]
 
@@ -575,6 +576,7 @@ class WindowItem(CairoButton):
             self.preview.show()
         else:
             self.preview.hide()
+        self.__set_label_size()
 
     def set_preview_image(self):
         pixbuf = self.take_preview()
