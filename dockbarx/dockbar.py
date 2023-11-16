@@ -27,6 +27,7 @@ from gi.repository import GObject
 from gi.repository import GLib
 import sys
 import os
+import shutil
 import dbus
 from . import cairowidgets
 import weakref
@@ -993,6 +994,12 @@ class DockBar():
             desktop_entry = self.__get_desktop_entry_for_id(app.get_id())
             group.set_desktop_entry(desktop_entry)
         group.update_name()
+        custom_launcher = os.path.join(get_app_homedir(), "launchers", "%s.desktop"%identifier)
+        if os.path.isfile(custom_launcher):
+            try:
+                os.remove(custom_launcher)
+            except:
+                pass
 
     def __make_groupbutton(self, identifier=None, desktop_entry=None,
                          pinned=False, index=None, window=None):
@@ -1498,16 +1505,20 @@ class DockBar():
                 logger.warning("Error: file %s doesn't exist."%path)
             new_path = os.path.join(launcher_dir, os.path.basename(path))
             if new_path != path:
-                os.system("cp %s %s"%(path, new_path))
+                shutil.copy(path, new_path)
         else:
             new_path = os.path.join(launcher_dir, "%s.desktop"%identifier)
+        try:
+            mtime = os.path.getmtime(new_path)
+        except OSError:
+            mtime = None
         programs = ("gnome-desktop-item-edit",
                     "mate-desktop-item-edit", "exo-desktop-item-edit")
         for program in programs:
             if check_program(program):
                 process = subprocess.Popen([program, new_path], env=os.environ)
                 GLib.timeout_add(100, self.__wait_for_launcher_editor,
-                                 process, path, new_path, identifier)
+                                 process, path, new_path, mtime, identifier)
                 break
         else:
             editor = DesktopFileEditor()
@@ -1516,7 +1527,7 @@ class DockBar():
             action = editor.run()
             if action == Gtk.ResponseType.OK:
                 editor.save(new_path)
-                self.__wait_for_launcher_editor(None, path, new_path, identifier)
+                self.__wait_for_launcher_editor(None, path, new_path, mtime, identifier)
             editor.destroy()
 
     def update_pinned_apps_list(self, arg=None):
@@ -1688,10 +1699,18 @@ class DockBar():
         return text
 
     def __wait_for_launcher_editor(self, process,
-                                   old_path, new_path, identifier):
+                                   old_path, new_path, mtime, identifier):
         if process is None or process.poll() != None:
             # Launcher editor closed.
             if os.path.isfile(new_path):
+                try:
+                    if os.path.getmtime(new_path) == mtime:
+                        # No modifications
+                        if old_path != new_path:
+                            os.remove(new_path)
+                        return
+                except:
+                    return
                 # Update desktop_entry.
                 desktop_entry = DesktopEntry(new_path)
                 if identifier:
