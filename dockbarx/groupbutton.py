@@ -478,6 +478,28 @@ class Group(ListOfWindows):
         self.button.update_state(force_update=True)
         self.button.drag_source_set_icon_pixbuf(self.button.icon_factory.get_icon(32))
 
+    def update_window_title_ellipsize_mode(self, title_label):
+        labels = [ win.item.label for win in self.get_windows() ]
+        if title_label not in labels:
+            labels.append(title_label)
+        if len(labels) <= 1:
+            return
+        titles = []
+        titles_r = []
+        for label in labels:
+            title = label.get_text()
+            titles.append(title);
+            titles_r.append(title[::-1]);
+        common_end = len(os.path.commonprefix(titles_r))
+        common_start = len(os.path.commonprefix(titles))
+        if common_end > 3 and common_end >= common_start:
+            mode = Pango.EllipsizeMode.END
+        elif common_start > 3:
+            mode = Pango.EllipsizeMode.START
+        else:
+            mode = Pango.EllipsizeMode.MIDDLE
+        for label in labels:
+            label.set_ellipsize(mode)
 
     #### Opacify
     def opacify(self, delay=0):

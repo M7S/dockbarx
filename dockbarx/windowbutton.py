@@ -450,6 +450,7 @@ class WindowItem(CairoButton):
     def __update_label(self, arg=None):
         """Updates the style of the label according to window state."""
         window = self.window_r()
+        group = self.group_r()
         text = escape(str(window.wnck.get_name()))
         if window.wnck.is_minimized():
             color = self.globals.colors["color4"]
@@ -459,6 +460,7 @@ class WindowItem(CairoButton):
         self.label.set_text(text)
         self.label.set_use_markup(True)
         self.__set_label_size()
+        group.update_window_title_ellipsize_mode(self.label)
 
     def __set_label_size(self):
         if self.preview.get_visible():
