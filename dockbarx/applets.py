@@ -22,7 +22,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
 import os
-import imp
+import importlib.util
 import dbus
 import weakref
 from gi.repository import GObject
@@ -213,7 +213,9 @@ class DockXApplets():
         iname, ext = os.path.splitext(os.path.split(e)[-1])
         path = os.path.join(self.applets[name]["dir"], e)
         try:
-            applet = imp.load_source(iname, path)
+            spec = importlib.util.spec_from_file_location(iname, path)
+            applet = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(applet)
         except:
             message = "Error: Could not load applet from %s. " % path
             message += "Could not import the script."
