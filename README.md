@@ -45,7 +45,7 @@ https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
 ## Manual Installation
 
 1. Following dependencies needs to be installed (many of them might be installed already on your system):
-  - gir1.2-gtk-3.0 (>= 3.22), gir1.2-glib-2.0 (>= 1.40), gir1.2-keybinder-3.0, gir1.2-pango-1.0, gir1.2-wnck-3.0, python3 (>= 3.4), python3-cairo (>= 1.11.0), python3-dbus, python3-distutils, python3-gi, python3-gi-cairo, python3-pil, python3-polib, python3-xdg and python3-xlib.
+  - gir1.2-gtk-3.0 (>= 3.22), gir1.2-glib-2.0 (>= 1.40), gir1.2-keybinder-3.0, gir1.2-pango-1.0, gir1.2-wnck-3.0, python3 (>= 3.5), python3-cairo (>= 1.11.0), python3-dbus, python3-distutils, python3-gi, python3-gi-cairo, python3-pil, python3-polib, python3-xdg and python3-xlib.
   - (Optional) gir1.2-zeitgeist-2.0 and zeitgeist, to access latest and most used documents.
   - (Optional) indicator-application or ayatana-indicator-application, to use the appindicator applet with DockX
   - (Optional) python3-pyudev (>= 0.15), to use the battery status applet with DockX
