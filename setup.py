@@ -17,20 +17,18 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-from distutils.core import setup
-from distutils.core import setup
-from distutils import cmd
-from distutils.command.install_data import install_data as _install_data
-from distutils.command.build import build as _build
+from setuptools import setup
+from setuptools import Command
+from setuptools.command.install import install as _install
+from setuptools.command.build import build as _build
 
 import polib
 import os
 import sys
-import stat
 
 VERSION = "1.0-beta3"
 
-class build_trans(cmd.Command):
+class build_trans(Command):
     description = "Compile .po files into .mo files"
     def initialize_options(self):
         pass
@@ -70,7 +68,7 @@ class build(_build):
     def run(self):
         _build.run(self)
 
-class install_data(_install_data):
+class install(_install):
 
     def run(self):
         for lang in os.listdir("build/locale/"):
@@ -85,14 +83,14 @@ class install_data(_install_data):
                 lang_files.append(d_file)
             if os.path.exists(dt_file):
                 lang_files.append(dt_file)
-            self.data_files.append( (lang_dir, lang_files) )
+            self.distribution.data_files.append( (lang_dir, lang_files) )
         # Scan folders for the right files
-        self.scan_path("/usr/share/dockbarx/themes", "themes", ext=".tar.gz")
+        self.scan_path("share/dockbarx/themes", "themes", ext=".tar.gz")
         self.scan_path("share/icons/", "icons", ext=".png")
         self.scan_path("share/dockbarx/applets/namebar_themes",
                        "dockx_applets/namebar_themes",
                        ext=".tar.gz")
-        _install_data.run(self)
+        _install.run(self)
 
     def scan_path(self, install_path, base_path, path="", ext=""):
         files = []
@@ -104,13 +102,13 @@ class install_data(_install_data):
             elif os.path.isfile(fpath) and fpath.endswith(ext):
                 files.append(fpath)
         if files:
-            self.data_files.append((os.path.join(install_path, path), files))
+            self.distribution.data_files.append((os.path.join(install_path, path), files))
 
 
 cmdclass = {
     "build": build,
     "build_trans": build_trans,
-    "install_data": install_data,
+    "install": install,
 }
 
 data_files=[
@@ -142,7 +140,7 @@ data_files=[
             ("share/mate-panel/ui/", ["mate_panel_applet/dockbarx-applet-menu.xml"]),
          ]
 
-s = setup(name="Dockbarx",
+setup(name="Dockbarx",
       version=VERSION,
       description="A dock-ish gnome-applet",
       author="Aleksey Shaferov and Matias Sars",
@@ -152,20 +150,4 @@ s = setup(name="Dockbarx",
       cmdclass=cmdclass
      )
 
-
-
-if len(sys.argv) == 2 and sys.argv[1] == "install":
-    install_data_path = s.command_obj['install'].install_data
-    schema_path = os.path.join(install_data_path, "share/glib-2.0/schemas")
-    os.system("glib-compile-schemas %s" % schema_path)
-    # create sudo policy file for battery_status_helper.sh
-    helper_file = os.path.join(install_data_path, 'share/dockbarx/applets/battery_status_helper.sh')
-    sudo_policy_file = '/etc/sudoers.d/dockbarx-applet-battery-status-helper'
-    try:
-        f = open(sudo_policy_file, 'w')
-        f.write('ALL ALL=(root) NOPASSWD:%s\n' % helper_file)
-        f.close()
-        os.chmod(sudo_policy_file, stat.S_IRUSR | stat.S_IRGRP)
-    except:
-        pass
 
