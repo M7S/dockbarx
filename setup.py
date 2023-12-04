@@ -18,9 +18,8 @@
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
 from setuptools import setup
-from setuptools import Command
 from setuptools.command.install import install as _install
-from setuptools.command.build import build as _build
+from setuptools.command.build_py import build_py as _build_py
 
 import polib
 import os
@@ -28,15 +27,10 @@ import sys
 
 VERSION = "1.0-beta3"
 
-class build_trans(Command):
-    description = "Compile .po files into .mo files"
-    def initialize_options(self):
-        pass
+class build_py(_build_py):
 
-    def finalize_options(self):
-        pass
-
-    def run(self):
+    def build_package_data(self):
+        _build_py.build_package_data(self)
         po_dict = {
                     "dockbarx": os.path.join(os.path.dirname(os.curdir), "po"),
                     "dockbarx-themes": os.path.join(os.path.dirname(os.curdir), "po-themes")
@@ -63,10 +57,6 @@ class build_trans(Command):
                                 po = polib.pofile(src);
                                 po.save_as_mofile(dest)
 
-class build(_build):
-    sub_commands = _build.sub_commands + [("build_trans", None)]
-    def run(self):
-        _build.run(self)
 
 class install(_install):
 
@@ -106,8 +96,7 @@ class install(_install):
 
 
 cmdclass = {
-    "build": build,
-    "build_trans": build_trans,
+    "build_py": build_py,
     "install": install,
 }
 

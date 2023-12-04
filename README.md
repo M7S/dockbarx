@@ -53,8 +53,8 @@ https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
   - (Optional) python3-lxml, to use the settings migrating tool
 2. Extract dockbarx. Change directory to where you extracted dockbarx and run the following commands:
 ```
-sudo pip install --prefix=/usr .
-sudo glib-compile-schemas /usr/share/glib-2.0/schemas/
+sudo pip install .
+sudo glib-compile-schemas /usr/local/share/glib-2.0/schemas/
 ```
 
 ## Usage
