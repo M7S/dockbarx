@@ -72,7 +72,7 @@ class install(_install):
 
     def run(self):
         for lang in os.listdir("build/locale/"):
-            lang_dir = os.path.join("/", "usr", "share",
+            lang_dir = os.path.join("share",
                                     "locale", lang, "LC_MESSAGES")
             lang_files = []
             d_file = os.path.join("build", "locale", lang,
