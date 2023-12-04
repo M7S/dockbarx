@@ -2,7 +2,7 @@
 ### Version 1.0-beta3
 
 ## About DockbarX
-The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as a Xfce4 panel applet[^1] or a matepanel applet. DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
+The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as a [Xfce4 panel applet](https://github.com/xuzhen/xfce4-dockbarx-plugin) or a [MATE panel applet](https://github.com/xuzhen/dockbarx-mate-applet). DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
 
 DockbarX is free software and is licensed under GPL3.
 
@@ -122,6 +122,4 @@ A: Backup: ```dconf dump /org/dockbarx/ > dockbarx.xml```\
 *Q: All the preferences were lost after upgrading to 1.0, how to get them back?*
 
 A: Dump the preferences from GConf database ```gconftool --dump /apps/dockbarx > dockbarx.xml```, run the migrating tool ```dbx_migrate_settings dockbarx.xml```, and move the application folder from ~/.dockbarx to ~/.local/share/dockbarx
-
-[^1]: Using [xfce-dockbarx-plugin] (https://github.com/M7S/xfce4-dockbarx-plugin/tree/pygi-python3)
 
