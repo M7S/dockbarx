@@ -109,10 +109,9 @@ class Window():
                 self.update_preview_later()
 
     def is_on_current_desktop(self):
+        ws = self.wnck.get_workspace()
         aws = self.screen.get_active_workspace()
-        if (self.wnck.get_workspace() is None or \
-           self.wnck.get_workspace() == aws) and \
-           self.wnck.is_in_viewport(aws):
+        if ws is None or aws is None or (ws == aws and self.wnck.is_in_viewport(aws)):
             return True
         else:
             return False
@@ -251,18 +250,20 @@ class Window():
             t = event.time
         else:
             t = GdkX11.x11_get_server_time(Gdk.get_default_root_window())
-        if self.wnck.get_workspace() is not None \
-        and self.screen.get_active_workspace() != self.wnck.get_workspace():
-            self.wnck.get_workspace().activate(t)
-        if not self.wnck.is_in_viewport(self.screen.get_active_workspace()):
-            win_x,win_y,win_w,win_h = self.wnck.get_geometry()
-            self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),
-                                      win_y-(win_y%self.screen.get_height()))
-            # Hide popup since mouse movement won't
-            # be tracked during compiz move effect
-            # which means popup list can be left open.
-            group = self.group_r()
-            group.popup.hide()
+        ws = self.wnck.get_workspace()
+        aws = self.screen.get_active_workspace()
+        if ws is not None and aws is not None:
+            if aws != ws:
+                ws.activate(t)
+            if not self.wnck.is_in_viewport(aws):
+                win_x,win_y,win_w,win_h = self.wnck.get_geometry()
+                self.screen.move_viewport(win_x-(win_x%self.screen.get_width()),
+                                          win_y-(win_y%self.screen.get_height()))
+                # Hide popup since mouse movement won't
+                # be tracked during compiz move effect
+                # which means popup list can be left open.
+                group = self.group_r()
+                group.popup.hide()
         if self.wnck.is_minimized():
             self.wnck.unminimize(t)
         elif self.wnck.is_active() and minimize:

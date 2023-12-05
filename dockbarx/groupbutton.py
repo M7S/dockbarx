@@ -942,17 +942,18 @@ class Group(ListOfWindows):
             unminimized = False
             for window in minimized_windows:
                 ignored = False
+                window_workspace = window.wnck.get_workspace()
                 # Check if the window is on another workspace
                 if not window.wnck.is_pinned() \
-                and window.wnck.get_workspace() is not None \
-                and window.wnck.get_workspace() != active_workspace:
+                and window_workspace is not None \
+                and window_workspace != active_workspace:
                     if mode == "move":
-                        ws = screen.get_active_workspace()
-                        window.wnck.move_to_workspace(ws)
+                        window.wnck.move_to_workspace(active_workspace)
                     else: # mode == "ignore" or "switch"
                         ignored = True
                 # Check if the window is on another viewport
-                if not window.wnck.is_in_viewport(active_workspace):
+                if active_workspace is not None \
+                and not window.wnck.is_in_viewport(active_workspace):
                     if mode == "move":
                         wx, wy, ww, wh = window.wnck.get_geometry()
                         window.wnck.set_geometry(0,3,
@@ -983,17 +984,18 @@ class Group(ListOfWindows):
                     grtop = False
                 continue
             ignored = False
+            window_workspace = wnck_window.get_workspace()
             if not wnck_window.is_pinned() \
-            and wnck_window.get_workspace() is not None \
-            and active_workspace != wnck_window.get_workspace():
+            and window_workspace is not None \
+            and active_workspace != window_workspace:
                 if mode == "move":
-                    ws = screen.get_active_workspace()
-                    wnck_window.move_to_workspace(ws)
+                    wnck_window.move_to_workspace(active_workspace)
                     moved = True
                 else: # mode == "ignore" or "switch"
                     ignored = True
                     ignorelist.append(self[wnck_window])
-            if not wnck_window.is_in_viewport(screen.get_active_workspace()):
+            if active_workspace is not None \
+            and not wnck_window.is_in_viewport(active_workspace):
                 if mode == "move":
                     wx, wy, ww, wh = wnck_window.get_geometry()
                     wnck_window.set_geometry(0,3,wx%screen.get_width(),
