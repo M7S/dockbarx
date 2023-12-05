@@ -34,6 +34,7 @@ from PIL import Image
 
 from .theme import Theme
 from .common import Globals
+from .dirutils import get_data_dirs
 from .log import logger
 
 from . import i18n
@@ -584,13 +585,8 @@ class IconFactory():
         return None
 
     def __icon_search_in_data_path(self, icon_name, icon_size):
-        data_folders = os.environ.get("XDG_DATA_HOME",
-                                      os.path.join(os.path.expanduser("~"),
-                                                   ".local/share"))
-        data_folders += ":" + os.environ.get("XDG_DATA_DIRS",
-                                             "/usr/local/share/:/usr/share/")
-
-        for data_folder in data_folders.split(":"):
+        data_folders = get_data_dirs()
+        for data_folder in data_folders:
             if data_folder == "":
                 continue
             paths = (os.path.join(data_folder, "pixmaps", icon_name),

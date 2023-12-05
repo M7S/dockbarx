@@ -32,6 +32,7 @@ import signal
 from dockbarx.common import *
 from dockbarx.applets import DockXApplets
 from dockbarx.theme import PopupStyle, DockTheme
+from dockbarx.dirutils import get_app_dirs
 
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
@@ -1498,18 +1499,13 @@ class PrefDialog():
             self.globals.update_colors(None)
 
     def __find_themes(self):
-        # Reads the themes from $XDG_DATA_DIRS/dockbarx/themes and
-        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
+        # Reads the themes from APP_DIRS/themes
         # and returns a dict of the theme names and paths so
         # that a theme can be loaded.
         themes = {}
         theme_paths = []
-        theme_folder = os.path.join(get_app_homedir(), "themes")
-        data_dirs = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        data_dirs = data_dirs.split(":")
-        dirs = [os.path.join(d, "dockbarx/themes") for d in data_dirs]
-        dirs.append(theme_folder)
+        app_dirs = get_app_dirs()
+        dirs = [os.path.join(d, "themes") for d in app_dirs]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -1526,7 +1522,7 @@ class PrefDialog():
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            message = _("No working themes found in /usr/share/dockbarx/themes or ~/.local/share/dockbarx/themes")
+            message = _("No working themes found in any of these locations:\n\n%s") % "\n".join(dirs)
             flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
             md = Gtk.MessageDialog(self.dialog,
                                    flags,

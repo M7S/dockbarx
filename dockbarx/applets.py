@@ -30,7 +30,8 @@ from gi.repository import Gio
 from gi.repository import GLib
 from dbus.mainloop.glib import DBusGMainLoop
 from .log import logger
-from .common import get_app_homedir, Globals
+from .common import Globals
+from .dirutils import get_app_dirs
 from . import i18n
 _ = i18n.language.gettext
 
@@ -128,15 +129,13 @@ class DockXApplets():
         self.globals = Globals()
 
     def find_applets(self):
-        # Reads the applets from /usr/share/dockbarx/applets and
-        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/applets
+        # Reads the applets from DATA_DIRS/dockbarx/applets
         # and returns a dict of the applets file names and paths so that a
         # applet can be loaded.
         self.applets = {}
-        home_folder = os.path.expanduser("~")
-        applets_folder = os.path.join(get_app_homedir(), "applets")
-        dirs = ["/usr/share/dockbarx/applets", applets_folder]
-        for dir in dirs:
+        app_dirs = get_app_dirs()
+        applets_dirs = [ os.path.join(d, "applets") for d in app_dirs ]
+        for dir in applets_dirs:
             if not(os.path.exists(dir) and os.path.isdir(dir)):
                 continue
             for f in os.listdir(dir):
@@ -149,8 +148,9 @@ class DockXApplets():
                     logger.debug("Error: Did not load applet from %s: %s" % (path, err))
                     continue
                 name = applet["name"]
-                applet["dir"] = dir
-                self.applets[name] = applet
+                if name not in self.applets:
+                    applet["dir"] = dir
+                    self.applets[name] = applet
 
     def read_applet_file(self, path):
         try:

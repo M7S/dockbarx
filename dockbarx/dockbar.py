@@ -37,6 +37,7 @@ import urllib.parse
 
 
 from .common import *
+from .dirutils import get_app_homedir, get_data_dirs
 from .log import logger
 from .key_listener import KeyListener
 
@@ -1624,15 +1625,9 @@ class DockBar():
                     break
 
     def __get_desktop_entry_for_id(self, id):
-        # Search for the desktop id first in ~/.local/share/applications
-        # and then in XDG_DATA_DIRS/applications
-        user_folder = os.environ.get("XDG_DATA_HOME",
-                                     os.path.join(os.path.expanduser("~"),
-                                                  ".local", "share"))
-        data_folders = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        folders = "%s:%s"%(user_folder, data_folders)
-        for folder in folders.split(":"):
+        # Search for the desktop id in DATA_DIRS/applications
+        folders = get_data_dirs()
+        for folder in folders:
             dirname = os.path.join(folder, "applications")
             basename = id
             run = True
