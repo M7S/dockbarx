@@ -1,3 +1,0 @@
-An applet for Dockbarx stand alone dock needs to be a python file named dbx_applet_%name%.py, where %name% can be whatever you want. It doesn't have to be the same as the name of the applet you specify within the file.
-
-See dbx_applet_hello_world.py for a simple example or dbx_applet_clock.py for a more complex one.

@@ -29,11 +29,8 @@ from dockbarx.applets import DockXApplet
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
 
-from pathlib import Path
-file = Path(__file__).resolve()
-parent, root = file.parent, file.parents[1]
-sys.path.append(str(root))
-from applets.namebar_common import get_namebar_homedir, create_context_menu, PrefDialog, Theme
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from namebar.namebar_common import get_namebar_homedir, create_context_menu, PrefDialog, Theme
 
 try:
     action_minimize = Wnck.WindowType.ACTION_MINIMIZE
@@ -149,7 +146,7 @@ class WindowButtonApplet(DockXApplet):
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = [os.path.join(os.path.dirname(__file__), "namebar_themes"),
+        dirs = [os.path.join(os.path.dirname(__file__), "themes"),
                 os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):

@@ -135,22 +135,24 @@ class DockXApplets():
         self.applets = {}
         app_dirs = get_app_dirs()
         applets_dirs = [ os.path.join(d, "applets") for d in app_dirs ]
-        for dir in applets_dirs:
-            if not(os.path.exists(dir) and os.path.isdir(dir)):
-                continue
-            for f in os.listdir(dir):
-                name, ext = os.path.splitext(os.path.split(f)[-1])
-                if not(ext.lower() == ".applet"):
-                    continue
-                path = os.path.join(dir, f)
-                applet, err = self.read_applet_file(path)
-                if err is not None:
-                    logger.debug("Error: Did not load applet from %s: %s" % (path, err))
-                    continue
-                name = applet["name"]
-                if name not in self.applets:
-                    applet["dir"] = dir
-                    self.applets[name] = applet
+        for d in applets_dirs:
+            num_sep = d.count(os.path.sep)
+            for root, dirs, files in os.walk(d):
+                for f in files:
+                    name, ext = os.path.splitext(os.path.basename(f))
+                    if ext.lower() != ".applet":
+                        continue
+                    path = os.path.join(root, f)
+                    applet, err = self.read_applet_file(path)
+                    if err is not None:
+                        logger.debug("Error: Did not load applet from %s: %s" % (path, err))
+                        continue
+                    name = applet["name"]
+                    if name not in self.applets:
+                        applet["dir"] = root
+                        self.applets[name] = applet
+                if num_sep + 1 <= root.count(os.path.sep):
+                    del dirs[:]
 
     def read_applet_file(self, path):
         try:
