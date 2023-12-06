@@ -32,10 +32,10 @@ dbx_files = []
 def scan_path(file_list, dest, base_path, ext="", exclude_ext=None, fixed_dest=False):
     files = []
     for f in os.listdir(base_path):
-        fpath = os.path.join(base_path, f)
-        if fpath == ".git":
+        if f == ".git":
             continue
-        elif os.path.isdir(fpath):
+        fpath = os.path.join(base_path, f)
+        if os.path.isdir(fpath):
             instdir = dest if fixed_dest else os.path.join(dest, f)
             scan_path(file_list, instdir, os.path.join(base_path, f), ext, exclude_ext, fixed_dest)
         elif os.path.isfile(fpath) and fpath.endswith(ext) and (exclude_ext is None or not fpath.endswith(exclude_ext)):
@@ -94,7 +94,7 @@ cmdclass = {
 
 setup(name="Dockbarx",
       version=VERSION,
-      description="A dock-ish gnome-applet",
+      description="A dock-ish applet",
       author="Aleksey Shaferov and Matias Sars",
       url="http://launchpad.net/dockbar/",
       packages=["dockbarx"],
