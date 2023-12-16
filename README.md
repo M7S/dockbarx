@@ -2,34 +2,31 @@
 ### Version 1.0-beta3
 
 ## About DockbarX
-The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as a [Xfce4 panel applet](https://github.com/xuzhen/xfce4-dockbarx-plugin) or a [MATE panel applet](https://github.com/xuzhen/dockbarx-mate-applet). DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
+The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as a [Xfce4 panel plugin](https://github.com/xuzhen/xfce4-dockbarx-plugin), as a [MATE panel applet](https://github.com/xuzhen/dockbarx-mate-applet) or as a [LXQt panel plugin](https://github.com/xuzhen/dockbarx-lxqt-plugin). DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
 
 DockbarX is free software and is licensed under GPL3.
 
-## Install in Ubuntu 18.04+ from PPA
+## Install in Ubuntu from PPA
 The main DockbarX PPA is not maintained for the moment. You can use Xu Zhen's unofficial DockbarX PPA instead. To add the PPA and install the application in Ubuntu (and derivatives), use the following commands:
 
 ```
 sudo add-apt-repository ppa:xuzhen666/dockbarx
-sudo apt-get update
-sudo apt-get install dockbarx
+sudo apt update
+sudo apt install dockbarx
 ```
 
-If you want to use dockbarx as a Xfce panel applet you also need this command
+If you want to use dockbarx as a panel plugin you also need these commands
 
 ```
-sudo apt-get install xfce4-dockbarx-plugin
-```
-
-If you want to use dockbarx as a MATE panel applet you also need this command
-```
-sudo apt-get install dockbarx-mate-panel-applet
+sudo apt install xfce4-dockbarx-plugin       # for Xfce4 panel
+sudo apt install dockbarx-mate-panel-applet  # for MATE panel
+sudo apt install dockbarx-lxqt-plugin        # for LXQt panel
 ```
 
 To get more themes for DockbarX and DockX use this command
 
 ```
-sudo apt-get install dockbarx-themes-extra
+sudo apt install dockbarx-themes-extra
 ```
 
 ## Install in archlinux
