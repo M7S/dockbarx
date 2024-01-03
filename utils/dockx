@@ -740,8 +740,8 @@ class DockX(CairoDockX):
                 orient = Gtk.Orientation.HORIZONTAL
             boxes = [Gtk.Box.new(orient, 0), Gtk.Box.new(orient, 0), Gtk.Box.new(orient, 0)]
             self.box.pack_start(boxes[0], True, True, 0)
-            self.box.pack_start(boxes[1], False, False, 0)
-            self.box.pack_start(boxes[2], True, True, 0)
+            self.box.set_center_widget(boxes[1])
+            self.box.pack_end(boxes[2], True, True, 0)
         else:
             boxes = None
         return boxes
