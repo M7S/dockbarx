@@ -1,35 +1,32 @@
 # DockbarX
-### Version 1.0-beta2
+### Version 1.0-beta3
 
 ## About DockbarX
-The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as a Xfce4 panel applet[^1] or a matepanel applet. DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
+The gtk3/python3 version of DockbarX is a lightweight taskbar / panel replacement for Linux which works as a stand-alone dock (called DockX), as a [Xfce4 panel plugin](https://github.com/xuzhen/xfce4-dockbarx-plugin), as a [MATE panel applet](https://github.com/xuzhen/dockbarx-mate-applet) or as a [LXQt panel plugin](https://github.com/xuzhen/dockbarx-lxqt-plugin). DockbarX is a fork of dockbar made by Aleksey Shaferov. DockbarX branch is developed by Matias Särs.
 
 DockbarX is free software and is licensed under GPL3.
 
-## Install in Ubuntu 18.04+ from PPA
+## Install in Ubuntu from PPA
 The main DockbarX PPA is not maintained for the moment. You can use Xu Zhen's unofficial DockbarX PPA instead. To add the PPA and install the application in Ubuntu (and derivatives), use the following commands:
 
 ```
 sudo add-apt-repository ppa:xuzhen666/dockbarx
-sudo apt-get update
-sudo apt-get install dockbarx
+sudo apt update
+sudo apt install dockbarx
 ```
 
-If you want to use dockbarx as a Xfce panel applet you also need this command
+If you want to use dockbarx as a panel plugin you also need these commands
 
 ```
-sudo apt-get install xfce4-dockbarx-plugin
-```
-
-If you want to use dockbarx as a MATE panel applet you also need this command
-```
-sudo apt-get install dockbarx-mate-panel-applet
+sudo apt install xfce4-dockbarx-plugin       # for Xfce4 panel
+sudo apt install dockbarx-mate-panel-applet  # for MATE panel
+sudo apt install dockbarx-lxqt-plugin        # for LXQt panel
 ```
 
 To get more themes for DockbarX and DockX use this command
 
 ```
-sudo apt-get install dockbarx-themes-extra
+sudo apt install dockbarx-themes-extra
 ```
 
 ## Install in archlinux
@@ -45,12 +42,17 @@ https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
 ## Manual Installation
 
 1. Following dependencies needs to be installed (many of them might be installed already on your system):
-  - gir1.2-gtk-3.0 (>= 3.22), gir1.2-glib-2.0 (>= 1.40), gir1.2-keybinder-3.0, gir1.2-pango-1.0, gir1.2-wnck-3.0, python3-cairo (>= 1.11.0), python3-dbus, python3-distutils, python3-gi, python3-gi-cairo, python3-pil, python3-polib, python3-xdg and python3-xlib.
+  - gir1.2-gtk-3.0 (>= 3.22), gir1.2-glib-2.0 (>= 1.40), gir1.2-keybinder-3.0, gir1.2-pango-1.0, gir1.2-wnck-3.0, python3 (>= 3.5), python3-cairo (>= 1.11.0), python3-dbus, python3-gi, python3-gi-cairo, python3-pil, python3-xdg and python3-xlib.
+  - (Only for build) python3-pip, python3-polib, python3-setuptools
   - (Optional) gir1.2-zeitgeist-2.0 and zeitgeist, to access latest and most used documents.
   - (Optional) indicator-application or ayatana-indicator-application, to use the appindicator applet with DockX
   - (Optional) python3-pyudev (>= 0.15), to use the battery status applet with DockX
   - (Optional) python3-lxml, to use the settings migrating tool
-2. Extract dockbarx. Change directory to where you extracted dockbarx and run the setup.py install `$ sudo ./setup.py install`
+2. Extract dockbarx. Change directory to where you extracted dockbarx and run the following commands:
+```
+sudo pip install .
+sudo glib-compile-schemas /usr/local/share/glib-2.0/schemas/
+```
 
 ## Usage
 To run DockbarX as a stand alone dock use the command `dockx`.
@@ -117,6 +119,4 @@ A: Backup: ```dconf dump /org/dockbarx/ > dockbarx.xml```\
 *Q: All the preferences were lost after upgrading to 1.0, how to get them back?*
 
 A: Dump the preferences from GConf database ```gconftool --dump /apps/dockbarx > dockbarx.xml```, run the migrating tool ```dbx_migrate_settings dockbarx.xml```, and move the application folder from ~/.dockbarx to ~/.local/share/dockbarx
-
-[^1]: Using [xfce-dockbarx-plugin] (https://github.com/M7S/xfce4-dockbarx-plugin/tree/pygi-python3)
 

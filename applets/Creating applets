@@ -1,0 +1,3 @@
+An applet for Dockbarx stand alone dock needs to be a text file named %name%.applet, where %name% can be whatever you want. It doesn't have to be the same as the name of the directory you specify within the file.
+
+See hello_world for a simple example or clock for a more complex one.

@@ -27,6 +27,7 @@ from gi.repository import GObject
 from gi.repository import GLib
 import sys
 import os
+import shutil
 import dbus
 from . import cairowidgets
 import weakref
@@ -36,13 +37,14 @@ import urllib.parse
 
 
 from .common import *
+from .dirutils import get_app_homedir, get_data_dirs
 from .log import logger
 from .key_listener import KeyListener
 
 from . import i18n
 _ = i18n.language.gettext
 
-VERSION = "1.0-beta2"
+VERSION = "1.0-beta3"
 
 
 SPECIAL_RES_CLASSES = {
@@ -993,6 +995,12 @@ class DockBar():
             desktop_entry = self.__get_desktop_entry_for_id(app.get_id())
             group.set_desktop_entry(desktop_entry)
         group.update_name()
+        custom_launcher = os.path.join(get_app_homedir(), "launchers", "%s.desktop"%identifier)
+        if os.path.isfile(custom_launcher):
+            try:
+                os.remove(custom_launcher)
+            except:
+                pass
 
     def __make_groupbutton(self, identifier=None, desktop_entry=None,
                          pinned=False, index=None, window=None):
@@ -1498,16 +1506,20 @@ class DockBar():
                 logger.warning("Error: file %s doesn't exist."%path)
             new_path = os.path.join(launcher_dir, os.path.basename(path))
             if new_path != path:
-                os.system("cp %s %s"%(path, new_path))
+                shutil.copy(path, new_path)
         else:
             new_path = os.path.join(launcher_dir, "%s.desktop"%identifier)
+        try:
+            mtime = os.path.getmtime(new_path)
+        except OSError:
+            mtime = None
         programs = ("gnome-desktop-item-edit",
                     "mate-desktop-item-edit", "exo-desktop-item-edit")
         for program in programs:
             if check_program(program):
                 process = subprocess.Popen([program, new_path], env=os.environ)
                 GLib.timeout_add(100, self.__wait_for_launcher_editor,
-                                 process, path, new_path, identifier)
+                                 process, path, new_path, mtime, identifier)
                 break
         else:
             editor = DesktopFileEditor()
@@ -1516,7 +1528,7 @@ class DockBar():
             action = editor.run()
             if action == Gtk.ResponseType.OK:
                 editor.save(new_path)
-                self.__wait_for_launcher_editor(None, path, new_path, identifier)
+                self.__wait_for_launcher_editor(None, path, new_path, mtime, identifier)
             editor.destroy()
 
     def update_pinned_apps_list(self, arg=None):
@@ -1613,15 +1625,9 @@ class DockBar():
                     break
 
     def __get_desktop_entry_for_id(self, id):
-        # Search for the desktop id first in ~/.local/share/applications
-        # and then in XDG_DATA_DIRS/applications
-        user_folder = os.environ.get("XDG_DATA_HOME",
-                                     os.path.join(os.path.expanduser("~"),
-                                                  ".local", "share"))
-        data_folders = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        folders = "%s:%s"%(user_folder, data_folders)
-        for folder in folders.split(":"):
+        # Search for the desktop id in DATA_DIRS/applications
+        folders = get_data_dirs()
+        for folder in folders:
             dirname = os.path.join(folder, "applications")
             basename = id
             run = True
@@ -1688,10 +1694,18 @@ class DockBar():
         return text
 
     def __wait_for_launcher_editor(self, process,
-                                   old_path, new_path, identifier):
+                                   old_path, new_path, mtime, identifier):
         if process is None or process.poll() != None:
             # Launcher editor closed.
             if os.path.isfile(new_path):
+                try:
+                    if os.path.getmtime(new_path) == mtime:
+                        # No modifications
+                        if old_path != new_path:
+                            os.remove(new_path)
+                        return
+                except:
+                    return
                 # Update desktop_entry.
                 desktop_entry = DesktopEntry(new_path)
                 if identifier:

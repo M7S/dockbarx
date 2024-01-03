@@ -22,7 +22,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
 import os
-import imp
+import importlib.util
 import dbus
 import weakref
 from gi.repository import GObject
@@ -30,7 +30,8 @@ from gi.repository import Gio
 from gi.repository import GLib
 from dbus.mainloop.glib import DBusGMainLoop
 from .log import logger
-from .common import get_app_homedir, Globals
+from .common import Globals
+from .dirutils import get_app_dirs
 from . import i18n
 _ = i18n.language.gettext
 
@@ -128,29 +129,30 @@ class DockXApplets():
         self.globals = Globals()
 
     def find_applets(self):
-        # Reads the applets from /usr/share/dockbarx/applets and
-        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/applets
+        # Reads the applets from DATA_DIRS/dockbarx/applets
         # and returns a dict of the applets file names and paths so that a
         # applet can be loaded.
         self.applets = {}
-        home_folder = os.path.expanduser("~")
-        applets_folder = os.path.join(get_app_homedir(), "applets")
-        dirs = ["/usr/share/dockbarx/applets", applets_folder]
-        for dir in dirs:
-            if not(os.path.exists(dir) and os.path.isdir(dir)):
-                continue
-            for f in os.listdir(dir):
-                name, ext = os.path.splitext(os.path.split(f)[-1])
-                if not(ext.lower() == ".applet"):
-                    continue
-                path = os.path.join(dir, f)
-                applet, err = self.read_applet_file(path)
-                if err is not None:
-                    logger.debug("Error: Did not load applet from %s: %s" % (path, err))
-                    continue
-                name = applet["name"]
-                applet["dir"] = dir
-                self.applets[name] = applet
+        app_dirs = get_app_dirs()
+        applets_dirs = [ os.path.join(d, "applets") for d in app_dirs ]
+        for d in applets_dirs:
+            num_sep = d.count(os.path.sep)
+            for root, dirs, files in os.walk(d):
+                for f in files:
+                    name, ext = os.path.splitext(os.path.basename(f))
+                    if ext.lower() != ".applet":
+                        continue
+                    path = os.path.join(root, f)
+                    applet, err = self.read_applet_file(path)
+                    if err is not None:
+                        logger.debug("Error: Did not load applet from %s: %s" % (path, err))
+                        continue
+                    name = applet["name"]
+                    if name not in self.applets:
+                        applet["dir"] = root
+                        self.applets[name] = applet
+                if num_sep + 1 <= root.count(os.path.sep):
+                    del dirs[:]
 
     def read_applet_file(self, path):
         try:
@@ -213,7 +215,9 @@ class DockXApplets():
         iname, ext = os.path.splitext(os.path.split(e)[-1])
         path = os.path.join(self.applets[name]["dir"], e)
         try:
-            applet = imp.load_source(iname, path)
+            spec = importlib.util.spec_from_file_location(iname, path)
+            applet = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(applet)
         except:
             message = "Error: Could not load applet from %s. " % path
             message += "Could not import the script."

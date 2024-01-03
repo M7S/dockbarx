@@ -43,6 +43,7 @@ gi.require_version("Pango", "1.0")
 from gi.repository import Pango
 import dbus
 import pyudev   # >= 0.15
+from xml.etree import ElementTree
 from dockbarx.applets import DockXApplet, DockXAppletDialog
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
@@ -404,8 +405,11 @@ class SystemdUtils(GObject.GObject):
     BUS_NAME = "org.freedesktop.login1"
     LOGIN_PATH = "/org/freedesktop/login1"
     LOGIN_IFNAME = "org.freedesktop.login1.Manager"
-    SESSION_PATH = "/org/freedesktop/login1/session/self"
+    SESSION_ROOT_PATH = "/org/freedesktop/login1/session"
+    SESSION_PATH_NEW = "/org/freedesktop/login1/session/auto"
+    SESSION_PATH_OLD = "/org/freedesktop/login1/session/self"
     SESSION_IFNAME = "org.freedesktop.login1.Session"
+    INTROSPECTABLE_IFNAME = "org.freedesktop.DBus.Introspectable"
 
     __gsignals__ = {
         "error": (GObject.SignalFlags.RUN_FIRST, None, (str,))
@@ -425,7 +429,18 @@ class SystemdUtils(GObject.GObject):
         self.__session_iface = None
         try:
             if self.__bus is not None:
-                session_object = self.__bus.get_object(self.BUS_NAME, self.SESSION_PATH)
+                use_old_path = True
+                session_object = self.__bus.get_object(self.BUS_NAME, self.SESSION_ROOT_PATH)
+                iface = dbus.Interface(session_object, self.INTROSPECTABLE_IFNAME)
+                xml_string = iface.Introspect()
+                for child in ElementTree.fromstring(xml_string):
+                    if child.tag != "node":
+                        continue
+                    child_path = "/".join((self.SESSION_ROOT_PATH, child.attrib["name"]))
+                    if child_path == self.SESSION_PATH_NEW:
+                        use_old_path = False
+                        break
+                session_object = self.__bus.get_object(self.BUS_NAME, self.SESSION_PATH_OLD if use_old_path else self.SESSION_PATH_NEW)
                 self.__session_iface = dbus.Interface(session_object, self.SESSION_IFNAME)
         except dbus.exceptions.DBusException as exception:
             self.emit("error", exception.__str__())

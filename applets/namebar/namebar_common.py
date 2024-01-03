@@ -37,12 +37,9 @@ def get_namebar_homedir():
     global namebar_appdir
     if namebar_appdir is not None:
         return namebar_appdir
-    homedir = os.environ['HOME']
-    default = os.path.join(homedir, '.local', 'share')
-    namebar_appdir = os.path.join(
-        os.getenv('XDG_DATA_HOME', default),
-        'namebar'
-    )
+    homedir = os.environ.get("XDG_DATA_HOME", os.environ.get("HOME", os.path.expanduser('~')))
+    namebar_appdir = os.path.join(homedir, '.local', 'share', "namebar")
+
     """
     Migration Path
     From "$HOME/.namebar" to "${XDG_DATA_HOME:-$HOME/.local/share}/namebar"
@@ -52,9 +49,7 @@ def get_namebar_homedir():
         try:
             os.rename(old_appdir, namebar_appdir)
         except OSError:
-            sys.stderr.write('Could not move dir "%s" to "%s". \
-                     Move the contents of "%s" to "%s" manually \
-                     and then remove the first location.'
+            sys.stderr.write('Could not move dir "%s" to "%s". Move the contents of "%s" to "%s" manually and then remove the first location.\n'
                      % (old_appdir, namebar_appdir, old_appdir, namebar_appdir))
     """
     End Migration Path
@@ -453,7 +448,7 @@ class PrefDialog(DockXAppletDialog):
         # a theme can be loaded
         themes = {}
         theme_paths = []
-        dirs = [os.path.join(os.path.dirname(__file__), "namebar_themes"),
+        dirs = [os.path.join(os.path.dirname(__file__), "themes"),
                 os.path.join(get_namebar_homedir(), "themes")]
         for dir in dirs:
             if os.path.exists(dir):

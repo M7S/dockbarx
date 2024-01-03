@@ -29,7 +29,7 @@ import os
 import array
 from .common import ODict
 from .common import Globals
-from .common import get_app_homedir
+from .dirutils import get_app_dirs
 from .log import logger
 from PIL import Image
 
@@ -149,18 +149,13 @@ class Theme(GObject.GObject):
         self.reload()
 
     def find_themes(self):
-        # Reads the themes from $XDG_DATA_DIRS/dockbarx/themes and
-        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
+        # Reads the themes from APP_DIRS/themes
         # and returns a dict of the theme names and paths so
         # that a theme can be loaded.
         themes = {}
         theme_paths = []
-        theme_folder = os.path.join(get_app_homedir(), "themes")
-        data_dirs = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        data_dirs = data_dirs.split(":")
-        dirs = [os.path.join(d, "dockbarx/themes") for d in data_dirs]
-        dirs.append(theme_folder)
+        app_dirs = get_app_dirs()
+        dirs = [os.path.join(d, "themes") for d in app_dirs]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -179,10 +174,10 @@ class Theme(GObject.GObject):
             md = Gtk.MessageDialog(None,
                 Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                 Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
-                _("No working themes found in /usr/share/dockbarx/themes or ~/.local/share/dockbarx/themes"))
+                _("No working themes found in any of these locations:\n\n%s") % "\n".join(dirs))
             md.run()
             md.destroy()
-            raise NoThemesError("No working themes found in /usr/share/dockbarx/themes or ${XDG_DATA_HOME:-$HOME/.local/share}/.dockbarx/themes")
+            raise NoThemesError("No working themes found")
         return themes
 
     def reload(self):
@@ -412,18 +407,12 @@ class PopupStyle(GObject.GObject):
         return self.settings.get(key, default)
 
     def find_styles(self):
-        # Reads the styles from $XDG_DATA_DIRS/dockbarx/themes/popup_styles and
-        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes/popup_styles
+        # Reads the styles from APP_DIRS/themes/popup_styles
         # and returns a dict of the style file names and paths so that a
         # style can be loaded
         styles = {}
-        style_paths = []
-        style_folder = os.path.join(get_app_homedir(), "themes", "popup_styles")
-        data_dirs = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        data_dirs = data_dirs.split(":")
-        dirs = [os.path.join(d, "dockbarx/themes/popup_styles") for d in data_dirs]
-        dirs.append(style_folder)
+        app_dirs = get_app_dirs()
+        dirs = [os.path.join(d, "themes", "popup_styles") for d in app_dirs]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -533,12 +522,8 @@ class PopupStyle(GObject.GObject):
         # For DockbarX preference. This function makes a dict of the names and
         # file names of the styles for all styles that can be opened correctly.
         styles = {}
-        style_folder = os.path.join(get_app_homedir(), "themes", "popup_styles")
-        data_dirs = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        data_dirs = data_dirs.split(":")
-        dirs = [os.path.join(d, "dockbarx/themes/popup_styles") for d in data_dirs]
-        dirs.append(style_folder)
+        app_dirs = get_app_dirs()
+        dirs = [os.path.join(d, "themes", "popup_styles") for d in app_dirs]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -627,18 +612,12 @@ class DockTheme(GObject.GObject):
         return self.resized_bg[bar]
 
     def find_themes(self):
-        # Reads the themes from $XDG_DATA_DIRS/dockbarx/themes/dock and
-        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes/dock
+        # Reads the themes from APP_DIRS/themes/dock
         # and returns a dict of the theme names and paths so
         # that a theme can be loaded.
         themes = {}
-        theme_paths = []
-        theme_folder = os.path.join(get_app_homedir(), "themes/dock")
-        data_dirs = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        data_dirs = data_dirs.split(":")
-        dirs = [os.path.join(d, "dockbarx/themes/dock") for d in data_dirs]
-        dirs.append(theme_folder)
+        app_dirs = get_app_dirs()
+        dirs = [os.path.join(d, "themes", "dock") for d in app_dirs]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -754,12 +733,8 @@ class DockTheme(GObject.GObject):
         # For DockbarX preference. This function makes a dict of the names and
         # file names of the themes for all themes that can be opened correctly.
         themes = {}
-        theme_folder = os.path.join(get_app_homedir(), "themes", "dock")
-        data_dirs = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        data_dirs = data_dirs.split(":")
-        dirs = [os.path.join(d, "dockbarx/themes/dock") for d in data_dirs]
-        dirs.append(theme_folder)
+        app_dirs = get_app_dirs()
+        dirs = [os.path.join(d, "themes", "dock") for d in app_dirs]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -840,5 +815,10 @@ class DockTheme(GObject.GObject):
 
     def __resize_surface(self, surface, w, h):
         im = self.__surface2pil(surface)
-        im = im.resize((w, h), Image.ANTIALIAS)
+        try:
+            algo = Image.LANCZOS
+        except AttributeError:
+            # removed in python-pillow 10.0.0
+            algo = Image.ANTIALIAS
+        im = im.resize((w, h), algo)
         return self.__pil2surface(im)

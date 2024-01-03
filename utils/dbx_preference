@@ -32,6 +32,7 @@ import signal
 from dockbarx.common import *
 from dockbarx.applets import DockXApplets
 from dockbarx.theme import PopupStyle, DockTheme
+from dockbarx.dirutils import get_app_dirs
 
 import dockbarx.i18n
 _ = dockbarx.i18n.language.gettext
@@ -859,21 +860,6 @@ class PrefDialog():
         popup_box.pack_start(self.shape_mask_cb, False, True, 5)
 
 
-        self.preview_size_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-        self.preview_size_spinbox.set_border_width(5)
-        spinlabel = Gtk.Label(label=_("Preview size"))
-        spinlabel.set_xalign(0)
-        spinlabel.set_yalign(0.5)
-        adj = Gtk.Adjustment.new(200, 50, 800, 1, 50, 0)
-        self.preview_size_spin = Gtk.SpinButton.new(adj, 0.5, 0)
-        self.preview_size_spinbox.pack_start(spinlabel, False, True, 0)
-        self.preview_size_spinbox.pack_start(self.preview_size_spin,
-                                             False, True, 5)
-        adj.connect("value_changed", self.__adjustment_changed, "preview_size")
-        self.preview_size_spinbox.show_all()
-        self.preview_size_spinbox.set_no_show_all(True)
-        popup_box.pack_start(self.preview_size_spinbox, False, True, 5)
-
         self.window_title_width_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
         self.window_title_width_spinbox.set_border_width(5)
         spinlabel = Gtk.Label(label=_("Window title width"))
@@ -935,6 +921,22 @@ class PrefDialog():
         self.preview_keep_cb.connect("toggled", self.__checkbutton_toggled, "preview_keep")
         vbox.pack_start(self.preview_keep_cb, False, True, 0)
         popup_box.pack_start(vbox, False, True, 5)
+
+        self.preview_size_spinbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+        self.preview_size_spinbox.set_border_width(5)
+        spinlabel = Gtk.Label(label=_("Preview size"))
+        spinlabel.set_xalign(0)
+        spinlabel.set_yalign(0.5)
+        adj = Gtk.Adjustment.new(200, 50, 800, 1, 50, 0)
+        self.preview_size_spin = Gtk.SpinButton.new(adj, 0.5, 0)
+        self.preview_size_spinbox.pack_start(spinlabel, False, True, 0)
+        self.preview_size_spinbox.pack_start(self.preview_size_spin,
+                                             False, True, 5)
+        adj.connect("value_changed", self.__adjustment_changed, "preview_size")
+        self.preview_size_spinbox.show_all()
+        self.preview_size_spinbox.set_no_show_all(True)
+        popup_box.pack_start(self.preview_size_spinbox, False, True, 5)
+
 
         # Locked list
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
@@ -1497,18 +1499,13 @@ class PrefDialog():
             self.globals.update_colors(None)
 
     def __find_themes(self):
-        # Reads the themes from $XDG_DATA_DIRS/dockbarx/themes and
-        # ${XDG_DATA_HOME:-$HOME/.local/share}/dockbarx/themes
+        # Reads the themes from APP_DIRS/themes
         # and returns a dict of the theme names and paths so
         # that a theme can be loaded.
         themes = {}
         theme_paths = []
-        theme_folder = os.path.join(get_app_homedir(), "themes")
-        data_dirs = os.environ.get("XDG_DATA_DIRS",
-                                      "/usr/local/share/:/usr/share/")
-        data_dirs = data_dirs.split(":")
-        dirs = [os.path.join(d, "dockbarx/themes") for d in data_dirs]
-        dirs.append(theme_folder)
+        app_dirs = get_app_dirs()
+        dirs = [os.path.join(d, "themes") for d in app_dirs]
         for dir in dirs:
             if os.path.exists(dir) and os.path.isdir(dir):
                 for f in os.listdir(dir):
@@ -1525,7 +1522,7 @@ class PrefDialog():
                 name = str(name)
                 themes[name] = theme_path
         if not themes:
-            message = _("No working themes found in /usr/share/dockbarx/themes or ~/.local/share/dockbarx/themes")
+            message = _("No working themes found in any of these locations:\n\n%s") % "\n".join(dirs)
             flags = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
             md = Gtk.MessageDialog(self.dialog,
                                    flags,
@@ -1769,14 +1766,9 @@ class PrefDialog():
         self.preview_keep_cb.set_active(self.globals.settings["preview_keep"])
         self.preview_keep_cb.set_sensitive(self.globals.settings["preview"])
         self.preview_size_spin.set_value(self.globals.settings["preview_size"])
+        self.preview_size_spin.set_sensitive(self.globals.settings["preview"])
         self.window_title_width_spin.set_value(
                                     self.globals.settings["window_title_width"])
-        if self.globals.settings["preview"]:
-            self.preview_size_spinbox.show()
-            self.window_title_width_spinbox.hide()
-        else:
-            self.preview_size_spinbox.hide()
-            self.window_title_width_spinbox.show()
 
         # Advanced page stuff
         self.ignore_workspace_cb.set_active(

@@ -17,155 +17,88 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-from distutils.core import setup
-from distutils.core import setup
-from distutils import cmd
-from distutils.command.install_data import install_data as _install_data
-from distutils.command.build import build as _build
+from setuptools import setup
+from setuptools.command.install import install as _install
+from setuptools.command.build_py import build_py as _build_py
 
 import polib
 import os
 import sys
-import stat
 
-VERSION = "1.0-beta2"
+VERSION = "1.0-beta3"
 
-class build_trans(cmd.Command):
-    description = "Compile .po files into .mo files"
-    def initialize_options(self):
-        pass
+dbx_files = []
 
-    def finalize_options(self):
-        pass
+def scan_path(file_list, dest, base_path, ext="", exclude_ext=None, fixed_dest=False):
+    files = []
+    for f in os.listdir(base_path):
+        if f == ".git":
+            continue
+        fpath = os.path.join(base_path, f)
+        if os.path.isdir(fpath):
+            instdir = dest if fixed_dest else os.path.join(dest, f)
+            scan_path(file_list, instdir, os.path.join(base_path, f), ext, exclude_ext, fixed_dest)
+        elif os.path.isfile(fpath) and fpath.endswith(ext) and (exclude_ext is None or not fpath.endswith(exclude_ext)):
+            files.append(fpath)
+    if files:
+        file_list.append( ( dest, files ) )
 
-    def run(self):
+scan_path(dbx_files, "bin", "utils")
+scan_path(dbx_files, "share/applications", "data", ext=".desktop")
+scan_path(dbx_files, "share/dockbarx/applets", "applets", exclude_ext=".gschema.xml")
+scan_path(dbx_files, "share/dockbarx/themes", "data/themes", ext=".tar.gz")
+scan_path(dbx_files, "share/glib-2.0/schemas", os.curdir, ext=".gschema.xml", fixed_dest=True)
+scan_path(dbx_files, "share/icons", "data/icons", ext=".png")
+
+class build_py(_build_py):
+
+    def build_package_data(self):
+        _build_py.build_package_data(self)
+        self.build_trans()
+
+    def build_trans(self):
         po_dict = {
-                    "dockbarx": os.path.join(os.path.dirname(os.curdir), "po"),
-                    "dockbarx-themes": os.path.join(os.path.dirname(os.curdir), "po-themes")
-                  }
-        for (mo_file, po_dir) in list(po_dict.items()):
-            for path, names, filenames in os.walk(po_dir):
-                for f in filenames:
-                    if f.endswith(".po"):
-                        lang = f[:len(f) - 3]
-                        src = os.path.join(path, f)
-                        dest_path = os.path.join("build", "locale", lang, "LC_MESSAGES")
-                        dest = os.path.join(dest_path, "%s.mo"%mo_file)
-                        if not os.path.exists(dest_path):
-                            os.makedirs(dest_path)
-                        if not os.path.exists(dest):
-                            print("Compiling %s for %s" % (src, mo_file))
-                            po = polib.pofile(src);
-                            po.save_as_mofile(dest)
-                        else:
-                            src_mtime = os.stat(src)[8]
-                            dest_mtime = os.stat(dest)[8]
-                            if src_mtime > dest_mtime:
-                                print("Compiling %s for %s" % (src, mo_file))
-                                po = polib.pofile(src);
-                                po.save_as_mofile(dest)
+            os.path.join(os.path.dirname(os.curdir), "data/po") : "dockbarx",
+            os.path.join(os.path.dirname(os.curdir), "data/po-themes") : "dockbarx-themes"
+        }
+        for path in po_dict.keys():
+            for f in os.listdir(path):
+                if f.endswith(".po"):
+                    lang = f[:len(f) - 3]
+                    src = os.path.join(path, f)
+                    domain = po_dict[path]
+                    dest_path = os.path.join("build", "locale", lang, "LC_MESSAGES")
+                    dest = os.path.join(dest_path, "%s.mo" % domain)
+                    if not os.path.exists(dest_path):
+                        os.makedirs(dest_path)
+                    print("Compiling %s for %s" % (src, domain))
+                    po = polib.pofile(src);
+                    po.save_as_mofile(dest)
+        scan_path(dbx_files, "share/locale", "build/locale", ext=".mo")
 
-class build(_build):
-    sub_commands = _build.sub_commands + [("build_trans", None)]
-    def run(self):
-        _build.run(self)
-
-class install_data(_install_data):
+class install(_install):
 
     def run(self):
-        for lang in os.listdir("build/locale/"):
-            lang_dir = os.path.join("/", "usr", "share",
-                                    "locale", lang, "LC_MESSAGES")
-            lang_files = []
-            d_file = os.path.join("build", "locale", lang,
-                                  "LC_MESSAGES", "dockbarx.mo")
-            dt_file = os.path.join("build", "locale", lang,
-                                   "LC_MESSAGES", "dockbarx-themes.mo")
-            if os.path.exists(d_file):
-                lang_files.append(d_file)
-            if os.path.exists(dt_file):
-                lang_files.append(dt_file)
-            self.data_files.append( (lang_dir, lang_files) )
-        # Scan folders for the right files
-        self.scan_path("/usr/share/dockbarx/themes", "themes", ext=".tar.gz")
-        self.scan_path("share/icons/", "icons", ext=".png")
-        self.scan_path("share/dockbarx/applets/namebar_themes",
-                       "dockx_applets/namebar_themes",
-                       ext=".tar.gz")
-        _install_data.run(self)
-
-    def scan_path(self, install_path, base_path, path="", ext=""):
-        files = []
-        for f in os.listdir(os.path.join(base_path, path)):
-            fpath = os.path.join(base_path, path, f)
-            if os.path.isdir(fpath):
-                self.scan_path(install_path, base_path,
-                               os.path.join(path, f), ext)
-            elif os.path.isfile(fpath) and fpath.endswith(ext):
-                files.append(fpath)
-        if files:
-            self.data_files.append((os.path.join(install_path, path), files))
+        if self.distribution.data_files is None:
+            self.distribution.data_files = dbx_files
+        else:
+            for d in dbx_files:
+                self.distribution.data_files.append(d)
+        _install.run(self)
 
 
 cmdclass = {
-    "build": build,
-    "build_trans": build_trans,
-    "install_data": install_data,
+    "build_py": build_py,
+    "install": install,
 }
 
-data_files=[
-            ("share/dockbarx/applets", ["dockx_applets/clock.py",
-                                             "dockx_applets/clock.applet",
-                                             "dockx_applets/appindicator.py",
-                                             "dockx_applets/appindicator.applet",
-                                             "dockx_applets/hello_world.py",
-                                             "dockx_applets/hello_world.applet",
-                                             "dockx_applets/battery_status.py",
-                                             "dockx_applets/battery_status.applet",
-                                             "dockx_applets/battery_status_helper.sh",
-                                             "dockx_applets/namebar_common.py",
-                                             "dockx_applets/namebar_window_buttons.applet",
-                                             "dockx_applets/namebar_window_buttons.py",
-                                             "dockx_applets/namebar_window_title.applet",
-                                             "dockx_applets/namebar_window_title.py"]),
-            ("bin", ["dbx_preference", "dbx_migrate_settings", "dockx"]),
-            ("lib/mate-panel/", ["mate_panel_applet/dockbarx_mate_applet"]),
-            ("share/applications/", ["dbx_preference.desktop"]),
-            ("share/applications/", ["DockX.desktop"]),
-            ("share/glib-2.0/schemas/", ["org.dockbar.dockbarx.gschema.xml",
-                                         "dockx_applets/org.dockbar.applets.clock.gschema.xml",
-                                         "dockx_applets/org.dockbar.applets.hello-world.gschema.xml",
-                                         "dockx_applets/org.dockbar.applets.batterystatus.gschema.xml",
-                                         "dockx_applets/org.dockbar.applets.namebar.gschema.xml"]),
-            ("share/dbus-1/services/", ["mate_panel_applet/org.mate.panel.applet.DockbarXAppletFactory.service"]),
-            ("share/mate-panel/applets/", ["mate_panel_applet/org.mate.panel.DockbarX.mate-panel-applet"]),
-            ("share/mate-panel/ui/", ["mate_panel_applet/dockbarx-applet-menu.xml"]),
-         ]
-
-s = setup(name="Dockbarx",
+setup(name="Dockbarx",
       version=VERSION,
-      description="A dock-ish gnome-applet",
+      description="A dock-ish applet",
       author="Aleksey Shaferov and Matias Sars",
       url="http://launchpad.net/dockbar/",
       packages=["dockbarx"],
-      data_files=data_files,
       cmdclass=cmdclass
      )
 
-
-
-if len(sys.argv) == 2 and sys.argv[1] == "install":
-    install_data_path = s.command_obj['install'].install_data
-    schema_path = os.path.join(install_data_path, "share/glib-2.0/schemas")
-    os.system("glib-compile-schemas %s" % schema_path)
-    # create sudo policy file for battery_status_helper.sh
-    helper_file = os.path.join(install_data_path, 'share/dockbarx/applets/battery_status_helper.sh')
-    sudo_policy_file = '/etc/sudoers.d/dockbarx-applet-battery-status-helper'
-    try:
-        f = open(sudo_policy_file, 'w')
-        f.write('ALL ALL=(root) NOPASSWD:%s\n' % helper_file)
-        f.close()
-        os.chmod(sudo_policy_file, stat.S_IRUSR | stat.S_IRGRP)
-    except:
-        pass
 

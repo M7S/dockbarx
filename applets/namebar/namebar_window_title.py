@@ -29,11 +29,8 @@ from gi.repository import Wnck
 from tarfile import open as taropen
 from dockbarx.applets import DockXApplet
 
-from pathlib import Path
-file = Path(__file__).resolve()
-parent, root = file.parent, file.parents[1]
-sys.path.append(str(root))
-from applets.namebar_common import create_context_menu, PrefDialog
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from namebar.namebar_common import create_context_menu, PrefDialog
 
 class WindowTitleApplet(DockXApplet):
     def __init__(self, dbx_dict):
